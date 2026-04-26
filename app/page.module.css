@@ -79,37 +79,6 @@
   outline-offset: 3px;
 }
 
-.btnWhite {
-  display: inline-block;
-  background-color: #fff;
-  color: var(--accent);
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  padding: 0.85rem 1.75rem;
-  border: none;
-  border-radius: 4px;
-  transition: background-color 0.18s ease, transform 0.12s ease;
-  white-space: nowrap;
-  text-align: center;
-  cursor: pointer;
-}
-
-.btnWhite:hover,
-.btnWhite:focus-visible {
-  background-color: rgba(255, 255, 255, 0.88);
-}
-
-.btnWhite:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.6);
-  outline-offset: 3px;
-}
-
-.btnWhite:active {
-  transform: scale(0.98);
-}
-
 /* ─────────────────────────────────────────
    Shared section typography
 ───────────────────────────────────────── */
@@ -1034,13 +1003,12 @@ select.textInput {
 }
 
 /* ─────────────────────────────────────────
-   FAQ
+   FAQ — Foreground surface, accordion
 ───────────────────────────────────────── */
 
 .faq {
-  background-color: var(--bg);
-  padding-block: 5rem;
-  border-bottom: 1px solid var(--border);
+  background-color: var(--color-surface-section);
+  padding-block: 6rem;
 }
 
 .faqInner {
@@ -1053,11 +1021,11 @@ select.textInput {
 }
 
 .faqItem {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--color-border);
 }
 
 .faqItem:last-child {
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .faqQuestion {
@@ -1066,74 +1034,134 @@ select.textInput {
   align-items: center;
   gap: 1rem;
   width: 100%;
-  padding: 1.25rem 0;
+  padding: 1.5rem 0;
   background: none;
   border: none;
   font-family: var(--font-body), sans-serif;
-  font-size: 0.95rem;
+  font-size: 1.0625rem;
   font-weight: 600;
-  color: var(--text-primary);
+  line-height: 1.4;
+  color: var(--color-accent-1-deep-blue);
   text-align: left;
   cursor: pointer;
-  transition: color 0.15s ease;
+  transition: opacity 0.15s ease;
 }
 
 .faqQuestion:hover {
-  color: var(--accent);
+  opacity: 0.7;
 }
 
 .faqQuestion:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--color-accent-1-deep-blue);
   outline-offset: 2px;
   border-radius: 2px;
 }
 
 .faqIcon {
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   font-weight: 300;
-  color: var(--accent);
+  color: var(--color-accent-1-deep-blue);
   flex-shrink: 0;
   line-height: 1;
 }
 
 .faqAnswer {
-  padding-bottom: 1.5rem;
+  padding-bottom: 1.75rem;
 }
 
 .faqAnswer p {
-  font-size: 0.925rem;
-  line-height: 1.8;
-  color: var(--text-secondary);
-  max-width: 680px;
+  font-family: var(--font-body), sans-serif;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--color-accent-2-grey-blue);
+  max-width: 720px;
 }
 
 /* ─────────────────────────────────────────
-   Footer CTA
+   Footer CTA — Accent 1 deep blue band, amber CTA
 ───────────────────────────────────────── */
 
 .footerCta {
-  background-color: var(--accent);
-  padding-block: 5rem;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-surface-cta-band);
+  padding-block: 6rem;
   text-align: center;
 }
 
+.footerCtaWatermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  height: 400px;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
+.footerCta .container {
+  position: relative;
+  z-index: 1;
+}
+
 .footerCtaInner {
-  max-width: 640px;
+  max-width: 720px;
   margin-inline: auto;
 }
 
 .footerCtaHeading {
-  font-size: clamp(1.6rem, 3vw, 2.4rem);
-  font-weight: 700;
-  color: #fff;
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(1.875rem, 4.5vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  color: var(--color-text-inverse);
   margin-bottom: 1rem;
 }
 
 .footerCtaBody {
-  font-size: 1.05rem;
-  line-height: 1.7;
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 2rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 1.125rem;
+  line-height: 1.55;
+  color: rgba(242, 240, 244, 0.85);
+  margin-bottom: 2.25rem;
+  margin-inline: auto;
+  max-width: 560px;
+}
+
+/* Amber CTA on deep-blue surface — inverse of the Hero treatment.
+   The only place on the page where amber appears as a button fill. */
+.btnAmber {
+  display: inline-block;
+  background-color: var(--color-button-amber-bg);
+  color: var(--color-button-amber-text);
+  font-family: var(--font-body), sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  padding: 16px 28px;
+  border: 1.5px solid var(--color-button-amber-bg);
+  border-radius: 8px;
+  transition: filter 0.18s ease, transform 0.12s ease;
+  white-space: nowrap;
+  text-align: center;
+  cursor: pointer;
+}
+
+.btnAmber:hover,
+.btnAmber:focus-visible {
+  filter: brightness(0.94);
+}
+
+.btnAmber:focus-visible {
+  outline: 2px solid var(--color-foreground-cream);
+  outline-offset: 3px;
+}
+
+.btnAmber:active {
+  transform: scale(0.98);
 }
 
 /* ─────────────────────────────────────────

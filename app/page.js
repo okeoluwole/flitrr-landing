@@ -916,24 +916,28 @@ function Pilot() {
 
 const FAQS = [
   {
-    q: 'How is this different from Asana, Monday, or ClickUp?',
-    a: 'Generic PM tools are built for generic teams. FLITRR is built around real estate programme discipline — every action tagged to scope, cost, time, or quality, and flagged against your critical milestones. That framing doesn\'t exist in general-purpose tools, and it\'s the difference between logging work and governing a programme.',
+    q: 'What is Flitrr, and what is PULSE?',
+    a: 'Flitrr is the company. PULSE is our first product — a programme delivery platform for SME real estate developers. PULSE is built in modules; the first to ship is the Project Brief.',
   },
   {
-    q: 'My consultants and contractors won\'t adopt a new tool. What then?',
-    a: 'FLITRR is built for this reality. Invited users land on a simplified view — log an action, close an action, add a comment. No training. No onboarding. If logging in FLITRR is harder than sending a WhatsApp message, we\'ve failed.',
+    q: 'What is the Project Brief, exactly?',
+    a: "A formal document setting out a project's vision, objectives, criticality (glass-ball vs rubber-ball), constraints, stakeholders, and success criteria. It's the document a senior consultant would produce in a six-week engagement. PULSE walks you through the elicitation and exports the brief in 15 minutes.",
   },
   {
-    q: 'What\'s live today, and what\'s coming later?',
-    a: 'The Action Tracking module is live for pilot users today. Risk Register, Portfolio Dashboard, and Programme Tracker are in development and will roll out to pilot users as they\'re ready — at no additional cost during the pilot.',
+    q: "What's glass-ball vs rubber-ball?",
+    a: 'A two-bucket classification of every objective on your project. Glass-ball objectives shatter when dropped — completion date, planning consent, GIA. Rubber-ball objectives bounce — supplier choice, fit-out scheduling, finish spec. PULSE uses your classification to decide what gets flagged, escalated, or quietly tracked.',
   },
   {
-    q: 'What happens after the 90-day pilot?',
-    a: 'Pilot members move to founding-member pricing — a permanent discount on whatever plan exists at general launch. You\'re not locked in. You\'re not committed. But if FLITRR has earned its place in your workflow, you\'ll have the best deal anyone ever gets.',
+    q: 'How is PULSE different from Asana, Monday, or ClickUp?',
+    a: "Generic PM tools are built for generic teams. PULSE is built around real-estate programme discipline — every objective classified, every action tagged to the brief that authorised it, every flag tied to something the project literally cannot afford to lose. That framing doesn't exist in general-purpose tools.",
   },
   {
-    q: 'Do I need IT support to set this up?',
-    a: 'No. If you can add a project in a spreadsheet, you can set up FLITRR. Full onboarding takes under an hour.',
+    q: "My consultants won't adopt a new tool. Then what?",
+    a: "PULSE Project Brief doesn't ask your consultants to adopt anything — you produce the brief, you share the PDF, they read it like any other document. Later modules (Action Tracker, Risk Register) ask invited users for the lightest possible action: log, close, comment. No training. If using PULSE is harder than sending a WhatsApp message, we've failed.",
+  },
+  {
+    q: "What's live today, and what's coming?",
+    a: 'Nothing is live yet. The Project Brief module is in active build and ships first to design partners. Action Tracker, Risk Register, and Programme Tracker follow on the roadmap. Design partners get first access to each module as it ships.',
   },
 ];
 
@@ -991,17 +995,31 @@ function FAQ() {
 function FooterCta() {
   return (
     <section className={styles.footerCta} aria-labelledby="fcta-heading">
+      {/* Foreground F-mark stand-in watermark behind the heading. */}
+      <svg
+        className={styles.footerCtaWatermark}
+        viewBox="0 0 200 200"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <g fill="var(--color-foreground-cream)" opacity="0.08">
+          <rect x="0"  y="0"   width="200" height="34" rx="4" />
+          <rect x="0"  y="0"   width="34"  height="200" rx="4" />
+          <rect x="34" y="83"  width="120" height="34" rx="4" />
+        </g>
+      </svg>
+
       <div className="container">
         <div className={styles.footerCtaInner}>
           <h2 id="fcta-heading" className={styles.footerCtaHeading}>
-            Ten spots. First come, first served.
+            Ten design-partner spots. First come, first served.
           </h2>
           <p className={styles.footerCtaBody}>
-            The founding pilot cohort will shape how FLITRR grows. If that&rsquo;s
-            the seat you want, take it now.
+            PULSE will be shaped by the developers who use it first. If
+            that&rsquo;s the seat you want, take it now.
           </p>
-          <a href="#pilot" className={styles.btnWhite}>
-            Request pilot access
+          <a href="#pilot" className={styles.btnAmber}>
+            Request a design-partner spot
           </a>
         </div>
       </div>
