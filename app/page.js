@@ -398,24 +398,24 @@ function Thesis() {
 }
 
 /* ─────────────────────────────────────────
-   How It Works
+   How It Works — Project Brief in 15 minutes
 ───────────────────────────────────────── */
 
 const STEPS = [
   {
-    num: '01',
-    heading: 'Add your projects',
-    body: 'Enter your active developments. Define the critical milestones that matter — planning approval, ground-breaking, handover. FLITRR learns the spine of your portfolio.',
+    num: '1',
+    heading: 'Answer the questions.',
+    body: 'PULSE walks you through the questions a senior project manager would ask on day one — vision, objectives, constraints, stakeholders, success criteria. No PM jargon. No blank Word document.',
   },
   {
-    num: '02',
-    heading: 'Invite your team',
-    body: "Bring in your internal team, consultants, and contractors. One click. No training. They log actions and updates against the projects they're assigned to.",
+    num: '2',
+    heading: 'Classify what matters.',
+    body: 'For every objective you name, PULSE asks one question: glass or rubber? In ten minutes you have the criticality map most projects never get.',
   },
   {
-    num: '03',
-    heading: 'See what matters',
-    body: 'Every action is AI-tagged to the objectives it affects — scope, cost, time, quality — and flagged if it threatens a critical milestone. You know what to chase first, and why.',
+    num: '3',
+    heading: 'Export the brief.',
+    body: 'Download a formal Project Brief — the same document a consultancy would charge £50K to write — ready to share with your architect, QS, contractor, and lender.',
   },
 ];
 
@@ -428,8 +428,13 @@ function HowItWorks() {
     >
       <div className="container">
         <h2 id="hiw-heading" className={styles.sectionHeading}>
-          From sign-up to clarity in under an hour.
+          From blank page to formal brief in fifteen minutes.
         </h2>
+        <p className={styles.howItWorksSub}>
+          PULSE Project Brief takes you through the same elicitation a senior
+          consultant would walk you through — and exports the document at
+          the end.
+        </p>
         <ol className={styles.stepsList}>
           {STEPS.map(({ num, heading, body }) => (
             <li key={num} className={styles.step}>
@@ -439,6 +444,212 @@ function HowItWorks() {
             </li>
           ))}
         </ol>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────
+   Project Brief Deep-Dive (NEW Section 6)
+───────────────────────────────────────── */
+
+// Stylised elicitation flow — three Q&A pairs rendered as cards. The
+// "questions" are real but generic enough to read as the kind of
+// question a senior PM would ask; the "answers" are stylised lines so
+// we never invent project specifics.
+const ELICITATION_QUESTIONS = [
+  'What does done look like — and by when?',
+  "Which of these objectives can the project not afford to lose?",
+  'Who signs off the brief, and who needs to read it?',
+];
+
+function ElicitationFlow() {
+  return (
+    <div className={styles.elicitationFlow} aria-hidden="true">
+      {ELICITATION_QUESTIONS.map((q, i) => (
+        <div key={i} className={styles.elicitationCard}>
+          <span className={styles.elicitationQLabel}>Q{i + 1}</span>
+          <p className={styles.elicitationQuestion}>{q}</p>
+          <div className={styles.elicitationAnswerLines}>
+            <span style={{ width: '92%' }} />
+            <span style={{ width: '78%' }} />
+            <span style={{ width: '64%' }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Larger document mock for the Deep-Dive — same structure as the Hero
+// version (six labelled sections, F-mark stand-in watermark), at a
+// bigger viewBox with a bottom export bar.
+function BriefDocumentMockLarge() {
+  const COL_X = 50;
+  const COL_W = 500;
+  const TOP_PAD = 100;
+  const SECTION_GAP = 92;
+  const LABEL_TO_LINE = 18;
+  const LINE_PITCH = 13;
+  const LINE_THICKNESS = 5;
+
+  return (
+    <svg
+      viewBox="0 0 600 760"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label="Larger stylised representation of the Project Brief document, with sections for Vision, Objectives, Glass-ball, Rubber-ball, Constraints, Stakeholders, and an export bar at the bottom."
+      className={styles.briefMockLargeSvg}
+    >
+      <rect
+        x="0" y="0" width="600" height="760" rx="20" ry="20"
+        fill="var(--color-foreground-cream)"
+      />
+
+      {/* Header band — small "PROJECT BRIEF" pill */}
+      <rect
+        x={COL_X} y="40" width="160" height="22" rx="11" ry="11"
+        fill="var(--color-accent-3-light-grey-blue)"
+        opacity="0.5"
+      />
+      <text
+        x={COL_X + 80} y="55"
+        textAnchor="middle"
+        fontFamily="var(--font-body), sans-serif"
+        fontSize="12" fontWeight="600"
+        letterSpacing="0.08em"
+        fill="var(--color-accent-1-deep-blue)"
+      >
+        PROJECT BRIEF
+      </text>
+
+      {/* Watermark F-mark stand-in upper-right */}
+      <g
+        transform="translate(460, 36)"
+        fill="var(--color-accent-2-grey-blue)"
+        opacity="0.10"
+      >
+        <rect x="0"  y="0"  width="100" height="18" rx="3" />
+        <rect x="0"  y="0"  width="18"  height="100" rx="3" />
+        <rect x="18" y="41" width="64"  height="18" rx="3" />
+      </g>
+
+      {BRIEF_SECTIONS.map((section, idx) => {
+        const yStart = TOP_PAD + idx * SECTION_GAP;
+        return (
+          <g key={section.label}>
+            <text
+              x={COL_X} y={yStart}
+              fontFamily="var(--font-heading), sans-serif"
+              fontSize="14" fontWeight="800"
+              letterSpacing="0.08em"
+              fill="var(--color-accent-1-deep-blue)"
+            >
+              {section.label}
+            </text>
+            {section.lines.map((widthPct, lineIdx) => (
+              <rect
+                key={lineIdx}
+                x={COL_X}
+                y={yStart + LABEL_TO_LINE + lineIdx * LINE_PITCH}
+                width={COL_W * (widthPct / 100)}
+                height={LINE_THICKNESS}
+                rx={LINE_THICKNESS / 2}
+                fill="var(--color-accent-2-grey-blue)"
+              />
+            ))}
+            {idx < BRIEF_SECTIONS.length - 1 && (
+              <line
+                x1={COL_X}
+                x2={COL_X + COL_W}
+                y1={yStart + SECTION_GAP - 26}
+                y2={yStart + SECTION_GAP - 26}
+                stroke="var(--color-accent-3-light-grey-blue)"
+                strokeWidth="1"
+              />
+            )}
+          </g>
+        );
+      })}
+
+      {/* Bottom export bar */}
+      <rect
+        x="0" y="700" width="600" height="60"
+        fill="var(--color-accent-3-light-grey-blue)"
+        opacity="0.35"
+      />
+      <rect
+        x={COL_X} y="718" width="56" height="24" rx="6"
+        fill="var(--color-accent-1-deep-blue)"
+      />
+      <text
+        x={COL_X + 28} y="734"
+        textAnchor="middle"
+        fontFamily="var(--font-body), sans-serif"
+        fontSize="11" fontWeight="600"
+        letterSpacing="0.08em"
+        fill="var(--color-foreground-cream)"
+      >
+        PDF
+      </text>
+      <rect
+        x={COL_X + 68} y="718" width="64" height="24" rx="6"
+        fill="var(--color-accent-1-deep-blue)"
+      />
+      <text
+        x={COL_X + 100} y="734"
+        textAnchor="middle"
+        fontFamily="var(--font-body), sans-serif"
+        fontSize="11" fontWeight="600"
+        letterSpacing="0.08em"
+        fill="var(--color-foreground-cream)"
+      >
+        DOCX
+      </text>
+    </svg>
+  );
+}
+
+function ProjectBriefDeepDive() {
+  return (
+    <section
+      id="project-brief"
+      className={styles.deepDive}
+      aria-labelledby="deep-dive-heading"
+    >
+      <div className="container">
+        <p className={styles.deepDiveEyebrow}>PULSE Module 1 — Project Brief</p>
+        <h2 id="deep-dive-heading" className={styles.sectionHeading}>
+          The discipline to start right.
+        </h2>
+        <p className={styles.deepDiveLead}>
+          The Project Brief is the document every successful development starts
+          with — and the one most SME developers never produce. It captures
+          the vision, objectives, criticality, constraints, and stakeholders
+          a project lives or dies by, in a form everyone on the team can read
+          and sign off. PULSE turns a six-week consultancy engagement into a
+          fifteen-minute guided flow, exportable to PDF and Word.
+        </p>
+
+        <div className={styles.deepDiveSplit}>
+          <div className={styles.deepDiveLeft}>
+            <span className={styles.deepDiveLabel}>The elicitation</span>
+            <ElicitationFlow />
+          </div>
+          <div className={styles.deepDiveRight}>
+            <span className={styles.deepDiveLabel}>The brief</span>
+            <BriefDocumentMockLarge />
+          </div>
+        </div>
+
+        <div className={styles.deepDiveExport}>
+          <span className={styles.deepDiveExportPill}>PDF</span>
+          <span className={styles.deepDiveExportPill}>DOCX</span>
+          <span className={styles.deepDiveExportText}>
+            Export to PDF and Word — share it with your architect, QS,
+            contractor, and lender on day one.
+          </span>
+        </div>
       </div>
     </section>
   );
@@ -789,6 +1000,7 @@ export default function Home() {
         <Pain />
         <Thesis />
         <HowItWorks />
+        <ProjectBriefDeepDive />
         <WhatYouGet />
         <Pilot />
         <FAQ />

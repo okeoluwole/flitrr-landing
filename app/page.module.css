@@ -547,35 +547,41 @@
 }
 
 /* ─────────────────────────────────────────
-   How It Works
+   How It Works — amber surface, three numbered steps
 ───────────────────────────────────────── */
 
 .howItWorks {
-  background-color: #ffffff;
-  padding-block: 5rem;
-  border-bottom: 1px solid var(--border);
+  background-color: var(--color-surface-hero);
+  padding-block: 6rem;
+}
+
+.howItWorksSub {
+  font-family: var(--font-body), sans-serif;
+  font-size: 1.125rem;
+  line-height: 1.55;
+  color: var(--color-accent-1-deep-blue);
+  max-width: 660px;
+  margin-bottom: 3rem;
+  opacity: 0.85;
 }
 
 .stepsList {
   list-style: none;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.5rem;
-  margin-top: 3rem;
+  gap: 2rem;
+  margin-top: 1rem;
+  padding: 0;
 }
 
 @media (min-width: 768px) {
   .stepsList {
     grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
+    gap: 2.5rem;
   }
 }
 
 .step {
-  background-color: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 2rem;
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -585,31 +591,190 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  background-color: var(--accent);
-  color: #fff;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  background-color: var(--color-accent-1-deep-blue);
+  color: var(--color-foreground-cream);
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.01em;
   margin-bottom: 1.25rem;
   flex-shrink: 0;
 }
 
 .stepHeading {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--text-primary);
   font-family: var(--font-heading), sans-serif;
+  font-size: 1.375rem;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--color-accent-1-deep-blue);
   margin-bottom: 0.65rem;
 }
 
 .stepBody {
-  font-size: 0.9rem;
-  line-height: 1.75;
-  color: var(--text-secondary);
+  font-family: var(--font-body), sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-accent-1-deep-blue);
+  opacity: 0.9;
+}
+
+/* ─────────────────────────────────────────
+   Project Brief Deep-Dive (Section 6)
+───────────────────────────────────────── */
+
+.deepDive {
+  background-color: var(--color-surface-section);
+  padding-block: 6rem;
+}
+
+.deepDiveEyebrow {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-accent-2-grey-blue);
+  margin-bottom: 1.25rem;
+}
+
+.deepDiveLead {
+  font-family: var(--font-body), sans-serif;
+  font-size: 1.1875rem;
+  line-height: 1.55;
+  color: var(--color-accent-1-deep-blue);
+  max-width: 760px;
+  margin-bottom: 4rem;
+}
+
+.deepDiveSplit {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+@media (min-width: 960px) {
+  .deepDiveSplit {
+    grid-template-columns: 1fr 1.1fr;
+    gap: 4rem;
+  }
+}
+
+.deepDiveLeft,
+.deepDiveRight {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.deepDiveLabel {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-2-grey-blue);
+}
+
+/* ── Elicitation flow (left column) ── */
+
+.elicitationFlow {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.elicitationCard {
+  background-color: var(--color-foreground-cream);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  position: relative;
+}
+
+.elicitationQLabel {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-accent-2-grey-blue);
+}
+
+.elicitationQuestion {
+  font-family: var(--font-body), sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--color-accent-1-deep-blue);
+}
+
+.elicitationAnswerLines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.elicitationAnswerLines span {
+  display: block;
+  height: 5px;
+  border-radius: 2.5px;
+  background-color: var(--color-accent-2-grey-blue);
+  opacity: 0.55;
+}
+
+/* ── Larger document mock (right column) ── */
+
+.briefMockLargeSvg {
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 12px 40px rgba(55, 97, 131, 0.16));
+  border-radius: 20px;
+}
+
+/* ── Export indicator ── */
+
+.deepDiveExport {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 0.75rem;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.deepDiveExportPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-accent-1-deep-blue);
+  color: var(--color-foreground-cream);
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  padding: 6px 12px;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+.deepDiveExportText {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--color-accent-2-grey-blue);
 }
 
 /* ─────────────────────────────────────────
