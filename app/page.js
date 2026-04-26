@@ -24,21 +24,10 @@ function Nav() {
       <div className={`container ${styles.navInner}`}>
         <a
           href="#"
-          className={styles.brandLockup}
+          className={styles.navWordmark}
           aria-label="Flitrr — Monitoring What Matters"
         >
-          <img
-            src="/brand/f-mark.svg"
-            alt=""
-            className={styles.brandFMark}
-            width="32"
-            height="32"
-          />
-          <img
-            src="/brand/wordmark.svg"
-            alt="Flitrr"
-            className={styles.brandWordmark}
-          />
+          Flitrr
         </a>
 
         <nav
@@ -574,20 +563,7 @@ function Footer() {
       <div className="container">
         <div className={styles.footerTop}>
           <div className={styles.footerBrand}>
-            <div className={styles.footerLockup}>
-              <img
-                src="/brand/f-mark-on-dark.svg"
-                alt=""
-                className={styles.footerFMark}
-                width="28"
-                height="28"
-              />
-              <img
-                src="/brand/wordmark-on-dark.svg"
-                alt="Flitrr"
-                className={styles.footerWordmark}
-              />
-            </div>
+            <span className={styles.footerWordmark}>Flitrr</span>
             <p className={styles.footerTagline}>Monitoring What Matters.</p>
             <p className={styles.footerSubTagline}>
               Flitrr is the company behind PULSE.
