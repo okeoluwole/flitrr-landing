@@ -22,8 +22,23 @@ function Nav() {
   return (
     <header className={`${styles.nav} ${scrolled ? styles.navScrolled : ''}`} role="banner">
       <div className={`container ${styles.navInner}`}>
-        <a href="#" className={styles.wordmark} aria-label="FLITRR home">
-          FLITRR
+        <a
+          href="#"
+          className={styles.brandLockup}
+          aria-label="Flitrr — Monitoring What Matters"
+        >
+          <img
+            src="/brand/f-mark.svg"
+            alt=""
+            className={styles.brandFMark}
+            width="32"
+            height="32"
+          />
+          <img
+            src="/brand/wordmark.svg"
+            alt="Flitrr"
+            className={styles.brandWordmark}
+          />
         </a>
 
         <nav
@@ -31,11 +46,12 @@ function Nav() {
           className={`${styles.navLinks} ${menuOpen ? styles.navLinksOpen : ''}`}
           aria-label="Primary navigation"
         >
-          <a href="#platform" onClick={close}>Platform</a>
+          <a href="#pulse-modules" onClick={close}>PULSE</a>
+          <a href="#project-brief" onClick={close}>Project Brief</a>
           <a href="#pilot" onClick={close}>Pilot</a>
           <a href="#about" onClick={close}>About</a>
           <a href="#pilot" className={styles.navCta} onClick={close}>
-            Join Pilot
+            Join the pilot
           </a>
         </nav>
 
@@ -558,9 +574,23 @@ function Footer() {
       <div className="container">
         <div className={styles.footerTop}>
           <div className={styles.footerBrand}>
-            <span className={styles.footerWordmark}>FLITRR</span>
-            <p className={styles.footerTagline}>
-              Programme delivery for real estate developers.
+            <div className={styles.footerLockup}>
+              <img
+                src="/brand/f-mark-on-dark.svg"
+                alt=""
+                className={styles.footerFMark}
+                width="28"
+                height="28"
+              />
+              <img
+                src="/brand/wordmark-on-dark.svg"
+                alt="Flitrr"
+                className={styles.footerWordmark}
+              />
+            </div>
+            <p className={styles.footerTagline}>Monitoring What Matters.</p>
+            <p className={styles.footerSubTagline}>
+              Flitrr is the company behind PULSE.
             </p>
           </div>
           <div className={styles.footerLinks}>
@@ -572,15 +602,21 @@ function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               className={styles.footerLink}
-              aria-label="FLITRR on LinkedIn (opens in new tab)"
+              aria-label="Flitrr on LinkedIn (opens in new tab)"
             >
               LinkedIn
+            </a>
+            <a href="#" className={styles.footerLink}>
+              Privacy
+            </a>
+            <a href="#" className={styles.footerLink}>
+              Terms
             </a>
           </div>
         </div>
         <div className={styles.footerBottom}>
           <p className={styles.footerCopy}>
-            &copy; 2026 FLITRR. All rights reserved.
+            &copy; 2026 Flitrr Ltd. All rights reserved.
           </p>
         </div>
       </div>

@@ -134,14 +134,16 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background-color: var(--bg);
+  background-color: transparent;
   border-bottom: 1px solid transparent;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .navScrolled {
-  border-color: var(--border);
-  box-shadow: 0 1px 12px rgba(0, 0, 0, 0.05);
+  background-color: var(--color-surface-section);
+  border-color: var(--color-border);
+  box-shadow: 0 1px 12px rgba(55, 97, 131, 0.06);
 }
 
 .navInner {
@@ -151,13 +153,23 @@
   height: 64px;
 }
 
-.wordmark {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 1.35rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--accent);
+.brandLockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
   flex-shrink: 0;
+}
+
+.brandFMark {
+  width: 32px;
+  height: 32px;
+  display: block;
+}
+
+.brandWordmark {
+  height: 24px;
+  width: auto;
+  display: block;
 }
 
 .navLinks {
@@ -167,36 +179,40 @@
 }
 
 .navLinks a {
-  font-size: 0.875rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
   font-weight: 500;
-  color: var(--text-primary);
-  transition: color 0.15s ease;
+  letter-spacing: -0.005em;
+  color: var(--color-text-primary);
+  transition: color 0.15s ease, opacity 0.15s ease;
 }
 
 .navLinks a:hover,
 .navLinks a:focus-visible {
-  color: var(--accent);
+  opacity: 0.7;
 }
 
 .navLinks a:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--color-accent-1-deep-blue);
   outline-offset: 2px;
   border-radius: 2px;
 }
 
 .navCta {
-  background-color: var(--accent) !important;
-  color: #fff !important;
+  background-color: var(--color-button-primary-bg) !important;
+  color: var(--color-button-primary-text) !important;
   padding: 0.55rem 1.2rem;
-  border-radius: 4px;
+  border-radius: 999px;
   font-size: 0.875rem !important;
   font-weight: 600 !important;
-  transition: background-color 0.18s ease !important;
+  letter-spacing: 0.005em;
+  transition: filter 0.18s ease !important;
 }
 
 .navCta:hover,
 .navCta:focus-visible {
-  background-color: var(--accent-hover) !important;
+  filter: brightness(0.94);
+  opacity: 1 !important;
 }
 
 .hamburger {
@@ -214,7 +230,7 @@
 .bar {
   display: block;
   height: 1.5px;
-  background-color: var(--text-primary);
+  background-color: var(--color-accent-1-deep-blue);
   border-radius: 2px;
   transition: transform 0.22s ease, opacity 0.22s ease;
   transform-origin: center;
@@ -233,14 +249,14 @@
   .navLinks {
     position: fixed;
     inset: 64px 0 0 0;
-    background-color: var(--bg);
+    background-color: var(--color-surface-section);
     flex-direction: column;
     justify-content: flex-start;
     padding: 2rem 1.5rem;
     gap: 0;
     transform: translateX(100%);
     transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-    border-top: 1px solid var(--border);
+    border-top: 1px solid var(--color-border);
   }
 
   .navLinksOpen {
@@ -251,7 +267,7 @@
   .navLinks a {
     padding: 1rem 0;
     font-size: 1rem;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--color-border);
     width: 100%;
   }
 
@@ -1018,8 +1034,9 @@
 ───────────────────────────────────────── */
 
 .footer {
-  background-color: var(--text-primary);
+  background-color: var(--color-surface-cta-band);
   padding-block: 3rem 2rem;
+  color: var(--color-text-inverse);
 }
 
 .footerTop {
@@ -1027,7 +1044,7 @@
   flex-direction: column;
   gap: 2rem;
   padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--color-divider-on-dark);
 }
 
 @media (min-width: 640px) {
@@ -1038,21 +1055,44 @@
   }
 }
 
-.footerWordmark {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 1.3rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: #fff;
+.footerBrand {
+  max-width: 360px;
+}
+
+.footerLockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+
+.footerFMark {
+  width: 28px;
+  height: 28px;
   display: block;
-  margin-bottom: 0.5rem;
+}
+
+.footerWordmark {
+  height: 22px;
+  width: auto;
+  display: block;
 }
 
 .footerTagline {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.5);
-  max-width: 320px;
-  line-height: 1.55;
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.125rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--color-text-inverse);
+  margin-bottom: 0.4rem;
+}
+
+.footerSubTagline {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: rgba(242, 240, 244, 0.7);
+  line-height: 1.5;
 }
 
 .footerLinks {
@@ -1069,18 +1109,20 @@
 }
 
 .footerLink {
+  font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.65);
+  font-weight: 500;
+  color: rgba(242, 240, 244, 0.85);
   transition: color 0.15s ease;
 }
 
 .footerLink:hover,
 .footerLink:focus-visible {
-  color: #fff;
+  color: var(--color-text-inverse);
 }
 
 .footerLink:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline: 2px solid rgba(242, 240, 244, 0.5);
   outline-offset: 2px;
   border-radius: 2px;
 }
@@ -1090,6 +1132,8 @@
 }
 
 .footerCopy {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.35);
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: rgba(242, 240, 244, 0.6);
 }
