@@ -61,56 +61,120 @@ function Nav() {
 }
 
 /* ─────────────────────────────────────────
-   Hero visual (abstract dashboard mock)
+   Hero — Project Brief document mock (inline SVG)
 ───────────────────────────────────────── */
 
-function MockProject({ name, progress, status }) {
-  return (
-    <div className={styles.mockProject}>
-      <div className={styles.mockProjectMeta}>
-        <span className={styles.mockProjectName}>{name}</span>
-        <span className={`${styles.mockStatus} ${status === 'risk' ? styles.mockStatusRisk : ''}`}>
-          {status === 'risk' ? 'At risk' : 'On track'}
-        </span>
-      </div>
-      <div className={styles.mockBar}>
-        <div className={styles.mockBarFill} style={{ width: `${progress}%` }} />
-      </div>
-    </div>
-  );
-}
+// Stylised line widths per section, expressed as % of the body column
+// width. Real section content is intentionally absent (no invented
+// project names, no fake numbers); the mock reads as "the document
+// PULSE produces" without claiming any specific brief content.
+const BRIEF_SECTIONS = [
+  { label: 'VISION',       lines: [92, 78] },
+  { label: 'OBJECTIVES',   lines: [88, 74, 60] },
+  { label: 'GLASS-BALL',   lines: [82, 66] },
+  { label: 'RUBBER-BALL',  lines: [80, 70, 56] },
+  { label: 'CONSTRAINTS',  lines: [86, 72] },
+  { label: 'STAKEHOLDERS', lines: [78, 64, 50] },
+];
 
-function HeroVisual() {
+function BriefDocumentMock() {
+  // viewBox 480 x 600; body column starts at x=40, runs to x=440 (400 wide).
+  // Sections are rendered as label + 2-3 lines, separated by Accent 3 dividers.
+  const COL_X = 40;
+  const COL_W = 400;
+  const TOP_PAD = 88;            // header band height + breathing room
+  const SECTION_GAP = 78;        // vertical pitch between section starts
+  const LABEL_TO_LINE = 16;      // gap from label baseline to first line
+  const LINE_PITCH = 12;         // gap between body lines
+  const LINE_THICKNESS = 4;
+
   return (
-    <div className={styles.heroVisualWrap} aria-hidden="true">
-      <div className={styles.mockCard}>
-        <div className={styles.mockHeader}>
-          <span className={styles.mockHeaderTitle}>Portfolio</span>
-          <span className={styles.mockLivePill}>Live</span>
-        </div>
-        <div className={styles.mockBody}>
-          <MockProject name="Thornfield Residential" progress={72} status="ok" />
-          <MockProject name="Parkview Commercial"    progress={48} status="risk" />
-          <MockProject name="Marina Quarter"         progress={88} status="ok" />
-        </div>
-        <div className={styles.mockFooter}>
-          <div className={styles.mockStat}>
-            <span className={styles.mockStatNum}>14</span>
-            <span className={styles.mockStatLabel}>Open actions</span>
-          </div>
-          <div className={styles.mockStatDivider} />
-          <div className={styles.mockStat}>
-            <span className={`${styles.mockStatNum} ${styles.mockStatNumAlert}`}>3</span>
-            <span className={styles.mockStatLabel}>Critical flags</span>
-          </div>
-          <div className={styles.mockStatDivider} />
-          <div className={styles.mockStat}>
-            <span className={styles.mockStatNum}>3</span>
-            <span className={styles.mockStatLabel}>Projects</span>
-          </div>
-        </div>
-      </div>
-    </div>
+    <svg
+      viewBox="0 0 480 600"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label="Stylised representation of a Project Brief document with sections for Vision, Objectives, Glass-ball, Rubber-ball, Constraints, and Stakeholders."
+      className={styles.briefMockSvg}
+    >
+      {/* Card */}
+      <rect
+        x="0" y="0" width="480" height="600" rx="16" ry="16"
+        fill="var(--color-foreground-cream)"
+      />
+
+      {/* Header band — small "PROJECT BRIEF" pill, top-right */}
+      <rect
+        x={COL_X} y="32" width="140" height="20" rx="10" ry="10"
+        fill="var(--color-accent-3-light-grey-blue)"
+        opacity="0.5"
+      />
+      <text
+        x={COL_X + 70} y="46"
+        textAnchor="middle"
+        fontFamily="var(--font-body), sans-serif"
+        fontSize="11" fontWeight="600"
+        letterSpacing="0.08em"
+        fill="var(--color-accent-1-deep-blue)"
+      >
+        PROJECT BRIEF
+      </text>
+
+      {/* Watermark F-mark stand-in — Accent 2 grey-blue at 8% opacity,
+          rendered as a stylised geometric F glyph in the upper-right. */}
+      <g
+        transform="translate(364, 28)"
+        fill="var(--color-accent-2-grey-blue)"
+        opacity="0.08"
+      >
+        <rect x="0"  y="0"  width="80" height="14" rx="2" />
+        <rect x="0"  y="0"  width="14" height="80" rx="2" />
+        <rect x="14" y="33" width="50" height="14" rx="2" />
+      </g>
+
+      {/* Sections */}
+      {BRIEF_SECTIONS.map((section, idx) => {
+        const yStart = TOP_PAD + idx * SECTION_GAP;
+        return (
+          <g key={section.label}>
+            {/* Section label */}
+            <text
+              x={COL_X} y={yStart}
+              fontFamily="var(--font-heading), sans-serif"
+              fontSize="13" fontWeight="800"
+              letterSpacing="0.08em"
+              fill="var(--color-accent-1-deep-blue)"
+            >
+              {section.label}
+            </text>
+
+            {/* Stylised body lines */}
+            {section.lines.map((widthPct, lineIdx) => (
+              <rect
+                key={lineIdx}
+                x={COL_X}
+                y={yStart + LABEL_TO_LINE + lineIdx * LINE_PITCH}
+                width={COL_W * (widthPct / 100)}
+                height={LINE_THICKNESS}
+                rx={LINE_THICKNESS / 2}
+                fill="var(--color-accent-2-grey-blue)"
+              />
+            ))}
+
+            {/* Divider below the section (skip for the final one) */}
+            {idx < BRIEF_SECTIONS.length - 1 && (
+              <line
+                x1={COL_X}
+                x2={COL_X + COL_W}
+                y1={yStart + SECTION_GAP - 22}
+                y2={yStart + SECTION_GAP - 22}
+                stroke="var(--color-accent-3-light-grey-blue)"
+                strokeWidth="1"
+              />
+            )}
+          </g>
+        );
+      })}
+    </svg>
   );
 }
 
@@ -121,28 +185,46 @@ function HeroVisual() {
 function Hero() {
   return (
     <section className={styles.hero} aria-labelledby="hero-heading">
+      {/* Quiet F-mark stand-in watermark behind the headline column —
+          Accent 2 grey-blue at 8% opacity per the locked-decision spec. */}
+      <svg
+        className={styles.heroWatermark}
+        viewBox="0 0 200 200"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <g fill="var(--color-accent-2-grey-blue)" opacity="0.08">
+          <rect x="0"  y="0"   width="200" height="34" rx="4" />
+          <rect x="0"  y="0"   width="34"  height="200" rx="4" />
+          <rect x="34" y="83"  width="120" height="34" rx="4" />
+        </g>
+      </svg>
+
       <div className="container">
         <div className={styles.heroGrid}>
           <div className={styles.heroContent}>
-            <p className={styles.eyebrow}>Programme Delivery · AI-Assisted</p>
+            <p className={styles.eyebrow}>Introducing PULSE — by Flitrr</p>
             <h1 id="hero-heading" className={styles.heroHeading}>
               Monitoring What Matters.
             </h1>
             <p className={styles.heroSub}>
-              FLITRR is a programme delivery platform built for SME real estate
-              developers — bringing institutional discipline to how you manage
-              your portfolio.
+              Flitrr builds programme delivery tools for SME real estate
+              developers. Our first product, <strong>PULSE</strong>, gives
+              you the discipline the big consultancies sell for £50K —
+              starting with the document every project should begin with.
             </p>
             <div className={styles.heroCtas}>
               <a href="#pilot" className={styles.btnPrimary}>
-                Join the pilot
+                Join the PULSE pilot
               </a>
-              <a href="#how-it-works" className={styles.btnGhost}>
-                See how it works &rarr;
+              <a href="#project-brief" className={styles.btnGhost}>
+                See the Project Brief &rarr;
               </a>
             </div>
           </div>
-          <HeroVisual />
+          <div className={styles.heroVisualWrap} aria-hidden="true">
+            <BriefDocumentMock />
+          </div>
         </div>
       </div>
     </section>
