@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <!-- Amber background, full bleed -->
+  <rect width="1200" height="630" fill="#F4C031"/>
+
+  <!-- Top-left: typed letter F in Montserrat ExtraBold deep blue, ~200px tall -->
+  <text
+    x="80"
+    y="80"
+    fill="#376183"
+    font-family="Montserrat, 'Helvetica Neue', Arial, sans-serif"
+    font-weight="800"
+    font-size="220"
+    letter-spacing="-0.04em"
+    dominant-baseline="hanging"
+  >F</text>
+
+  <!-- Headline: "Monitoring What Matters." Centred vertically in the lower-middle band, deep blue -->
+  <text
+    x="80"
+    y="400"
+    fill="#376183"
+    font-family="Montserrat, 'Helvetica Neue', Arial, sans-serif"
+    font-weight="800"
+    font-size="82"
+    letter-spacing="-0.025em"
+    dominant-baseline="middle"
+  >Monitoring What Matters.</text>
+
+  <!-- Sub-line: PULSE descriptor in Inter 500 deep blue, ~36px -->
+  <text
+    x="80"
+    y="500"
+    fill="#376183"
+    font-family="Inter, 'Helvetica Neue', Arial, sans-serif"
+    font-weight="500"
+    font-size="34"
+    letter-spacing="-0.005em"
+    dominant-baseline="middle"
+  >PULSE — programme delivery for SME real estate developers.</text>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <rect width="32" height="32" fill="#F4C031"/>
+  <text
+    x="16"
+    y="16"
+    fill="#376183"
+    font-family="Montserrat, 'Helvetica Neue', Arial, sans-serif"
+    font-weight="800"
+    font-size="22"
+    letter-spacing="-0.04em"
+    text-anchor="middle"
+    dominant-baseline="central"
+  >F</text>
+</svg>
