@@ -656,70 +656,93 @@ function ProjectBriefDeepDive() {
 }
 
 /* ─────────────────────────────────────────
-   What You Get
+   PULSE Modules (Section 7)
 ───────────────────────────────────────── */
 
-const COMING_SOON = [
+const PULSE_MODULES = [
   {
-    heading: 'Risk Register',
-    body: 'Structured risk capture with the same objective-tagging discipline. Know which risks threaten which objectives, and track mitigation alongside the actions that close them.',
+    name: 'Project Brief',
+    statusLabel: 'In build · Pilot Q3 2026',
+    statusVariant: 'inBuild',
+    body: 'Guided elicitation that produces the formal Project Brief document — vision, objectives, glass / rubber criticality, constraints, stakeholders. Exportable to PDF and Word.',
+    tagline: 'The discipline to start right.',
   },
   {
-    heading: 'Portfolio Dashboard',
-    body: 'A single visual view of every project\'s status, open actions, live risks, and milestone trajectory. The Monday review answer, without the Monday prep.',
+    name: 'Action Tracker',
+    statusLabel: 'Designed · Build follows Project Brief',
+    statusVariant: 'designed',
+    body: 'Every open action across every project, classified against the glass-ball objectives from your brief. Flagged when the action threatens a glass.',
   },
   {
-    heading: 'Programme Tracker',
-    body: 'Full critical path visibility. Dependencies, float, and schedule impact modelling — the institutional scheduler, finally built for developers who don\'t have a PMO.',
+    name: 'Risk Register',
+    statusLabel: 'Designed · Build to follow',
+    statusVariant: 'designed',
+    body: 'Structured risk capture tagged to glass-ball objectives. Mitigation tracked alongside the actions that close it.',
+  },
+  {
+    name: 'Programme Tracker',
+    statusLabel: 'Designed · Build to follow',
+    statusVariant: 'designed',
+    body: 'Critical-path visibility with dependencies, float, and schedule impact — the institutional scheduler, finally built for developers without a PMO.',
   },
 ];
+
+// Stylised F-mark stand-in used as the in-card watermark, drawn as a
+// small geometric F glyph in Accent 3 at low opacity.
+function ModuleCardWatermark() {
+  return (
+    <svg
+      className={styles.moduleCardMark}
+      viewBox="0 0 60 60"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <g fill="var(--color-accent-3-light-grey-blue)" opacity="0.55">
+        <rect x="0"  y="0"  width="60" height="10" rx="2" />
+        <rect x="0"  y="0"  width="10" height="60" rx="2" />
+        <rect x="10" y="25" width="36" height="10" rx="2" />
+      </g>
+    </svg>
+  );
+}
 
 function WhatYouGet() {
   return (
     <section
-      id="platform"
+      id="pulse-modules"
       className={styles.platform}
       aria-labelledby="platform-heading"
     >
       <div className="container">
         <h2 id="platform-heading" className={styles.sectionHeading}>
-          Live today. Built for what comes next.
+          PULSE: four modules, one discipline.
         </h2>
         <p className={styles.sectionSub}>
-          FLITRR is a platform, not a feature. We&rsquo;re launching with the
-          module that drives the most immediate value — and rolling out the rest
-          of the governance stack over the coming months.
+          PULSE is being built one module at a time. Each module shares the
+          same glass / rubber spine — so what you classify in the Project
+          Brief drives what gets flagged everywhere else.
         </p>
 
-        {/* Live card */}
-        <div className={styles.liveCard}>
-          <span className={styles.liveLabel}>&#10003;&nbsp; Available in pilot</span>
-          <h3 className={styles.liveCardHeading}>Action Tracking</h3>
-          <p className={styles.liveCardBody}>
-            Every open action across every project, in one place. AI-assisted
-            tagging to scope, cost, time, and quality. Automatic flagging of
-            items that threaten your critical milestones. Assign to anyone —
-            team, consultants, contractors — and let FLITRR handle the
-            follow-up.
-          </p>
-          <ul className={styles.featureList}>
-            <li>Portfolio-wide action visibility</li>
-            <li>AI-assisted objective tagging</li>
-            <li>Critical milestone impact flags</li>
-            <li>Multi-party assignment (internal, consultant, contractor)</li>
-            <li>Comment threads on every action</li>
-          </ul>
-        </div>
-
-        {/* Coming soon cards */}
-        <div className={styles.comingSoonHeader}>
-          <span className={styles.comingLabel}>&#8987;&nbsp; Rolling out to pilot cohort</span>
-        </div>
-        <div className={styles.comingSoonGrid}>
-          {COMING_SOON.map(({ heading, body }) => (
-            <article key={heading} className={styles.comingSoonCard}>
-              <h3 className={styles.comingSoonHeading}>{heading}</h3>
-              <p className={styles.comingSoonBody}>{body}</p>
+        <div className={styles.moduleGrid}>
+          {PULSE_MODULES.map((mod) => (
+            <article key={mod.name} className={styles.moduleCard}>
+              <ModuleCardWatermark />
+              <div className={styles.moduleCardBody}>
+                <span
+                  className={`${styles.statusPill} ${
+                    mod.statusVariant === 'inBuild'
+                      ? styles.statusPillInBuild
+                      : styles.statusPillDesigned
+                  }`}
+                >
+                  {mod.statusLabel}
+                </span>
+                <h3 className={styles.moduleHeading}>{mod.name}</h3>
+                <p className={styles.moduleBody}>{mod.body}</p>
+                {mod.tagline && (
+                  <p className={styles.moduleTagline}>{mod.tagline}</p>
+                )}
+              </div>
             </article>
           ))}
         </div>
@@ -729,27 +752,29 @@ function WhatYouGet() {
 }
 
 /* ─────────────────────────────────────────
-   Pilot
+   Pilot — PULSE design-partner programme (Section 8)
 ───────────────────────────────────────── */
 
 const PILOT_BLOCKS = [
   {
     heading: 'What it is',
-    body: 'Ten SME real estate developers. 90 days of free access to FLITRR. Weekly feedback sessions with the founder. Direct influence over the roadmap.',
+    body: 'A 90-day design-partner programme. Weekly working sessions with the founder while we build the Project Brief module. First access on release. Direct say in what gets built next.',
   },
   {
     heading: 'What you give',
-    body: 'Honest use. Honest feedback. A willingness to shape a product, not just test one.',
+    body: 'Two real projects, two hours a week, and honest feedback. A willingness to shape a product before it’s finished.',
   },
   {
     heading: 'What you get',
-    body: 'Lifetime founding-member pricing. Priority access to new modules as they launch. A direct line to the team building the tool.',
+    body: 'Lifetime founding-member pricing on PULSE. Priority access to every module as it ships. A direct line to the team building the tool.',
   },
 ];
 
 function Pilot() {
   const [email, setEmail] = useState('');
   const [company, setCompany] = useState('');
+  const [portfolio, setPortfolio] = useState('');
+  const [market, setMarket] = useState('');
   const [status, setStatus] = useState('idle'); // idle | success | error
 
   const handleSubmit = (e) => {
@@ -761,14 +786,21 @@ function Pilot() {
     setStatus('success');
     setEmail('');
     setCompany('');
+    setPortfolio('');
+    setMarket('');
   };
 
   return (
     <section id="pilot" className={styles.pilot} aria-labelledby="pilot-heading">
       <div className="container">
         <h2 id="pilot-heading" className={styles.sectionHeading}>
-          Join the founding pilot cohort.
+          Be a PULSE design partner.
         </h2>
+        <p className={styles.pilotSub}>
+          Ten SME developers. Direct input into the product before it
+          launches. First access to the Project Brief module the moment
+          it&rsquo;s ready.
+        </p>
 
         <div className={styles.pilotBlocks}>
           {PILOT_BLOCKS.map(({ heading, body }) => (
@@ -784,8 +816,8 @@ function Pilot() {
             {status === 'success' ? (
               <div className={styles.successMsg} role="status" aria-live="polite">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                  <circle cx="10" cy="10" r="9" stroke="#0d5a3d" strokeWidth="1.5" />
-                  <path d="M5.5 10.5l3 3 6-6" stroke="#0d5a3d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <circle cx="10" cy="10" r="9" stroke="var(--color-accent-1-deep-blue)" strokeWidth="1.5" />
+                  <path d="M5.5 10.5l3 3 6-6" stroke="var(--color-accent-1-deep-blue)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 <span>
                   Thank you — we&rsquo;ll be in touch shortly to confirm your spot.
@@ -794,7 +826,9 @@ function Pilot() {
             ) : (
               <form className={styles.pilotForm} onSubmit={handleSubmit} noValidate>
                 <div className={styles.inputWrap}>
-                  <label htmlFor="pilot-email" className={styles.srOnly}>Email address</label>
+                  <label htmlFor="pilot-email" className={styles.formLabel}>
+                    Email address
+                  </label>
                   <input
                     id="pilot-email"
                     type="email"
@@ -816,23 +850,58 @@ function Pilot() {
                   )}
                 </div>
                 <div className={styles.inputWrap}>
-                  <label htmlFor="pilot-company" className={styles.srOnly}>Company name</label>
+                  <label htmlFor="pilot-company" className={styles.formLabel}>
+                    Company / practice name
+                  </label>
                   <input
                     id="pilot-company"
                     type="text"
-                    placeholder="Company / practice name"
+                    placeholder="e.g. Northpoint Developments"
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
                     className={styles.textInput}
                   />
                 </div>
+                <div className={styles.inputWrap}>
+                  <label htmlFor="pilot-portfolio" className={styles.formLabel}>
+                    Portfolio size
+                  </label>
+                  <select
+                    id="pilot-portfolio"
+                    value={portfolio}
+                    onChange={(e) => setPortfolio(e.target.value)}
+                    className={styles.textInput}
+                  >
+                    <option value="">Select…</option>
+                    <option value="1">1 project</option>
+                    <option value="2-3">2–3 projects</option>
+                    <option value="4+">4+ projects</option>
+                  </select>
+                </div>
+                <div className={styles.inputWrap}>
+                  <label htmlFor="pilot-market" className={styles.formLabel}>
+                    Primary market
+                  </label>
+                  <select
+                    id="pilot-market"
+                    value={market}
+                    onChange={(e) => setMarket(e.target.value)}
+                    className={styles.textInput}
+                  >
+                    <option value="">Select…</option>
+                    <option value="UK">UK</option>
+                    <option value="Nigeria">Nigeria</option>
+                    <option value="Both">Both</option>
+                  </select>
+                </div>
                 <button type="submit" className={`${styles.btnPrimary} ${styles.btnFullWidth}`}>
-                  Request access
+                  Request a design-partner spot
                 </button>
               </form>
             )}
             <p className={styles.pilotNote}>
-              No payment required. No commitment beyond the pilot. Ten spots total.
+              No payment. No commitment beyond the design-partner programme.
+              Ten spots total.
             </p>
           </div>
         </div>

@@ -778,212 +778,183 @@
 }
 
 /* ─────────────────────────────────────────
-   What You Get (Platform)
+   PULSE Modules (Section 7)
 ───────────────────────────────────────── */
 
 .platform {
-  background-color: var(--bg);
-  padding-block: 5rem;
-  border-bottom: 1px solid var(--border);
+  background-color: var(--color-surface-section);
+  padding-block: 6rem;
 }
 
-/* Live card */
-.liveCard {
-  background-color: #fff;
-  border: 1.5px solid var(--accent);
-  border-radius: 8px;
-  padding: 2.5rem;
-  margin-bottom: 2.5rem;
-  max-width: 680px;
-}
-
-.liveLabel {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--accent);
-  background-color: #e8f3ed;
-  padding: 0.3rem 0.7rem;
-  border-radius: 4px;
-  margin-bottom: 1.25rem;
-}
-
-.liveCardHeading {
-  font-size: 1.4rem;
-  font-weight: 700;
-  margin-bottom: 0.8rem;
-  font-family: var(--font-heading), sans-serif;
-}
-
-.liveCardBody {
-  font-size: 0.95rem;
-  line-height: 1.75;
-  color: var(--text-secondary);
-  margin-bottom: 1.5rem;
-}
-
-.featureList {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-}
-
-.featureList li {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  padding-left: 1.2rem;
-  position: relative;
-}
-
-.featureList li::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0.55em;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: var(--accent);
-}
-
-/* Coming soon */
-.comingSoonHeader {
-  margin-bottom: 1.25rem;
-}
-
-.comingLabel {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: #92400e;
-  background-color: #fef3c7;
-  border: 1px solid #fde68a;
-  padding: 0.35rem 0.8rem;
-  border-radius: 4px;
-}
-
-.comingSoonGrid {
+.moduleGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.25rem;
+  gap: 1.5rem;
+  margin-top: 1rem;
 }
 
 @media (min-width: 640px) {
-  .comingSoonGrid {
+  .moduleGrid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (min-width: 900px) {
-  .comingSoonGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.comingSoonCard {
-  padding: 1.75rem;
-  background-color: #f8f8f5;
-  border: 1px dashed #c8c6c0;
-  border-radius: 8px;
+.moduleCard {
   position: relative;
+  background-color: var(--color-foreground-cream);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-.comingSoonHeading {
-  font-size: 1rem;
-  font-weight: 700;
-  margin-bottom: 0.65rem;
+.moduleCardMark {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  width: 36px;
+  height: 36px;
+  pointer-events: none;
+  user-select: none;
+  opacity: var(--opacity-watermark-bug);
+}
+
+.moduleCardBody {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 5px 11px;
+  border-radius: 999px;
+  white-space: nowrap;
+  max-width: calc(100% - 50px); /* leave room for the watermark */
+}
+
+.statusPillInBuild {
+  background-color: var(--color-pill-in-build-bg);
+  color: var(--color-pill-in-build-text);
+}
+
+.statusPillDesigned {
+  background-color: var(--color-pill-designed-bg);
+  color: var(--color-pill-designed-text);
+}
+
+.moduleHeading {
   font-family: var(--font-heading), sans-serif;
-  color: var(--text-primary);
+  font-size: 1.375rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--color-accent-1-deep-blue);
+  margin: 0;
 }
 
-.comingSoonBody {
-  font-size: 0.875rem;
-  line-height: 1.7;
-  color: var(--text-secondary);
+.moduleBody {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--color-accent-2-grey-blue);
+  margin: 0;
+}
+
+.moduleTagline {
+  font-family: var(--font-body), sans-serif;
+  font-style: italic;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--color-accent-1-deep-blue);
+  margin: 0.25rem 0 0 0;
 }
 
 /* ─────────────────────────────────────────
-   Pilot
+   Pilot — design-partner programme (Section 8)
 ───────────────────────────────────────── */
 
 .pilot {
-  background-color: #ffffff;
-  padding-block: 5rem;
-  border-bottom: 1px solid var(--border);
-  text-align: center;
+  background-color: var(--color-surface-hero);
+  padding-block: 6rem;
 }
 
-/* Override text-align for left-aligned prose inside the centred section */
-.pilotBlock,
-.pilotFormWrap {
-  text-align: left;
+.pilotSub {
+  font-family: var(--font-body), sans-serif;
+  font-size: 1.125rem;
+  line-height: 1.55;
+  color: var(--color-accent-1-deep-blue);
+  max-width: 660px;
+  margin-bottom: 3rem;
 }
 
 .pilotBlocks {
   display: grid;
   grid-template-columns: 1fr;
   gap: 2rem;
-  margin-top: 2.5rem;
   margin-bottom: 3.5rem;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 720px) {
   .pilotBlocks {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
 .pilotBlock {
-  padding-top: 1.5rem;
-  border-top: 2px solid var(--border);
+  padding-top: 1.25rem;
+  border-top: 2px solid var(--color-accent-1-deep-blue);
 }
 
 .pilotBlockHeading {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 0.75rem;
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--color-accent-1-deep-blue);
+  margin-bottom: 0.65rem;
 }
 
 .pilotBlockBody {
-  font-size: 0.925rem;
-  line-height: 1.75;
-  color: var(--text-secondary);
+  font-family: var(--font-body), sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-accent-1-deep-blue);
+  opacity: 0.9;
 }
 
-/* Form — centred, max 500px */
+/* Form */
 .pilotFormWrap {
-  max-width: 500px;
+  max-width: 540px;
   margin-inline: auto;
 }
 
 .pilotFormCard {
-  background-color: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  background-color: var(--color-foreground-cream);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
   padding: 2rem;
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 1rem;
   margin-bottom: 1rem;
+  box-shadow: 0 8px 32px rgba(55, 97, 131, 0.08);
 }
 
 .pilotForm {
-  display: contents; /* children participate in pilotFormCard's flex flow */
+  display: contents; /* children participate in the card's flex flow */
 }
 
 .inputWrap {
@@ -992,50 +963,74 @@
   gap: 0.4rem;
 }
 
+.formLabel {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-accent-1-deep-blue);
+}
+
 .textInput {
   width: 100%;
   height: 48px;
-  padding: 0 1rem;
-  border: 1.5px solid var(--border);
-  border-radius: 4px;
+  padding: 0 0.9rem;
+  border: 1px solid var(--color-input-border);
+  border-radius: 8px;
   font-family: var(--font-body), sans-serif;
-  font-size: 0.9rem;
-  background-color: #fff;
-  color: var(--text-primary);
+  font-size: 1rem;
+  background-color: var(--color-input-bg);
+  color: var(--color-input-text);
   transition: border-color 0.15s ease;
   outline: none;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .textInput::placeholder {
-  color: #bbb;
+  color: var(--color-input-placeholder);
 }
 
 .textInput:focus {
-  border-color: var(--accent);
+  border-color: var(--color-input-focus);
+}
+
+select.textInput {
+  /* Native chevron via background image — keeps the field consistent
+     with text inputs while still indicating it's a selector. */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'><path d='M1 1l5 5 5-5' stroke='%237793A8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+  cursor: pointer;
 }
 
 .inputError {
-  border-color: #c0392b;
+  border-color: var(--color-error);
 }
 
 .errorMsg {
-  font-size: 0.8rem;
-  color: #c0392b;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  color: var(--color-error);
 }
 
 .successMsg {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  font-size: 0.95rem;
-  color: var(--accent);
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  color: var(--color-accent-1-deep-blue);
   font-weight: 500;
 }
 
 .pilotNote {
-  font-size: 0.78rem;
-  color: var(--text-secondary);
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  color: var(--color-accent-2-grey-blue);
   line-height: 1.5;
+  text-align: center;
 }
 
 /* ─────────────────────────────────────────
