@@ -925,7 +925,7 @@ const FAQS = [
   },
   {
     q: "What's glass-ball vs rubber-ball?",
-    a: 'A two-bucket classification of every objective on your project. Glass-ball objectives shatter when dropped — completion date, planning consent, GIA. Rubber-ball objectives bounce — supplier choice, fit-out scheduling, finish spec. PULSE uses your classification to decide what gets flagged, escalated, or quietly tracked.',
+    a: "A two-bucket classification of every objective on your project. Glass-ball objectives are critical to project success — miss one and the project has failed against what it was set up to deliver. Examples: completion date, planning consent retained, GIA target. Rubber-ball objectives matter to delivery but won't break the project if they slip or change. Examples: supplier choice, fit-out scheduling, finish specification. PULSE uses your classification to decide what gets flagged, escalated, or quietly tracked.",
   },
   {
     q: 'How is PULSE different from Asana, Monday, or ClickUp?',
