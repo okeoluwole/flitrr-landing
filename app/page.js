@@ -3,65 +3,9 @@
 import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 
-/* ─── Icons (inline SVG, no external deps) ─── */
-
-function IconFragmented() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-      <rect x="1" y="1" width="10" height="10" rx="2" stroke="#0d5a3d" strokeWidth="1.6" />
-      <rect x="17" y="1" width="10" height="10" rx="2" stroke="#0d5a3d" strokeWidth="1.6" />
-      <rect x="1" y="17" width="10" height="10" rx="2" stroke="#0d5a3d" strokeWidth="1.6" />
-      <rect x="17" y="17" width="10" height="10" rx="2" stroke="#0d5a3d" strokeWidth="1.6" />
-      <line x1="11" y1="6" x2="17" y2="6" stroke="#0d5a3d" strokeWidth="1.6" strokeDasharray="2 2" />
-      <line x1="6" y1="11" x2="6" y2="17" stroke="#0d5a3d" strokeWidth="1.6" strokeDasharray="2 2" />
-    </svg>
-  );
-}
-
-function IconVisibility() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-      <circle cx="14" cy="14" r="12" stroke="#0d5a3d" strokeWidth="1.6" />
-      <line x1="14" y1="6" x2="14" y2="14" stroke="#0d5a3d" strokeWidth="1.8" strokeLinecap="round" />
-      <line x1="14" y1="14" x2="20" y2="18" stroke="#0d5a3d" strokeWidth="1.8" strokeLinecap="round" />
-      <circle cx="14" cy="14" r="1.5" fill="#0d5a3d" />
-    </svg>
-  );
-}
-
-function IconCost() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-      <path d="M14 3v22M9 7h7.5a3.5 3.5 0 010 7H9m0 0h8a3.5 3.5 0 010 7H9" stroke="#0d5a3d" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function IconDashboard() {
-  return (
-    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-      <rect x="2" y="2" width="12" height="14" rx="2" stroke="#0d5a3d" strokeWidth="1.6" />
-      <rect x="18" y="2" width="12" height="8" rx="2" stroke="#0d5a3d" strokeWidth="1.6" />
-      <rect x="2" y="20" width="12" height="10" rx="2" stroke="#0d5a3d" strokeWidth="1.6" />
-      <rect x="18" y="14" width="12" height="16" rx="2" stroke="#0d5a3d" strokeWidth="1.6" />
-    </svg>
-  );
-}
-
-function IconScheduler() {
-  return (
-    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-      <rect x="3" y="5" width="26" height="24" rx="2" stroke="#0d5a3d" strokeWidth="1.6" />
-      <line x1="3" y1="11" x2="29" y2="11" stroke="#0d5a3d" strokeWidth="1.6" />
-      <line x1="10" y1="2" x2="10" y2="8" stroke="#0d5a3d" strokeWidth="1.6" strokeLinecap="round" />
-      <line x1="22" y1="2" x2="22" y2="8" stroke="#0d5a3d" strokeWidth="1.6" strokeLinecap="round" />
-      <line x1="8" y1="18" x2="16" y2="18" stroke="#0d5a3d" strokeWidth="1.6" strokeLinecap="round" />
-      <line x1="8" y1="23" x2="20" y2="23" stroke="#0d5a3d" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-/* ─── Nav ─── */
+/* ─────────────────────────────────────────
+   Nav
+───────────────────────────────────────── */
 
 function Nav() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -82,10 +26,14 @@ function Nav() {
           FLITRR
         </a>
 
-        <nav className={`${styles.navLinks} ${menuOpen ? styles.navLinksOpen : ''}`} aria-label="Primary navigation">
-          <a href="#solution" onClick={close}>Solution</a>
-          <a href="#about" onClick={close}>About</a>
+        <nav
+          id="primary-nav"
+          className={`${styles.navLinks} ${menuOpen ? styles.navLinksOpen : ''}`}
+          aria-label="Primary navigation"
+        >
+          <a href="#platform" onClick={close}>Platform</a>
           <a href="#pilot" onClick={close}>Pilot</a>
+          <a href="#about" onClick={close}>About</a>
           <a href="#pilot" className={styles.navCta} onClick={close}>
             Join Pilot
           </a>
@@ -107,28 +55,160 @@ function Nav() {
   );
 }
 
-/* ─── Hero ─── */
+/* ─────────────────────────────────────────
+   Hero visual (abstract dashboard mock)
+───────────────────────────────────────── */
+
+function MockProject({ name, progress, status }) {
+  return (
+    <div className={styles.mockProject}>
+      <div className={styles.mockProjectMeta}>
+        <span className={styles.mockProjectName}>{name}</span>
+        <span className={`${styles.mockStatus} ${status === 'risk' ? styles.mockStatusRisk : ''}`}>
+          {status === 'risk' ? 'At risk' : 'On track'}
+        </span>
+      </div>
+      <div className={styles.mockBar}>
+        <div className={styles.mockBarFill} style={{ width: `${progress}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function HeroVisual() {
+  return (
+    <div className={styles.heroVisualWrap} aria-hidden="true">
+      <div className={styles.mockCard}>
+        <div className={styles.mockHeader}>
+          <span className={styles.mockHeaderTitle}>Portfolio</span>
+          <span className={styles.mockLivePill}>Live</span>
+        </div>
+        <div className={styles.mockBody}>
+          <MockProject name="Thornfield Residential" progress={72} status="ok" />
+          <MockProject name="Parkview Commercial"    progress={48} status="risk" />
+          <MockProject name="Marina Quarter"         progress={88} status="ok" />
+        </div>
+        <div className={styles.mockFooter}>
+          <div className={styles.mockStat}>
+            <span className={styles.mockStatNum}>14</span>
+            <span className={styles.mockStatLabel}>Open actions</span>
+          </div>
+          <div className={styles.mockStatDivider} />
+          <div className={styles.mockStat}>
+            <span className={`${styles.mockStatNum} ${styles.mockStatNumAlert}`}>3</span>
+            <span className={styles.mockStatLabel}>Critical flags</span>
+          </div>
+          <div className={styles.mockStatDivider} />
+          <div className={styles.mockStat}>
+            <span className={styles.mockStatNum}>3</span>
+            <span className={styles.mockStatLabel}>Projects</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
+   Hero
+───────────────────────────────────────── */
 
 function Hero() {
   return (
     <section className={styles.hero} aria-labelledby="hero-heading">
       <div className="container">
-        <div className={styles.heroContent}>
-          <p className={styles.eyebrow}>Programme Management · AI-Powered</p>
-          <h1 id="hero-heading" className={styles.heroHeading}>
-            Institutional-grade programme governance, made accessible.
-          </h1>
-          <p className={styles.heroSub}>
-            FLITRR brings enterprise-grade programme rigour to the developers
-            who&rsquo;ve been priced out of it.
+        <div className={styles.heroGrid}>
+          <div className={styles.heroContent}>
+            <p className={styles.eyebrow}>Programme Delivery · AI-Assisted</p>
+            <h1 id="hero-heading" className={styles.heroHeading}>
+              Monitoring What Matters.
+            </h1>
+            <p className={styles.heroSub}>
+              FLITRR is a programme delivery platform built for SME real estate
+              developers — bringing institutional discipline to how you manage
+              your portfolio.
+            </p>
+            <div className={styles.heroCtas}>
+              <a href="#pilot" className={styles.btnPrimary}>
+                Join the pilot
+              </a>
+              <a href="#how-it-works" className={styles.btnGhost}>
+                See how it works &rarr;
+              </a>
+            </div>
+          </div>
+          <HeroVisual />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────
+   Pain
+───────────────────────────────────────── */
+
+function Pain() {
+  return (
+    <section className={styles.pain} aria-labelledby="pain-heading">
+      <div className="container">
+        <h2 id="pain-heading" className={styles.sectionHeading}>
+          You&rsquo;re tracking everything. And seeing nothing.
+        </h2>
+        <div className={styles.painBody}>
+          <p>
+            You&rsquo;re running four projects. Consultants send WhatsApp updates
+            at 11pm. Contractors flag issues in site meetings that never make it
+            into minutes. Actions get agreed on Monday and forgotten by Friday.
           </p>
-          <div className={styles.heroCtas}>
-            <a href="#pilot" className={styles.btnPrimary}>
-              Join the pilot
-            </a>
-            <a href="#solution" className={styles.btnGhost}>
-              See how it works
-            </a>
+          <p>
+            You have forty open items across your portfolio. Some are routine.
+            Some will blow your completion date or your budget. Today, you have
+            no reliable way to tell them apart — until a missed milestone or a
+            cost overrun tells you for you.
+          </p>
+          <p>
+            The big consultancies solved this decades ago with disciplined
+            programme governance. SME developers have been locked out of it.
+            Until now.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────
+   Thesis
+───────────────────────────────────────── */
+
+const QUADRANTS = ['Scope', 'Cost', 'Time', 'Quality'];
+
+function Thesis() {
+  return (
+    <section className={styles.thesis} aria-labelledby="thesis-heading">
+      <div className="container">
+        <div className={styles.thesisGrid}>
+          <div className={styles.thesisInner}>
+            <h2 id="thesis-heading" className={styles.sectionHeading}>
+              One platform. Built for how real estate programmes actually run.
+            </h2>
+            <p className={styles.thesisBody}>
+              FLITRR helps real estate developers monitor what matters across
+              every project. Actions, risks, milestones, critical path — all
+              tagged to the objectives they impact, so nothing that threatens
+              scope, cost, time, or quality slips through.
+            </p>
+            <p className={styles.thesisEmphasis}>
+              No more hunting. No more chasing. No more surprises.
+            </p>
+          </div>
+          <div className={styles.thesisQuadrant} aria-hidden="true">
+            {QUADRANTS.map((label) => (
+              <div key={label} className={styles.quadrantCell}>
+                <span className={styles.quadrantLabel}>{label}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -136,41 +216,118 @@ function Hero() {
   );
 }
 
-/* ─── Problem ─── */
+/* ─────────────────────────────────────────
+   How It Works
+───────────────────────────────────────── */
 
-const PROBLEMS = [
+const STEPS = [
   {
-    Icon: IconFragmented,
-    heading: 'Fragmented coordination',
-    body: 'Developers juggle consultants, contractors, and financiers across disconnected tools. Critical decisions fall through the gaps.',
+    num: '01',
+    heading: 'Add your projects',
+    body: 'Enter your active developments. Define the critical milestones that matter — planning approval, ground-breaking, handover. FLITRR learns the spine of your portfolio.',
   },
   {
-    Icon: IconVisibility,
-    heading: 'No programme visibility',
-    body: 'Spreadsheets and memory replace proper governance. By the time a problem surfaces, the cost of correction has already compounded.',
+    num: '02',
+    heading: 'Invite your team',
+    body: "Bring in your internal team, consultants, and contractors. One click. No training. They log actions and updates against the projects they're assigned to.",
   },
   {
-    Icon: IconCost,
-    heading: 'Institutional rigour is priced out',
-    body: 'Big-consultancy programme management costs more than most developers earn per project — leaving SMEs exposed without meaningful alternatives.',
+    num: '03',
+    heading: 'See what matters',
+    body: 'Every action is AI-tagged to the objectives it affects — scope, cost, time, quality — and flagged if it threatens a critical milestone. You know what to chase first, and why.',
   },
 ];
 
-function Problem() {
+function HowItWorks() {
   return (
-    <section className={styles.problem} aria-labelledby="problem-heading">
+    <section
+      id="how-it-works"
+      className={styles.howItWorks}
+      aria-labelledby="hiw-heading"
+    >
       <div className="container">
-        <h2 id="problem-heading" className={styles.sectionHeading}>
-          The governance gap no one talks about
+        <h2 id="hiw-heading" className={styles.sectionHeading}>
+          From sign-up to clarity in under an hour.
         </h2>
-        <div className={styles.problemGrid}>
-          {PROBLEMS.map(({ Icon, heading, body }) => (
-            <article key={heading} className={styles.problemCard}>
-              <div className={styles.cardIcon}>
-                <Icon />
-              </div>
-              <h3 className={styles.cardHeading}>{heading}</h3>
-              <p className={styles.cardBody}>{body}</p>
+        <ol className={styles.stepsList}>
+          {STEPS.map(({ num, heading, body }) => (
+            <li key={num} className={styles.step}>
+              <span className={styles.stepNum} aria-hidden="true">{num}</span>
+              <h3 className={styles.stepHeading}>{heading}</h3>
+              <p className={styles.stepBody}>{body}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────
+   What You Get
+───────────────────────────────────────── */
+
+const COMING_SOON = [
+  {
+    heading: 'Risk Register',
+    body: 'Structured risk capture with the same objective-tagging discipline. Know which risks threaten which objectives, and track mitigation alongside the actions that close them.',
+  },
+  {
+    heading: 'Portfolio Dashboard',
+    body: 'A single visual view of every project\'s status, open actions, live risks, and milestone trajectory. The Monday review answer, without the Monday prep.',
+  },
+  {
+    heading: 'Programme Tracker',
+    body: 'Full critical path visibility. Dependencies, float, and schedule impact modelling — the institutional scheduler, finally built for developers who don\'t have a PMO.',
+  },
+];
+
+function WhatYouGet() {
+  return (
+    <section
+      id="platform"
+      className={styles.platform}
+      aria-labelledby="platform-heading"
+    >
+      <div className="container">
+        <h2 id="platform-heading" className={styles.sectionHeading}>
+          Live today. Built for what comes next.
+        </h2>
+        <p className={styles.sectionSub}>
+          FLITRR is a platform, not a feature. We&rsquo;re launching with the
+          module that drives the most immediate value — and rolling out the rest
+          of the governance stack over the coming months.
+        </p>
+
+        {/* Live card */}
+        <div className={styles.liveCard}>
+          <span className={styles.liveLabel}>&#10003;&nbsp; Available in pilot</span>
+          <h3 className={styles.liveCardHeading}>Action Tracking</h3>
+          <p className={styles.liveCardBody}>
+            Every open action across every project, in one place. AI-assisted
+            tagging to scope, cost, time, and quality. Automatic flagging of
+            items that threaten your critical milestones. Assign to anyone —
+            team, consultants, contractors — and let FLITRR handle the
+            follow-up.
+          </p>
+          <ul className={styles.featureList}>
+            <li>Portfolio-wide action visibility</li>
+            <li>AI-assisted objective tagging</li>
+            <li>Critical milestone impact flags</li>
+            <li>Multi-party assignment (internal, consultant, contractor)</li>
+            <li>Comment threads on every action</li>
+          </ul>
+        </div>
+
+        {/* Coming soon cards */}
+        <div className={styles.comingSoonHeader}>
+          <span className={styles.comingLabel}>&#8987;&nbsp; Rolling out to pilot cohort</span>
+        </div>
+        <div className={styles.comingSoonGrid}>
+          {COMING_SOON.map(({ heading, body }) => (
+            <article key={heading} className={styles.comingSoonCard}>
+              <h3 className={styles.comingSoonHeading}>{heading}</h3>
+              <p className={styles.comingSoonBody}>{body}</p>
             </article>
           ))}
         </div>
@@ -179,116 +336,28 @@ function Problem() {
   );
 }
 
-/* ─── Solution ─── */
+/* ─────────────────────────────────────────
+   Pilot
+───────────────────────────────────────── */
 
-function Solution() {
-  return (
-    <section id="solution" className={styles.solution} aria-labelledby="solution-heading">
-      <div className="container">
-        <h2 id="solution-heading" className={styles.sectionHeading}>
-          One platform. Complete programme control.
-        </h2>
-        <p className={styles.sectionSub}>
-          FLITRR replaces the patchwork of tools with a single governance layer built for how
-          Nigerian developers actually work.
-        </p>
+const PILOT_BLOCKS = [
+  {
+    heading: 'What it is',
+    body: 'Ten SME real estate developers. 90 days of free access to FLITRR. Weekly feedback sessions with the founder. Direct influence over the roadmap.',
+  },
+  {
+    heading: 'What you give',
+    body: 'Honest use. Honest feedback. A willingness to shape a product, not just test one.',
+  },
+  {
+    heading: 'What you get',
+    body: 'Lifetime founding-member pricing. Priority access to new modules as they launch. A direct line to the team building the tool.',
+  },
+];
 
-        <div className={styles.featureGrid}>
-          <article className={styles.featureBlock}>
-            <div className={styles.featureIcon}>
-              <IconDashboard />
-            </div>
-            <h3 className={styles.featureHeading}>Portfolio Dashboard</h3>
-            <p className={styles.featureBody}>
-              One view across all active projects. Track status, milestones, risks, and budget
-              variance without chasing updates from your team.
-            </p>
-            <ul className={styles.featureList}>
-              <li>Live project status at a glance</li>
-              <li>Milestone tracking &amp; risk flags</li>
-              <li>Budget variance reporting</li>
-              <li>Cross-project resource view</li>
-            </ul>
-          </article>
-
-          <article className={styles.featureBlock}>
-            <div className={styles.featureIcon}>
-              <IconScheduler />
-            </div>
-            <h3 className={styles.featureHeading}>AI Programme Scheduler</h3>
-            <p className={styles.featureBody}>
-              Generates your critical path in minutes, not weeks. Updates automatically as
-              projects evolve — so your schedule reflects reality, not last quarter&rsquo;s plan.
-            </p>
-            <ul className={styles.featureList}>
-              <li>Critical path generation</li>
-              <li>Automatic schedule updates</li>
-              <li>Dependency conflict detection</li>
-              <li>Scenario &amp; delay modelling</li>
-            </ul>
-          </article>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─── Credibility ─── */
-
-function Credibility() {
-  return (
-    <section id="about" className={styles.credibility} aria-labelledby="credibility-heading">
-      <div className="container">
-        <div className={styles.credInner}>
-          <div className={styles.credText}>
-            <h2 id="credibility-heading" className={styles.sectionHeading}>
-              Built by a programme manager who&rsquo;s been in your shoes.
-            </h2>
-            <p className={styles.credBio}>
-              16+ years running capital delivery programmes at Google, JP Morgan, and Marsh
-              McLennan. PMP certified. Imperial College MBA. I&rsquo;ve seen first-hand how
-              institutional-grade governance transforms project outcomes — and how inaccessible
-              it remains for most developers.
-            </p>
-            <p className={styles.credBio}>
-              Currently based in Riyadh, I&rsquo;m building FLITRR for the real estate developers
-              that the big consultancies have never prioritised. The tools exist. The rigour is
-              proven. It just needs to be made accessible.
-            </p>
-            <div className={styles.credBadges}>
-              <span className={styles.badge}>PMP Certified</span>
-              <span className={styles.badge}>Imperial College MBA</span>
-              <span className={styles.badge}>16+ Years Capital Delivery</span>
-            </div>
-          </div>
-          <div className={styles.credVisual} aria-hidden="true">
-            <div className={styles.credCard}>
-              <div className={styles.credStat}>
-                <span className={styles.credNum}>16+</span>
-                <span className={styles.credLabel}>Years in capital delivery</span>
-              </div>
-              <div className={styles.credDivider} />
-              <div className={styles.credStat}>
-                <span className={styles.credNum}>3</span>
-                <span className={styles.credLabel}>Global institutions</span>
-              </div>
-              <div className={styles.credDivider} />
-              <div className={styles.credStat}>
-                <span className={styles.credNum}>$B+</span>
-                <span className={styles.credLabel}>Programmes managed</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─── Pilot Signup ─── */
-
-function PilotSignup() {
+function Pilot() {
   const [email, setEmail] = useState('');
+  const [company, setCompany] = useState('');
   const [status, setStatus] = useState('idle'); // idle | success | error
 
   const handleSubmit = (e) => {
@@ -299,81 +368,199 @@ function PilotSignup() {
     }
     setStatus('success');
     setEmail('');
+    setCompany('');
   };
 
   return (
     <section id="pilot" className={styles.pilot} aria-labelledby="pilot-heading">
       <div className="container">
-        <div className={styles.pilotInner}>
-          <h2 id="pilot-heading" className={styles.pilotHeading}>
-            Join the founding pilot cohort.
-          </h2>
-          <p className={styles.pilotSub}>
-            10 developers. Free access for 90 days. Shape the product with us.
-          </p>
+        <h2 id="pilot-heading" className={styles.sectionHeading}>
+          Join the founding pilot cohort.
+        </h2>
 
-          {status === 'success' ? (
-            <div className={styles.successMsg} role="status" aria-live="polite">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <circle cx="10" cy="10" r="9" stroke="#0d5a3d" strokeWidth="1.5" />
-                <path d="M5.5 10.5l3 3 6-6" stroke="#0d5a3d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <span>
-                Thank you — we&rsquo;ll be in touch at <strong>{email || 'your address'}</strong> shortly.
-              </span>
+        <div className={styles.pilotBlocks}>
+          {PILOT_BLOCKS.map(({ heading, body }) => (
+            <div key={heading} className={styles.pilotBlock}>
+              <h3 className={styles.pilotBlockHeading}>{heading}</h3>
+              <p className={styles.pilotBlockBody}>{body}</p>
             </div>
-          ) : (
-            <form className={styles.pilotForm} onSubmit={handleSubmit} noValidate>
-              <div className={styles.inputWrap}>
-                <label htmlFor="pilot-email" className={styles.srOnly}>
-                  Email address
-                </label>
-                <input
-                  id="pilot-email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (status === 'error') setStatus('idle');
-                  }}
-                  className={`${styles.emailInput} ${status === 'error' ? styles.inputError : ''}`}
-                  aria-describedby={status === 'error' ? 'email-error' : undefined}
-                  aria-invalid={status === 'error'}
-                  required
-                />
-                {status === 'error' && (
-                  <p id="email-error" className={styles.errorMsg} role="alert">
-                    Please enter a valid email address.
-                  </p>
-                )}
-              </div>
-              <button type="submit" className={styles.btnPrimary}>
-                Request access
-              </button>
-            </form>
-          )}
+          ))}
+        </div>
 
-          <p className={styles.pilotNote}>
-            No payment required. No commitment. Pilot spots are limited.
-          </p>
+        <div className={styles.pilotFormWrap}>
+          <div className={styles.pilotFormCard}>
+            {status === 'success' ? (
+              <div className={styles.successMsg} role="status" aria-live="polite">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <circle cx="10" cy="10" r="9" stroke="#0d5a3d" strokeWidth="1.5" />
+                  <path d="M5.5 10.5l3 3 6-6" stroke="#0d5a3d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span>
+                  Thank you — we&rsquo;ll be in touch shortly to confirm your spot.
+                </span>
+              </div>
+            ) : (
+              <form className={styles.pilotForm} onSubmit={handleSubmit} noValidate>
+                <div className={styles.inputWrap}>
+                  <label htmlFor="pilot-email" className={styles.srOnly}>Email address</label>
+                  <input
+                    id="pilot-email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (status === 'error') setStatus('idle');
+                    }}
+                    className={`${styles.textInput} ${status === 'error' ? styles.inputError : ''}`}
+                    aria-describedby={status === 'error' ? 'email-error' : undefined}
+                    aria-invalid={status === 'error'}
+                    required
+                  />
+                  {status === 'error' && (
+                    <p id="email-error" className={styles.errorMsg} role="alert">
+                      Please enter a valid email address.
+                    </p>
+                  )}
+                </div>
+                <div className={styles.inputWrap}>
+                  <label htmlFor="pilot-company" className={styles.srOnly}>Company name</label>
+                  <input
+                    id="pilot-company"
+                    type="text"
+                    placeholder="Company / practice name"
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                    className={styles.textInput}
+                  />
+                </div>
+                <button type="submit" className={`${styles.btnPrimary} ${styles.btnFullWidth}`}>
+                  Request access
+                </button>
+              </form>
+            )}
+            <p className={styles.pilotNote}>
+              No payment required. No commitment beyond the pilot. Ten spots total.
+            </p>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-/* ─── Footer ─── */
+/* ─────────────────────────────────────────
+   FAQ
+───────────────────────────────────────── */
+
+const FAQS = [
+  {
+    q: 'How is this different from Asana, Monday, or ClickUp?',
+    a: 'Generic PM tools are built for generic teams. FLITRR is built around real estate programme discipline — every action tagged to scope, cost, time, or quality, and flagged against your critical milestones. That framing doesn\'t exist in general-purpose tools, and it\'s the difference between logging work and governing a programme.',
+  },
+  {
+    q: 'My consultants and contractors won\'t adopt a new tool. What then?',
+    a: 'FLITRR is built for this reality. Invited users land on a simplified view — log an action, close an action, add a comment. No training. No onboarding. If logging in FLITRR is harder than sending a WhatsApp message, we\'ve failed.',
+  },
+  {
+    q: 'What\'s live today, and what\'s coming later?',
+    a: 'The Action Tracking module is live for pilot users today. Risk Register, Portfolio Dashboard, and Programme Tracker are in development and will roll out to pilot users as they\'re ready — at no additional cost during the pilot.',
+  },
+  {
+    q: 'What happens after the 90-day pilot?',
+    a: 'Pilot members move to founding-member pricing — a permanent discount on whatever plan exists at general launch. You\'re not locked in. You\'re not committed. But if FLITRR has earned its place in your workflow, you\'ll have the best deal anyone ever gets.',
+  },
+  {
+    q: 'Do I need IT support to set this up?',
+    a: 'No. If you can add a project in a spreadsheet, you can set up FLITRR. Full onboarding takes under an hour.',
+  },
+];
+
+function FAQ() {
+  const [openIndex, setOpenIndex] = useState(null);
+
+  const toggle = (i) => setOpenIndex((prev) => (prev === i ? null : i));
+
+  return (
+    <section className={styles.faq} aria-labelledby="faq-heading">
+      <div className="container">
+        <div className={styles.faqInner}>
+        <h2 id="faq-heading" className={styles.sectionHeading}>
+          Questions we get asked.
+        </h2>
+        <dl className={styles.faqList}>
+          {FAQS.map(({ q, a }, i) => {
+            const isOpen = openIndex === i;
+            return (
+              <div key={i} className={`${styles.faqItem} ${isOpen ? styles.faqItemOpen : ''}`}>
+                <dt>
+                  <button
+                    className={styles.faqQuestion}
+                    onClick={() => toggle(i)}
+                    aria-expanded={isOpen}
+                    aria-controls={`faq-answer-${i}`}
+                  >
+                    <span>{q}</span>
+                    <span className={styles.faqIcon} aria-hidden="true">
+                      {isOpen ? '−' : '+'}
+                    </span>
+                  </button>
+                </dt>
+                <dd
+                  id={`faq-answer-${i}`}
+                  className={styles.faqAnswer}
+                  hidden={!isOpen}
+                >
+                  <p>{a}</p>
+                </dd>
+              </div>
+            );
+          })}
+        </dl>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────
+   Footer CTA
+───────────────────────────────────────── */
+
+function FooterCta() {
+  return (
+    <section className={styles.footerCta} aria-labelledby="fcta-heading">
+      <div className="container">
+        <div className={styles.footerCtaInner}>
+          <h2 id="fcta-heading" className={styles.footerCtaHeading}>
+            Ten spots. First come, first served.
+          </h2>
+          <p className={styles.footerCtaBody}>
+            The founding pilot cohort will shape how FLITRR grows. If that&rsquo;s
+            the seat you want, take it now.
+          </p>
+          <a href="#pilot" className={styles.btnWhite}>
+            Request pilot access
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────
+   Footer
+───────────────────────────────────────── */
 
 function Footer() {
   return (
-    <footer className={styles.footer} role="contentinfo">
+    <footer id="about" className={styles.footer} role="contentinfo">
       <div className="container">
         <div className={styles.footerTop}>
           <div className={styles.footerBrand}>
             <span className={styles.footerWordmark}>FLITRR</span>
             <p className={styles.footerTagline}>
-              Institutional-grade programme governance, made accessible.
+              Programme delivery for real estate developers.
             </p>
           </div>
           <div className={styles.footerLinks}>
@@ -393,7 +580,7 @@ function Footer() {
         </div>
         <div className={styles.footerBottom}>
           <p className={styles.footerCopy}>
-            &copy; {new Date().getFullYear()} FLITRR. All rights reserved.
+            &copy; 2026 FLITRR. All rights reserved.
           </p>
         </div>
       </div>
@@ -401,7 +588,9 @@ function Footer() {
   );
 }
 
-/* ─── Page ─── */
+/* ─────────────────────────────────────────
+   Page
+───────────────────────────────────────── */
 
 export default function Home() {
   return (
@@ -409,10 +598,13 @@ export default function Home() {
       <Nav />
       <main id="main-content">
         <Hero />
-        <Problem />
-        <Solution />
-        <Credibility />
-        <PilotSignup />
+        <Pain />
+        <Thesis />
+        <HowItWorks />
+        <WhatYouGet />
+        <Pilot />
+        <FAQ />
+        <FooterCta />
       </main>
       <Footer />
     </>

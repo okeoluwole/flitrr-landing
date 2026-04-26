@@ -1,27 +1,29 @@
-import { Playfair_Display, Plus_Jakarta_Sans } from 'next/font/google';
+import { Montserrat, Inter } from 'next/font/google';
 import './globals.css';
 
-const playfair = Playfair_Display({
+const montserrat = Montserrat({
   subsets: ['latin'],
-  variable: '--font-playfair',
+  weight: ['800'],
+  variable: '--font-heading',
   display: 'swap',
 });
 
-const jakarta = Plus_Jakarta_Sans({
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-jakarta',
+  weight: ['400', '500', '600'],
+  variable: '--font-body',
   display: 'swap',
 });
 
 export const metadata = {
-  title: 'FLITRR — Institutional-grade programme governance for real estate developers',
+  title: 'Flitrr — Monitoring What Matters',
   description:
-    'FLITRR brings enterprise-grade programme rigour to the real estate developers who\'ve been priced out of it.',
+    'Flitrr builds programme delivery tools for SME real estate developers. Our first product, PULSE, gives you the discipline the big consultancies sell for £50K — starting with the document every project should begin with.',
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${playfair.variable} ${jakarta.variable}`}>
+    <html lang="en" className={`${montserrat.variable} ${inter.variable}`}>
       <body>{children}</body>
     </html>
   );
