@@ -115,17 +115,23 @@
 ───────────────────────────────────────── */
 
 .sectionHeading {
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
-  font-weight: 700;
-  margin-bottom: 1rem;
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(2rem, 4.5vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  color: var(--color-accent-1-deep-blue);
+  margin-bottom: 1.25rem;
+  max-width: 760px;
 }
 
 .sectionSub {
-  font-size: 1.05rem;
-  color: var(--text-secondary);
+  font-family: var(--font-body), sans-serif;
+  font-size: 1.125rem;
+  color: var(--color-accent-2-grey-blue);
   max-width: 660px;
   margin-bottom: 3rem;
-  line-height: 1.7;
+  line-height: 1.55;
 }
 
 /* ─────────────────────────────────────────
@@ -405,51 +411,51 @@
 }
 
 /* ─────────────────────────────────────────
-   Pain
+   Pain — Foreground surface, prose-only
 ───────────────────────────────────────── */
 
 .pain {
-  background-color: #ffffff;
-  padding-block: 5rem;
-  border-bottom: 1px solid var(--border);
+  background-color: var(--color-surface-section);
+  padding-block: 6rem;
 }
 
 .painBody {
-  max-width: 700px;
+  max-width: 720px;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
   margin-top: 2rem;
 }
 
 .painBody p {
-  font-size: clamp(1rem, 1.5vw, 1.1rem);
-  line-height: 1.85;
-  color: var(--text-secondary);
+  font-family: var(--font-body), sans-serif;
+  font-size: 1.125rem;
+  line-height: 1.65;
+  color: var(--color-accent-1-deep-blue);
 }
 
 /* ─────────────────────────────────────────
-   Thesis
+   Thesis — Foreground surface, glass / rubber panels
 ───────────────────────────────────────── */
 
 .thesis {
-  background-color: var(--bg);
-  padding-block: 5rem;
-  border-bottom: 1px solid var(--border);
+  background-color: var(--color-surface-section);
+  padding-block: 6rem;
+  border-top: 1px solid var(--color-border);
 }
 
-/* Two-column on desktop: copy left, quadrant right */
+/* Two-column on desktop: copy left, glass/rubber panels right */
 .thesisGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 3.5rem;
+  gap: 3rem;
   align-items: center;
 }
 
-@media (min-width: 900px) {
+@media (min-width: 960px) {
   .thesisGrid {
-    grid-template-columns: 1fr auto;
-    gap: 5rem;
+    grid-template-columns: 1fr 1fr;
+    gap: 4.5rem;
   }
 }
 
@@ -458,71 +464,86 @@
 }
 
 .thesisBody {
-  font-size: clamp(1rem, 1.5vw, 1.1rem);
-  line-height: 1.8;
-  color: var(--text-secondary);
-  margin-bottom: 1.5rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: var(--color-accent-1-deep-blue);
+  margin-bottom: 1.25rem;
+}
+
+.thesisBody em {
+  font-style: normal;
+  font-weight: 600;
 }
 
 .thesisEmphasis {
   font-family: var(--font-heading), sans-serif;
-  font-size: clamp(1.1rem, 2vw, 1.4rem);
-  font-weight: 600;
-  color: var(--accent);
+  font-size: 1.25rem;
+  font-weight: 800;
   line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: var(--color-accent-1-deep-blue);
+  margin-top: 1rem;
 }
 
-/* Four-quadrant SCOPE / COST / TIME / QUALITY grid */
-.thesisQuadrant {
+/* ── Glass / Rubber comparison panels ── */
+
+.objectivePanels {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  width: 260px;
-  height: 260px;
-  flex-shrink: 0;
-  border: 1.5px solid var(--accent);
-  border-radius: 4px;
-  overflow: hidden;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
 }
 
-@media (max-width: 899px) {
-  .thesisQuadrant {
-    width: 100%;
-    max-width: 320px;
-    height: auto;
-    aspect-ratio: 1;
+@media (min-width: 560px) {
+  .objectivePanels {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
   }
 }
 
-.quadrantCell {
+.objectivePanel {
+  background-color: var(--color-foreground-cream);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 2rem 1.5rem;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 1.25rem;
-  border: 1.5px solid var(--accent);
-  /* Outer border handled by wrapper; inner borders only */
-  border-top: none;
-  border-left: none;
+  text-align: center;
+  gap: 1rem;
 }
 
-/* Top row — no top border needed (wrapper covers it) */
-.quadrantCell:nth-child(1),
-.quadrantCell:nth-child(2) {
-  border-top: none;
-}
-
-/* Left column — no left border needed */
-.quadrantCell:nth-child(odd) {
-  border-left: none;
-}
-
-.quadrantLabel {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+.objectivePanelHeading {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--color-accent-1-deep-blue);
+  margin: 0;
+}
+
+.objectiveIcon {
+  width: 64px;
+  height: 64px;
+  display: block;
+}
+
+.objectiveList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.objectiveItem {
+  font-family: var(--font-body), sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--color-accent-1-deep-blue);
 }
 
 /* ─────────────────────────────────────────

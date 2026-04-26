@@ -232,7 +232,7 @@ function Hero() {
 }
 
 /* ─────────────────────────────────────────
-   Pain
+   Pain — upstream "started without a brief" framing
 ───────────────────────────────────────── */
 
 function Pain() {
@@ -240,24 +240,27 @@ function Pain() {
     <section className={styles.pain} aria-labelledby="pain-heading">
       <div className="container">
         <h2 id="pain-heading" className={styles.sectionHeading}>
-          You&rsquo;re tracking everything. And seeing nothing.
+          Most projects are lost before they start.
         </h2>
         <div className={styles.painBody}>
           <p>
-            You&rsquo;re running four projects. Consultants send WhatsApp updates
-            at 11pm. Contractors flag issues in site meetings that never make it
-            into minutes. Actions get agreed on Monday and forgotten by Friday.
+            You sketched the project on the back of a feasibility model. The
+            architect built to one assumption, the QS priced to another, the
+            contractor priced to a third. By month three you&rsquo;re reconciling
+            four versions of &ldquo;the plan&rdquo; — none of them written down,
+            none of them signed off.
           </p>
           <p>
-            You have forty open items across your portfolio. Some are routine.
-            Some will blow your completion date or your budget. Today, you have
-            no reliable way to tell them apart — until a missed milestone or a
-            cost overrun tells you for you.
+            Scope creeps. Costs drift. Programme slips. The consultants blame
+            each other, the contractor blames the consultants, and you carry
+            the cost of every misalignment because nobody agreed what
+            &ldquo;done&rdquo; looked like before work started.
           </p>
           <p>
-            The big consultancies solved this decades ago with disciplined
-            programme governance. SME developers have been locked out of it.
-            Until now.
+            The big consultancies solved this decades ago with a single
+            discipline: a formal Project Brief, written before a spade hits
+            the ground. They charge ~£50K to produce one. SME developers have
+            been locked out — until now.
           </p>
         </div>
       </div>
@@ -266,10 +269,79 @@ function Pain() {
 }
 
 /* ─────────────────────────────────────────
-   Thesis
+   Thesis — glass-ball / rubber-ball framing
 ───────────────────────────────────────── */
 
-const QUADRANTS = ['Scope', 'Cost', 'Time', 'Quality'];
+// Examples used in the Glass / Rubber comparison panels.
+const GLASS_OBJECTIVES = [
+  'Practical completion by 31 March',
+  'Planning consent retained',
+  'GIA ≥ 4,200 m²',
+];
+
+const RUBBER_OBJECTIVES = [
+  'Bathroom tile spec',
+  'Soft-strip start date ±2 weeks',
+  'Internal door supplier',
+];
+
+function GlassBallIcon() {
+  // Outline circle, Accent 1 stroke, Foreground fill, glass-surface
+  // highlight upper-left, soft Accent 3 shadow ground.
+  return (
+    <svg
+      viewBox="0 0 64 64"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label="Glass-ball icon"
+      className={styles.objectiveIcon}
+    >
+      <ellipse
+        cx="32" cy="58" rx="14" ry="2"
+        fill="var(--color-accent-3-light-grey-blue)"
+        opacity="0.5"
+      />
+      <circle
+        cx="32" cy="32" r="26"
+        fill="var(--color-foreground-cream)"
+        stroke="var(--color-accent-1-deep-blue)"
+        strokeWidth="2"
+      />
+      <ellipse
+        cx="22" cy="22" rx="7" ry="4"
+        fill="var(--color-foreground-cream)"
+        opacity="0.6"
+        transform="rotate(-30 22 22)"
+        stroke="var(--color-foreground-cream)"
+        strokeWidth="0.5"
+      />
+    </svg>
+  );
+}
+
+function RubberBallIcon() {
+  // Solid Accent 1 circle. No stroke, no highlight. Same shadow ground
+  // for visual parity with the glass icon.
+  return (
+    <svg
+      viewBox="0 0 64 64"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label="Rubber-ball icon"
+      className={styles.objectiveIcon}
+    >
+      <ellipse
+        cx="32" cy="58" rx="14" ry="2"
+        fill="var(--color-accent-3-light-grey-blue)"
+        opacity="0.5"
+      />
+      <circle
+        cx="32" cy="32" r="26"
+        fill="var(--color-accent-1-deep-blue)"
+      />
+    </svg>
+  );
+}
 
 function Thesis() {
   return (
@@ -278,24 +350,46 @@ function Thesis() {
         <div className={styles.thesisGrid}>
           <div className={styles.thesisInner}>
             <h2 id="thesis-heading" className={styles.sectionHeading}>
-              One platform. Built for how real estate programmes actually run.
+              Not every objective is equal. PULSE knows the difference.
             </h2>
             <p className={styles.thesisBody}>
-              FLITRR helps real estate developers monitor what matters across
-              every project. Actions, risks, milestones, critical path — all
-              tagged to the objectives they impact, so nothing that threatens
-              scope, cost, time, or quality slips through.
+              Every project carries dozens of objectives, but they aren&rsquo;t
+              equally load-bearing. Some are <em>glass-ball</em> — drop them
+              and the project shatters. Some are <em>rubber-ball</em> — drop
+              them and the project bounces. Most teams treat them the same,
+              which is why the catastrophic ones blindside you and the trivial
+              ones consume your Monday morning.
+            </p>
+            <p className={styles.thesisBody}>
+              PULSE asks the question consultancies spend weeks asking on your
+              behalf — what is glass, and what is rubber — and uses the answer
+              to decide what gets flagged, what gets escalated, and what gets
+              quietly tracked. Discipline, scaled.
             </p>
             <p className={styles.thesisEmphasis}>
-              No more hunting. No more chasing. No more surprises.
+              Glass shatters. Rubber bounces. Know the difference.
             </p>
           </div>
-          <div className={styles.thesisQuadrant} aria-hidden="true">
-            {QUADRANTS.map((label) => (
-              <div key={label} className={styles.quadrantCell}>
-                <span className={styles.quadrantLabel}>{label}</span>
-              </div>
-            ))}
+
+          <div className={styles.objectivePanels} aria-hidden="false">
+            <div className={styles.objectivePanel}>
+              <h3 className={styles.objectivePanelHeading}>GLASS</h3>
+              <GlassBallIcon />
+              <ul className={styles.objectiveList}>
+                {GLASS_OBJECTIVES.map((item) => (
+                  <li key={item} className={styles.objectiveItem}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            <div className={styles.objectivePanel}>
+              <h3 className={styles.objectivePanelHeading}>RUBBER</h3>
+              <RubberBallIcon />
+              <ul className={styles.objectiveList}>
+                {RUBBER_OBJECTIVES.map((item) => (
+                  <li key={item} className={styles.objectiveItem}>{item}</li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </div>
