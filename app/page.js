@@ -61,171 +61,151 @@ function Nav() {
 }
 
 /* ─────────────────────────────────────────
-   Hero — Project Brief document mock (inline SVG)
+   Hero — type-only brand statement
 ───────────────────────────────────────── */
 
-// Stylised line widths per section, expressed as % of the body column
-// width. Real section content is intentionally absent (no invented
-// project names, no fake numbers); the mock reads as "the document
-// PULSE produces" without claiming any specific brief content.
-const BRIEF_SECTIONS = [
-  { label: 'VISION',       lines: [92, 78] },
-  { label: 'OBJECTIVES',   lines: [88, 74, 60] },
-  { label: 'GLASS-BALL',   lines: [82, 66] },
-  { label: 'RUBBER-BALL',  lines: [80, 70, 56] },
-  { label: 'CONSTRAINTS',  lines: [86, 72] },
-  { label: 'STAKEHOLDERS', lines: [78, 64, 50] },
+function Hero() {
+  return (
+    <section className={styles.hero} aria-labelledby="hero-heading">
+      <div className="container">
+        <div className={styles.heroContent}>
+          <p className={styles.heroWordmark} aria-hidden="true">Flitrr</p>
+          <h1 id="hero-heading" className={styles.heroHeading}>
+            One platform. End-to-end property development lifecycle solutions.
+          </h1>
+          <p className={styles.heroSub}>
+            Built for independent and SME real estate developers.
+          </p>
+          <div className={styles.heroCtas}>
+            <a href="#design-partner" className={styles.btnPrimary}>
+              Become a design partner
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────
+   Lifecycle — five overlapping rings + amber swoosh
+───────────────────────────────────────── */
+
+const LIFECYCLE_STAGES = [
+  'Planning',
+  'Design',
+  'Procurement',
+  'Construction',
+  'Handover',
 ];
 
-function BriefDocumentMock() {
-  // viewBox 480 x 600; body column starts at x=40, runs to x=440 (400 wide).
-  // Sections are rendered as label + 2-3 lines, separated by Accent 3 dividers.
-  const COL_X = 40;
-  const COL_W = 400;
-  const TOP_PAD = 88;            // header band height + breathing room
-  const SECTION_GAP = 78;        // vertical pitch between section starts
-  const LABEL_TO_LINE = 16;      // gap from label baseline to first line
-  const LINE_PITCH = 12;         // gap between body lines
-  const LINE_THICKNESS = 4;
+function LifecycleVisual() {
+  // viewBox 1000 x 300, rings centred on y=150, radius 80px each.
+  // Each ring overlaps its neighbour by ~30% of diameter (160 * 0.30 = 48),
+  // so centre-to-centre spacing is 160 - 48 = 112. With 5 rings that span is
+  // 4 * 112 = 448; centre the row inside 1000 → first centre = (1000 - 448)/2 = 276.
+  const RING_RADIUS = 80;
+  const RING_PITCH = 112;
+  const FIRST_CX = 276;
+  const CENTRE_Y = 150;
 
   return (
     <svg
-      viewBox="0 0 480 600"
+      viewBox="0 0 1000 300"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
-      aria-label="Stylised representation of a Project Brief document with sections for Vision, Objectives, Glass-ball, Rubber-ball, Constraints, and Stakeholders."
-      className={styles.briefMockSvg}
+      aria-label="Five overlapping rings labelled Planning, Design, Procurement, Construction, and Handover, with an amber swoosh tracing through them."
+      className={styles.lifecycleSvg}
     >
-      {/* Card */}
-      <rect
-        x="0" y="0" width="480" height="600" rx="16" ry="16"
-        fill="var(--color-foreground-cream)"
-      />
-
-      {/* Header band — small "PROJECT BRIEF" pill, top-right */}
-      <rect
-        x={COL_X} y="32" width="140" height="20" rx="10" ry="10"
-        fill="var(--color-accent-3-light-grey-blue)"
-        opacity="0.5"
-      />
-      <text
-        x={COL_X + 70} y="46"
-        textAnchor="middle"
-        fontFamily="var(--font-body), sans-serif"
-        fontSize="11" fontWeight="600"
-        letterSpacing="0.08em"
-        fill="var(--color-accent-1-deep-blue)"
-      >
-        PROJECT BRIEF
-      </text>
-
-      {/* Watermark F-mark stand-in — Accent 2 grey-blue at 8% opacity,
-          rendered as a stylised geometric F glyph in the upper-right. */}
-      <g
-        transform="translate(364, 28)"
-        fill="var(--color-accent-2-grey-blue)"
-        opacity="0.08"
-      >
-        <rect x="0"  y="0"  width="80" height="14" rx="2" />
-        <rect x="0"  y="0"  width="14" height="80" rx="2" />
-        <rect x="14" y="33" width="50" height="14" rx="2" />
-      </g>
-
-      {/* Sections */}
-      {BRIEF_SECTIONS.map((section, idx) => {
-        const yStart = TOP_PAD + idx * SECTION_GAP;
+      {/* Rings — stroke-only, Accent 1 deep blue */}
+      {LIFECYCLE_STAGES.map((label, i) => {
+        const cx = FIRST_CX + i * RING_PITCH;
         return (
-          <g key={section.label}>
-            {/* Section label */}
-            <text
-              x={COL_X} y={yStart}
-              fontFamily="var(--font-heading), sans-serif"
-              fontSize="13" fontWeight="800"
-              letterSpacing="0.08em"
-              fill="var(--color-accent-1-deep-blue)"
-            >
-              {section.label}
-            </text>
+          <circle
+            key={label}
+            cx={cx}
+            cy={CENTRE_Y}
+            r={RING_RADIUS}
+            fill="none"
+            stroke="var(--color-accent-1-deep-blue)"
+            strokeWidth="2.5"
+          />
+        );
+      })}
 
-            {/* Stylised body lines */}
-            {section.lines.map((widthPct, lineIdx) => (
-              <rect
-                key={lineIdx}
-                x={COL_X}
-                y={yStart + LABEL_TO_LINE + lineIdx * LINE_PITCH}
-                width={COL_W * (widthPct / 100)}
-                height={LINE_THICKNESS}
-                rx={LINE_THICKNESS / 2}
-                fill="var(--color-accent-2-grey-blue)"
-              />
-            ))}
+      {/* Swoosh — single asymmetric Bezier in amber, sits ABOVE the rings.
+          Enters upper-left above ring 1, dips down through ring 2-3-4
+          centres, lifts back up to exit upper-right above ring 5. */}
+      <path
+        d="M 60 70
+           C 260 30, 380 230, 560 180
+           S 820 90, 960 50"
+        fill="none"
+        stroke="var(--color-background-amber)"
+        strokeWidth="4.5"
+        strokeLinecap="round"
+      />
 
-            {/* Divider below the section (skip for the final one) */}
-            {idx < BRIEF_SECTIONS.length - 1 && (
-              <line
-                x1={COL_X}
-                x2={COL_X + COL_W}
-                y1={yStart + SECTION_GAP - 22}
-                y2={yStart + SECTION_GAP - 22}
-                stroke="var(--color-accent-3-light-grey-blue)"
-                strokeWidth="1"
-              />
-            )}
-          </g>
+      {/* Arrowhead at the right-end of the swoosh, pointing right.
+          Endpoint is (960, 50); the arrowhead is a small triangle
+          aimed along the curve's exit tangent (roughly upper-right). */}
+      <path
+        d="M 960 50 l -10 -3 l 4 6 z"
+        fill="var(--color-background-amber)"
+        stroke="var(--color-background-amber)"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+
+      {/* Labels rendered AFTER the swoosh so they sit on top — each
+          centred inside its ring. */}
+      {LIFECYCLE_STAGES.map((label, i) => {
+        const cx = FIRST_CX + i * RING_PITCH;
+        return (
+          <text
+            key={`label-${label}`}
+            x={cx}
+            y={CENTRE_Y}
+            textAnchor="middle"
+            dominantBaseline="central"
+            fontFamily="var(--font-body), sans-serif"
+            fontSize="15"
+            fontWeight="500"
+            fill="var(--color-accent-1-deep-blue)"
+          >
+            {label}
+          </text>
         );
       })}
     </svg>
   );
 }
 
-/* ─────────────────────────────────────────
-   Hero
-───────────────────────────────────────── */
-
-function Hero() {
+function Lifecycle() {
   return (
-    <section className={styles.hero} aria-labelledby="hero-heading">
-      {/* Quiet F-mark stand-in watermark behind the headline column —
-          Accent 2 grey-blue at 8% opacity per the locked-decision spec. */}
-      <svg
-        className={styles.heroWatermark}
-        viewBox="0 0 200 200"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
-        <g fill="var(--color-accent-2-grey-blue)" opacity="0.08">
-          <rect x="0"  y="0"   width="200" height="34" rx="4" />
-          <rect x="0"  y="0"   width="34"  height="200" rx="4" />
-          <rect x="34" y="83"  width="120" height="34" rx="4" />
-        </g>
-      </svg>
-
+    <section
+      id="lifecycle"
+      className={styles.lifecycle}
+      aria-labelledby="lifecycle-heading"
+    >
       <div className="container">
-        <div className={styles.heroGrid}>
-          <div className={styles.heroContent}>
-            <p className={styles.eyebrow}>Introducing PULSE — by Flitrr</p>
-            <h1 id="hero-heading" className={styles.heroHeading}>
-              Monitoring What Matters.
-            </h1>
-            <p className={styles.heroSub}>
-              Flitrr builds programme delivery tools for SME real estate
-              developers. Our first product, <strong>PULSE</strong>, gives
-              you the discipline the big consultancies sell for £50K —
-              starting with the document every project should begin with.
-            </p>
-            <div className={styles.heroCtas}>
-              <a href="#pilot" className={styles.btnPrimary}>
-                Join the PULSE pilot
-              </a>
-              <a href="#project-brief" className={styles.btnGhost}>
-                See the Project Brief &rarr;
-              </a>
-            </div>
-          </div>
-          <div className={styles.heroVisualWrap} aria-hidden="true">
-            <BriefDocumentMock />
-          </div>
+        <h2 id="lifecycle-heading" className={styles.sectionHeading}>
+          From Planning to handover, end to end.
+        </h2>
+        <p className={styles.lifecycleSub}>
+          Flitrr is building products for every stage of a property
+          development project. PULSE is our first product, focused on
+          properly setting up a project and efficient monitoring.
+        </p>
+
+        <div className={styles.lifecycleVisualWrap}>
+          <LifecycleVisual />
         </div>
+
+        <p className={styles.lifecycleFootline}>
+          One platform. Many products. Built for the way independent and SME
+          developers actually deliver.
+        </p>
       </div>
     </section>
   );
@@ -488,6 +468,7 @@ export default function Home() {
       <Nav />
       <main id="main-content">
         <Hero />
+        <Lifecycle />
         <Pilot />
         <FooterCta />
       </main>
