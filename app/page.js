@@ -25,7 +25,7 @@ function Nav() {
         <a
           href="#"
           className={styles.navWordmark}
-          aria-label="Flitrr — Monitoring What Matters"
+          aria-label="Flitrr home"
         >
           Flitrr
         </a>
@@ -35,12 +35,11 @@ function Nav() {
           className={`${styles.navLinks} ${menuOpen ? styles.navLinksOpen : ''}`}
           aria-label="Primary navigation"
         >
-          <a href="#pulse-modules" onClick={close}>PULSE</a>
-          <a href="#project-brief" onClick={close}>Project Brief</a>
-          <a href="#pilot" onClick={close}>Pilot</a>
-          <a href="#about" onClick={close}>About</a>
-          <a href="#pilot" className={styles.navCta} onClick={close}>
-            Join the pilot
+          <a href="#lifecycle" onClick={close}>Lifecycle</a>
+          <a href="#products" onClick={close}>Products</a>
+          <a href="#design-partner" onClick={close}>Get involved</a>
+          <a href="#design-partner" className={styles.navCta} onClick={close}>
+            Become a partner
           </a>
         </nav>
 
@@ -213,25 +212,65 @@ function Lifecycle() {
 
 
 /* ─────────────────────────────────────────
-   Pilot — PULSE design-partner programme (Section 8)
+   Products — single PULSE coming-soon card
 ───────────────────────────────────────── */
 
-const PILOT_BLOCKS = [
+function Products() {
+  return (
+    <section
+      id="products"
+      className={styles.products}
+      aria-labelledby="products-heading"
+    >
+      <div className="container">
+        <h2 id="products-heading" className={styles.sectionHeading}>
+          Our first product.
+        </h2>
+
+        <article className={styles.productCard}>
+          <span className={styles.productPill}>
+            Coming soon · Private development
+          </span>
+          <h3 className={styles.productHeading}>PULSE</h3>
+          <p className={styles.productBody}>
+            Properly set up your projects, then monitor what matters across
+            every stage. PULSE is built for the execution arc of a
+            development project, design through completion.
+          </p>
+          <a href="#design-partner" className={styles.productCta}>
+            Be the first to access PULSE
+          </a>
+        </article>
+
+        <p className={styles.productsFootline}>
+          More products on the way. Each will tackle a different stage of
+          the development lifecycle.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────
+   Design Partner — Flitrr-level founding programme
+───────────────────────────────────────── */
+
+const DESIGN_PARTNER_BLOCKS = [
   {
     heading: 'What it is',
-    body: 'A 90-day design-partner programme. Weekly working sessions with the founder while we build the Project Brief module. First access on release. Direct say in what gets built next.',
+    body: 'A 90-day programme. Working sessions while we build. First access on release. A direct say in what we ship next.',
   },
   {
     heading: 'What you give',
-    body: 'Two real projects, two hours a week, and honest feedback. A willingness to shape a product before it’s finished.',
+    body: 'Two real projects, two hours a week, honest feedback. A willingness to shape products before they are finished.',
   },
   {
     heading: 'What you get',
-    body: 'Lifetime founding-member pricing on PULSE. Priority access to every module as it ships. A direct line to the team building the tool.',
+    body: 'Lifetime founding-member pricing on every Flitrr product. Priority access to each product as it ships. A direct line to the team.',
   },
 ];
 
-function Pilot() {
+function DesignPartner() {
   const [email, setEmail] = useState('');
   const [company, setCompany] = useState('');
   const [portfolio, setPortfolio] = useState('');
@@ -252,19 +291,22 @@ function Pilot() {
   };
 
   return (
-    <section id="pilot" className={styles.pilot} aria-labelledby="pilot-heading">
+    <section
+      id="design-partner"
+      className={styles.pilot}
+      aria-labelledby="design-partner-heading"
+    >
       <div className="container">
-        <h2 id="pilot-heading" className={styles.sectionHeading}>
-          Be a PULSE design partner.
+        <h2 id="design-partner-heading" className={styles.sectionHeading}>
+          Be a Flitrr design partner.
         </h2>
         <p className={styles.pilotSub}>
-          Ten SME developers. Direct input into the product before it
-          launches. First access to the Project Brief module the moment
-          it&rsquo;s ready.
+          Ten developers. Direct input into every product Flitrr ships.
+          First access to PULSE the moment it is ready.
         </p>
 
         <div className={styles.pilotBlocks}>
-          {PILOT_BLOCKS.map(({ heading, body }) => (
+          {DESIGN_PARTNER_BLOCKS.map(({ heading, body }) => (
             <div key={heading} className={styles.pilotBlock}>
               <h3 className={styles.pilotBlockHeading}>{heading}</h3>
               <p className={styles.pilotBlockBody}>{body}</p>
@@ -281,7 +323,7 @@ function Pilot() {
                   <path d="M5.5 10.5l3 3 6-6" stroke="var(--color-accent-1-deep-blue)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 <span>
-                  Thank you — we&rsquo;ll be in touch shortly to confirm your spot.
+                  Thank you. We&rsquo;ll be in touch shortly to confirm your spot.
                 </span>
               </div>
             ) : (
@@ -356,12 +398,12 @@ function Pilot() {
                   </select>
                 </div>
                 <button type="submit" className={`${styles.btnPrimary} ${styles.btnFullWidth}`}>
-                  Request a design-partner spot
+                  Request a design partner spot
                 </button>
               </form>
             )}
             <p className={styles.pilotNote}>
-              No payment. No commitment beyond the design-partner programme.
+              No payment. No commitment beyond the design partner programme.
               Ten spots total.
             </p>
           </div>
@@ -396,14 +438,14 @@ function FooterCta() {
       <div className="container">
         <div className={styles.footerCtaInner}>
           <h2 id="fcta-heading" className={styles.footerCtaHeading}>
-            Ten design-partner spots. First come, first served.
+            Ten design partner spots. First come, first served.
           </h2>
           <p className={styles.footerCtaBody}>
-            PULSE will be shaped by the developers who use it first. If
-            that&rsquo;s the seat you want, take it now.
+            Flitrr will be shaped by the developers who use it first. If
+            that is the seat you want, take it now.
           </p>
-          <a href="#pilot" className={styles.btnAmber}>
-            Request a design-partner spot
+          <a href="#design-partner" className={styles.btnAmber}>
+            Request a design partner spot
           </a>
         </div>
       </div>
@@ -422,9 +464,8 @@ function Footer() {
         <div className={styles.footerTop}>
           <div className={styles.footerBrand}>
             <span className={styles.footerWordmark}>Flitrr</span>
-            <p className={styles.footerTagline}>Monitoring What Matters.</p>
             <p className={styles.footerSubTagline}>
-              Flitrr is the company behind PULSE.
+              One platform for independent and SME real estate developers.
             </p>
           </div>
           <div className={styles.footerLinks}>
@@ -469,7 +510,8 @@ export default function Home() {
       <main id="main-content">
         <Hero />
         <Lifecycle />
-        <Pilot />
+        <Products />
+        <DesignPartner />
         <FooterCta />
       </main>
       <Footer />

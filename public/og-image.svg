@@ -2,7 +2,7 @@
   <!-- Amber background, full bleed -->
   <rect width="1200" height="630" fill="#F4C031"/>
 
-  <!-- Top-left: typed letter F in Montserrat ExtraBold deep blue, ~200px tall -->
+  <!-- Top-left: typed letter F in Montserrat ExtraBold deep blue, ~220px tall -->
   <text
     x="80"
     y="80"
@@ -14,19 +14,19 @@
     dominant-baseline="hanging"
   >F</text>
 
-  <!-- Headline: "Monitoring What Matters." Centred vertically in the lower-middle band, deep blue -->
+  <!-- Headline: "One platform." Montserrat ExtraBold deep blue -->
   <text
     x="80"
     y="400"
     fill="#376183"
     font-family="Montserrat, 'Helvetica Neue', Arial, sans-serif"
     font-weight="800"
-    font-size="82"
+    font-size="108"
     letter-spacing="-0.025em"
     dominant-baseline="middle"
-  >Monitoring What Matters.</text>
+  >One platform.</text>
 
-  <!-- Sub-line: PULSE descriptor in Inter 500 deep blue, ~36px -->
+  <!-- Sub-line: brand descriptor in Inter 500 deep blue -->
   <text
     x="80"
     y="500"
@@ -36,5 +36,5 @@
     font-size="34"
     letter-spacing="-0.005em"
     dominant-baseline="middle"
-  >PULSE — programme delivery for SME real estate developers.</text>
+  >End-to-end property development for independent and SME developers.</text>
 </svg>

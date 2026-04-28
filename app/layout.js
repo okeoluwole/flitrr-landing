@@ -15,9 +15,9 @@ const inter = Inter({
   display: 'swap',
 });
 
-const SITE_TITLE = 'Flitrr — Monitoring What Matters';
+const SITE_TITLE = 'Flitrr. One platform for property development';
 const SITE_DESCRIPTION =
-  'Flitrr builds programme delivery tools for SME real estate developers. Our first product, PULSE, gives you the discipline the big consultancies sell for £50K — starting with the document every project should begin with.';
+  'Flitrr is building products for every stage of a property development project, from planning to handover. Built for independent and SME real estate developers. PULSE is our first product.';
 const SITE_URL = 'https://flitrr.com';
 
 export const metadata = {
@@ -36,7 +36,7 @@ export const metadata = {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Flitrr — Monitoring What Matters',
+        alt: 'Flitrr. One platform for property development.',
       },
     ],
   },
