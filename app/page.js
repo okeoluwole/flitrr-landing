@@ -99,29 +99,63 @@ const LIFECYCLE_STAGES = [
 ];
 
 function LifecycleVisual() {
-  // viewBox 1000 x 300, rings centred on y=150, radius 80px each.
-  // Each ring overlaps its neighbour by ~30% of diameter (160 * 0.30 = 48),
-  // so centre-to-centre spacing is 160 - 48 = 112. With 5 rings that span is
-  // 4 * 112 = 448; centre the row inside 1000 → first centre = (1000 - 448)/2 = 276.
-  const RING_RADIUS = 80;
-  const RING_PITCH = 112;
-  const FIRST_CX = 276;
+  // viewBox 1000 x 300. Rings at radius 70 (was 80) to give labels more
+  // breathing room inside each ring. Olympic-style 30% overlap → centre-
+  // to-centre pitch = 2r * (1 - 0.30) = 140 * 0.70 = 98. Five rings span
+  // 4 * 98 = 392. Centre the row inside 1000 → first cx = (1000 - 392)/2
+  // = 304.
+  const RING_RADIUS = 70;
+  const RING_PITCH = 98;
+  const FIRST_CX = 304;
   const CENTRE_Y = 150;
+
+  // Swoosh anchors INSIDE the lifecycle, not in dead space.
+  // Entry: lower-left interior of ring 1 (Planning).
+  // Exit:  upper-right interior of ring 5 (Handover) — endpoint of the
+  //        arrowhead, signalling arrival.
+  const ENTRY_X = FIRST_CX - 38;                   // 304 - 38 = 266
+  const ENTRY_Y = CENTRE_Y + 38;                   // 150 + 38 = 188
+  const EXIT_X  = FIRST_CX + 4 * RING_PITCH + 38;  // 696 + 38 = 734
+  const EXIT_Y  = CENTRE_Y - 38;                   // 150 - 38 = 112
+
+  // Asymmetric S-curve. cp1 pulls the path UP early so it lifts through
+  // Planning → Design. cp2 pulls DOWN through the middle so it dips
+  // through Design → Procurement → Construction, then rises more
+  // dramatically toward the upper-right exit.
+  const SWOOSH_PATH =
+    `M ${ENTRY_X} ${ENTRY_Y} ` +
+    `C 410 88, 590 212, ${EXIT_X} ${EXIT_Y}`;
 
   return (
     <svg
       viewBox="0 0 1000 300"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
-      aria-label="Five overlapping rings labelled Planning, Design, Procurement, Construction, and Handover, with an amber swoosh tracing through them."
+      aria-label="Five overlapping rings labelled Planning, Design, Procurement, Construction, and Handover, with an amber swoosh tracing the journey from start to finish."
       className={styles.lifecycleSvg}
     >
-      {/* Rings — stroke-only, Accent 1 deep blue */}
+      {/* 1. Ring fills — Accent 1 deep blue at low opacity for subtle
+            physical presence (no longer pure wireframe). */}
       {LIFECYCLE_STAGES.map((label, i) => {
         const cx = FIRST_CX + i * RING_PITCH;
         return (
           <circle
-            key={label}
+            key={`fill-${label}`}
+            cx={cx}
+            cy={CENTRE_Y}
+            r={RING_RADIUS}
+            fill="var(--color-accent-1-deep-blue)"
+            fillOpacity="0.04"
+          />
+        );
+      })}
+
+      {/* 2. Ring strokes — Accent 1 deep blue, 2.5px, no fill. */}
+      {LIFECYCLE_STAGES.map((label, i) => {
+        const cx = FIRST_CX + i * RING_PITCH;
+        return (
+          <circle
+            key={`stroke-${label}`}
             cx={cx}
             cy={CENTRE_Y}
             r={RING_RADIUS}
@@ -132,32 +166,29 @@ function LifecycleVisual() {
         );
       })}
 
-      {/* Swoosh — single asymmetric Bezier in amber, sits ABOVE the rings.
-          Enters upper-left above ring 1, dips down through ring 2-3-4
-          centres, lifts back up to exit upper-right above ring 5. */}
+      {/* 3. Swoosh — single asymmetric cubic Bezier in amber. Anchored
+            to the journey: enters inside Planning, exits inside Handover
+            with the arrowhead. Sits ABOVE the rings. */}
       <path
-        d="M 60 70
-           C 260 30, 380 230, 560 180
-           S 820 90, 960 50"
+        d={SWOOSH_PATH}
         fill="none"
         stroke="var(--color-background-amber)"
-        strokeWidth="4.5"
+        strokeWidth="5"
         strokeLinecap="round"
       />
 
-      {/* Arrowhead at the right-end of the swoosh, pointing right.
-          Endpoint is (960, 50); the arrowhead is a small triangle
-          aimed along the curve's exit tangent (roughly upper-right). */}
+      {/* Arrowhead at the right end of the swoosh, aimed along the
+          curve's exit tangent (cp2 → endpoint = upper-right). */}
       <path
-        d="M 960 50 l -10 -3 l 4 6 z"
+        d={`M ${EXIT_X} ${EXIT_Y} l -11 -1 l 4 8 z`}
         fill="var(--color-background-amber)"
         stroke="var(--color-background-amber)"
-        strokeWidth="2"
+        strokeWidth="1.5"
         strokeLinejoin="round"
       />
 
-      {/* Labels rendered AFTER the swoosh so they sit on top — each
-          centred inside its ring. */}
+      {/* 4. Stage labels — rendered last so they sit ABOVE the swoosh
+            and the ring strokes, keeping the journey readable. */}
       {LIFECYCLE_STAGES.map((label, i) => {
         const cx = FIRST_CX + i * RING_PITCH;
         return (
@@ -168,7 +199,7 @@ function LifecycleVisual() {
             textAnchor="middle"
             dominantBaseline="central"
             fontFamily="var(--font-body), sans-serif"
-            fontSize="15"
+            fontSize="14"
             fontWeight="500"
             fill="var(--color-accent-1-deep-blue)"
           >
@@ -202,8 +233,7 @@ function Lifecycle() {
         </div>
 
         <p className={styles.lifecycleFootline}>
-          One platform. Many products. Built for the way independent and SME
-          developers actually deliver.
+          One platform. Practical solutions for property development.
         </p>
       </div>
     </section>
