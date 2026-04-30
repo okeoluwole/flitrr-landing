@@ -267,8 +267,8 @@ function Products() {
             every stage. PULSE is built for the execution arc of a
             development project, design through completion.
           </p>
-          <a href="#design-partner" className={styles.productCta}>
-            Be the first to access PULSE
+          <a href="/pulse" className={styles.productCta}>
+            Learn more about PULSE
           </a>
         </article>
 
