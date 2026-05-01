@@ -1,72 +1,8 @@
-'use client';
-
-import { useState, useEffect } from 'react';
+import { createClient } from '../../lib/supabase/server';
+import PulseNav from './components/PulseNav';
+import PulseDesignPartner from './components/PulseDesignPartner';
+import PulseFaq from './components/PulseFaq';
 import styles from './page.module.css';
-
-/* ─────────────────────────────────────────
-   Section 1 — Nav
-───────────────────────────────────────── */
-
-function PulseNav() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 12);
-    window.addEventListener('scroll', handler, { passive: true });
-    return () => window.removeEventListener('scroll', handler);
-  }, []);
-
-  const close = () => setMenuOpen(false);
-
-  return (
-    <header
-      className={`${styles.nav} ${scrolled ? styles.navScrolled : ''}`}
-      role="banner"
-    >
-      <div className={`container ${styles.navInner}`}>
-        <div className={styles.brandLockup}>
-          <a href="/" className={styles.brandFlitrr} aria-label="Flitrr home">
-            Flitrr
-          </a>
-          <span className={styles.brandDivider} aria-hidden="true" />
-          <span className={styles.brandPulse} aria-current="page">
-            PULSE
-          </span>
-        </div>
-
-        <nav
-          id="primary-nav"
-          className={`${styles.navLinks} ${menuOpen ? styles.navLinksOpen : ''}`}
-          aria-label="Primary navigation"
-        >
-          <a href="#how-it-works" onClick={close}>How it works</a>
-          <a href="#modules" onClick={close}>Modules</a>
-          <a href="#faq" onClick={close}>FAQ</a>
-          <a
-            href="#design-partner"
-            className={styles.navCta}
-            onClick={close}
-          >
-            Become a design partner
-          </a>
-        </nav>
-
-        <button
-          className={styles.hamburger}
-          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-          aria-expanded={menuOpen}
-          aria-controls="primary-nav"
-          onClick={() => setMenuOpen((v) => !v)}
-        >
-          <span className={`${styles.bar} ${menuOpen ? styles.barTop : ''}`} />
-          <span className={`${styles.bar} ${menuOpen ? styles.barMid : ''}`} />
-          <span className={`${styles.bar} ${menuOpen ? styles.barBot : ''}`} />
-        </button>
-      </div>
-    </header>
-  );
-}
 
 /* ─────────────────────────────────────────
    Section 2 — Hero
@@ -418,310 +354,6 @@ function Modules() {
 }
 
 /* ─────────────────────────────────────────
-   Section 6 — Design Partner CTA
-───────────────────────────────────────── */
-
-const DESIGN_PARTNER_BLOCKS = [
-  {
-    heading: 'What it is.',
-    body: 'A 90-day programme. Working sessions while we build PULSE module by module. First access on every release. A direct say in what gets built next.',
-  },
-  {
-    heading: 'What you give.',
-    body: 'Two real projects, two hours a week, honest feedback. A willingness to shape PULSE before it is finished.',
-  },
-  {
-    heading: 'What you get.',
-    body: 'Lifetime founding-member pricing on PULSE. Priority access to every module as it ships. A direct line to the team building the product.',
-  },
-];
-
-function DesignPartner() {
-  const [email, setEmail] = useState('');
-  const [company, setCompany] = useState('');
-  const [portfolio, setPortfolio] = useState('');
-  const [market, setMarket] = useState('');
-  const [status, setStatus] = useState('idle'); // idle | success | error
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (
-      !email ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
-      !company.trim() ||
-      !portfolio ||
-      !market
-    ) {
-      setStatus('error');
-      return;
-    }
-    setStatus('success');
-    setEmail('');
-    setCompany('');
-    setPortfolio('');
-    setMarket('');
-  };
-
-  return (
-    <section
-      id="design-partner"
-      className={styles.designPartner}
-      aria-labelledby="design-partner-heading"
-    >
-      <div className="container">
-        <h2
-          id="design-partner-heading"
-          className={styles.sectionHeading}
-        >
-          Be a PULSE design partner.
-        </h2>
-        <p className={styles.designPartnerSub}>
-          Ten developers. Direct input into PULSE before it launches.
-          First access to Project Initiation the moment it ships.
-        </p>
-
-        <div className={styles.designPartnerBlocks}>
-          {DESIGN_PARTNER_BLOCKS.map(({ heading, body }) => (
-            <div key={heading} className={styles.designPartnerBlock}>
-              <h3 className={styles.designPartnerBlockHeading}>{heading}</h3>
-              <p className={styles.designPartnerBlockBody}>{body}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className={styles.designPartnerFormWrap}>
-          <div className={styles.designPartnerFormCard}>
-            {status === 'success' ? (
-              <div
-                className={styles.successState}
-                role="status"
-                aria-live="polite"
-              >
-                <svg
-                  width="40"
-                  height="40"
-                  viewBox="0 0 40 40"
-                  fill="none"
-                  aria-hidden="true"
-                >
-                  <circle
-                    cx="20" cy="20" r="18"
-                    stroke="var(--color-accent-1-deep-blue)"
-                    strokeWidth="2"
-                  />
-                  <path
-                    d="M11 20.5l6 6 12-12"
-                    stroke="var(--color-accent-1-deep-blue)"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <h3 className={styles.successHeading}>Request received</h3>
-                <p className={styles.successBody}>
-                  We will be in touch within 48 hours. In the meantime,
-                  keep an eye on your inbox.
-                </p>
-              </div>
-            ) : (
-              <form
-                className={styles.designPartnerForm}
-                onSubmit={handleSubmit}
-                noValidate
-              >
-                {/* Hidden source-tracking field — distinguishes leads
-                    submitted from the PULSE page from those on
-                    flitrr.com when both forms wire to the same backend. */}
-                <input type="hidden" name="source" value="pulse-page" />
-
-                <div className={styles.inputWrap}>
-                  <label htmlFor="dp-email" className={styles.formLabel}>
-                    Email address
-                  </label>
-                  <input
-                    id="dp-email"
-                    name="email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      if (status === 'error') setStatus('idle');
-                    }}
-                    className={`${styles.textInput} ${status === 'error' && !email ? styles.inputError : ''}`}
-                    required
-                  />
-                </div>
-
-                <div className={styles.inputWrap}>
-                  <label htmlFor="dp-company" className={styles.formLabel}>
-                    Company / practice name
-                  </label>
-                  <input
-                    id="dp-company"
-                    name="company"
-                    type="text"
-                    placeholder="e.g. Northpoint Developments"
-                    value={company}
-                    onChange={(e) => {
-                      setCompany(e.target.value);
-                      if (status === 'error') setStatus('idle');
-                    }}
-                    className={`${styles.textInput} ${status === 'error' && !company.trim() ? styles.inputError : ''}`}
-                    required
-                  />
-                </div>
-
-                <div className={styles.inputWrap}>
-                  <label htmlFor="dp-portfolio" className={styles.formLabel}>
-                    Portfolio size
-                  </label>
-                  <select
-                    id="dp-portfolio"
-                    name="portfolio"
-                    value={portfolio}
-                    onChange={(e) => {
-                      setPortfolio(e.target.value);
-                      if (status === 'error') setStatus('idle');
-                    }}
-                    className={`${styles.textInput} ${status === 'error' && !portfolio ? styles.inputError : ''}`}
-                    required
-                  >
-                    <option value="">Select…</option>
-                    <option value="1">1 project</option>
-                    <option value="2-3">2 to 3 projects</option>
-                    <option value="4+">4 plus projects</option>
-                  </select>
-                </div>
-
-                <div className={styles.inputWrap}>
-                  <label htmlFor="dp-market" className={styles.formLabel}>
-                    Primary market
-                  </label>
-                  <select
-                    id="dp-market"
-                    name="market"
-                    value={market}
-                    onChange={(e) => {
-                      setMarket(e.target.value);
-                      if (status === 'error') setStatus('idle');
-                    }}
-                    className={`${styles.textInput} ${status === 'error' && !market ? styles.inputError : ''}`}
-                    required
-                  >
-                    <option value="">Select…</option>
-                    <option value="UK">UK</option>
-                    <option value="Nigeria">Nigeria</option>
-                    <option value="Both">Both</option>
-                  </select>
-                </div>
-
-                {status === 'error' && (
-                  <p className={styles.errorMsg} role="alert">
-                    Please complete every field with a valid value.
-                  </p>
-                )}
-
-                <button
-                  type="submit"
-                  className={`${styles.btnPrimary} ${styles.btnFullWidth}`}
-                >
-                  Request a design partner spot
-                </button>
-              </form>
-            )}
-            <p className={styles.formNote}>
-              No payment. No commitment beyond the design partner programme.
-              Ten spots total.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─────────────────────────────────────────
-   Section 7 — FAQ
-───────────────────────────────────────── */
-
-const FAQS = [
-  {
-    q: "What's the Glass-ball vs Rubber-ball principle?",
-    a: "A two-bucket classification of every objective on your project. Glass-ball objectives are critical to project success. Miss one and the project has failed against what it was set up to deliver. Examples include completion date, planning consent retained, and GIA target. Rubber-ball objectives matter to delivery but won't break the project if they slip or change. Examples include supplier choice, fit-out scheduling, and finish specification. PULSE uses your classification to decide what gets flagged, escalated, or quietly tracked.",
-  },
-  {
-    q: 'Why do I have to start with Project Initiation?',
-    a: "Because PULSE can only monitor what you've defined. Without a Project Brief, the Action Log doesn't know which actions are critical, the Risk Register doesn't know which risks threaten what, and the Programme Tracker doesn't know which milestones can slip. Project Initiation is a 15-minute flow. It is the discipline that makes everything else work.",
-  },
-  {
-    q: 'Can I use PULSE without doing the Project Initiation flow?',
-    a: "Technically yes. You can skip ahead and configure objectives manually for each module. But you'll lose the system-derived suggestions, the over-constraint warnings, and the milestone templates. PULSE works best when you start with Project Initiation. The discipline is what makes the rest of the product powerful.",
-  },
-  {
-    q: 'How is PULSE different from Asana, Monday, or Procore?',
-    a: "Generic PM tools treat every task as equal weight. They give you a long list to track, and you decide what's urgent. PULSE is built around a specific classification (glass-ball vs rubber-ball) that determines what gets flagged automatically. That framing doesn't exist in general-purpose tools or in the construction-specific ones. PULSE is the discipline of programme delivery, built into the workflow.",
-  },
-  {
-    q: "My consultants won't adopt a new tool. Then what?",
-    a: "The Project Brief output is a PDF and a Word document. Your consultants don't need to use PULSE to read it. For modules that ask consultants to log actions or update risks, the interaction is a single click or a short comment. No training. If using PULSE is harder than sending a WhatsApp message, we've failed.",
-  },
-  {
-    q: "What's live now, and what's coming?",
-    a: 'Project Initiation ships first to design partners in Q3 2026. Action Log, Risk Register, and Programme Tracker follow on the roadmap. Executive Dashboard is planned. Design partners get first access to each module as it ships.',
-  },
-];
-
-function PulseFaq() {
-  const [openIndex, setOpenIndex] = useState(null);
-  const toggle = (i) => setOpenIndex((prev) => (prev === i ? null : i));
-
-  return (
-    <section id="faq" className={styles.faq} aria-labelledby="faq-heading">
-      <div className="container">
-        <div className={styles.faqInner}>
-          <h2 id="faq-heading" className={styles.sectionHeading}>
-            Questions we get asked.
-          </h2>
-          <dl className={styles.faqList}>
-            {FAQS.map(({ q, a }, i) => {
-              const isOpen = openIndex === i;
-              return (
-                <div
-                  key={i}
-                  className={`${styles.faqItem} ${isOpen ? styles.faqItemOpen : ''}`}
-                >
-                  <dt>
-                    <button
-                      className={styles.faqQuestion}
-                      onClick={() => toggle(i)}
-                      aria-expanded={isOpen}
-                      aria-controls={`pulse-faq-answer-${i}`}
-                    >
-                      <span>{q}</span>
-                      <span className={styles.faqIcon} aria-hidden="true">
-                        {isOpen ? '−' : '+'}
-                      </span>
-                    </button>
-                  </dt>
-                  <dd
-                    id={`pulse-faq-answer-${i}`}
-                    className={styles.faqAnswer}
-                    hidden={!isOpen}
-                  >
-                    <p>{a}</p>
-                  </dd>
-                </div>
-              );
-            })}
-          </dl>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─────────────────────────────────────────
    Section 8 — Footer CTA
 ───────────────────────────────────────── */
 
@@ -803,19 +435,26 @@ function PulseFooter() {
 }
 
 /* ─────────────────────────────────────────
-   Page
+   Page (server component)
 ───────────────────────────────────────── */
 
-export default function PulsePage() {
+export default async function PulsePage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const navUser = user ? { id: user.id, email: user.email } : null;
+
   return (
     <>
-      <PulseNav />
+      <PulseNav user={navUser} />
       <main id="main-content">
         <PulseHero />
         <Wedge />
         <GatingStory />
         <Modules />
-        <DesignPartner />
+        <PulseDesignPartner />
         <PulseFaq />
         <PulseFooterCta />
       </main>
