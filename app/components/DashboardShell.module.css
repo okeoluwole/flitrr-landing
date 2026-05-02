@@ -1,0 +1,144 @@
+/* ─────────────────────────────────────────
+   DashboardShell — top bar + user menu shared
+   across /dashboard and /pulse/app.
+───────────────────────────────────────── */
+
+.shell {
+  min-height: 100vh;
+  background-color: var(--color-foreground-cream);
+  display: flex;
+  flex-direction: column;
+}
+
+.topBar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background-color: var(--color-foreground-cream);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.topBarInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+
+.brandWordmark {
+  font-family: var(--font-heading), sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--color-accent-1-deep-blue);
+  text-decoration: none;
+}
+
+@media (min-width: 768px) {
+  .brandWordmark {
+    font-size: 26px;
+  }
+}
+
+.brandWordmark:hover,
+.brandWordmark:focus-visible {
+  opacity: 0.85;
+}
+
+/* ── User menu ─────────────────────────── */
+
+.menuWrap {
+  position: relative;
+}
+
+.menuTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-accent-1-deep-blue);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.menuTrigger:hover {
+  background-color: rgba(181, 188, 202, 0.25);
+}
+
+.menuTrigger:focus-visible {
+  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline-offset: 2px;
+}
+
+.menuChevron {
+  width: 12px;
+  height: 12px;
+  transition: transform 0.18s ease;
+}
+
+.menuChevronOpen {
+  transform: rotate(180deg);
+}
+
+.menuPanel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 200px;
+  background-color: var(--color-foreground-cream);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-shadow: 0 8px 32px rgba(55, 97, 131, 0.12);
+  z-index: 60;
+}
+
+.menuItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+.menuItem:hover,
+.menuItem:focus-visible {
+  background-color: rgba(181, 188, 202, 0.35);
+}
+
+.menuItem:focus-visible {
+  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline-offset: -2px;
+}
+
+.menuItemMuted {
+  color: var(--color-accent-2-grey-blue);
+}
+
+.menuItemAction {
+  color: var(--color-accent-1-deep-blue);
+}
+
+/* ── Body ──────────────────────────────── */
+
+.body {
+  flex: 1;
+  width: 100%;
+}

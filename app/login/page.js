@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '../../lib/supabase/client';
@@ -27,6 +27,15 @@ function LoginPageInner() {
   const resetSuccess = searchParams.get('reset') === 'success';
   const callbackError = searchParams.get('error') === 'callback_failed';
 
+  // Post-sign-in redirect target. The middleware appends ?next=
+  // when it bounces an unauthenticated visitor here. We honour that
+  // value if it's a same-origin path; otherwise default to /dashboard.
+  const rawNext = searchParams.get('next');
+  const safeNext =
+    rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//')
+      ? rawNext
+      : '/dashboard';
+
   /* ─── Sign in form state ─── */
   const [siEmail, setSiEmail] = useState('');
   const [siPassword, setSiPassword] = useState('');
@@ -42,19 +51,6 @@ function LoginPageInner() {
   const [rgBusy, setRgBusy] = useState(false);
   const [rgDoneEmail, setRgDoneEmail] = useState(null);
 
-  /* ─── Dev-only sign-out state ─── */
-  const [signedInUser, setSignedInUser] = useState(null);
-
-  useEffect(() => {
-    let active = true;
-    supabase.auth.getUser().then(({ data }) => {
-      if (active) setSignedInUser(data?.user ?? null);
-    });
-    return () => {
-      active = false;
-    };
-  }, [supabase]);
-
   const handleSignIn = async (e) => {
     e.preventDefault();
     setSiError(null);
@@ -68,9 +64,14 @@ function LoginPageInner() {
       setSiError(error.message);
       return;
     }
-    router.push('/dashboard');
+    router.push(safeNext);
     router.refresh();
   };
+
+  // Dev-only sign-out that previously lived below the card has been
+  // retired. The DashboardShell user menu now provides this affordance,
+  // and the middleware redirects any authenticated visitor away from
+  // /login (except when a banner query param is present).
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -93,12 +94,6 @@ function LoginPageInner() {
       return;
     }
     setRgDoneEmail(rgEmail);
-  };
-
-  const handleDevSignOut = async () => {
-    await supabase.auth.signOut();
-    setSignedInUser(null);
-    router.refresh();
   };
 
   return (
@@ -317,26 +312,6 @@ function LoginPageInner() {
           </>
         )}
       </div>
-
-      {/*
-        DEV-ONLY temporary sign-out control. Sub-step 3 will replace
-        this with a proper user menu in the nav. For now this lets the
-        verifier test the sign-out path against the real session cookie.
-      */}
-      {signedInUser && (
-        <div className={styles.devSignOutWrap}>
-          <span className={styles.devNotice}>
-            Dev only. Signed in as {signedInUser.email}.
-          </span>
-          <button
-            type="button"
-            className={styles.devSignOut}
-            onClick={handleDevSignOut}
-          >
-            Sign out
-          </button>
-        </div>
-      )}
     </main>
   );
 }
