@@ -1,11 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { createClient } from '../../../../lib/supabase/client';
 import StepProjectDefinition from './StepProjectDefinition';
 import StepStrategicContext from './StepStrategicContext';
+import StepProjectObjectives from './StepProjectObjectives';
+import StepConstraintRanking from './StepConstraintRanking';
 import StepPlaceholder from './StepPlaceholder';
+import { OBJECTIVE_ORDER } from './objectiveMeta';
 import styles from './InitiationWizard.module.css';
 
 /**
@@ -143,6 +146,37 @@ function ctxFrom(p) {
   };
 }
 
+// Map the fetched project_objectives rows onto Step 3 field state, in the
+// canonical objective order (Scope, Cost, Time, Quality, Funding). Nulls
+// from the database become empty strings for the controlled inputs.
+function objectivesFrom(rows) {
+  return OBJECTIVE_ORDER.map((type) => {
+    const r = rows.find((row) => row.objective_type === type) ?? {};
+    return {
+      id: r.id ?? null,
+      objective_type: type,
+      definition: r.definition ?? '',
+      classification: r.classification ?? 'flexible',
+      tolerance: r.tolerance ?? '',
+      rank: r.rank ?? null,
+    };
+  });
+}
+
+// Derive the Step 4 ranking order from the rows. If every row has a saved
+// rank (a returning draft), honour that order. Otherwise (freshly seeded,
+// ranks still null) fall back to the canonical order for the developer to
+// rearrange.
+function rankOrderFrom(rows) {
+  const ranked = rows
+    .filter((r) => r.rank != null)
+    .sort((a, b) => a.rank - b.rank);
+  if (ranked.length === OBJECTIVE_ORDER.length) {
+    return ranked.map((r) => r.objective_type);
+  }
+  return [...OBJECTIVE_ORDER];
+}
+
 export default function InitiationWizard({ userId, initialProject }) {
   const supabase = createClient();
 
@@ -158,6 +192,16 @@ export default function InitiationWizard({ userId, initialProject }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
+  // Step 3 / 4 state. The five objective rows are loaded client-side once
+  // the project exists (see the effect below). objectives holds the
+  // editable fields in canonical order; rankOrder is the Step 4 priority
+  // order (an array of objective_type strings); objStatus gates the forms
+  // until the rows are in hand.
+  const [objectives, setObjectives] = useState(null);
+  const [rankOrder, setRankOrder] = useState(null);
+  const [objStatus, setObjStatus] = useState('idle'); // idle | loading | loaded | error
+  const objLoadStartedRef = useRef(null);
+
   const nameValid = def.name.trim().length > 0;
 
   const onDefChange = (field, value) => {
@@ -168,6 +212,66 @@ export default function InitiationWizard({ userId, initialProject }) {
   const onCtxChange = (field, value) => {
     setCtx((prev) => ({ ...prev, [field]: value }));
     if (error) setError(null);
+  };
+
+  // Fetch the five seeded objective rows for the current project. Used
+  // both by the load effect and by the retry control if the fetch fails.
+  const loadObjectives = async () => {
+    if (!projectId) return;
+    setObjStatus('loading');
+    const { data, error: selErr } = await supabase
+      .from('project_objectives')
+      .select('id, objective_type, definition, classification, tolerance, rank')
+      .eq('project_id', projectId);
+    if (selErr || !data || data.length < OBJECTIVE_ORDER.length) {
+      setObjStatus('error');
+      return;
+    }
+    setObjectives(objectivesFrom(data));
+    setRankOrder(rankOrderFrom(data));
+    setObjStatus('loaded');
+  };
+
+  // Load objectives once the project exists. Keyed on projectId so it
+  // fires on mount for a resumed draft and right after the Step 1 INSERT
+  // for a new project (the trigger has seeded the rows by then). The ref
+  // guards against a duplicate fetch from React's double effect run in
+  // development StrictMode.
+  useEffect(() => {
+    if (!projectId) return;
+    if (objLoadStartedRef.current === projectId) return;
+    objLoadStartedRef.current = projectId;
+    loadObjectives();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]);
+
+  const onObjectiveChange = (type, field, value) => {
+    setObjectives((prev) =>
+      prev
+        ? prev.map((o) =>
+            o.objective_type === type ? { ...o, [field]: value } : o
+          )
+        : prev
+    );
+    if (error) setError(null);
+  };
+
+  // Step 4 reorder: swap a row one place up or down (the accessible path).
+  const moveObjective = (type, dir) => {
+    setRankOrder((prev) => {
+      if (!prev) return prev;
+      const i = prev.indexOf(type);
+      const j = dir === 'up' ? i - 1 : i + 1;
+      if (i === -1 || j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      [next[i], next[j]] = [next[j], next[i]];
+      return next;
+    });
+  };
+
+  // Step 4 reorder: accept a full new order (the drag-and-drop path).
+  const onReorder = (next) => {
+    setRankOrder(next);
   };
 
   const advanceTo = (n) => {
@@ -238,6 +342,43 @@ export default function InitiationWizard({ userId, initialProject }) {
     return updErr ?? null;
   };
 
+  // Save Step 3. UPDATE each of the five existing objective rows by id;
+  // never INSERT (the rows are seeded and uniquely keyed per type). A
+  // non_negotiable objective carries no tolerance, so store null for it.
+  const persistStep3 = async () => {
+    const results = await Promise.all(
+      objectives.map((o) =>
+        supabase
+          .from('project_objectives')
+          .update({
+            definition: clean(o.definition),
+            classification: o.classification,
+            tolerance:
+              o.classification === 'flexible' ? clean(o.tolerance) : null,
+          })
+          .eq('id', o.id)
+      )
+    );
+    return results.find((r) => r.error)?.error ?? null;
+  };
+
+  // Save Step 4. Write rank 1..5 onto the existing rows to match the
+  // chosen order (top of the list is rank 1).
+  const persistStep4 = async () => {
+    const byType = Object.fromEntries(
+      objectives.map((o) => [o.objective_type, o])
+    );
+    const results = await Promise.all(
+      rankOrder.map((type, i) =>
+        supabase
+          .from('project_objectives')
+          .update({ rank: i + 1 })
+          .eq('id', byType[type].id)
+      )
+    );
+    return results.find((r) => r.error)?.error ?? null;
+  };
+
   const handleNext = async () => {
     setError(null);
 
@@ -269,7 +410,31 @@ export default function InitiationWizard({ userId, initialProject }) {
       return;
     }
 
-    // Steps 3 to 7: placeholders, nothing to persist. Just advance.
+    if (step === 3) {
+      setBusy(true);
+      const err = await persistStep3();
+      setBusy(false);
+      if (err) {
+        setError(SAVE_ERROR);
+        return;
+      }
+      advanceTo(4);
+      return;
+    }
+
+    if (step === 4) {
+      setBusy(true);
+      const err = await persistStep4();
+      setBusy(false);
+      if (err) {
+        setError(SAVE_ERROR);
+        return;
+      }
+      advanceTo(5);
+      return;
+    }
+
+    // Steps 5 to 7: placeholders, nothing to persist. Just advance.
     if (step < TOTAL_STEPS) {
       advanceTo(step + 1);
     }
@@ -290,6 +455,42 @@ export default function InitiationWizard({ userId, initialProject }) {
     }
   };
 
+  // The over-constraint condition for Step 4: every objective marked
+  // non-negotiable, so the project has left itself no room to flex. Drives
+  // the soft advisory warning only; it never blocks advancing.
+  const overConstrained =
+    objStatus === 'loaded' &&
+    objectives.every((o) => o.classification === 'non_negotiable');
+
+  // Loading / error fallback for Steps 3 and 4 while the objective rows
+  // are fetched. Mirrors the step header so the panel stays consistent.
+  const renderObjectivesNotReady = (n) => {
+    const title = n === 3 ? 'Project Objectives' : 'Constraint Ranking';
+    return (
+      <>
+        <p className={styles.panelEyebrow}>Step {n} of 8</p>
+        <h2 className={styles.panelHeading}>{title}</h2>
+        {objStatus === 'error' ? (
+          <>
+            <p className={styles.panelIntro}>
+              We could not load the objectives for this project. Please check
+              your connection and try again.
+            </p>
+            <button
+              type="button"
+              className={styles.btnNext}
+              onClick={loadObjectives}
+            >
+              Try again
+            </button>
+          </>
+        ) : (
+          <p className={styles.panelIntro}>Loading your objectives…</p>
+        )}
+      </>
+    );
+  };
+
   const renderStep = () => {
     if (step === 1) {
       return <StepProjectDefinition values={def} onChange={onDefChange} />;
@@ -297,12 +498,37 @@ export default function InitiationWizard({ userId, initialProject }) {
     if (step === 2) {
       return <StepStrategicContext values={ctx} onChange={onCtxChange} />;
     }
+    if (step === 3 || step === 4) {
+      if (objStatus !== 'loaded') {
+        return renderObjectivesNotReady(step);
+      }
+      if (step === 3) {
+        return (
+          <StepProjectObjectives
+            objectives={objectives}
+            onChange={onObjectiveChange}
+          />
+        );
+      }
+      return (
+        <StepConstraintRanking
+          order={rankOrder}
+          objectives={objectives}
+          overConstrained={overConstrained}
+          onMove={moveObjective}
+          onReorder={onReorder}
+        />
+      );
+    }
     const meta = STEPS[step - 1];
     return <StepPlaceholder name={meta.name} body={meta.body} />;
   };
 
   const nextDisabled =
-    busy || step === TOTAL_STEPS || (step === 1 && !nameValid);
+    busy ||
+    step === TOTAL_STEPS ||
+    (step === 1 && !nameValid) ||
+    ((step === 3 || step === 4) && objStatus !== 'loaded');
 
   const headerTitle = def.name.trim() ? def.name.trim() : 'New project';
 

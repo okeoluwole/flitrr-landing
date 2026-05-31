@@ -405,6 +405,289 @@
   margin: 0 auto;
 }
 
+/* ── Step 3: Project Objectives ────────── */
+
+.objList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.objCard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  background-color: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: clamp(1.1rem, 2.5vw, 1.5rem);
+}
+
+.objCardHead {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.objName {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--color-accent-1-deep-blue);
+}
+
+.objDesc {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--color-accent-2-grey-blue);
+}
+
+/* Classification choice: two radios styled as selectable cards. The
+   native inputs stay in the DOM (keyboard and screen-reader operable) but
+   are visually hidden; the label card carries the visible styling and the
+   focus ring (via :focus-within). */
+.choiceGroup {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.choiceLegend {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-accent-1-deep-blue);
+  padding: 0;
+  margin-bottom: 0.5rem;
+}
+
+.choices {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.6rem;
+}
+
+@media (min-width: 600px) {
+  .choices {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.choice {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+  padding: 0.7rem 0.85rem 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.choice:hover {
+  border-color: var(--color-accent-2-grey-blue);
+}
+
+.choiceSelected {
+  border-color: var(--color-accent-1-deep-blue);
+  background-color: rgba(55, 97, 131, 0.06);
+  box-shadow: inset 0 0 0 1px var(--color-accent-1-deep-blue);
+}
+
+.choiceInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+}
+
+.choice:focus-within {
+  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline-offset: 2px;
+}
+
+.choiceTitle {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-accent-1-deep-blue);
+}
+
+.choiceHint {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.35;
+  color: var(--color-accent-2-grey-blue);
+}
+
+/* ── Step 4: Constraint Ranking ────────── */
+
+.rankList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0;
+  margin: 1.25rem 0 0;
+}
+
+.rankRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: #ffffff;
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+  padding: 0.7rem 0.85rem;
+  transition: border-color 0.15s ease, background-color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.rankRowDragging {
+  opacity: 0.45;
+}
+
+.rankRowDragOver {
+  border-color: var(--color-accent-1-deep-blue);
+  background-color: rgba(55, 97, 131, 0.06);
+}
+
+.rankHandle {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-accent-3-light-grey-blue);
+  cursor: grab;
+}
+
+.rankNum {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background-color: var(--color-accent-1-deep-blue);
+  color: var(--color-foreground-cream);
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.rankMain {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.6rem;
+  min-width: 0;
+}
+
+.rankName {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-accent-1-deep-blue);
+}
+
+.rankBadge {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.rankBadgeNN {
+  background-color: rgba(55, 97, 131, 0.1);
+  color: var(--color-accent-1-deep-blue);
+  border-color: rgba(55, 97, 131, 0.25);
+}
+
+.rankBadgeFlex {
+  background-color: rgba(119, 147, 168, 0.12);
+  color: var(--color-accent-2-grey-blue);
+  border-color: var(--color-border);
+}
+
+.rankControls {
+  flex: 0 0 auto;
+  display: inline-flex;
+  gap: 0.25rem;
+  margin-left: auto;
+}
+
+.moveBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-foreground-cream);
+  color: var(--color-accent-1-deep-blue);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.moveBtn:hover:not(:disabled) {
+  border-color: var(--color-accent-1-deep-blue);
+  background-color: rgba(55, 97, 131, 0.06);
+}
+
+.moveBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.moveBtn:focus-visible {
+  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline-offset: 2px;
+}
+
+/* Over-constraint advisory. Amber, on brand, distinct from the red error
+   message: this warns, it does not block. */
+.warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background-color: rgba(244, 192, 49, 0.16);
+  border: 1px solid var(--color-background-amber);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  margin-top: 1.25rem;
+}
+
+.warningIcon {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: #9a6b00;
+}
+
+.warningText {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--color-accent-1-deep-blue);
+  margin: 0;
+}
+
 /* ── Accessibility ─────────────────────── */
 
 .srOnly {
