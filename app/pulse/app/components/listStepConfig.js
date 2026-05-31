@@ -1,0 +1,209 @@
+/**
+ * Shared configuration for the three list-based initiation steps:
+ *   Step 5  Critical Milestones   -> project_milestones
+ *   Step 6  Workstreams           -> project_workstreams
+ *   Step 7  Initial Risk Profile  -> project_risks
+ *
+ * The three steps share one shape: an editable, pre-filled list of items,
+ * each with type-specific fields plus a shared "serves objective" link and a
+ * cascading Critical / Standard criticality. This module is the single
+ * source of truth for what differs between them (table, copy, fields, the
+ * suggested starter set), so the shared StepItemList component and the wizard
+ * shell can stay generic.
+ *
+ * Copy here is used verbatim (framework Section 6/7 and the M3.4 spec).
+ * Punctuation discipline: no em dashes or en dashes.
+ */
+
+// Risk likelihood / impact scale (risk_level enum). Shared by the two risk
+// rating selects. Both default to medium so an inserted risk always carries a
+// value (the columns are nullable, but the spec wants inserts to be rated).
+const RISK_LEVELS = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+];
+
+// The two cascaded criticality values (criticality_level enum). The shared
+// criticality control on every item renders from this.
+export const CRITICALITY_OPTIONS = [
+  { value: 'critical', label: 'Critical' },
+  { value: 'standard', label: 'Standard' },
+];
+
+/**
+ * The cascade rule (framework Section 6, M3.4 spec): an item linked to a
+ * Non-negotiable objective defaults to Critical, anything else (a Flexible
+ * objective, or no link) defaults to Standard. Pure and shared so the default
+ * is computed the same way wherever the cascade fires.
+ *
+ * `objectives` is the wizard's live objective state (id, objective_type,
+ * classification, ...), so this reflects the classification set in Step 3,
+ * including unsaved edits made earlier in the same session.
+ */
+export function cascadeCriticality(linkedObjectiveId, objectives) {
+  if (!linkedObjectiveId) return 'standard';
+  const obj = (objectives ?? []).find((o) => o.id === linkedObjectiveId);
+  return obj && obj.classification === 'non_negotiable' ? 'critical' : 'standard';
+}
+
+/**
+ * Per-step configuration, keyed by a stable list key.
+ *
+ * `fields` are the type-specific inputs only; the shared objective link and
+ * the criticality control are rendered by StepItemList itself. A field marked
+ * `full` spans the full width of the item card; otherwise it sits in the
+ * two-column grid alongside the link and criticality controls.
+ *
+ * `requiredField` is the one field that gives an item its identity. It maps
+ * to the table's NOT NULL column, so a row left blank there is dropped on
+ * save (see persistList in the shell) rather than sent an empty value.
+ *
+ * `suggested` is the starter set, shown only when the project has no saved
+ * rows of this type yet. Each entry is merged onto a blank item, so unlisted
+ * fields take their defaults (unlinked, Standard, medium/medium for risks).
+ */
+export const LIST_CONFIG = {
+  milestones: {
+    key: 'milestones',
+    table: 'project_milestones',
+    step: 5,
+    title: 'Critical Milestones',
+    intro:
+      'Set the milestones that mark real progress, and link each to the objective it serves. A milestone serving a non-negotiable objective is treated as critical.',
+    itemNoun: 'milestone',
+    addLabel: 'Add milestone',
+    requiredField: 'name',
+    fields: [
+      {
+        name: 'name',
+        label: 'Milestone',
+        type: 'text',
+        full: true,
+        placeholder: 'e.g. Planning approval secured',
+      },
+      {
+        name: 'description',
+        label: 'Description',
+        type: 'text',
+        full: true,
+        optional: true,
+        placeholder: 'Optional detail.',
+      },
+      {
+        name: 'target_date',
+        label: 'Target date',
+        type: 'date',
+        optional: true,
+      },
+    ],
+    suggested: [
+      { name: 'Planning approval secured' },
+      { name: 'Design finalised' },
+      { name: 'Contractor appointed' },
+      { name: 'Construction commenced' },
+      { name: 'Practical completion' },
+      { name: 'Handover complete' },
+    ],
+  },
+
+  workstreams: {
+    key: 'workstreams',
+    table: 'project_workstreams',
+    step: 6,
+    title: 'Workstreams',
+    intro:
+      'Define the workstreams that deliver this project and who leads each, and link a workstream to the objective it serves.',
+    itemNoun: 'workstream',
+    addLabel: 'Add workstream',
+    requiredField: 'name',
+    fields: [
+      {
+        name: 'name',
+        label: 'Workstream',
+        type: 'text',
+        full: true,
+        placeholder: 'e.g. Design and planning',
+      },
+      {
+        name: 'description',
+        label: 'Description',
+        type: 'text',
+        full: true,
+        optional: true,
+        placeholder: 'Optional detail.',
+      },
+      {
+        name: 'lead',
+        label: 'Lead',
+        type: 'text',
+        optional: true,
+        placeholder: 'Who leads this?',
+      },
+    ],
+    suggested: [
+      { name: 'Design and planning' },
+      { name: 'Funding and finance' },
+      { name: 'Construction delivery' },
+      { name: 'Cost and commercial management' },
+      { name: 'Sales and marketing' },
+    ],
+  },
+
+  risks: {
+    key: 'risks',
+    table: 'project_risks',
+    step: 7,
+    title: 'Initial Risk Profile',
+    intro:
+      'Capture the risks you can already see. Tag each to the objective it threatens, rate it, and note how you would respond.',
+    itemNoun: 'risk',
+    addLabel: 'Add risk',
+    requiredField: 'description',
+    fields: [
+      {
+        name: 'description',
+        label: 'Risk',
+        type: 'text',
+        full: true,
+        placeholder: 'e.g. Planning permission delayed or refused',
+      },
+      {
+        name: 'likelihood',
+        label: 'Likelihood',
+        type: 'select',
+        options: RISK_LEVELS,
+        default: 'medium',
+      },
+      {
+        name: 'impact',
+        label: 'Impact',
+        type: 'select',
+        options: RISK_LEVELS,
+        default: 'medium',
+      },
+      {
+        name: 'mitigation',
+        label: 'Mitigation',
+        type: 'textarea',
+        full: true,
+        optional: true,
+        placeholder: 'How would you respond?',
+      },
+    ],
+    suggested: [
+      { description: 'Planning permission delayed or refused' },
+      { description: 'Construction costs exceed budget' },
+      { description: 'Funding delayed or falls through' },
+      { description: 'Programme slips beyond target completion' },
+      { description: 'Sales slower than forecast' },
+    ],
+  },
+};
+
+// Step number -> config, for the shell's render and save switch.
+export const CONFIG_BY_STEP = {
+  5: LIST_CONFIG.milestones,
+  6: LIST_CONFIG.workstreams,
+  7: LIST_CONFIG.risks,
+};

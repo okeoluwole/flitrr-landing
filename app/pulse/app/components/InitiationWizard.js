@@ -7,15 +7,22 @@ import StepProjectDefinition from './StepProjectDefinition';
 import StepStrategicContext from './StepStrategicContext';
 import StepProjectObjectives from './StepProjectObjectives';
 import StepConstraintRanking from './StepConstraintRanking';
+import StepItemList from './StepItemList';
 import StepPlaceholder from './StepPlaceholder';
 import { OBJECTIVE_ORDER } from './objectiveMeta';
+import {
+  LIST_CONFIG,
+  CONFIG_BY_STEP,
+  cascadeCriticality,
+} from './listStepConfig';
 import styles from './InitiationWizard.module.css';
 
 /**
  * InitiationWizard — the eight-step PULSE Project Initiation flow.
  *
- * M3.2 implements the shell plus Steps 1 and 2 fully. Steps 3 to 8 are
- * navigable placeholders. Architecture decisions (fixed in the M3.2 spec):
+ * Steps 1 and 2 (M3.2), 3 and 4 (M3.3), and 5 to 7 (M3.4) are built. Step 8
+ * (the generated brief) remains a navigable placeholder until M3.5.
+ * Architecture decisions (fixed in the M3.2 spec):
  *
  *   - One route, one wizard. The progress indicator shows all eight steps.
  *   - The project row is created on advancing from Step 1 (INSERT), which
@@ -35,7 +42,7 @@ import styles from './InitiationWizard.module.css';
 
 // The eight steps. `short` labels the progress dot; `name` titles the
 // panel and the dot's accessible label. `body` is the placeholder copy
-// for steps 3 to 8 (Steps 1 and 2 render their own dedicated forms).
+// for the not-yet-built Step 8; every other step renders its own form.
 const STEPS = [
   { n: 1, name: 'Project Definition', short: 'Define' },
   { n: 2, name: 'Strategic Context', short: 'Context' },
@@ -51,24 +58,11 @@ const STEPS = [
     short: 'Ranking',
     body: 'Rank the objectives in priority order, confirm their classification, and surface a warning if the project is over-constrained.',
   },
-  {
-    n: 5,
-    name: 'Critical Milestones',
-    short: 'Milestones',
-    body: 'Identify the milestones that matter, each carrying the criticality of the objective it serves.',
-  },
-  {
-    n: 6,
-    name: 'Workstreams',
-    short: 'Workstreams',
-    body: 'Define the workstreams and assign leads, each weighted by the criticality it serves.',
-  },
-  {
-    n: 7,
-    name: 'Initial Risk Profile',
-    short: 'Risks',
-    body: 'Seed the starter risks, each tagged to the objective it threatens and monitored in proportion to that objective.',
-  },
+  // Steps 5 to 7 render their own forms (StepItemList); their intro copy
+  // lives in listStepConfig, so no placeholder body is needed here.
+  { n: 5, name: 'Critical Milestones', short: 'Milestones' },
+  { n: 6, name: 'Workstreams', short: 'Workstreams' },
+  { n: 7, name: 'Initial Risk Profile', short: 'Risks' },
   {
     n: 8,
     name: 'Generated Brief',
@@ -177,6 +171,85 @@ function rankOrderFrom(rows) {
   return [...OBJECTIVE_ORDER];
 }
 
+// ── Step 5 to 7 list helpers ───────────────────────────────────────────────
+// The three list steps (milestones, workstreams, risks) share one shape, so
+// these generic helpers drive all of them from the per-type LIST_CONFIG. A
+// screen item carries: a real database `id` (null until inserted), a stable
+// client `_key` (for React and focus, never persisted), the config's fields,
+// `linked_objective_id`, `criticality`, and an in-session `criticalityOverridden`
+// flag (no schema column for it, by design).
+
+// Default value for a field on a brand-new (blank) item.
+function fieldDefault(field) {
+  if (field.type === 'select') return field.default ?? field.options[0].value;
+  return '';
+}
+
+// A fresh, unsaved item: no id, unlinked, Standard, fields at their defaults.
+function makeEmptyItem(cfg, makeKey) {
+  const item = {
+    id: null,
+    _key: makeKey(),
+    linked_objective_id: '',
+    criticality: 'standard',
+    criticalityOverridden: false,
+  };
+  for (const f of cfg.fields) item[f.name] = fieldDefault(f);
+  return item;
+}
+
+// Map a saved database row onto a screen item. The override flag is
+// reconstructed: a stored criticality that diverges from what the cascade
+// would currently produce can only have come from a manual override, so a
+// later link change must not silently reset it. A value that matches the
+// cascade leaves the cascade live.
+function rowToItem(cfg, row, objectives, makeKey) {
+  const item = {
+    id: row.id,
+    _key: makeKey(),
+    linked_objective_id: row.linked_objective_id ?? '',
+    criticality: row.criticality,
+    criticalityOverridden:
+      row.criticality !==
+      cascadeCriticality(row.linked_objective_id ?? '', objectives),
+  };
+  for (const f of cfg.fields) {
+    item[f.name] = row[f.name] ?? (f.type === 'select' ? fieldDefault(f) : '');
+  }
+  return item;
+}
+
+// Build a step's initial list: saved rows if any exist, otherwise the
+// suggested starter set (each suggestion merged onto a blank item).
+function buildList(cfg, rows, objectives, makeKey) {
+  if (rows && rows.length > 0) {
+    return rows.map((row) => rowToItem(cfg, row, objectives, makeKey));
+  }
+  return cfg.suggested.map((s) => ({ ...makeEmptyItem(cfg, makeKey), ...s }));
+}
+
+// An item is "blank" when its required (identity) field is empty after
+// trimming. Blank items are not persisted (the column is NOT NULL) and are
+// dropped from the screen on save, so the screen matches the database.
+function isBlank(cfg, item) {
+  return clean(item[cfg.requiredField]) == null;
+}
+
+// Map a screen item onto a database row payload (insert or update). Optional
+// text and date fields are cleaned to null when empty; selects (the risk
+// levels) always carry a value. id, _key, status, and the override flag are
+// intentionally not sent: id/_key are identity, status keeps its default, and
+// the override flag is in-session only.
+function itemToRow(cfg, item) {
+  const row = {};
+  for (const f of cfg.fields) {
+    row[f.name] = f.type === 'select' ? item[f.name] : clean(item[f.name]);
+  }
+  row.linked_objective_id = item.linked_objective_id || null;
+  row.criticality = item.criticality;
+  return row;
+}
+
 export default function InitiationWizard({ userId, initialProject }) {
   const supabase = createClient();
 
@@ -201,6 +274,23 @@ export default function InitiationWizard({ userId, initialProject }) {
   const [rankOrder, setRankOrder] = useState(null);
   const [objStatus, setObjStatus] = useState('idle'); // idle | loading | loaded | error
   const objLoadStartedRef = useRef(null);
+
+  // Step 5 to 7 state. The three lists load once the project exists and its
+  // objectives are in hand (the link selector and the cascade need them).
+  // `lists` holds { milestones, workstreams, risks } once loaded; listsStatus
+  // gates the forms. persistedIdsRef tracks which item ids currently exist in
+  // the database, so a save computes deletes precisely. keyCounterRef mints
+  // the stable per-item client keys (React keys and focus targets).
+  const [lists, setLists] = useState(null);
+  const [listsStatus, setListsStatus] = useState('idle'); // idle | loading | loaded | error
+  const listLoadStartedRef = useRef(null);
+  const keyCounterRef = useRef(0);
+  const persistedIdsRef = useRef({
+    milestones: new Set(),
+    workstreams: new Set(),
+    risks: new Set(),
+  });
+  const makeKey = () => `k${keyCounterRef.current++}`;
 
   const nameValid = def.name.trim().length > 0;
 
@@ -245,6 +335,68 @@ export default function InitiationWizard({ userId, initialProject }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
+  // Fetch the three list types for the current project. Kept separate from
+  // the objectives load so Steps 3 and 4 keep their own ready/error gating,
+  // but it runs only after objectives are loaded: the cascade default and the
+  // override reconstruction both read objective classifications.
+  const loadLists = async (objs) => {
+    if (!projectId) return;
+    setListsStatus('loading');
+    const [m, w, r] = await Promise.all([
+      supabase
+        .from('project_milestones')
+        .select(
+          'id, name, description, target_date, linked_objective_id, criticality'
+        )
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: true }),
+      supabase
+        .from('project_workstreams')
+        .select('id, name, description, lead, linked_objective_id, criticality')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: true }),
+      supabase
+        .from('project_risks')
+        .select(
+          'id, description, likelihood, impact, linked_objective_id, criticality, mitigation'
+        )
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: true }),
+    ]);
+    if (m.error || w.error || r.error) {
+      setListsStatus('error');
+      return;
+    }
+    setLists({
+      milestones: buildList(LIST_CONFIG.milestones, m.data ?? [], objs, makeKey),
+      workstreams: buildList(
+        LIST_CONFIG.workstreams,
+        w.data ?? [],
+        objs,
+        makeKey
+      ),
+      risks: buildList(LIST_CONFIG.risks, r.data ?? [], objs, makeKey),
+    });
+    persistedIdsRef.current = {
+      milestones: new Set((m.data ?? []).map((x) => x.id)),
+      workstreams: new Set((w.data ?? []).map((x) => x.id)),
+      risks: new Set((r.data ?? []).map((x) => x.id)),
+    };
+    setListsStatus('loaded');
+  };
+
+  // Load the lists once, after the objectives have loaded for this project.
+  // Keyed on objStatus so it fires as soon as objectives are ready; the ref
+  // guard keeps it to a single run per project.
+  useEffect(() => {
+    if (!projectId) return;
+    if (objStatus !== 'loaded') return;
+    if (listLoadStartedRef.current === projectId) return;
+    listLoadStartedRef.current = projectId;
+    loadLists(objectives);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, objStatus]);
+
   const onObjectiveChange = (type, field, value) => {
     setObjectives((prev) =>
       prev
@@ -272,6 +424,80 @@ export default function InitiationWizard({ userId, initialProject }) {
   // Step 4 reorder: accept a full new order (the drag-and-drop path).
   const onReorder = (next) => {
     setRankOrder(next);
+  };
+
+  // ── Step 5 to 7 list editing ──────────────────────────────────────────
+  // Replace one item in one list, located by its stable client key.
+  const updateListItem = (key, itemKey, fn) =>
+    setLists((prev) =>
+      prev
+        ? {
+            ...prev,
+            [key]: prev[key].map((it) => (it._key === itemKey ? fn(it) : it)),
+          }
+        : prev
+    );
+
+  const onListField = (key, itemKey, field, value) => {
+    updateListItem(key, itemKey, (it) => ({ ...it, [field]: value }));
+    if (error) setError(null);
+  };
+
+  // Changing the linked objective re-applies the cascade default, unless the
+  // developer has manually overridden this item's criticality.
+  const onListLink = (key, itemKey, value) => {
+    updateListItem(key, itemKey, (it) => {
+      const next = { ...it, linked_objective_id: value };
+      if (!it.criticalityOverridden) {
+        next.criticality = cascadeCriticality(value, objectives);
+      }
+      return next;
+    });
+    if (error) setError(null);
+  };
+
+  // A manual criticality change sticks: it sets the override flag so a later
+  // link change will not silently reset it.
+  const onListCriticality = (key, itemKey, value) => {
+    updateListItem(key, itemKey, (it) => ({
+      ...it,
+      criticality: value,
+      criticalityOverridden: true,
+    }));
+    if (error) setError(null);
+  };
+
+  const onListAdd = (key) => {
+    setLists((prev) =>
+      prev
+        ? {
+            ...prev,
+            [key]: [...prev[key], makeEmptyItem(LIST_CONFIG[key], makeKey)],
+          }
+        : prev
+    );
+    if (error) setError(null);
+  };
+
+  const onListRemove = (key, itemKey) => {
+    setLists((prev) =>
+      prev
+        ? { ...prev, [key]: prev[key].filter((it) => it._key !== itemKey) }
+        : prev
+    );
+    if (error) setError(null);
+  };
+
+  // Retry control for the Steps 5 to 7 load fallback. Retries whichever load
+  // failed: objectives first (the lists load depends on it), otherwise the
+  // lists themselves.
+  const retryListData = () => {
+    if (objStatus !== 'loaded') {
+      objLoadStartedRef.current = null;
+      loadObjectives();
+    } else {
+      loadLists(objectives);
+    }
   };
 
   const advanceTo = (n) => {
@@ -379,6 +605,87 @@ export default function InitiationWizard({ userId, initialProject }) {
     return results.find((r) => r.error)?.error ?? null;
   };
 
+  // Save a Step 5 to 7 list: reconcile the screen against the database so the
+  // two match exactly. Blank rows (empty required field) are not real items,
+  // so they are never inserted and are dropped from the screen. Rows already
+  // in the database are updated, new rows inserted, and database rows no
+  // longer on screen deleted. Inserted ids are written back before any error
+  // is surfaced, so a retry never duplicates a row. Returns an Error on
+  // failure, or null on success.
+  const persistList = async (key) => {
+    const cfg = LIST_CONFIG[key];
+    const items = lists[key];
+
+    const keep = items.filter((it) => !isBlank(cfg, it));
+    const keepIdsInDb = new Set(keep.filter((it) => it.id).map((it) => it.id));
+
+    const prevIds = persistedIdsRef.current[key];
+    const toDelete = [...prevIds].filter((id) => !keepIdsInDb.has(id));
+    const toUpdate = keep.filter((it) => it.id);
+    const toInsert = keep.filter((it) => !it.id);
+
+    let errored = false;
+    let deletedSet = new Set();
+
+    // 1. Deletes (one statement, idempotent on retry).
+    if (toDelete.length) {
+      const { error: delErr } = await supabase
+        .from(cfg.table)
+        .delete()
+        .in('id', toDelete);
+      if (delErr) errored = true;
+      else deletedSet = new Set(toDelete);
+    }
+
+    // 2. Updates (idempotent on retry).
+    if (toUpdate.length) {
+      const updRes = await Promise.all(
+        toUpdate.map((it) =>
+          supabase.from(cfg.table).update(itemToRow(cfg, it)).eq('id', it.id)
+        )
+      );
+      if (updRes.some((r) => r.error)) errored = true;
+    }
+
+    // 3. Inserts (per row, so each returned id maps back to its item).
+    const newIdByKey = {};
+    if (toInsert.length) {
+      const insRes = await Promise.all(
+        toInsert.map((it) =>
+          supabase
+            .from(cfg.table)
+            .insert({ project_id: projectId, ...itemToRow(cfg, it) })
+            .select('id')
+            .single()
+            .then((res) => ({ it, res }))
+        )
+      );
+      for (const { it, res } of insRes) {
+        if (res.error || !res.data) errored = true;
+        else newIdByKey[it._key] = res.data.id;
+      }
+    }
+
+    // Sync the screen to what now exists: keep only non-blank items, with any
+    // freshly inserted ids attached.
+    const nextItems = keep.map((it) =>
+      it.id || !newIdByKey[it._key] ? it : { ...it, id: newIdByKey[it._key] }
+    );
+    setLists((prev) => (prev ? { ...prev, [key]: nextItems } : prev));
+
+    // Recompute the set of ids known to be in the database.
+    const nextPersisted = new Set(
+      [...prevIds].filter((id) => !deletedSet.has(id))
+    );
+    for (const k in newIdByKey) nextPersisted.add(newIdByKey[k]);
+    persistedIdsRef.current = {
+      ...persistedIdsRef.current,
+      [key]: nextPersisted,
+    };
+
+    return errored ? new Error('list_save_failed') : null;
+  };
+
   const handleNext = async () => {
     setError(null);
 
@@ -434,10 +741,21 @@ export default function InitiationWizard({ userId, initialProject }) {
       return;
     }
 
-    // Steps 5 to 7: placeholders, nothing to persist. Just advance.
-    if (step < TOTAL_STEPS) {
+    if (step >= 5 && step <= 7) {
+      const cfg = CONFIG_BY_STEP[step];
+      setBusy(true);
+      const err = await persistList(cfg.key);
+      setBusy(false);
+      if (err) {
+        setError(SAVE_ERROR);
+        return;
+      }
       advanceTo(step + 1);
+      return;
     }
+
+    // Step 8 (the brief) is the last step and has no Next; its button is
+    // disabled, so there is nothing to handle here.
   };
 
   const handleBack = () => {
@@ -491,6 +809,36 @@ export default function InitiationWizard({ userId, initialProject }) {
     );
   };
 
+  // Loading / error fallback for Steps 5 to 7. Surfaces an objectives failure
+  // too, since the lists load depends on the objectives being loaded first.
+  const renderListNotReady = (n) => {
+    const cfg = CONFIG_BY_STEP[n];
+    const failed = objStatus === 'error' || listsStatus === 'error';
+    return (
+      <>
+        <p className={styles.panelEyebrow}>Step {n} of 8</p>
+        <h2 className={styles.panelHeading}>{cfg.title}</h2>
+        {failed ? (
+          <>
+            <p className={styles.panelIntro}>
+              We could not load this step. Please check your connection and try
+              again.
+            </p>
+            <button
+              type="button"
+              className={styles.btnNext}
+              onClick={retryListData}
+            >
+              Try again
+            </button>
+          </>
+        ) : (
+          <p className={styles.panelIntro}>Loading…</p>
+        )}
+      </>
+    );
+  };
+
   const renderStep = () => {
     if (step === 1) {
       return <StepProjectDefinition values={def} onChange={onDefChange} />;
@@ -520,6 +868,31 @@ export default function InitiationWizard({ userId, initialProject }) {
         />
       );
     }
+    if (step >= 5 && step <= 7) {
+      if (objStatus !== 'loaded' || listsStatus !== 'loaded') {
+        return renderListNotReady(step);
+      }
+      const cfg = CONFIG_BY_STEP[step];
+      // key per step so StepItemList remounts (and resets its focus
+      // bookkeeping) when switching between Steps 5, 6 and 7.
+      return (
+        <StepItemList
+          key={cfg.key}
+          config={cfg}
+          items={lists[cfg.key]}
+          objectives={objectives}
+          onField={(itemKey, field, value) =>
+            onListField(cfg.key, itemKey, field, value)
+          }
+          onLink={(itemKey, value) => onListLink(cfg.key, itemKey, value)}
+          onCriticality={(itemKey, value) =>
+            onListCriticality(cfg.key, itemKey, value)
+          }
+          onAdd={() => onListAdd(cfg.key)}
+          onRemove={(itemKey) => onListRemove(cfg.key, itemKey)}
+        />
+      );
+    }
     const meta = STEPS[step - 1];
     return <StepPlaceholder name={meta.name} body={meta.body} />;
   };
@@ -528,7 +901,10 @@ export default function InitiationWizard({ userId, initialProject }) {
     busy ||
     step === TOTAL_STEPS ||
     (step === 1 && !nameValid) ||
-    ((step === 3 || step === 4) && objStatus !== 'loaded');
+    ((step === 3 || step === 4) && objStatus !== 'loaded') ||
+    (step >= 5 &&
+      step <= 7 &&
+      (objStatus !== 'loaded' || listsStatus !== 'loaded'));
 
   const headerTitle = def.name.trim() ? def.name.trim() : 'New project';
 

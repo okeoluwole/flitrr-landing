@@ -688,6 +688,135 @@
   margin: 0;
 }
 
+/* ── Steps 5 to 7: editable item lists ─── */
+
+.itemList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0;
+  margin: 1.25rem 0 0;
+}
+
+/* Each item is a fieldset (grouping its inputs for assistive tech) styled as
+   a card. The visible index label is decorative (aria-hidden); a visually
+   hidden legend names the group. */
+.itemCard {
+  min-width: 0;
+  margin: 0;
+  padding: clamp(1rem, 2.5vw, 1.4rem);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background-color: #ffffff;
+}
+
+.itemHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.itemIndex {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-accent-2-grey-blue);
+}
+
+.removeBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-foreground-cream);
+  color: var(--color-accent-2-grey-blue);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.removeBtn:hover {
+  border-color: #b3261e;
+  color: #b3261e;
+  background-color: rgba(179, 38, 30, 0.06);
+}
+
+.removeBtn:focus-visible {
+  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline-offset: 2px;
+}
+
+/* Type-specific fields plus the shared link and criticality controls flow in
+   a responsive two-column grid. A field marked full (.fieldFull) spans both
+   columns, so order from the config is preserved. */
+.itemGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.9rem 1rem;
+}
+
+@media (min-width: 560px) {
+  .itemGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Compact textarea for the optional multi-line fields (risk mitigation),
+   smaller than the full-step textareas in Steps 1 and 2. */
+.listTextarea {
+  min-height: 64px;
+}
+
+.addBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  align-self: flex-start;
+  margin-top: 1rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-accent-1-deep-blue);
+  background-color: transparent;
+  border: 1.5px dashed var(--color-border);
+  border-radius: 8px;
+  padding: 0.6rem 1.05rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.addBtn:hover {
+  border-color: var(--color-accent-1-deep-blue);
+  background-color: rgba(55, 97, 131, 0.05);
+}
+
+.addBtn:focus-visible {
+  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline-offset: 2px;
+}
+
+.emptyHint {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--color-accent-2-grey-blue);
+  margin: 1.25rem 0 0;
+  padding: 1.1rem 1.25rem;
+  border: 1px dashed var(--color-border);
+  border-radius: 12px;
+  text-align: center;
+}
+
 /* ── Accessibility ─────────────────────── */
 
 .srOnly {
