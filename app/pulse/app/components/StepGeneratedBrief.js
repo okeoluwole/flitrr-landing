@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { assembleBrief } from './briefModel';
+import { checkCompleteness } from './briefCompleteness';
 import { LENSES, DEFAULT_LENS } from './briefLens';
 import BriefDocument from './BriefDocument';
 import wizard from './InitiationWizard.module.css';
@@ -61,6 +62,17 @@ export default function StepGeneratedBrief({
     [def, ctx, objectives, rankOrder, lists]
   );
 
+  // Completeness gate (M3.6): decides whether the brief may be locked. It runs
+  // on the same live state the preview is built from, but it gates only the
+  // lock action. Drafting and the live preview stay permissive.
+  const completeness = useMemo(
+    () => checkCompleteness({ def, ctx, objectives, rankOrder, lists }),
+    [def, ctx, objectives, rankOrder, lists]
+  );
+  const canLock = completeness.canLock;
+  const requiredMissing = completeness.required.filter((r) => !r.ok);
+  const recommendedMissing = completeness.recommended.filter((r) => !r.ok);
+
   // Load the latest brief row (the highest version) to learn the lock state.
   const loadBrief = async () => {
     if (!projectId) return;
@@ -97,6 +109,9 @@ export default function StepGeneratedBrief({
     : { locked: false, version: briefRow?.version ?? null, generatedAt: null };
 
   const lockBaseline = async () => {
+    // Belt-and-braces: the control is already disabled while the spine is
+    // incomplete. The gate sits on the lock action only.
+    if (!canLock) return;
     setBusy(true);
     setError(null);
 
@@ -276,13 +291,15 @@ export default function StepGeneratedBrief({
           <span className={styles.lockHint}>
             {locked
               ? 'Unlock to revise earlier steps, then lock again to save a new version.'
-              : 'Locking writes a version-controlled baseline and sets the project active.'}
+              : canLock
+                ? 'Locking writes a version-controlled baseline and sets the project active.'
+                : 'Some required items are missing. Complete the checklist below to lock.'}
           </span>
           <button
             type="button"
             className={`${styles.lockBtn} ${locked ? styles.unlockBtn : ''}`}
             onClick={locked ? unlockToRevise : lockBaseline}
-            disabled={busy}
+            disabled={busy || (!locked && !canLock)}
           >
             {busy
               ? locked
@@ -294,6 +311,104 @@ export default function StepGeneratedBrief({
           </button>
         </div>
       </div>
+
+      {!locked && (
+        <div className={styles.gate}>
+          {requiredMissing.length > 0 ? (
+            <div className={styles.gateSection}>
+              <div className={styles.gateSectionHead}>
+                <span className={`${styles.gateBadge} ${styles.gateBadgeReq}`}>
+                  Required to lock
+                </span>
+                <span className={styles.gateNote}>
+                  Complete these to lock the baseline.
+                </span>
+              </div>
+              <ul className={styles.gateList}>
+                {requiredMissing.map((item) => (
+                  <li key={item.key} className={styles.gateItem}>
+                    <svg
+                      className={styles.gateIconReq}
+                      width="14"
+                      height="14"
+                      viewBox="0 0 14 14"
+                      aria-hidden="true"
+                    >
+                      <circle cx="7" cy="7" r="3.25" fill="currentColor" />
+                    </svg>
+                    <span className={styles.gateLabel}>
+                      {item.label}
+                      {item.detail ? (
+                        <span className={styles.gateDetail}> ({item.detail})</span>
+                      ) : null}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <div className={styles.gateSatisfied}>
+              <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true">
+                <path
+                  d="M3.5 8.5l3 3 6-7"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span>
+                The required spine is complete. You can lock the baseline.
+              </span>
+            </div>
+          )}
+
+          {recommendedMissing.length > 0 && (
+            <div className={styles.gateSection}>
+              <div className={styles.gateSectionHead}>
+                <span className={`${styles.gateBadge} ${styles.gateBadgeRec}`}>
+                  Recommended
+                </span>
+                <span className={styles.gateNote}>
+                  Optional. These do not block locking.
+                </span>
+              </div>
+              <ul className={styles.gateList}>
+                {recommendedMissing.map((item) => (
+                  <li key={item.key} className={styles.gateItem}>
+                    <svg
+                      className={styles.gateIconRec}
+                      width="14"
+                      height="14"
+                      viewBox="0 0 14 14"
+                      aria-hidden="true"
+                    >
+                      <circle
+                        cx="7"
+                        cy="7"
+                        r="3"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                      />
+                    </svg>
+                    <span className={styles.gateLabel}>
+                      {item.label}
+                      {item.detail ? (
+                        <span className={styles.gateDetail}> ({item.detail})</span>
+                      ) : null}
+                      {item.note ? (
+                        <span className={styles.gateItemNote}>{item.note}</span>
+                      ) : null}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
 
       {error && (
         <p className={styles.briefError} role="alert">

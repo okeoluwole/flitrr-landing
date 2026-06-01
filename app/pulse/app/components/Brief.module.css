@@ -180,6 +180,119 @@
   margin-bottom: 1rem;
 }
 
+/* ── Completeness gate (M3.6) ──
+   The pre-lock checklist. App chrome that sits with the lock control; hidden
+   in the printed brief. */
+.gate {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: #fff;
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.gateSection + .gateSection {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.gateSectionHead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.7rem;
+  margin-bottom: 0.7rem;
+}
+
+.gateBadge {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.gateBadgeReq {
+  background: rgba(244, 192, 49, 0.18);
+  color: #8a6a16;
+}
+
+.gateBadgeRec {
+  background: rgba(119, 147, 168, 0.14);
+  color: var(--color-accent-2-grey-blue);
+}
+
+.gateNote {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  color: var(--color-accent-2-grey-blue);
+}
+
+.gateList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+}
+
+.gateItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: var(--color-accent-1-deep-blue);
+}
+
+.gateIconReq {
+  flex: 0 0 auto;
+  margin-top: 0.18rem;
+  color: var(--color-background-amber);
+}
+
+.gateIconRec {
+  flex: 0 0 auto;
+  margin-top: 0.18rem;
+  color: var(--color-accent-3-light-grey-blue);
+}
+
+.gateLabel {
+  font-weight: 500;
+}
+
+.gateDetail {
+  color: var(--color-accent-2-grey-blue);
+  font-weight: 400;
+}
+
+.gateItemNote {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--color-accent-2-grey-blue);
+  margin-top: 0.1rem;
+}
+
+.gateSatisfied {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-accent-1-deep-blue);
+}
+
+.gateSatisfied svg {
+  flex: 0 0 auto;
+  color: var(--color-accent-1-deep-blue);
+}
+
 /* Horizontal safety scroll for the document on very small screens. */
 .scroll {
   overflow-x: auto;
@@ -1033,6 +1146,7 @@
      content, so it is dropped from the export too. */
   .intro,
   .controlBar,
+  .gate,
   .lockHint,
   .briefError,
   .lensNote {
