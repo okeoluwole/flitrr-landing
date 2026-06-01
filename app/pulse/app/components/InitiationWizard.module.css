@@ -389,6 +389,32 @@
   outline-offset: 2px;
 }
 
+/* Terminal-step replacement for Next: a link back to the project list. A
+   secondary action (the lock controls are primary), so it reads as a link,
+   not a filled button. */
+.returnLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-accent-1-deep-blue);
+  text-decoration: none;
+  padding: 0.75rem 0.85rem;
+  border-radius: 8px;
+  transition: background-color 0.15s ease, filter 0.15s ease;
+}
+
+.returnLink:hover {
+  background-color: rgba(55, 97, 131, 0.06);
+}
+
+.returnLink:focus-visible {
+  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline-offset: 2px;
+}
+
 /* ── Placeholder steps (3 to 8) ────────── */
 
 .placeholder {

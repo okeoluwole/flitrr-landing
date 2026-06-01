@@ -8,7 +8,7 @@ import StepStrategicContext from './StepStrategicContext';
 import StepProjectObjectives from './StepProjectObjectives';
 import StepConstraintRanking from './StepConstraintRanking';
 import StepItemList from './StepItemList';
-import StepPlaceholder from './StepPlaceholder';
+import StepGeneratedBrief from './StepGeneratedBrief';
 import { OBJECTIVE_ORDER } from './objectiveMeta';
 import {
   LIST_CONFIG,
@@ -290,9 +290,17 @@ export default function InitiationWizard({ userId, initialProject }) {
   const [step, setStep] = useState(1);
   // Furthest step reached. A resumed draft has, by definition, completed
   // Step 1 (the project exists), so Step 2 is reachable. We can't know if
-  // an earlier session went further into the placeholder steps, and it
-  // does not matter: those carry no data. The user re-walks forward.
-  const [maxReached, setMaxReached] = useState(initialProject ? 2 : 1);
+  // an earlier session went further into the data steps, and it does not
+  // matter: the wizard re-loads their data and the user can re-walk forward.
+  // An active project has been through to the brief and locked it at least
+  // once, so open every step, letting the user jump straight to Step 8.
+  const [maxReached, setMaxReached] = useState(
+    initialProject?.status === 'active'
+      ? TOTAL_STEPS
+      : initialProject
+        ? 2
+        : 1
+  );
   const [def, setDef] = useState(() => defFrom(initialProject));
   const [ctx, setCtx] = useState(() => ctxFrom(initialProject));
   const [busy, setBusy] = useState(false);
@@ -852,13 +860,13 @@ export default function InitiationWizard({ userId, initialProject }) {
 
   // Loading / error fallback for Steps 5 to 7. Surfaces an objectives failure
   // too, since the lists load depends on the objectives being loaded first.
-  const renderListNotReady = (n) => {
-    const cfg = CONFIG_BY_STEP[n];
+  const renderListNotReady = (n, titleOverride) => {
+    const title = titleOverride ?? CONFIG_BY_STEP[n].title;
     const failed = objStatus === 'error' || listsStatus === 'error';
     return (
       <>
         <p className={styles.panelEyebrow}>Step {n} of 8</p>
-        <h2 className={styles.panelHeading}>{cfg.title}</h2>
+        <h2 className={styles.panelHeading}>{title}</h2>
         {failed ? (
           <>
             <p className={styles.panelIntro}>
@@ -934,8 +942,26 @@ export default function InitiationWizard({ userId, initialProject }) {
         />
       );
     }
-    const meta = STEPS[step - 1];
-    return <StepPlaceholder name={meta.name} body={meta.body} />;
+    if (step === 8) {
+      // The brief assembles from the objectives and the three lists, so it
+      // waits on the same loads as Steps 5 to 7.
+      if (!projectId || objStatus !== 'loaded' || listsStatus !== 'loaded') {
+        return renderListNotReady(8, 'Generated Brief');
+      }
+      return (
+        <StepGeneratedBrief
+          projectId={projectId}
+          supabase={supabase}
+          def={def}
+          ctx={ctx}
+          objectives={objectives}
+          rankOrder={rankOrder}
+          lists={lists}
+        />
+      );
+    }
+    // Unreachable: every step (1 to 8) is handled above.
+    return null;
   };
 
   const nextDisabled =
@@ -1038,14 +1064,12 @@ export default function InitiationWizard({ userId, initialProject }) {
           </svg>
           Back
         </button>
-        <button
-          type="button"
-          className={styles.btnNext}
-          onClick={handleNext}
-          disabled={nextDisabled}
-        >
-          {busy ? 'Saving…' : 'Next'}
-          {!busy && (
+        {step === TOTAL_STEPS ? (
+          // Terminal step: there is nothing after the brief. The lock and
+          // unlock controls in the panel are the primary actions here, so
+          // offer a way back to the project list rather than a dead Next.
+          <Link href="/pulse/app" className={styles.returnLink}>
+            Return to projects
             <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
               <path
                 d="M5 3l4 4-4 4"
@@ -1056,8 +1080,29 @@ export default function InitiationWizard({ userId, initialProject }) {
                 strokeLinejoin="round"
               />
             </svg>
-          )}
-        </button>
+          </Link>
+        ) : (
+          <button
+            type="button"
+            className={styles.btnNext}
+            onClick={handleNext}
+            disabled={nextDisabled}
+          >
+            {busy ? 'Saving…' : 'Next'}
+            {!busy && (
+              <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+                <path
+                  d="M5 3l4 4-4 4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            )}
+          </button>
+        )}
       </div>
     </main>
   );
