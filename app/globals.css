@@ -160,3 +160,25 @@ p {
     padding-inline: 2.5rem;
   }
 }
+
+/* ── Print (M4: PDF export of the PULSE brief) ─────────────
+   The page setup. The application chrome is hidden, and the
+   brief document is flushed to the page, by each component's
+   own @media print block (DashboardShell, InitiationWizard,
+   Brief modules). The brief stays in normal document flow so
+   the per-element page-break rules actually take effect. */
+@media print {
+  /* margin: 0 removes the browser-injected header and footer stamps (date,
+     URL, page number), which render in the page-margin area. The document
+     supplies its own side margins through the brief's internal padding, so
+     the header and footer bands run full-bleed while the text stays inset. */
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+  }
+}

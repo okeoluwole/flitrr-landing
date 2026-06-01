@@ -882,3 +882,32 @@
   white-space: nowrap;
   border: 0;
 }
+
+/* ── Print (M4) ────────────────────────────
+   When printing the brief (Step 8), hide the wizard chrome and flush the
+   page and panel so the brief document sits flush within the page margins.
+   Only Step 8 is ever on screen when the brief is exported, so hiding the
+   shared panel heading here only removes the "Generated Brief" step header. */
+@media print {
+  .header,
+  .progress,
+  .footer,
+  .panelEyebrow,
+  .panelHeading,
+  .error {
+    display: none !important;
+  }
+
+  .page {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .panel {
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+  }
+}

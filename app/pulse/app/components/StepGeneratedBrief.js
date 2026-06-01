@@ -165,6 +165,25 @@ export default function StepGeneratedBrief({
     setBusy(false);
   };
 
+  // Export the brief as a PDF via the browser's print-to-PDF. The print
+  // stylesheet hides the app chrome and prints the document only, exactly as
+  // shown, so the export reflects the current lens and its figure gating and
+  // whether it is the locked baseline or the live preview. document.title is
+  // set first so the saved file gets a sensible name, then restored after.
+  const handleDownloadPdf = () => {
+    if (typeof window === 'undefined') return;
+    const lensLabel = LENSES.find((l) => l.key === lens)?.label ?? 'Brief';
+    const name = (model?.identity?.name || 'PULSE brief').trim();
+    const previousTitle = document.title;
+    document.title = `${name}, ${lensLabel} brief`;
+    const restore = () => {
+      document.title = previousTitle;
+      window.removeEventListener('afterprint', restore);
+    };
+    window.addEventListener('afterprint', restore);
+    window.print();
+  };
+
   const Header = (
     <>
       <p className={wizard.panelEyebrow}>Step 8 of 8</p>
@@ -229,6 +248,28 @@ export default function StepGeneratedBrief({
               </button>
             ))}
           </div>
+          <button
+            type="button"
+            className={styles.downloadBtn}
+            onClick={handleDownloadPdf}
+          >
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 16 16"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M8 2.5v6.5M5 6l3 3 3-3M3.5 13h9"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            Download PDF
+          </button>
         </div>
 
         <div className={styles.actions}>

@@ -145,6 +145,33 @@
   outline-offset: 2px;
 }
 
+/* Download PDF: a secondary action, sits with the lens controls. */
+.downloadBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-accent-1-deep-blue);
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.5rem 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.downloadBtn:hover {
+  border-color: var(--color-accent-1-deep-blue);
+  background: rgba(55, 97, 131, 0.05);
+}
+
+.downloadBtn:focus-visible {
+  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline-offset: 2px;
+}
+
 .briefError {
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
@@ -988,5 +1015,306 @@
   }
   .kpi:nth-child(2n) {
     border-right: 0;
+  }
+}
+
+/* ── Print (M4: PDF export) ─────────────────────
+   Print-only refinements. The screen styles are untouched. The brief prints
+   as the whole page: Step 8 chrome is hidden, the document is flushed to the
+   page width, colour is forced on (browsers drop backgrounds by default), and
+   the vertical rhythm is tightened so a typical brief reads as a dense, two
+   page board document rather than a spread-out web page. Breaks are kept to
+   only what matters: never split one atomic block or the header band, and
+   never strand a section heading. This block follows the responsive block
+   above, so it wins where both match. */
+@media print {
+  /* Step 8 app chrome rendered around the document. The lens note is a
+     "you are viewing X lens" screen affordance, not delivered-document
+     content, so it is dropped from the export too. */
+  .intro,
+  .controlBar,
+  .lockHint,
+  .briefError,
+  .lensNote {
+    display: none !important;
+  }
+
+  .scroll {
+    overflow: visible !important;
+  }
+
+  .doc {
+    min-width: 0;
+    width: 100%;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: visible;
+    /* Force backgrounds and accents to print (browsers drop them by default). */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* ── Tighter vertical rhythm (print only) ── */
+  .docHead {
+    padding: 1.4rem 2.2rem 1.3rem;
+  }
+  .brand {
+    margin-bottom: 0.7rem;
+  }
+  .docTitle {
+    font-size: 1.65rem;
+  }
+  .docSub {
+    margin-top: 0.35rem;
+    font-size: 0.9rem;
+  }
+  .meta {
+    margin-top: 0.8rem;
+    gap: 0.4rem;
+  }
+  .chip {
+    padding: 0.25rem 0.55rem;
+    font-size: 0.68rem;
+  }
+
+  .kpi {
+    padding: 0.6rem 0.85rem;
+  }
+  /* Align the outer KPI cells with the inset text (the strip runs full-bleed
+     with @page margin 0). */
+  .kpi:first-child {
+    padding-left: 2.2rem;
+  }
+  .kpi:last-child {
+    padding-right: 2.2rem;
+  }
+  .kpiLabel {
+    font-size: 0.62rem;
+  }
+  .kpiValue {
+    font-size: 1.2rem;
+    margin-top: 0.25rem;
+  }
+
+  .body {
+    padding: 0 2.2rem 1.1rem;
+  }
+  .section {
+    padding: 0.9rem 0;
+  }
+  .secHead {
+    margin-bottom: 0.6rem;
+    gap: 0.6rem;
+  }
+  .secTitle {
+    font-size: 1.02rem;
+  }
+  .secNum {
+    font-size: 0.68rem;
+  }
+  .secSub {
+    font-size: 0.72rem;
+  }
+
+  .summary {
+    font-size: 0.84rem;
+    line-height: 1.5;
+    max-width: none;
+  }
+  .summary p {
+    margin-bottom: 0.45rem;
+  }
+  .summary p:first-child {
+    font-size: 0.88rem;
+  }
+
+  .objSplit {
+    gap: 1rem;
+  }
+  .objColTitle {
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.4rem;
+    font-size: 0.66rem;
+  }
+  .objCard {
+    padding: 0.55rem 0.7rem 0.6rem;
+    margin-bottom: 0.45rem;
+  }
+  .objTop {
+    margin-bottom: 0.3rem;
+    gap: 0.5rem;
+  }
+  .objName {
+    font-size: 0.85rem;
+  }
+  .objDef {
+    font-size: 0.78rem;
+    line-height: 1.4;
+  }
+  .objTol {
+    margin-top: 0.4rem;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.73rem;
+  }
+
+  .read {
+    padding: 0 1rem;
+  }
+  .insight {
+    padding: 0.65rem 0;
+    gap: 0.7rem;
+  }
+  .iBadge {
+    width: 22px;
+    height: 22px;
+    font-size: 0.72rem;
+  }
+  .iTitle {
+    font-size: 0.84rem;
+    margin-bottom: 0.15rem;
+  }
+  .iBody {
+    font-size: 0.79rem;
+    line-height: 1.45;
+  }
+
+  .riskWrap {
+    gap: 1.1rem;
+  }
+  .matrix {
+    grid-template-rows: auto repeat(3, 38px);
+    gap: 3px;
+  }
+  .axisLabel,
+  .rowLabel {
+    font-size: 0.58rem;
+  }
+  .pin {
+    width: 19px;
+    height: 19px;
+    font-size: 0.62rem;
+  }
+  .riskRow {
+    padding: 0.36rem 0;
+    gap: 0.6rem;
+  }
+  .rNum {
+    width: 19px;
+    height: 19px;
+    font-size: 0.62rem;
+  }
+  .rText {
+    font-size: 0.78rem;
+    line-height: 1.4;
+  }
+  .rMeta {
+    font-size: 0.72rem;
+  }
+
+  .timeline {
+    padding-left: 0.4rem;
+  }
+  .ms {
+    padding: 0.34rem 0;
+    gap: 0.7rem;
+  }
+  .msMarker {
+    width: 10px;
+    height: 10px;
+  }
+  .msWhen {
+    flex-basis: 84px;
+    font-size: 0.74rem;
+  }
+  .msWhat {
+    font-size: 0.8rem;
+  }
+
+  .wsGrid {
+    gap: 0.5rem;
+  }
+  .wsCard {
+    padding: 0.55rem 0.7rem;
+  }
+  .wsName {
+    font-size: 0.84rem;
+  }
+  .wsLead {
+    font-size: 0.75rem;
+    margin-top: 0.18rem;
+  }
+
+  .finGrid {
+    gap: 1.5rem;
+  }
+  .finKey {
+    font-size: 0.62rem;
+  }
+  .finVal {
+    font-size: 1.15rem;
+    margin-top: 0.2rem;
+  }
+  .finNote {
+    margin-top: 0.55rem;
+    font-size: 0.72rem;
+  }
+  .finLink {
+    margin-top: 0.55rem;
+    font-size: 0.8rem;
+  }
+
+  .docFoot {
+    padding: 0.9rem 2.2rem;
+    gap: 0.7rem;
+  }
+  .meth {
+    font-size: 0.7rem;
+    line-height: 1.45;
+  }
+  .ver {
+    font-size: 0.68rem;
+    padding: 0.4rem 0.65rem;
+  }
+
+  /* Objectives print as a single column so they flow card by card and fill
+     the page cleanly, never leaving a gap. The protected and flexible sets
+     stack (protected first), each card keeping its amber or grey accent. The
+     workstreams and the risk matrix keep their two-column layout. */
+  .objSplit {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  .wsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .riskWrap {
+    grid-template-columns: 260px 1fr;
+  }
+
+  /* ── Page flow ──
+     Only protect what must not split. Everything else flows on and fills the
+     page. Never split one atomic block, the matrix, or the header band. */
+  .docHead,
+  .kpis,
+  .objCard,
+  .insight,
+  .riskRow,
+  .ms,
+  .wsCard,
+  .matrix {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Never strand a heading at the foot of a page: keep each section heading,
+     and each objectives column heading (Protected / Has flex), with the
+     content that follows. */
+  .secHead,
+  .objColTitle {
+    break-after: avoid;
+    page-break-after: avoid;
   }
 }

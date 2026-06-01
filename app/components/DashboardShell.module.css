@@ -142,3 +142,15 @@
   flex: 1;
   width: 100%;
 }
+
+/* Print (M4): hide the top bar, drop the cream shell so the page is white.
+   The brief is printed by its own module's @media print rules. */
+@media print {
+  .topBar {
+    display: none !important;
+  }
+  .shell {
+    background: #ffffff !important;
+    min-height: 0 !important;
+  }
+}
