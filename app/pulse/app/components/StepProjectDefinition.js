@@ -21,6 +21,14 @@ const PROCUREMENT_OPTIONS = [
   { value: 'other', label: 'Other' },
 ];
 
+// project_currency enum values, paired with a symbol-bearing label. The
+// brief denominates every money figure in the chosen currency.
+const CURRENCY_OPTIONS = [
+  { value: 'GBP', label: 'GBP (£)' },
+  { value: 'NGN', label: 'Naira (₦)' },
+  { value: 'USD', label: 'USD ($)' },
+];
+
 export default function StepProjectDefinition({ values, onChange }) {
   const set = (field) => (e) => onChange(field, e.target.value);
 
@@ -199,6 +207,99 @@ export default function StepProjectDefinition({ values, onChange }) {
             value={values.description}
             onChange={set('description')}
             placeholder="A short summary of the project."
+          />
+        </div>
+
+        {/* Optional headline financials (M3.5 Phase A). PULSE presents these
+            on the brief but never models them; full detail lives elsewhere
+            and is reached through the appraisal link. All optional. */}
+        <div className={`${styles.fieldFull} ${styles.groupHead}`}>
+          <h3 className={styles.groupTitle}>Budget and projections</h3>
+          <p className={styles.groupHint}>
+            Optional. Headline figures for the brief, in the currency you
+            choose. PULSE presents them as you enter them and does not
+            calculate anything from them.
+          </p>
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="pd-currency">
+            Currency
+          </label>
+          <select
+            id="pd-currency"
+            className={styles.select}
+            value={values.currency}
+            onChange={set('currency')}
+          >
+            {CURRENCY_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="pd-budget">
+            Budget (allotted)
+          </label>
+          <input
+            id="pd-budget"
+            type="text"
+            inputMode="decimal"
+            className={styles.input}
+            value={values.budget}
+            onChange={set('budget')}
+            placeholder="e.g. 6,400,000"
+            autoComplete="off"
+          />
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="pd-gdv">
+            Projected GDV
+          </label>
+          <input
+            id="pd-gdv"
+            type="text"
+            inputMode="decimal"
+            className={styles.input}
+            value={values.projected_gdv}
+            onChange={set('projected_gdv')}
+            placeholder="e.g. 9,200,000"
+            autoComplete="off"
+          />
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="pd-roi">
+            Projected ROI (%)
+          </label>
+          <input
+            id="pd-roi"
+            type="text"
+            inputMode="decimal"
+            className={styles.input}
+            value={values.projected_roi}
+            onChange={set('projected_roi')}
+            placeholder="e.g. 28"
+            autoComplete="off"
+          />
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="pd-appraisal">
+            Link to full financial detail
+          </label>
+          <input
+            id="pd-appraisal"
+            type="url"
+            className={styles.input}
+            value={values.financial_detail_url}
+            onChange={set('financial_detail_url')}
+            placeholder="https://"
+            autoComplete="off"
           />
         </div>
       </div>

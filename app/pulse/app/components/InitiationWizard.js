@@ -85,6 +85,15 @@ const EMPTY_DEF = {
   funding_structure: '',
   start_date: '',
   target_completion_date: '',
+  // Optional headline financials (M3.5 Phase A). Held as strings for the
+  // controlled inputs; numerics are parsed on save (see cleanNumeric).
+  // currency is a constrained enum, NOT NULL in the schema, so it defaults
+  // to GBP rather than empty.
+  currency: 'GBP',
+  budget: '',
+  projected_gdv: '',
+  projected_roi: '',
+  financial_detail_url: '',
 };
 
 const EMPTY_CTX = {
@@ -110,6 +119,23 @@ function clean(v) {
   return t === '' ? null : t;
 }
 
+/**
+ * Normalise an optional numeric field for a NUMERIC column. Empty is null.
+ * Anything else is stripped of currency symbols, thousands separators and
+ * spaces, then parsed: a finite number is stored, anything unparseable
+ * becomes null rather than erroring. Permissive by design, consistent with
+ * the rest of the flow: a stray character never blocks a save, it just does
+ * not persist a figure. Negatives are not expected here but are preserved if
+ * entered, since the brief never computes on these values.
+ */
+function cleanNumeric(v) {
+  if (v == null) return null;
+  const stripped = String(v).replace(/[^0-9.-]/g, '');
+  if (stripped === '' || stripped === '-' || stripped === '.') return null;
+  const n = Number(stripped);
+  return Number.isFinite(n) ? n : null;
+}
+
 // Map a stored projects row onto Step 1 / Step 2 field state. DATE
 // columns come back as 'YYYY-MM-DD' strings, which is exactly what
 // <input type="date"> expects.
@@ -127,6 +153,13 @@ function defFrom(p) {
     funding_structure: p.funding_structure ?? '',
     start_date: p.start_date ?? '',
     target_completion_date: p.target_completion_date ?? '',
+    // NUMERIC columns come back as numbers (or strings); render them as
+    // plain strings for the inputs. null becomes an empty field.
+    currency: p.currency ?? 'GBP',
+    budget: p.budget != null ? String(p.budget) : '',
+    projected_gdv: p.projected_gdv != null ? String(p.projected_gdv) : '',
+    projected_roi: p.projected_roi != null ? String(p.projected_roi) : '',
+    financial_detail_url: p.financial_detail_url ?? '',
   };
 }
 
@@ -520,6 +553,14 @@ export default function InitiationWizard({ userId, initialProject }) {
       funding_structure: clean(def.funding_structure),
       start_date: clean(def.start_date),
       target_completion_date: clean(def.target_completion_date),
+      // Optional headline financials (M3.5 Phase A). Numerics parsed to a
+      // number or null; the appraisal link is cleaned like any other text.
+      // currency is a NOT NULL enum, so fall back to GBP if somehow unset.
+      currency: def.currency || 'GBP',
+      budget: cleanNumeric(def.budget),
+      projected_gdv: cleanNumeric(def.projected_gdv),
+      projected_roi: cleanNumeric(def.projected_roi),
+      financial_detail_url: clean(def.financial_detail_url),
     };
 
     if (!projectId) {
