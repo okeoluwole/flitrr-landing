@@ -417,6 +417,12 @@ export default function BriefDocument({ model, lens, lockState }) {
   return (
     <div className={styles.doc}>
       <div className={styles.docHead}>
+        <div className={styles.brand}>
+          <span className={styles.brandMark} aria-hidden="true">
+            P
+          </span>
+          <span className={styles.brandName}>PULSE</span>
+        </div>
         <div className={styles.eyebrow}>Project Initiation Brief</div>
         <h2 className={styles.docTitle}>{model.identity.name}</h2>
         {model.identity.subtitle && (
