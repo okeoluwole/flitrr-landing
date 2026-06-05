@@ -106,6 +106,30 @@ const EMPTY_CTX = {
 const SAVE_ERROR =
   'We could not save this step. Please check your connection and try again, or email hello@flitrr.com.';
 
+// Lifecycle stage names (framework Section 4), for the header stage indicator.
+const STAGE_NAMES = {
+  0: 'Land and Site Acquisition',
+  1: 'Project Objectives and Funding',
+  2: 'Consultant Appointment',
+  3: 'Design and Planning Approvals',
+  4: 'Contractor Procurement',
+  5: 'Construction',
+  6: 'Completion and Handover',
+  7: 'Sales and Disposal',
+};
+
+// Short date for the gate decision note, e.g. "5 Jun 2026".
+function formatGateDate(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
 /**
  * Normalise an optional field for the database: trim, and treat an empty
  * string as null. This matters beyond tidiness for the typed columns:
@@ -283,8 +307,18 @@ function itemToRow(cfg, item) {
   return row;
 }
 
-export default function InitiationWizard({ userId, initialProject }) {
+export default function InitiationWizard({
+  userId,
+  initialProject,
+  initialGate = null,
+}) {
   const supabase = createClient();
+
+  // Current lifecycle stage for this project. The Stage 1 to 2 gate (a
+  // separate screen) is what advances it; within the wizard it does not
+  // change, so it is read straight from the loaded row. Drives the post-gate
+  // unlock block on Step 8 and the header stage indicator.
+  const currentStage = initialProject?.current_stage ?? 1;
 
   const [projectId, setProjectId] = useState(initialProject?.id ?? null);
   const [step, setStep] = useState(1);
@@ -957,6 +991,7 @@ export default function InitiationWizard({ userId, initialProject }) {
           objectives={objectives}
           rankOrder={rankOrder}
           lists={lists}
+          currentStage={currentStage}
         />
       );
     }
@@ -974,6 +1009,14 @@ export default function InitiationWizard({ userId, initialProject }) {
       (objStatus !== 'loaded' || listsStatus !== 'loaded'));
 
   const headerTitle = def.name.trim() ? def.name.trim() : 'New project';
+
+  // Stage indicator for the header. Shown for an existing project so the gate
+  // advance is visible on the project view; the gate decision date appears
+  // once the project has moved past Stage 1.
+  const stageName = STAGE_NAMES[currentStage] ?? `Stage ${currentStage}`;
+  const gatePassed =
+    currentStage >= 2 || initialGate?.gate_status === 'passed';
+  const gatePassedDate = formatGateDate(initialGate?.passed_at);
 
   return (
     <main className={`container ${styles.page}`} id="main-content">
@@ -996,6 +1039,18 @@ export default function InitiationWizard({ userId, initialProject }) {
           Set up the baseline that governs every later stage. Your progress
           saves at each step, so you can leave and resume anytime.
         </p>
+        {initialProject && (
+          <div className={styles.stageIndicator}>
+            <span className={styles.stageChip}>
+              Stage {currentStage}: {stageName}
+            </span>
+            {gatePassed && (
+              <span className={styles.stageDecision}>
+                Gate 1 to 2 passed{gatePassedDate ? ` ${gatePassedDate}` : ''}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       <nav className={styles.progress} aria-label="Initiation progress">

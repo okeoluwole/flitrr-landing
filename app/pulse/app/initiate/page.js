@@ -45,6 +45,7 @@ export default async function InitiatePage({ searchParams }) {
     typeof searchParams?.project === 'string' ? searchParams.project : null;
 
   let initialProject = null;
+  let initialGate = null;
   if (projectParam) {
     // Guard against a malformed id, which would otherwise be a Postgres
     // type error rather than a clean "not found".
@@ -52,11 +53,17 @@ export default async function InitiatePage({ searchParams }) {
       redirect('/pulse/app');
     }
 
-    const { data: project } = await supabase
-      .from('projects')
-      .select('*')
-      .eq('id', projectParam)
-      .maybeSingle();
+    // The project row, plus the Gate 1 to 2 row (stage = 1) so the header's
+    // stage indicator can show the recorded decision once the gate has passed.
+    const [{ data: project }, { data: gateRow }] = await Promise.all([
+      supabase.from('projects').select('*').eq('id', projectParam).maybeSingle(),
+      supabase
+        .from('project_stage_gates')
+        .select('gate_status, passed_at')
+        .eq('project_id', projectParam)
+        .eq('stage', 1)
+        .maybeSingle(),
+    ]);
 
     // Not found, or not owned (RLS filtered it out). Send them back to
     // the list rather than showing a broken wizard.
@@ -65,11 +72,16 @@ export default async function InitiatePage({ searchParams }) {
     }
 
     initialProject = project;
+    initialGate = gateRow ?? null;
   }
 
   return (
     <DashboardShell user={navUser}>
-      <InitiationWizard userId={user.id} initialProject={initialProject} />
+      <InitiationWizard
+        userId={user.id}
+        initialProject={initialProject}
+        initialGate={initialGate}
+      />
     </DashboardShell>
   );
 }

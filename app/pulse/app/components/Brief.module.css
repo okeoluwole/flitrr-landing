@@ -293,6 +293,84 @@
   color: var(--color-accent-1-deep-blue);
 }
 
+/* ── Stage 1 to 2 gate entry point (M5) ──
+   App chrome that sits with the lock control. A neutral navigation affordance,
+   not a caution, so it carries no amber. Disabled until the baseline is
+   locked; the deep-blue primary once it is. Hidden in the printed brief. */
+.gateEntry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: #fff;
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.gateEntryText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.gateEntryTitle {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-1-deep-blue);
+}
+
+.gateEntryNote {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--color-accent-2-grey-blue);
+}
+
+.gateEntryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--color-button-primary-text);
+  background: var(--color-button-primary-bg);
+  border: 1.5px solid var(--color-button-primary-bg);
+  border-radius: 8px;
+  padding: 0.7rem 1.2rem;
+  text-decoration: none;
+  transition: filter 0.18s ease, opacity 0.15s ease;
+}
+
+.gateEntryBtn:hover,
+.gateEntryBtn:focus-visible {
+  filter: brightness(0.94);
+}
+
+.gateEntryBtn:focus-visible {
+  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline-offset: 3px;
+}
+
+/* The pre-lock disabled state: a muted, non-interactive span. */
+.gateEntryBtnDisabled,
+.gateEntryBtnDisabled:hover {
+  background: var(--color-accent-3-light-grey-blue);
+  border-color: var(--color-accent-3-light-grey-blue);
+  color: #fff;
+  opacity: 0.75;
+  cursor: not-allowed;
+  filter: none;
+}
+
 /* Horizontal safety scroll for the document on very small screens. */
 .scroll {
   overflow-x: auto;
@@ -1147,6 +1225,7 @@
   .intro,
   .controlBar,
   .gate,
+  .gateEntry,
   .lockHint,
   .briefError,
   .lensNote {

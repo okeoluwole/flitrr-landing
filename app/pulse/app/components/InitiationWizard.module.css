@@ -50,6 +50,38 @@
   max-width: 640px;
 }
 
+/* ── Stage indicator (M5) ──
+   Surfaces the project's current lifecycle stage on the project view so the
+   Gate 1 to 2 advance is visible. A state indicator only, not a Stage 2
+   workspace. */
+.stageIndicator {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.85rem;
+  margin-top: 1rem;
+}
+
+.stageChip {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-foreground-cream);
+  background: var(--color-accent-1-deep-blue);
+  padding: 0.32rem 0.7rem;
+  border-radius: 999px;
+}
+
+.stageDecision {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-accent-2-grey-blue);
+}
+
 /* ── Progress indicator ────────────────── */
 
 .progress {

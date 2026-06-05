@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
+import Link from 'next/link';
 import { assembleBrief } from './briefModel';
 import { checkCompleteness } from './briefCompleteness';
 import { LENSES, DEFAULT_LENS } from './briefLens';
@@ -23,11 +24,14 @@ import styles from './Brief.module.css';
  *     state, so it reflects edits to earlier steps immediately.
  *   - On lock, the assembled model is snapshotted as JSON into
  *     project_briefs (version incremented, is_locked true), and the project
- *     moves from draft to active. current_stage is untouched: the move to
- *     Stage 2 belongs to the Stage 1 to 2 gate, a later build.
+ *     moves from draft to active. current_stage is untouched here: advancing
+ *     to Stage 2 is the Stage 1 to 2 gate's decision (the gate screen, M5),
+ *     not the lock.
  *   - A locked brief renders its stored snapshot read-only until unlocked.
  *     Unlock flips the latest row's lock flag and returns to the live
- *     preview; re-locking writes the next version, preserving history.
+ *     preview; re-locking writes the next version, preserving history. Once
+ *     the Stage 1 to 2 gate has passed (the project is at Stage 2), unlock is
+ *     blocked: revising a committed baseline is a re-baseline (not yet built).
  *   - The lens (order, summary, financial gating) applies to both the live
  *     preview and the locked rendering.
  */
@@ -47,6 +51,7 @@ export default function StepGeneratedBrief({
   objectives,
   rankOrder,
   lists,
+  currentStage = 1,
 }) {
   const [lens, setLens] = useState(DEFAULT_LENS);
   const [briefRow, setBriefRow] = useState(null);
@@ -101,6 +106,11 @@ export default function StepGeneratedBrief({
   }, [projectId]);
 
   const locked = briefRow?.is_locked === true;
+
+  // Once the Stage 1 to 2 gate has passed, the project sits at Stage 2. Past
+  // that point the baseline is committed: unlock is blocked (a re-baseline is
+  // not yet built), and the gate entry point opens the recorded decision.
+  const postGate = currentStage >= 2;
 
   // What renders: the locked snapshot when locked, otherwise the live model.
   const model = locked ? briefRow.content : liveModel;
@@ -288,28 +298,71 @@ export default function StepGeneratedBrief({
         </div>
 
         <div className={styles.actions}>
-          <span className={styles.lockHint}>
-            {locked
-              ? 'Unlock to revise earlier steps, then lock again to save a new version.'
-              : canLock
-                ? 'Locking writes a version-controlled baseline and sets the project active.'
-                : 'Some required items are missing. Complete the checklist below to lock.'}
-          </span>
-          <button
-            type="button"
-            className={`${styles.lockBtn} ${locked ? styles.unlockBtn : ''}`}
-            onClick={locked ? unlockToRevise : lockBaseline}
-            disabled={busy || (!locked && !canLock)}
-          >
-            {busy
-              ? locked
-                ? 'Unlocking…'
-                : 'Locking…'
-              : locked
-                ? 'Unlock to revise'
-                : 'Lock baseline'}
-          </button>
+          {locked && postGate ? (
+            // Post-gate: the baseline is committed, so unlock is blocked.
+            <span className={styles.lockHint}>
+              The baseline is committed. Revising a committed baseline is a
+              re-baseline, which is not yet available.
+            </span>
+          ) : (
+            <>
+              <span className={styles.lockHint}>
+                {locked
+                  ? 'Unlock to revise earlier steps, then lock again to save a new version.'
+                  : canLock
+                    ? 'Locking writes a version-controlled baseline and sets the project active.'
+                    : 'Some required items are missing. Complete the checklist below to lock.'}
+              </span>
+              <button
+                type="button"
+                className={`${styles.lockBtn} ${locked ? styles.unlockBtn : ''}`}
+                onClick={locked ? unlockToRevise : lockBaseline}
+                disabled={busy || (!locked && !canLock)}
+              >
+                {busy
+                  ? locked
+                    ? 'Unlocking…'
+                    : 'Locking…'
+                  : locked
+                    ? 'Unlock to revise'
+                    : 'Lock baseline'}
+              </button>
+            </>
+          )}
         </div>
+      </div>
+
+      {/* Stage 1 to 2 gate entry point. Sits with the lock controls. Disabled
+          until the baseline is locked; active once it is; and a link to the
+          recorded decision once the gate has passed. */}
+      <div className={styles.gateEntry}>
+        <div className={styles.gateEntryText}>
+          <span className={styles.gateEntryTitle}>Stage 1 to 2 gate</span>
+          <span className={styles.gateEntryNote}>
+            {!locked
+              ? 'Lock the Brief to open the Stage 1 to 2 gate.'
+              : postGate
+                ? 'Gate passed. This project is at Stage 2: Consultant Appointment.'
+                : 'The baseline is locked. Open the gate to advance to Stage 2.'}
+          </span>
+        </div>
+        {locked ? (
+          <Link
+            href={`/pulse/app/gate?project=${projectId}`}
+            className={styles.gateEntryBtn}
+          >
+            {postGate
+              ? 'View the Stage 1 to 2 gate decision'
+              : 'Open the Stage 1 to 2 gate'}
+          </Link>
+        ) : (
+          <span
+            className={`${styles.gateEntryBtn} ${styles.gateEntryBtnDisabled}`}
+            aria-disabled="true"
+          >
+            Open the Stage 1 to 2 gate
+          </span>
+        )}
       </div>
 
       {!locked && (
