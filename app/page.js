@@ -45,42 +45,124 @@ function Hero() {
 }
 
 // The eight lifecycle stages (the PULSE framework, Section 4), land to
-// disposal. PULSE is the first product and begins at Stage 1.
+// disposal. The stages are the universal developer lifecycle; PULSE is shown
+// as an overlay spanning the delivery arc (Stage 1 to 7), not a single stage.
+// Each stage carries a simple line icon.
 const LIFECYCLE_STAGES = [
-  { n: '0', label: 'Land & acquisition' },
-  { n: '1', label: 'Objectives & funding' },
-  { n: '2', label: 'Consultant appointment' },
-  { n: '3', label: 'Design & approvals' },
-  { n: '4', label: 'Contractor procurement' },
-  { n: '5', label: 'Construction' },
-  { n: '6', label: 'Completion & handover' },
-  { n: '7', label: 'Sales & disposal' },
+  {
+    label: 'Land & acquisition',
+    paths: (
+      <>
+        <path d="M12 21.5c3.8-4.3 5.8-7.3 5.8-10.5a5.8 5.8 0 1 0-11.6 0c0 3.2 2 6.2 5.8 10.5z" />
+        <circle cx="12" cy="10.8" r="2.1" />
+      </>
+    ),
+  },
+  {
+    label: 'Objectives & funding',
+    paths: (
+      <>
+        <circle cx="12" cy="12" r="7.5" />
+        <circle cx="12" cy="12" r="3.3" />
+      </>
+    ),
+  },
+  {
+    label: 'Consultant appointment',
+    paths: (
+      <>
+        <circle cx="12" cy="8.5" r="3.2" />
+        <path d="M5.8 19.5a6.2 6.2 0 0 1 12.4 0" />
+      </>
+    ),
+  },
+  {
+    label: 'Design & approvals',
+    paths: (
+      <>
+        <path d="M5 19l1.2-4.2L16 5l3 3-9.8 9.8L5 19z" />
+        <path d="M14.2 6.8l3 3" />
+      </>
+    ),
+  },
+  {
+    label: 'Contractor procurement',
+    paths: (
+      <>
+        <path d="M7 3.5h6.5L18 8v12.5H7z" />
+        <path d="M13.5 3.5V8H18" />
+        <path d="M9.5 13h6M9.5 16h4" />
+      </>
+    ),
+  },
+  {
+    label: 'Construction',
+    paths: (
+      <>
+        <path d="M3.5 17.5h17" />
+        <path d="M5.5 17.5a6.5 6.5 0 0 1 13 0" />
+        <path d="M12 6.5v4.5" />
+        <path d="M9.5 11h5" />
+      </>
+    ),
+  },
+  {
+    label: 'Completion & handover',
+    paths: (
+      <>
+        <circle cx="8" cy="11.5" r="3.3" />
+        <path d="M11.2 11.5H20" />
+        <path d="M16.5 11.5v3" />
+        <path d="M19 11.5v2.4" />
+      </>
+    ),
+  },
+  {
+    label: 'Sales & disposal',
+    paths: (
+      <>
+        <path d="M20 4.5h-7L4.5 13l6.5 6.5L20 11z" />
+        <circle cx="16.2" cy="8.3" r="1.3" />
+      </>
+    ),
+  },
 ];
 
 function LifecycleTrack() {
   return (
-    <ol
+    <div
       className={styles.track}
+      role="list"
       aria-label="The eight stages of a development project, from land to disposal"
     >
-      {LIFECYCLE_STAGES.map((stage) => {
-        const isPulse = stage.n === '1';
-        return (
-          <li
-            key={stage.n}
-            className={`${styles.trackStage} ${isPulse ? styles.trackStagePulse : ''}`}
-          >
-            <span className={styles.trackNode} aria-hidden="true">
-              {stage.n}
-            </span>
-            <span className={styles.trackText}>
-              <span className={styles.trackLabel}>{stage.label}</span>
-              {isPulse && <span className={styles.trackTag}>PULSE</span>}
-            </span>
-          </li>
-        );
-      })}
-    </ol>
+      {LIFECYCLE_STAGES.map((stage) => (
+        <div key={stage.label} role="listitem" className={styles.trackStage}>
+          <span className={styles.trackNode}>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+              className={styles.trackIcon}
+            >
+              {stage.paths}
+            </svg>
+          </span>
+          <span className={styles.trackLabel}>{stage.label}</span>
+        </div>
+      ))}
+
+      {/* PULSE coverage: it runs the delivery arc, Stage 1 through 7. */}
+      <div className={styles.pulseBand} aria-hidden="true">
+        <span className={styles.pulseBandLabel}>PULSE</span>
+        <span className={styles.pulseBar}>
+          <span className={styles.pulseGlow} />
+        </span>
+      </div>
+    </div>
   );
 }
 
