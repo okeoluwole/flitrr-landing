@@ -8,7 +8,7 @@ import styles from './page.module.css';
  * /pulse/app — the PULSE project dashboard. The signed-in user's launch
  * point for the Project Initiation flow: a "New project" action and a
  * minimal list of their existing projects (name, status, current stage),
- * each resuming its setup when clicked.
+ * each opening its project workspace when clicked.
  *
  * Deliberately minimal in M3.2. The rich portfolio view is a separate
  * future module, not this sub-step.
@@ -134,7 +134,7 @@ export default async function PulseAppPage() {
               return (
                 <li key={p.id} className={styles.listItem}>
                   <Link
-                    href={`/pulse/app/initiate?project=${p.id}`}
+                    href={`/pulse/app/workspace?project=${p.id}`}
                     className={styles.cardLink}
                   >
                     <div className={styles.cardMain}>
