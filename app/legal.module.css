@@ -1,0 +1,67 @@
+/* Shared layout for the Privacy and Terms pages. */
+
+.page {
+  background-color: var(--color-surface-section);
+  min-height: 100vh;
+  padding-block: 3.5rem 5rem;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-accent-1-deep-blue);
+  text-decoration: none;
+  margin-bottom: 2.25rem;
+}
+
+.back:hover,
+.back:focus-visible {
+  text-decoration: underline;
+}
+
+.title {
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+  color: var(--color-accent-1-deep-blue);
+  margin-bottom: 0.5rem;
+}
+
+.updated {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  color: var(--color-accent-2-grey-blue);
+  margin-bottom: 2.5rem;
+}
+
+.body {
+  max-width: 680px;
+}
+
+.body h2 {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-accent-1-deep-blue);
+  margin: 2rem 0 0.6rem;
+}
+
+.body p {
+  font-family: var(--font-body), sans-serif;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--color-accent-1-deep-blue);
+  margin-bottom: 0.85rem;
+}
+
+.body a {
+  color: var(--color-accent-1-deep-blue);
+  text-decoration: underline;
+}

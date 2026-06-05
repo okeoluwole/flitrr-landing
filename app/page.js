@@ -24,6 +24,19 @@ function Hero() {
             <a href="#design-partner" className={styles.btnPrimary}>
               Become a design partner
             </a>
+            <a href="/pulse" className={styles.heroCtaSecondary}>
+              See how PULSE works
+              <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true">
+                <path
+                  d="M3 8h9M8.5 4l4 4-4 4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </a>
           </div>
         </div>
       </div>
@@ -31,106 +44,43 @@ function Hero() {
   );
 }
 
+// The eight lifecycle stages (the PULSE framework, Section 4), land to
+// disposal. PULSE is the first product and begins at Stage 1.
 const LIFECYCLE_STAGES = [
-  'Planning',
-  'Design',
-  'Procurement',
-  'Construction',
-  'Handover',
+  { n: '0', label: 'Land & acquisition' },
+  { n: '1', label: 'Objectives & funding' },
+  { n: '2', label: 'Consultant appointment' },
+  { n: '3', label: 'Design & approvals' },
+  { n: '4', label: 'Contractor procurement' },
+  { n: '5', label: 'Construction' },
+  { n: '6', label: 'Completion & handover' },
+  { n: '7', label: 'Sales & disposal' },
 ];
 
-function LifecycleVisual() {
-  // viewBox 1000 x 300. Rings at radius 70. Olympic-style 30% overlap →
-  // pitch = 2r * 0.70 = 98. Five rings span 4 * 98 = 392, centred so
-  // first cx = (1000 - 392)/2 = 304.
-  const RING_RADIUS = 70;
-  const RING_PITCH = 98;
-  const FIRST_CX = 304;
-  const CENTRE_Y = 150;
-
-  // Swoosh anchors INSIDE the lifecycle. Entry: lower-left interior of
-  // ring 1. Exit: upper-right interior of ring 5 with the arrowhead.
-  const ENTRY_X = FIRST_CX - 38;
-  const ENTRY_Y = CENTRE_Y + 38;
-  const EXIT_X  = FIRST_CX + 4 * RING_PITCH + 38;
-  const EXIT_Y  = CENTRE_Y - 38;
-
-  const SWOOSH_PATH =
-    `M ${ENTRY_X} ${ENTRY_Y} ` +
-    `C 410 88, 590 212, ${EXIT_X} ${EXIT_Y}`;
-
+function LifecycleTrack() {
   return (
-    <svg
-      viewBox="0 0 1000 300"
-      xmlns="http://www.w3.org/2000/svg"
-      role="img"
-      aria-label="Five overlapping rings labelled Planning, Design, Procurement, Construction, and Handover, with an amber swoosh tracing the journey from start to finish."
-      className={styles.lifecycleSvg}
+    <ol
+      className={styles.track}
+      aria-label="The eight stages of a development project, from land to disposal"
     >
-      {LIFECYCLE_STAGES.map((label, i) => {
-        const cx = FIRST_CX + i * RING_PITCH;
+      {LIFECYCLE_STAGES.map((stage) => {
+        const isPulse = stage.n === '1';
         return (
-          <circle
-            key={`fill-${label}`}
-            cx={cx}
-            cy={CENTRE_Y}
-            r={RING_RADIUS}
-            fill="var(--color-accent-1-deep-blue)"
-            fillOpacity="0.04"
-          />
-        );
-      })}
-
-      {LIFECYCLE_STAGES.map((label, i) => {
-        const cx = FIRST_CX + i * RING_PITCH;
-        return (
-          <circle
-            key={`stroke-${label}`}
-            cx={cx}
-            cy={CENTRE_Y}
-            r={RING_RADIUS}
-            fill="none"
-            stroke="var(--color-accent-1-deep-blue)"
-            strokeWidth="2.5"
-          />
-        );
-      })}
-
-      <path
-        d={SWOOSH_PATH}
-        fill="none"
-        stroke="var(--color-background-amber)"
-        strokeWidth="5"
-        strokeLinecap="round"
-      />
-
-      <path
-        d={`M ${EXIT_X} ${EXIT_Y} l -11 -1 l 4 8 z`}
-        fill="var(--color-background-amber)"
-        stroke="var(--color-background-amber)"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-
-      {LIFECYCLE_STAGES.map((label, i) => {
-        const cx = FIRST_CX + i * RING_PITCH;
-        return (
-          <text
-            key={`label-${label}`}
-            x={cx}
-            y={CENTRE_Y}
-            textAnchor="middle"
-            dominantBaseline="central"
-            fontFamily="var(--font-body), sans-serif"
-            fontSize="14"
-            fontWeight="500"
-            fill="var(--color-accent-1-deep-blue)"
+          <li
+            key={stage.n}
+            className={`${styles.trackStage} ${isPulse ? styles.trackStagePulse : ''}`}
           >
-            {label}
-          </text>
+            <span className={styles.trackNode} aria-hidden="true">
+              {stage.n}
+            </span>
+            <span className={styles.trackText}>
+              <span className={styles.trackLabel}>{stage.label}</span>
+              {isPulse && <span className={styles.trackTag}>PULSE</span>}
+            </span>
+          </li>
         );
       })}
-    </svg>
+    </ol>
   );
 }
 
@@ -143,16 +93,17 @@ function Lifecycle() {
     >
       <div className="container">
         <h2 id="lifecycle-heading" className={styles.sectionHeading}>
-          From Planning to handover, end to end.
+          From land to disposal, end to end.
         </h2>
         <p className={styles.lifecycleSub}>
-          Flitrr is building products for every stage of a property
-          development project. PULSE is our first product, focused on
-          properly setting up a project and efficient monitoring.
+          A development project runs through eight stages, each with a decision
+          gate before the next begins. Flitrr is building products for every
+          stage. PULSE is our first, for setting a project up properly and
+          monitoring what matters from there.
         </p>
 
-        <div className={styles.lifecycleVisualWrap}>
-          <LifecycleVisual />
+        <div className={styles.lifecycleTrackWrap}>
+          <LifecycleTrack />
         </div>
 
         <p className={styles.lifecycleFootline}>
@@ -160,6 +111,56 @@ function Lifecycle() {
         </p>
       </div>
     </section>
+  );
+}
+
+// A compact, illustrative replica of a locked PULSE brief. Decorative
+// (aria-hidden): it shows what the product produces, not real data.
+function BriefMock() {
+  return (
+    <div className={styles.mock} aria-hidden="true">
+      <div className={styles.mockHead}>
+        <div className={styles.mockBrand}>
+          <span className={styles.mockBug}>P</span>
+          <span className={styles.mockBrandName}>PULSE</span>
+        </div>
+        <div className={styles.mockTitle}>Holloway Place</div>
+        <div className={styles.mockSub}>24 units, Salford</div>
+        <div className={styles.mockChips}>
+          <span className={styles.mockChipLock}>Baseline locked</span>
+          <span className={styles.mockChip}>Version 1</span>
+        </div>
+      </div>
+      <div className={styles.mockKpis}>
+        <div className={styles.mockKpi}>
+          <span>Budget</span>
+          <b>£6.4m</b>
+        </div>
+        <div className={styles.mockKpi}>
+          <span>Protected</span>
+          <b>3 of 5</b>
+        </div>
+        <div className={styles.mockKpi}>
+          <span>Critical risks</span>
+          <b>4</b>
+        </div>
+      </div>
+      <div className={styles.mockSection}>
+        <span className={styles.mockSectionTitle}>Objectives</span>
+        <div className={`${styles.mockRow} ${styles.mockRowNn}`}>
+          <span className={styles.mockRowName}>Cost</span>
+          <span className={styles.mockRowTagNn}>Protected</span>
+        </div>
+        <div className={`${styles.mockRow} ${styles.mockRowNn}`}>
+          <span className={styles.mockRowName}>Funding</span>
+          <span className={styles.mockRowTagNn}>Protected</span>
+        </div>
+        <div className={styles.mockRow}>
+          <span className={styles.mockRowName}>Time</span>
+          <span className={styles.mockRowTagFx}>Has flex</span>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -175,20 +176,35 @@ function Products() {
           Our first product.
         </h2>
 
-        <article className={styles.productCard}>
-          <span className={styles.productPill}>
-            Coming soon · Private development
-          </span>
-          <h3 className={styles.productHeading}>PULSE</h3>
-          <p className={styles.productBody}>
-            Properly set up your projects, then monitor what matters across
-            every stage. PULSE is built for the execution arc of a
-            development project, design through completion.
-          </p>
-          <a href="/pulse" className={styles.productCta}>
-            Learn more about PULSE
-          </a>
-        </article>
+        <div className={styles.productLayout}>
+          <article className={styles.productCard}>
+            <span className={styles.productPill}>Live for design partners</span>
+            <h3 className={styles.productHeading}>PULSE</h3>
+            <p className={styles.productLede}>Defined. Classified. Monitored.</p>
+            <p className={styles.productBody}>
+              Set a project up properly, then watch what matters across every
+              stage. PULSE gives independent developers the delivery discipline
+              big firms buy from consultancies: classified objectives, a
+              version-locked brief built for your lender or JV partner, and
+              monitoring that scales to what you cannot afford to get wrong.
+            </p>
+            <div className={styles.productCtas}>
+              <a href="/pulse" className={styles.btnPrimary}>
+                See how PULSE works
+              </a>
+              <a href="#design-partner" className={styles.productCta}>
+                Become a design partner
+              </a>
+            </div>
+          </article>
+
+          <div className={styles.productPreview}>
+            <BriefMock />
+            <p className={styles.productPreviewCaption}>
+              A PULSE brief, framed for a lender.
+            </p>
+          </div>
+        </div>
 
         <p className={styles.productsFootline}>
           More products on the way. Each will tackle a different stage of
@@ -248,19 +264,10 @@ function Footer() {
             <a href="mailto:hello@flitrr.com" className={styles.footerLink}>
               hello@flitrr.com
             </a>
-            <a
-              href="https://linkedin.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.footerLink}
-              aria-label="Flitrr on LinkedIn (opens in new tab)"
-            >
-              LinkedIn
-            </a>
-            <a href="#" className={styles.footerLink}>
+            <a href="/privacy" className={styles.footerLink}>
               Privacy
             </a>
-            <a href="#" className={styles.footerLink}>
+            <a href="/terms" className={styles.footerLink}>
               Terms
             </a>
           </div>
@@ -296,6 +303,9 @@ export default async function Home() {
 
   return (
     <>
+      <a href="#main-content" className={styles.skipLink}>
+        Skip to content
+      </a>
       <HomeNav user={navUser} />
       <main id="main-content">
         <Hero />

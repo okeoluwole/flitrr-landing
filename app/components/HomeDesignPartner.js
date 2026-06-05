@@ -78,7 +78,7 @@ export default function HomeDesignPartner() {
         </h2>
         <p className={styles.pilotSub}>
           Ten developers. Direct input into every product Flitrr ships.
-          First access to PULSE the moment it is ready.
+          First to put PULSE to work on live projects.
         </p>
 
         <div className={styles.pilotBlocks}>
