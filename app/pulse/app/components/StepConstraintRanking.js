@@ -22,6 +22,11 @@ import styles from './InitiationWizard.module.css';
  * in Step 3, and changing one means going Back. The over-constraint
  * warning is soft, advisory only, and never blocks advancing; the hard
  * enforcement lives later at the stage gate.
+ *
+ * `frozen` (M6.2.0): once the baseline is committed at the Stage 1 to 2 gate,
+ * the ranking is locked. Dragging is off and the move controls are disabled,
+ * so the order cannot change by an ad hoc edit. Changing it is a re-baseline,
+ * which is not yet built.
  */
 
 // Display name lookup, keyed by objective_type.
@@ -35,6 +40,7 @@ export default function StepConstraintRanking({
   overConstrained,
   onMove,
   onReorder,
+  frozen = false,
 }) {
   // Ephemeral drag state. `dragType` is the row being dragged; `overType`
   // is the row currently hovered as a drop target (for the drop-line cue).
@@ -80,10 +86,44 @@ export default function StepConstraintRanking({
         holds.
       </p>
 
-      <p className={styles.hint}>
-        Drag a row to reorder it, or use the up and down controls on each
-        row.
-      </p>
+      {frozen ? (
+        <div className={styles.frozenNote}>
+          <svg
+            className={styles.frozenNoteIcon}
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            aria-hidden="true"
+          >
+            <rect
+              x="3.5"
+              y="7"
+              width="9"
+              height="6"
+              rx="1.5"
+              stroke="currentColor"
+              strokeWidth="1.4"
+            />
+            <path
+              d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"
+              stroke="currentColor"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+            />
+          </svg>
+          <p className={styles.frozenNoteText}>
+            This baseline is committed, so the ranking can no longer be changed
+            here. Revising a committed baseline is a re-baseline, which is not
+            yet available.
+          </p>
+        </div>
+      ) : (
+        <p className={styles.hint}>
+          Drag a row to reorder it, or use the up and down controls on each
+          row.
+        </p>
+      )}
 
       {/* Persistent live region so the warning is announced when it
           appears or clears, without stealing focus. */}
@@ -134,26 +174,43 @@ export default function StepConstraintRanking({
             <li
               key={type}
               className={rowClass}
-              draggable
-              onDragStart={(e) => {
-                setDragType(type);
-                // Required for the drag to initiate in Firefox; also marks
-                // this as a move rather than a copy.
-                e.dataTransfer.effectAllowed = 'move';
-                e.dataTransfer.setData('text/plain', type);
-              }}
-              onDragEnd={resetDrag}
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-                if (overType !== type) setOverType(type);
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                handleDrop(type);
-              }}
+              draggable={!frozen}
+              onDragStart={
+                frozen
+                  ? undefined
+                  : (e) => {
+                      setDragType(type);
+                      // Required for the drag to initiate in Firefox; also
+                      // marks this as a move rather than a copy.
+                      e.dataTransfer.effectAllowed = 'move';
+                      e.dataTransfer.setData('text/plain', type);
+                    }
+              }
+              onDragEnd={frozen ? undefined : resetDrag}
+              onDragOver={
+                frozen
+                  ? undefined
+                  : (e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = 'move';
+                      if (overType !== type) setOverType(type);
+                    }
+              }
+              onDrop={
+                frozen
+                  ? undefined
+                  : (e) => {
+                      e.preventDefault();
+                      handleDrop(type);
+                    }
+              }
             >
-              <span className={styles.rankHandle} aria-hidden="true">
+              <span
+                className={`${styles.rankHandle} ${
+                  frozen ? styles.rankHandleFrozen : ''
+                }`}
+                aria-hidden="true"
+              >
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                   <path
                     d="M5 4h.01M5 8h.01M5 12h.01M11 4h.01M11 8h.01M11 12h.01"
@@ -186,7 +243,7 @@ export default function StepConstraintRanking({
                   type="button"
                   className={styles.moveBtn}
                   onClick={() => onMove(type, 'up')}
-                  disabled={index === 0}
+                  disabled={frozen || index === 0}
                   aria-label={`Move ${NAME_BY_TYPE[type]} up`}
                 >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -203,7 +260,7 @@ export default function StepConstraintRanking({
                   type="button"
                   className={styles.moveBtn}
                   onClick={() => onMove(type, 'down')}
-                  disabled={index === order.length - 1}
+                  disabled={frozen || index === order.length - 1}
                   aria-label={`Move ${NAME_BY_TYPE[type]} down`}
                 >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">

@@ -320,6 +320,18 @@ export default function InitiationWizard({
   // unlock block on Step 8 and the header stage indicator.
   const currentStage = initialProject?.current_stage ?? 1;
 
+  // Once the Stage 1 to 2 gate has committed the baseline (the project is at
+  // Stage 2, or the gate row is recorded passed), Steps 3 and 4 are frozen:
+  // the objective definitions, their classification, and their ranking can no
+  // longer be edited here. This is the minimal expression of the locked-
+  // baseline principle. The Risk module derives criticality live from these
+  // objectives, so an ad hoc change post-gate would silently move monitoring
+  // decisions. Revising a committed baseline is a re-baseline, a separate
+  // milestone that is not yet built. Mirrors the post-gate unlock block on
+  // Step 8.
+  const objectivesFrozen =
+    currentStage >= 2 || initialGate?.gate_status === 'passed';
+
   const [projectId, setProjectId] = useState(initialProject?.id ?? null);
   const [step, setStep] = useState(1);
   // Furthest step reached. A resumed draft has, by definition, completed
@@ -655,6 +667,11 @@ export default function InitiationWizard({
   // never INSERT (the rows are seeded and uniquely keyed per type). A
   // non_negotiable objective carries no tolerance, so store null for it.
   const persistStep3 = async () => {
+    // Belt-and-braces: Step 3's controls are read-only once the baseline is
+    // committed (objectivesFrozen), so this is not reached then. The guard
+    // makes any stray call a no-op, so classification never changes outside a
+    // re-baseline.
+    if (objectivesFrozen) return null;
     const results = await Promise.all(
       objectives.map((o) =>
         supabase
@@ -674,6 +691,9 @@ export default function InitiationWizard({
   // Save Step 4. Write rank 1..5 onto the existing rows to match the
   // chosen order (top of the list is rank 1).
   const persistStep4 = async () => {
+    // Belt-and-braces: the ranking controls are disabled once the baseline is
+    // committed (objectivesFrozen). The guard makes a stray call a no-op.
+    if (objectivesFrozen) return null;
     const byType = Object.fromEntries(
       objectives.map((o) => [o.objective_type, o])
     );
@@ -956,6 +976,7 @@ export default function InitiationWizard({
           <StepProjectObjectives
             objectives={objectives}
             onChange={onObjectiveChange}
+            frozen={objectivesFrozen}
           />
         );
       }
@@ -966,6 +987,7 @@ export default function InitiationWizard({
           overConstrained={overConstrained}
           onMove={moveObjective}
           onReorder={onReorder}
+          frozen={objectivesFrozen}
         />
       );
     }

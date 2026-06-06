@@ -614,7 +614,7 @@
     box-shadow 0.15s ease;
 }
 
-.choice:hover {
+.choice:not(.choiceFrozen):hover {
   border-color: var(--color-accent-2-grey-blue);
 }
 
@@ -810,6 +810,63 @@
   line-height: 1.5;
   color: var(--color-accent-1-deep-blue);
   margin: 0;
+}
+
+/* ── Post-gate freeze (M6.2.0) ──
+   Steps 3 and 4 become read-only once the baseline is committed (Stage 2+).
+   A calm locked state, distinct from the amber over-constraint warning: it
+   explains the lock in the navy/neutral palette and keeps the committed
+   values legible. Re-baseline (editing a committed baseline) is a separate
+   milestone, not yet built. */
+.frozenNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  background-color: rgba(55, 97, 131, 0.05);
+  border: 1px solid rgba(55, 97, 131, 0.18);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.frozenNoteIcon {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--color-accent-2-grey-blue);
+}
+
+.frozenNoteText {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--color-accent-1-deep-blue);
+  margin: 0;
+}
+
+/* Locked objective fields: keep the value at full ink, soften the chrome so
+   it reads as committed rather than active. Overrides the active focus ring,
+   so a read-only field never looks like it is accepting input. */
+.inputFrozen,
+.inputFrozen:focus {
+  background-color: rgba(55, 97, 131, 0.04);
+  border-color: var(--color-border);
+  box-shadow: none;
+  cursor: default;
+}
+
+/* Locked classification choice: drop the interactive affordances. The
+   selected option keeps its .choiceSelected highlight, so the committed
+   choice stays clear. */
+.choiceFrozen {
+  cursor: default;
+}
+
+/* Locked ranking handle: the rows are no longer draggable, so the grab
+   affordance is dimmed and the grab cursor removed. */
+.rankHandleFrozen {
+  cursor: default;
+  opacity: 0.35;
 }
 
 /* ── Steps 5 to 7: editable item lists ─── */

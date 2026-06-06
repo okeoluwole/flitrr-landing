@@ -17,6 +17,11 @@ import styles from './InitiationWizard.module.css';
  * Validation is permissive: every objective already has a classification
  * (Flexible by default), so nothing is ever blank, and the developer can
  * advance without completing every field.
+ *
+ * `frozen` (M6.2.0): once the baseline is committed at the Stage 1 to 2 gate,
+ * the fields render read-only. Monitoring derives criticality live from these
+ * objectives, so they must not change by an ad hoc edit; changing them is a
+ * re-baseline, which is not yet built. The committed values stay legible.
  */
 
 // The two classifications, in the order the spec presents them. The
@@ -34,7 +39,11 @@ const CLASSIFICATION_OPTIONS = [
   },
 ];
 
-export default function StepProjectObjectives({ objectives, onChange }) {
+export default function StepProjectObjectives({
+  objectives,
+  onChange,
+  frozen = false,
+}) {
   // Look up each objective's live state by type. Defensive: the shell
   // always supplies all five in canonical order, but matching by type
   // keeps this robust if that ever changes.
@@ -52,6 +61,40 @@ export default function StepProjectObjectives({ objectives, onChange }) {
         after it. It determines what gets protected, and what can give, when
         the project comes under pressure.
       </p>
+
+      {frozen && (
+        <div className={styles.frozenNote}>
+          <svg
+            className={styles.frozenNoteIcon}
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            aria-hidden="true"
+          >
+            <rect
+              x="3.5"
+              y="7"
+              width="9"
+              height="6"
+              rx="1.5"
+              stroke="currentColor"
+              strokeWidth="1.4"
+            />
+            <path
+              d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"
+              stroke="currentColor"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+            />
+          </svg>
+          <p className={styles.frozenNoteText}>
+            This baseline is committed, so the objectives can no longer be
+            changed here. Revising a committed baseline is a re-baseline, which
+            is not yet available.
+          </p>
+        </div>
+      )}
 
       <div className={styles.objList}>
         {OBJECTIVE_META.map(({ type, name, description }) => {
@@ -76,9 +119,12 @@ export default function StepProjectObjectives({ objectives, onChange }) {
                 <input
                   id={`obj-def-${type}`}
                   type="text"
-                  className={styles.input}
+                  className={`${styles.input} ${
+                    frozen ? styles.inputFrozen : ''
+                  }`}
                   value={o.definition ?? ''}
                   onChange={(e) => onChange(type, 'definition', e.target.value)}
+                  readOnly={frozen}
                   autoComplete="off"
                 />
               </div>
@@ -93,7 +139,7 @@ export default function StepProjectObjectives({ objectives, onChange }) {
                         key={opt.value}
                         className={`${styles.choice} ${
                           checked ? styles.choiceSelected : ''
-                        }`}
+                        } ${frozen ? styles.choiceFrozen : ''}`}
                       >
                         <input
                           type="radio"
@@ -104,6 +150,7 @@ export default function StepProjectObjectives({ objectives, onChange }) {
                           onChange={() =>
                             onChange(type, 'classification', opt.value)
                           }
+                          disabled={frozen}
                         />
                         <span className={styles.choiceTitle}>{opt.title}</span>
                         <span className={styles.choiceHint}>{opt.hint}</span>
@@ -121,9 +168,12 @@ export default function StepProjectObjectives({ objectives, onChange }) {
                   <input
                     id={`obj-tol-${type}`}
                     type="text"
-                    className={styles.input}
+                    className={`${styles.input} ${
+                      frozen ? styles.inputFrozen : ''
+                    }`}
                     value={o.tolerance ?? ''}
                     onChange={(e) => onChange(type, 'tolerance', e.target.value)}
+                    readOnly={frozen}
                     placeholder="e.g. up to 8% over budget, or completion can slip by one quarter"
                     autoComplete="off"
                   />
