@@ -886,7 +886,16 @@ export default function InitiationWizard({
             </button>
           </>
         ) : (
-          <p className={styles.panelIntro}>Loading your objectives…</p>
+          <>
+            <div className={styles.skeleton} aria-hidden="true">
+              <div className={`${styles.skelBar} ${styles.skelShort}`} />
+              <div className={styles.skelBar} />
+              <div className={styles.skelBar} />
+            </div>
+            <span className={styles.srOnly} role="status">
+              Loading your objectives…
+            </span>
+          </>
         )}
       </>
     );
@@ -916,7 +925,16 @@ export default function InitiationWizard({
             </button>
           </>
         ) : (
-          <p className={styles.panelIntro}>Loading…</p>
+          <>
+            <div className={styles.skeleton} aria-hidden="true">
+              <div className={`${styles.skelBar} ${styles.skelShort}`} />
+              <div className={styles.skelBar} />
+              <div className={styles.skelBar} />
+            </div>
+            <span className={styles.srOnly} role="status">
+              Loading…
+            </span>
+          </>
         )}
       </>
     );
@@ -1034,11 +1052,8 @@ export default function InitiationWizard({
           </svg>
           Back to projects
         </Link>
-        <h1 className={`${styles.title} riseIn`}>{headerTitle}</h1>
-        <p
-          className={`${styles.subtitle} riseIn`}
-          style={{ '--rise-delay': '70ms' }}
-        >
+        <h1 className={styles.title}>{headerTitle}</h1>
+        <p className={styles.subtitle}>
           Set up the baseline that governs every later stage. Your progress
           saves at each step, so you can leave and resume anytime.
         </p>
@@ -1056,11 +1071,7 @@ export default function InitiationWizard({
         )}
       </div>
 
-      <nav
-        className={`${styles.progress} riseIn`}
-        style={{ '--rise-delay': '140ms' }}
-        aria-label="Initiation progress"
-      >
+      <nav className={styles.progress} aria-label="Initiation progress">
         <ol className={styles.steps}>
           {STEPS.map((s) => {
             const isCurrent = s.n === step;

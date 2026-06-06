@@ -92,7 +92,7 @@ export default async function PulseAppPage() {
     <DashboardShell user={navUser}>
       <main className={`container ${styles.page}`} id="main-content">
         <div className={styles.head}>
-          <div className={`${styles.headText} riseIn`}>
+          <div className={styles.headText}>
             <p className={styles.eyebrow}>PULSE</p>
             <h1 className={styles.heading}>Your projects</h1>
             <p className={styles.sub}>
@@ -100,11 +100,7 @@ export default async function PulseAppPage() {
               up a draft where you left off.
             </p>
           </div>
-          <Link
-            href="/pulse/app/initiate"
-            className={`${styles.newBtn} riseIn`}
-            style={{ '--rise-delay': '90ms' }}
-          >
+          <Link href="/pulse/app/initiate" className={styles.newBtn}>
             <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
               <path
                 d="M8 3v10M3 8h10"
@@ -119,7 +115,7 @@ export default async function PulseAppPage() {
         </div>
 
         {list.length === 0 ? (
-          <div className={`${styles.empty} riseIn`}>
+          <div className={styles.empty}>
             <h2 className={styles.emptyHeading}>No projects yet.</h2>
             <p className={styles.emptyBody}>
               Your first PULSE project starts with the eight-step initiation
@@ -131,16 +127,12 @@ export default async function PulseAppPage() {
           </div>
         ) : (
           <ul className={styles.list}>
-            {list.map((p, i) => {
+            {list.map((p) => {
               const stageName =
                 STAGE_NAMES[p.current_stage] ?? `Stage ${p.current_stage}`;
               const updated = formatUpdated(p.updated_at);
               return (
-                <li
-                  key={p.id}
-                  className={`${styles.listItem} riseIn`}
-                  style={{ '--rise-delay': `${Math.min(i, 8) * 55}ms` }}
-                >
+                <li key={p.id} className={styles.listItem}>
                   <Link
                     href={`/pulse/app/workspace?project=${p.id}`}
                     className={styles.cardLink}

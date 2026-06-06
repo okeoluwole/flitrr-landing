@@ -74,11 +74,12 @@ export default function HomeDesignPartner() {
     >
       <div className="container">
         <h2 id="design-partner-heading" className={styles.sectionHeading} data-reveal>
-          Be a Flitrr design partner.
+          Ten design partner spots. First come, first served.
         </h2>
         <p className={styles.pilotSub} data-reveal>
-          Ten developers. Direct input into every product Flitrr ships.
-          First to put PULSE to work on live projects.
+          Flitrr will be shaped by the developers who use it first: direct
+          input into every product we ship, and first to put PULSE to work on
+          live projects.
         </p>
 
         <div className={styles.pilotBlocks}>

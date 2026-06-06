@@ -190,16 +190,11 @@ export default function GateReview({
         </svg>
         Back to the brief
       </Link>
-      <p className={`${styles.eyebrow} riseIn`}>Stage 1 to 2 gate</p>
-      <h1 className={`${styles.title} riseIn`} style={{ '--rise-delay': '60ms' }}>
+      <p className={styles.eyebrow}>Stage 1 to 2 gate</p>
+      <h1 className={styles.title}>
         Gate 1 to 2: Objectives and Funding to Consultant Appointment
       </h1>
-      <p
-        className={`${styles.projectName} riseIn`}
-        style={{ '--rise-delay': '120ms' }}
-      >
-        {projectName}
-      </p>
+      <p className={styles.projectName}>{projectName}</p>
     </>
   );
 
@@ -210,10 +205,7 @@ export default function GateReview({
     return (
       <main className={`container ${styles.page}`} id="main-content">
         {Header}
-        <div
-          className={`${styles.passedCard} riseIn`}
-          style={{ '--rise-delay': '160ms' }}
-        >
+        <div className={`${styles.passedCard} riseIn`}>
           <div className={`${styles.passedBadge} ${styles.badgePop}`}>
             <CheckIcon />
             <span>Gate passed</span>
@@ -230,10 +222,7 @@ export default function GateReview({
             This project is now at Stage 2: Consultant Appointment.
           </p>
         </div>
-        <div
-          className={`${styles.afterActions} riseIn`}
-          style={{ '--rise-delay': '280ms' }}
-        >
+        <div className={styles.afterActions}>
           <Link href={briefHref} className={styles.secondaryCta}>
             Back to the brief
           </Link>
@@ -249,16 +238,13 @@ export default function GateReview({
   return (
     <main className={`container ${styles.page}`} id="main-content">
       {Header}
-      <p className={`${styles.intro} riseIn`} style={{ '--rise-delay': '160ms' }}>
+      <p className={styles.intro}>
         This is the go decision that closes Stage 1 and opens Stage 2. It is
         read from the locked baseline. Confirming advances the project to Stage
         2 and records the decision. It does not change the baseline.
       </p>
 
-      <div
-        className={`${styles.groups} riseIn`}
-        style={{ '--rise-delay': '220ms' }}
-      >
+      <div className={styles.groups}>
         <section className={styles.group}>
           <h2 className={styles.groupTitle}>Stage checklist</h2>
           <ul className={styles.list}>

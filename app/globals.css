@@ -203,6 +203,12 @@ p {
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
+/* Loading-skeleton pulse. Opacity only, so it stays on the GPU. */
+@keyframes flitrr-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 0.75; }
+}
+
 /* Everything below is gated on "no-preference": when a visitor asks for
    reduced motion, none of it applies and content sits in its natural,
    fully-visible resting state. That is also the no-CSS / no-JS fallback. */

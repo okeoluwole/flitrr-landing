@@ -367,44 +367,6 @@ function Modules() {
 }
 
 /* ─────────────────────────────────────────
-   Section 8 — Footer CTA
-───────────────────────────────────────── */
-
-function PulseFooterCta() {
-  return (
-    <section className={styles.footerCta} aria-labelledby="fcta-heading">
-      <svg
-        className={styles.footerCtaWatermark}
-        viewBox="0 0 200 200"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
-        <g fill="var(--color-foreground-cream)" opacity="0.08">
-          <rect x="0"  y="0"  width="200" height="34" rx="4" />
-          <rect x="0"  y="0"  width="34"  height="200" rx="4" />
-          <rect x="34" y="83" width="120" height="34" rx="4" />
-        </g>
-      </svg>
-
-      <div className="container">
-        <div className={styles.footerCtaInner} data-reveal>
-          <h2 id="fcta-heading" className={styles.footerCtaHeading}>
-            Ten design partner spots. First come, first served.
-          </h2>
-          <p className={styles.footerCtaBody}>
-            PULSE will be shaped by the developers who use it first. If
-            that&rsquo;s the seat you want, take it now.
-          </p>
-          <a href="#design-partner" className={styles.btnAmber}>
-            Request a design partner spot
-          </a>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─────────────────────────────────────────
    Section 9 — Footer
 ───────────────────────────────────────── */
 
@@ -467,9 +429,8 @@ export default async function PulsePage() {
         <Wedge />
         <GatingStory />
         <Modules />
-        <PulseDesignPartner />
         <PulseFaq />
-        <PulseFooterCta />
+        <PulseDesignPartner />
       </main>
       <PulseFooter />
     </>

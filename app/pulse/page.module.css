@@ -52,37 +52,6 @@
   width: 100%;
 }
 
-.btnAmber {
-  display: inline-block;
-  background-color: var(--color-button-amber-bg);
-  color: var(--color-button-amber-text);
-  font-family: var(--font-body), sans-serif;
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: 0.005em;
-  padding: 16px 28px;
-  border: 1.5px solid var(--color-button-amber-bg);
-  border-radius: 8px;
-  transition: filter 0.18s ease, transform 0.12s ease;
-  white-space: nowrap;
-  text-align: center;
-  cursor: pointer;
-}
-
-.btnAmber:hover,
-.btnAmber:focus-visible {
-  filter: brightness(0.94);
-}
-
-.btnAmber:focus-visible {
-  outline: 2px solid var(--color-foreground-cream);
-  outline-offset: 3px;
-}
-
-.btnAmber:active {
-  transform: scale(0.98);
-}
-
 /* ─────────────────────────────────────────
    Section 1 — Nav
 ───────────────────────────────────────── */
@@ -921,60 +890,6 @@ select.textInput {
 
 .faqItemOpen .faqIcon {
   transform: rotate(45deg);
-}
-
-/* ─────────────────────────────────────────
-   Section 8 — Footer CTA
-───────────────────────────────────────── */
-
-.footerCta {
-  position: relative;
-  overflow: hidden;
-  background-color: var(--color-surface-cta-band);
-  padding-block: 6rem;
-  text-align: center;
-}
-
-.footerCtaWatermark {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 400px;
-  height: 400px;
-  pointer-events: none;
-  user-select: none;
-  z-index: 0;
-}
-
-.footerCta .container {
-  position: relative;
-  z-index: 1;
-}
-
-.footerCtaInner {
-  max-width: 720px;
-  margin-inline: auto;
-}
-
-.footerCtaHeading {
-  font-family: var(--font-heading), sans-serif;
-  font-size: clamp(1.875rem, 4.5vw, 2.75rem);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.015em;
-  color: var(--color-text-inverse);
-  margin-bottom: 1rem;
-}
-
-.footerCtaBody {
-  font-family: var(--font-body), sans-serif;
-  font-size: 1.125rem;
-  line-height: 1.55;
-  color: rgba(242, 240, 244, 0.85);
-  margin-bottom: 2.25rem;
-  margin-inline: auto;
-  max-width: 560px;
 }
 
 /* ─────────────────────────────────────────

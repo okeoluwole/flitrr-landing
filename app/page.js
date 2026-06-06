@@ -69,28 +69,21 @@ function Hero() {
     <section className={styles.hero} aria-labelledby="hero-heading">
       <div className="container">
         <div className={styles.heroContent}>
-          <p
-            className={`${styles.heroWordmark} riseIn`}
-            aria-hidden="true"
-          >
-            Flitrr
-          </p>
           <h1
             id="hero-heading"
             className={`${styles.heroHeading} riseIn`}
-            style={{ '--rise-delay': '80ms' }}
           >
             One platform. End-to-end property development lifecycle solutions.
           </h1>
           <p
             className={`${styles.heroSub} riseIn`}
-            style={{ '--rise-delay': '160ms' }}
+            style={{ '--rise-delay': '80ms' }}
           >
             Built for independent and SME real estate developers.
           </p>
           <div
             className={`${styles.heroCtas} riseIn`}
-            style={{ '--rise-delay': '240ms' }}
+            style={{ '--rise-delay': '160ms' }}
           >
             <a href="#design-partner" className={styles.btnPrimary}>
               Become a design partner
@@ -249,19 +242,14 @@ function Lifecycle() {
           From land to disposal, end to end.
         </h2>
         <p className={styles.lifecycleSub} data-reveal>
-          A development project runs through eight stages, each with a decision
-          gate before the next begins. Flitrr is building products for every
-          stage. PULSE is our first, for setting a project up properly and
-          monitoring what matters from there.
+          A development project runs through eight stages, each gated before the
+          next begins. PULSE covers the delivery arc, stages one to seven: set
+          the project up properly, then monitor what matters from there.
         </p>
 
         <div className={styles.lifecycleTrackWrap}>
           <LifecycleTrack />
         </div>
-
-        <p className={styles.lifecycleFootline} data-reveal>
-          One platform. Practical solutions for property development.
-        </p>
       </div>
     </section>
   );
@@ -327,9 +315,6 @@ function Products() {
               <a href="/pulse" className={styles.btnPrimary}>
                 See how PULSE works
               </a>
-              <a href="#design-partner" className={styles.productCta}>
-                Become a design partner
-              </a>
             </div>
           </article>
 
@@ -345,40 +330,6 @@ function Products() {
           More products on the way. Each will tackle a different stage of
           the development lifecycle.
         </p>
-      </div>
-    </section>
-  );
-}
-
-function FooterCta() {
-  return (
-    <section className={styles.footerCta} aria-labelledby="fcta-heading">
-      <svg
-        className={styles.footerCtaWatermark}
-        viewBox="0 0 200 200"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
-        <g fill="var(--color-foreground-cream)" opacity="0.08">
-          <rect x="0"  y="0"   width="200" height="34" rx="4" />
-          <rect x="0"  y="0"   width="34"  height="200" rx="4" />
-          <rect x="34" y="83"  width="120" height="34" rx="4" />
-        </g>
-      </svg>
-
-      <div className="container">
-        <div className={styles.footerCtaInner} data-reveal>
-          <h2 id="fcta-heading" className={styles.footerCtaHeading}>
-            Ten design partner spots. First come, first served.
-          </h2>
-          <p className={styles.footerCtaBody}>
-            Flitrr will be shaped by the developers who use it first. If
-            that is the seat you want, take it now.
-          </p>
-          <a href="#design-partner" className={styles.btnAmber}>
-            Request a design partner spot
-          </a>
-        </div>
       </div>
     </section>
   );
@@ -447,7 +398,6 @@ export default async function Home() {
         <Lifecycle />
         <Products />
         <HomeDesignPartner />
-        <FooterCta />
       </main>
       <Footer />
     </>

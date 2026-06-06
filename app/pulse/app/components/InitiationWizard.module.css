@@ -221,6 +221,34 @@
   }
 }
 
+/* Loading skeleton: shaped placeholders that match the form loading in, rather
+   than bare "Loading…" text or a spinner dropped in the content. */
+.skeleton {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.skelBar {
+  height: 46px;
+  border-radius: 8px;
+  background-color: var(--color-border);
+  opacity: 0.5;
+}
+
+.skelBar.skelShort {
+  max-width: 55%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .skelBar {
+    animation: flitrr-pulse 1.4s var(--ease-in-out) infinite;
+  }
+  .skelBar.skelShort {
+    animation-delay: 0.16s;
+  }
+}
+
 .panelEyebrow {
   font-family: var(--font-body), sans-serif;
   font-size: 0.75rem;

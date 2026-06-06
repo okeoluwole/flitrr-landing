@@ -137,8 +137,28 @@
   outline-offset: -2px;
 }
 
-.menuItemMuted {
+.menuItemDisabled {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
   color: var(--color-accent-2-grey-blue);
+  cursor: default;
+}
+
+.menuItemDisabled:hover {
+  background-color: transparent;
+}
+
+.menuSoon {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-accent-2-grey-blue);
+  background-color: rgba(119, 147, 168, 0.16);
+  padding: 2px 7px;
+  border-radius: 999px;
 }
 
 .menuItemAction {

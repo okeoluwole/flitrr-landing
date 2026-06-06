@@ -78,11 +78,12 @@ export default function PulseDesignPartner() {
           className={styles.sectionHeading}
           data-reveal
         >
-          Be a PULSE design partner.
+          Ten design partner spots. First come, first served.
         </h2>
         <p className={styles.designPartnerSub} data-reveal>
-          Ten developers. Direct input into PULSE before it launches.
-          First access to Project Initiation the moment it ships.
+          PULSE will be shaped by the developers who use it first: direct input
+          before it launches, and first access to Project Initiation the moment
+          it ships.
         </p>
 
         <div className={styles.designPartnerBlocks}>

@@ -62,14 +62,6 @@ export default function DashboardShell({ user, children }) {
     router.push('/');
   };
 
-  // Account settings is a placeholder. Anchored to "#" with
-  // preventDefault so the URL doesn't visibly mutate. Future work:
-  // build /account and link there.
-  const handleAccountSettings = (e) => {
-    e.preventDefault();
-    setOpen(false);
-  };
-
   return (
     <div className={styles.shell}>
       <header className={styles.topBar} role="banner">
@@ -105,15 +97,16 @@ export default function DashboardShell({ user, children }) {
 
             {open && (
               <div className={styles.menuPanel} role="menu">
-                {/* Placeholder until the /account page exists. */}
-                <a
-                  href="#"
-                  className={`${styles.menuItem} ${styles.menuItemMuted}`}
-                  onClick={handleAccountSettings}
+                {/* /account isn't built yet, so this reads as a planned item
+                    rather than a link that goes nowhere on click. */}
+                <span
+                  className={`${styles.menuItem} ${styles.menuItemDisabled}`}
                   role="menuitem"
+                  aria-disabled="true"
                 >
                   Account settings
-                </a>
+                  <span className={styles.menuSoon}>Soon</span>
+                </span>
                 <button
                   type="button"
                   className={`${styles.menuItem} ${styles.menuItemAction}`}
