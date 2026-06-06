@@ -54,8 +54,9 @@ export const STATUS_OPTIONS = [
 // serves both.
 const LEVEL = { low: 1, medium: 2, high: 3 };
 
-// Severity ranking for the sort: lower is more urgent.
-const SEVERITY_RANK = { serious: 0, moderate: 1, minor: 2, unscored: 3 };
+// Severity ranking: lower is more urgent. Exported so the monitoring model
+// (riskMonitor.js) orders by the same scale rather than redefining it.
+export const SEVERITY_RANK = { serious: 0, moderate: 1, minor: 2, unscored: 3 };
 
 /**
  * Derive the plain-word severity from a stored likelihood and impact (each a
