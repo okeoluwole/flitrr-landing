@@ -30,11 +30,21 @@
   color: var(--color-accent-2-grey-blue);
   text-decoration: none;
   margin-bottom: 1.5rem;
+  transition: color var(--dur-fast) var(--ease-out);
 }
 
 .backLink:hover,
 .backLink:focus-visible {
   color: var(--color-accent-1-deep-blue);
+}
+
+.backLink svg {
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.backLink:hover svg,
+.backLink:focus-visible svg {
+  transform: translateX(-3px);
 }
 
 .eyebrow {
@@ -266,6 +276,20 @@
   padding: 0.3rem 0.6rem 0.3rem 0.45rem;
   border-radius: 4px;
   margin-bottom: 1rem;
+}
+
+/* Passing the gate is a rare, hard-won moment, so the badge gets a small
+   beat of delight: it pops in just after the card settles. */
+@media (prefers-reduced-motion: no-preference) {
+  .badgePop {
+    animation: flitrr-pop var(--dur-base) var(--ease-out) both;
+    animation-delay: 140ms;
+  }
+
+  .badgePop .iconMet {
+    animation: flitrr-pop var(--dur-base) var(--ease-out) both;
+    animation-delay: 230ms;
+  }
 }
 
 .passedBadge .iconMet {

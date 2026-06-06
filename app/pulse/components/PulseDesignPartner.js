@@ -76,28 +76,29 @@ export default function PulseDesignPartner() {
         <h2
           id="design-partner-heading"
           className={styles.sectionHeading}
+          data-reveal
         >
           Be a PULSE design partner.
         </h2>
-        <p className={styles.designPartnerSub}>
+        <p className={styles.designPartnerSub} data-reveal>
           Ten developers. Direct input into PULSE before it launches.
           First access to Project Initiation the moment it ships.
         </p>
 
         <div className={styles.designPartnerBlocks}>
           {DESIGN_PARTNER_BLOCKS.map(({ heading, body }) => (
-            <div key={heading} className={styles.designPartnerBlock}>
+            <div key={heading} className={styles.designPartnerBlock} data-reveal>
               <h3 className={styles.designPartnerBlockHeading}>{heading}</h3>
               <p className={styles.designPartnerBlockBody}>{body}</p>
             </div>
           ))}
         </div>
 
-        <div className={styles.designPartnerFormWrap}>
+        <div className={styles.designPartnerFormWrap} data-reveal>
           <div className={styles.designPartnerFormCard}>
             {done ? (
               <div
-                className={styles.successState}
+                className={`${styles.successState} riseInSm`}
                 role="status"
                 aria-live="polite"
               >

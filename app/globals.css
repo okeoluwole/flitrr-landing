@@ -161,6 +161,96 @@ p {
   }
 }
 
+/* ─────────────────────────────────────────────────────────
+   Motion system
+   Shared easing + duration tokens, an accessible scroll-reveal,
+   mount-entrance utilities, and global press feedback. CSS only,
+   no library: transitions and animations run off the main thread
+   and never ship content blank if JS fails. Curves and timings
+   follow Emil Kowalski's design-engineering guidance — stronger
+   than the CSS built-ins, short, and always motivated.
+───────────────────────────────────────────────────────── */
+
+:root {
+  /* Easing — with intent, not the weak built-ins. */
+  --ease-out:      cubic-bezier(0.23, 1, 0.32, 1);   /* enter/exit UI feedback */
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);    /* reveals, larger moves */
+  --ease-in-out:   cubic-bezier(0.77, 0, 0.175, 1);  /* on-screen movement */
+  --ease-drawer:   cubic-bezier(0.32, 0.72, 0, 1);   /* sheets, dropdowns */
+
+  /* Durations — UI stays snappy, under ~300ms. */
+  --dur-press: 130ms;
+  --dur-fast:  180ms;
+  --dur-base:  240ms;
+  --dur-slow:  440ms;
+}
+
+/* Shared keyframes (global names, referenced from CSS modules too). */
+@keyframes flitrr-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes flitrr-rise-sm {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Origin-aware pop for menus/popovers. Never from scale(0): nothing in the
+   real world appears from nothing, so it starts from a visible 0.96. */
+@keyframes flitrr-pop {
+  from { opacity: 0; transform: scale(0.96) translateY(-4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Everything below is gated on "no-preference": when a visitor asks for
+   reduced motion, none of it applies and content sits in its natural,
+   fully-visible resting state. That is also the no-CSS / no-JS fallback. */
+@media (prefers-reduced-motion: no-preference) {
+  /* Press feedback: every native button acknowledges the tap. <a>-buttons
+     carry their own :active rules in their own modules. Component classes
+     that set their own transition still win by specificity; this only fills
+     the gap for the many buttons that had none. */
+  button {
+    transition:
+      transform var(--dur-press) var(--ease-out),
+      filter var(--dur-fast) var(--ease-out),
+      background-color var(--dur-fast) var(--ease-out),
+      border-color var(--dur-fast) var(--ease-out),
+      box-shadow var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out),
+      opacity var(--dur-fast) var(--ease-out);
+  }
+
+  button:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  /* Mount entrance: animates in once on first paint. Used for above-the-fold
+     content and app panels. Stagger with an inline --rise-delay. */
+  .riseIn {
+    animation: flitrr-rise var(--dur-slow) var(--ease-out-soft) both;
+    animation-delay: var(--rise-delay, 0ms);
+  }
+
+  .riseInSm {
+    animation: flitrr-rise-sm var(--dur-base) var(--ease-out-soft) both;
+    animation-delay: var(--rise-delay, 0ms);
+  }
+
+  /* Scroll-reveal for long pages. Pure CSS scroll-driven animation, so it
+     can never ship blank and no-ops where unsupported. Each element rises
+     in as it enters the viewport; placing data-reveal on individual items
+     gives a natural, scroll-paced stagger. */
+  @supports (animation-timeline: view()) {
+    [data-reveal] {
+      animation: flitrr-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 4% entry 40%;
+    }
+  }
+}
+
 /* ── Print (M4: PDF export of the PULSE brief) ─────────────
    The page setup. The application chrome is hidden, and the
    brief document is flushed to the page, by each component's

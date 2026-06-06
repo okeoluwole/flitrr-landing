@@ -68,7 +68,8 @@
   border: 1.5px solid var(--color-button-primary-bg);
   border-radius: 8px;
   text-decoration: none;
-  transition: filter 0.18s ease;
+  transition: filter var(--dur-fast) var(--ease-out),
+    transform var(--dur-press) var(--ease-out);
 }
 
 .newBtn:hover,
@@ -79,6 +80,10 @@
 .newBtn:focus-visible {
   outline: 2px solid var(--color-accent-1-deep-blue);
   outline-offset: 3px;
+}
+
+.newBtn:active {
+  transform: scale(0.97);
 }
 
 .newBtn svg {
@@ -116,11 +121,17 @@
 .cardLink:hover {
   border-color: var(--color-accent-1-deep-blue);
   box-shadow: 0 10px 36px rgba(55, 97, 131, 0.12);
+  transform: translateY(-2px);
 }
 
 .cardLink:focus-visible {
   outline: 2px solid var(--color-accent-1-deep-blue);
   outline-offset: 2px;
+}
+
+/* Press settles the card back down — tactile feedback on tap/click. */
+.cardLink:active {
+  transform: translateY(0) scale(0.995);
 }
 
 .cardMain {

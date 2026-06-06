@@ -22,11 +22,21 @@
   color: var(--color-accent-2-grey-blue);
   text-decoration: none;
   margin-bottom: 1.5rem;
+  transition: color var(--dur-fast) var(--ease-out);
 }
 
 .backLink:hover,
 .backLink:focus-visible {
   color: var(--color-accent-1-deep-blue);
+}
+
+.backLink svg {
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.backLink:hover svg,
+.backLink:focus-visible svg {
+  transform: translateX(-3px);
 }
 
 .head {
@@ -109,6 +119,22 @@
 .tileOpen:focus-visible {
   outline: 2px solid var(--color-accent-1-deep-blue);
   outline-offset: 2px;
+}
+
+/* Press settles the tile back down. */
+.tileOpen:active {
+  transform: translateY(0) scale(0.992);
+}
+
+/* The icon badge lifts toward brand on hover, so the whole tile feels
+   reactive, not just the border. */
+.tileOpen .tileIcon {
+  transition: background-color var(--dur-base) var(--ease-out),
+    color var(--dur-base) var(--ease-out);
+}
+
+.tileOpen:hover .tileIcon {
+  background: rgba(55, 97, 131, 0.16);
 }
 
 /* Gated and coming-soon tiles are inert and read quieter. */

@@ -1,7 +1,63 @@
 import { createClient } from '../lib/supabase/server';
 import HomeNav from './components/HomeNav';
 import HomeDesignPartner from './components/HomeDesignPartner';
+import BriefDocument from './pulse/app/components/BriefDocument';
+import { assembleBrief } from './pulse/app/components/briefModel';
 import styles from './page.module.css';
+
+// A realistic sample project, assembled through the real brief pipeline
+// (assembleBrief) so the marketing preview renders the genuine BriefDocument
+// rather than a hand-built div mock. Decorative only; the live product sits
+// behind the login. Figures are illustrative.
+const SAMPLE_BRIEF_STATE = {
+  def: {
+    name: 'Holloway Place',
+    project_type: 'Residential',
+    category: 'New build',
+    size: '24 units',
+    location: 'Salford',
+    target_completion_date: '2027-03-31',
+    currency: 'GBP',
+    budget: '6400000',
+    projected_gdv: '9200000',
+    projected_roi: '28',
+    financial_detail_url: '',
+  },
+  ctx: {
+    strategic_rationale: 'Funded by a senior facility with developer equity.',
+    exit_strategy: '',
+    target_end_user: '',
+    strategic_alignment: '',
+  },
+  objectives: [
+    { id: 'o-scope', objective_type: 'scope', classification: 'non_negotiable', definition: '24 residential units, 4,200 m2 GIA.', tolerance: '' },
+    { id: 'o-cost', objective_type: 'cost', classification: 'non_negotiable', definition: 'Delivery within the GBP 6.4m budget.', tolerance: '' },
+    { id: 'o-time', objective_type: 'time', classification: 'flexible', definition: 'Practical completion in Q1 2027.', tolerance: 'Up to 8 weeks of slippage before sales are affected.' },
+    { id: 'o-quality', objective_type: 'quality', classification: 'flexible', definition: 'Local market specification.', tolerance: 'Internal finishes can flex to protect cost.' },
+    { id: 'o-funding', objective_type: 'funding', classification: 'non_negotiable', definition: 'Senior facility plus equity, drawn to programme.', tolerance: '' },
+  ],
+  rankOrder: ['funding', 'cost', 'scope', 'time', 'quality'],
+  lists: {
+    milestones: [
+      { name: 'Funding close', target_date: '2026-07-31', criticality: 'critical', linked_objective_id: 'o-funding' },
+      { name: 'Planning approval', target_date: '2026-09-30', criticality: 'standard', linked_objective_id: 'o-scope' },
+      { name: 'Contractor appointed', target_date: '2026-11-30', criticality: 'critical', linked_objective_id: 'o-cost' },
+      { name: 'Practical completion', target_date: '2027-03-31', criticality: 'standard', linked_objective_id: 'o-time' },
+    ],
+    workstreams: [
+      { name: 'Funding and finance', lead: 'A. Mensah', criticality: 'critical', linked_objective_id: 'o-funding' },
+      { name: 'Design and planning', lead: 'R. Okafor', criticality: 'standard', linked_objective_id: 'o-scope' },
+      { name: 'Cost and commercial', lead: 'J. Bello', criticality: 'critical', linked_objective_id: 'o-cost' },
+    ],
+    risks: [
+      { description: 'Funding tranche delayed past the construction start', likelihood: 'medium', impact: 'high', criticality: 'critical', linked_objective_id: 'o-funding', mitigation: 'Conditions tracked weekly with the lender.' },
+      { description: 'Construction costs exceed the fixed budget', likelihood: 'high', impact: 'high', criticality: 'critical', linked_objective_id: 'o-cost', mitigation: 'Two-stage tender with a held contingency.' },
+      { description: 'Planning conditions force a redesign', likelihood: 'medium', impact: 'medium', criticality: 'critical', linked_objective_id: 'o-scope', mitigation: 'Pre-application advice secured.' },
+      { description: 'Programme slips beyond the spring sales window', likelihood: 'medium', impact: 'medium', criticality: 'critical', linked_objective_id: 'o-time', mitigation: 'Float held in the early works.' },
+      { description: 'Sales slower than forecast', likelihood: 'low', impact: 'medium', criticality: 'standard', linked_objective_id: null, mitigation: 'Phased release of units.' },
+    ],
+  },
+};
 
 /* ─────────────────────────────────────────
    Static (server-renderable) sections live in this file.
@@ -13,14 +69,29 @@ function Hero() {
     <section className={styles.hero} aria-labelledby="hero-heading">
       <div className="container">
         <div className={styles.heroContent}>
-          <p className={styles.heroWordmark} aria-hidden="true">Flitrr</p>
-          <h1 id="hero-heading" className={styles.heroHeading}>
+          <p
+            className={`${styles.heroWordmark} riseIn`}
+            aria-hidden="true"
+          >
+            Flitrr
+          </p>
+          <h1
+            id="hero-heading"
+            className={`${styles.heroHeading} riseIn`}
+            style={{ '--rise-delay': '80ms' }}
+          >
             One platform. End-to-end property development lifecycle solutions.
           </h1>
-          <p className={styles.heroSub}>
+          <p
+            className={`${styles.heroSub} riseIn`}
+            style={{ '--rise-delay': '160ms' }}
+          >
             Built for independent and SME real estate developers.
           </p>
-          <div className={styles.heroCtas}>
+          <div
+            className={`${styles.heroCtas} riseIn`}
+            style={{ '--rise-delay': '240ms' }}
+          >
             <a href="#design-partner" className={styles.btnPrimary}>
               Become a design partner
             </a>
@@ -136,7 +207,7 @@ function LifecycleTrack() {
       aria-label="The eight stages of a development project, from land to disposal"
     >
       {LIFECYCLE_STAGES.map((stage) => (
-        <div key={stage.label} role="listitem" className={styles.trackStage}>
+        <div key={stage.label} role="listitem" className={styles.trackStage} data-reveal>
           <span className={styles.trackNode}>
             <svg
               viewBox="0 0 24 24"
@@ -174,10 +245,10 @@ function Lifecycle() {
       aria-labelledby="lifecycle-heading"
     >
       <div className="container">
-        <h2 id="lifecycle-heading" className={styles.sectionHeading}>
+        <h2 id="lifecycle-heading" className={styles.sectionHeading} data-reveal>
           From land to disposal, end to end.
         </h2>
-        <p className={styles.lifecycleSub}>
+        <p className={styles.lifecycleSub} data-reveal>
           A development project runs through eight stages, each with a decision
           gate before the next begins. Flitrr is building products for every
           stage. PULSE is our first, for setting a project up properly and
@@ -188,7 +259,7 @@ function Lifecycle() {
           <LifecycleTrack />
         </div>
 
-        <p className={styles.lifecycleFootline}>
+        <p className={styles.lifecycleFootline} data-reveal>
           One platform. Practical solutions for property development.
         </p>
       </div>
@@ -196,51 +267,33 @@ function Lifecycle() {
   );
 }
 
-// A compact, illustrative replica of a locked PULSE brief. Decorative
-// (aria-hidden): it shows what the product produces, not real data.
-function BriefMock() {
+// The marketing preview: the real BriefDocument, assembled from the sample
+// project above and rendered into a scaled, clipped paper frame so the genuine
+// locked brief peeks in. This is the actual product component (the skill's
+// "real component preview"), not a div replica, so it never drifts from what
+// the app produces. Decorative and aria-hidden; the brief's own text is read
+// in context inside the app, not here.
+//
+// To pin a static exported image instead (e.g. a PDF page captured from the
+// app's Download PDF), replace the inner BriefDocument with a next/image
+// pointing at the asset; the frame and caption stay as they are.
+function BriefPreview() {
+  const model = assembleBrief(SAMPLE_BRIEF_STATE);
   return (
-    <div className={styles.mock} aria-hidden="true">
-      <div className={styles.mockHead}>
-        <div className={styles.mockBrand}>
-          <span className={styles.mockBug}>P</span>
-          <span className={styles.mockBrandName}>PULSE</span>
+    <div className={styles.briefPreview} aria-hidden="true">
+      <div className={styles.briefViewport}>
+        <div className={styles.briefScale}>
+          <BriefDocument
+            model={model}
+            lens="jv"
+            lockState={{
+              locked: true,
+              version: 1,
+              generatedAt: '2026-06-01T09:00:00.000Z',
+            }}
+          />
         </div>
-        <div className={styles.mockTitle}>Holloway Place</div>
-        <div className={styles.mockSub}>24 units, Salford</div>
-        <div className={styles.mockChips}>
-          <span className={styles.mockChipLock}>Baseline locked</span>
-          <span className={styles.mockChip}>Version 1</span>
-        </div>
-      </div>
-      <div className={styles.mockKpis}>
-        <div className={styles.mockKpi}>
-          <span>Budget</span>
-          <b>£6.4m</b>
-        </div>
-        <div className={styles.mockKpi}>
-          <span>Protected</span>
-          <b>3 of 5</b>
-        </div>
-        <div className={styles.mockKpi}>
-          <span>Critical risks</span>
-          <b>4</b>
-        </div>
-      </div>
-      <div className={styles.mockSection}>
-        <span className={styles.mockSectionTitle}>Objectives</span>
-        <div className={`${styles.mockRow} ${styles.mockRowNn}`}>
-          <span className={styles.mockRowName}>Cost</span>
-          <span className={styles.mockRowTagNn}>Protected</span>
-        </div>
-        <div className={`${styles.mockRow} ${styles.mockRowNn}`}>
-          <span className={styles.mockRowName}>Funding</span>
-          <span className={styles.mockRowTagNn}>Protected</span>
-        </div>
-        <div className={styles.mockRow}>
-          <span className={styles.mockRowName}>Time</span>
-          <span className={styles.mockRowTagFx}>Has flex</span>
-        </div>
+        <div className={styles.briefFade} />
       </div>
     </div>
   );
@@ -254,12 +307,12 @@ function Products() {
       aria-labelledby="products-heading"
     >
       <div className="container">
-        <h2 id="products-heading" className={styles.sectionHeading}>
+        <h2 id="products-heading" className={styles.sectionHeading} data-reveal>
           Our first product.
         </h2>
 
         <div className={styles.productLayout}>
-          <article className={styles.productCard}>
+          <article className={styles.productCard} data-reveal>
             <span className={styles.productPill}>Live for design partners</span>
             <h3 className={styles.productHeading}>PULSE</h3>
             <p className={styles.productLede}>Defined. Classified. Monitored.</p>
@@ -280,15 +333,15 @@ function Products() {
             </div>
           </article>
 
-          <div className={styles.productPreview}>
-            <BriefMock />
+          <div className={styles.productPreview} data-reveal>
+            <BriefPreview />
             <p className={styles.productPreviewCaption}>
-              A PULSE brief, framed for a lender.
+              A locked PULSE brief, framed for a JV partner.
             </p>
           </div>
         </div>
 
-        <p className={styles.productsFootline}>
+        <p className={styles.productsFootline} data-reveal>
           More products on the way. Each will tackle a different stage of
           the development lifecycle.
         </p>
@@ -314,7 +367,7 @@ function FooterCta() {
       </svg>
 
       <div className="container">
-        <div className={styles.footerCtaInner}>
+        <div className={styles.footerCtaInner} data-reveal>
           <h2 id="fcta-heading" className={styles.footerCtaHeading}>
             Ten design partner spots. First come, first served.
           </h2>

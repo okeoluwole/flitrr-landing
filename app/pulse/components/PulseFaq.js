@@ -38,7 +38,7 @@ export default function PulseFaq() {
     <section id="faq" className={styles.faq} aria-labelledby="faq-heading">
       <div className="container">
         <div className={styles.faqInner}>
-          <h2 id="faq-heading" className={styles.sectionHeading}>
+          <h2 id="faq-heading" className={styles.sectionHeading} data-reveal>
             Questions we get asked.
           </h2>
           <dl className={styles.faqList}>
@@ -48,6 +48,7 @@ export default function PulseFaq() {
                 <div
                   key={i}
                   className={`${styles.faqItem} ${isOpen ? styles.faqItemOpen : ''}`}
+                  data-reveal
                 >
                   <dt>
                     <button
@@ -58,14 +59,14 @@ export default function PulseFaq() {
                     >
                       <span>{q}</span>
                       <span className={styles.faqIcon} aria-hidden="true">
-                        {isOpen ? '−' : '+'}
+                        +
                       </span>
                     </button>
                   </dt>
                   <dd
                     id={`pulse-faq-answer-${i}`}
                     className={styles.faqAnswer}
-                    hidden={!isOpen}
+                    aria-hidden={!isOpen}
                   >
                     <p>{a}</p>
                   </dd>

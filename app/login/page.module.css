@@ -119,7 +119,8 @@
   font-size: 1rem;
   background-color: #ffffff;
   color: var(--color-input-text);
-  transition: border-color 0.15s ease;
+  transition: border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
   outline: none;
 }
 
@@ -129,6 +130,7 @@
 
 .input:focus {
   border-color: var(--color-input-focus);
+  box-shadow: 0 0 0 3px rgba(55, 97, 131, 0.13);
 }
 
 .submit {

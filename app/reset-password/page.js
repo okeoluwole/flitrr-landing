@@ -42,11 +42,11 @@ export default function ResetPasswordPage() {
 
   return (
     <main className={styles.page}>
-      <Link href="/" className={styles.brandWordmark}>
+      <Link href="/" className={`${styles.brandWordmark} riseIn`}>
         Flitrr
       </Link>
 
-      <div className={styles.card}>
+      <div className={`${styles.card} riseIn`} style={{ '--rise-delay': '70ms' }}>
         <h1 className={styles.cardHeading}>Set a new password.</h1>
         <p className={styles.cardSub}>
           Choose a strong password you have not used before.

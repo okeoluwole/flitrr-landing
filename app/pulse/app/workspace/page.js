@@ -110,7 +110,8 @@ function DashboardIcon() {
 
 // One module tile. `state` is 'open' (a link), 'locked' (gated, with a note),
 // or 'soon' (a later milestone). Only an open tile is interactive.
-function Tile({ icon, title, desc, footer, state, href }) {
+function Tile({ icon, title, desc, footer, state, href, index = 0 }) {
+  const riseStyle = { '--rise-delay': `${index * 60}ms` };
   const body = (
     <>
       <span className={styles.tileIcon}>{icon}</span>
@@ -122,7 +123,11 @@ function Tile({ icon, title, desc, footer, state, href }) {
 
   if (state === 'open') {
     return (
-      <Link href={href} className={`${styles.tile} ${styles.tileOpen}`}>
+      <Link
+        href={href}
+        className={`${styles.tile} ${styles.tileOpen} riseIn`}
+        style={riseStyle}
+      >
         {body}
       </Link>
     );
@@ -130,7 +135,8 @@ function Tile({ icon, title, desc, footer, state, href }) {
 
   return (
     <div
-      className={`${styles.tile} ${state === 'locked' ? styles.tileLocked : styles.tileSoon}`}
+      className={`${styles.tile} ${state === 'locked' ? styles.tileLocked : styles.tileSoon} riseIn`}
+      style={riseStyle}
       aria-disabled="true"
     >
       {body}
@@ -209,19 +215,20 @@ export default async function WorkspacePage({ searchParams }) {
           Back to projects
         </Link>
 
-        <div className={styles.head}>
+        <div className={`${styles.head} riseIn`}>
           <h1 className={styles.heading}>{project.name}</h1>
           <span className={styles.stageChip}>
             Stage {project.current_stage}: {stageName}
           </span>
         </div>
-        <p className={styles.sub}>
+        <p className={`${styles.sub} riseIn`} style={{ '--rise-delay': '60ms' }}>
           Your project workspace. Set up the baseline in the Brief, then open
           each monitoring module as the project advances through its stages.
         </p>
 
         <div className={styles.grid}>
           <Tile
+            index={0}
             icon={<BriefIcon />}
             title="Brief"
             desc="The eight-step initiation flow and the version-locked baseline."
@@ -230,6 +237,7 @@ export default async function WorkspacePage({ searchParams }) {
             href={`/pulse/app/initiate?project=${project.id}`}
           />
           <Tile
+            index={1}
             icon={<RiskIcon />}
             title="Risk register"
             desc="Monitor, score and manage the risks to your objectives."
@@ -242,6 +250,7 @@ export default async function WorkspacePage({ searchParams }) {
             href={`/pulse/app/risk?project=${project.id}`}
           />
           <Tile
+            index={2}
             icon={<ProgrammeIcon />}
             title="Programme"
             desc="Track the critical milestones against the baseline."
@@ -249,6 +258,7 @@ export default async function WorkspacePage({ searchParams }) {
             state="soon"
           />
           <Tile
+            index={3}
             icon={<DashboardIcon />}
             title="Project dashboard"
             desc="The proportional view of where the project stands."

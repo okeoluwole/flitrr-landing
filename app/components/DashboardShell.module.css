@@ -101,6 +101,15 @@
   gap: 2px;
   box-shadow: 0 8px 32px rgba(55, 97, 131, 0.12);
   z-index: 60;
+  /* Anchored to the trigger in the top-right, so it scales out from there
+     rather than from its own centre. */
+  transform-origin: top right;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .menuPanel {
+    animation: flitrr-pop var(--dur-fast) var(--ease-out);
+  }
 }
 
 .menuItem {

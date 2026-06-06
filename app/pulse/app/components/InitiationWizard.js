@@ -1034,8 +1034,11 @@ export default function InitiationWizard({
           </svg>
           Back to projects
         </Link>
-        <h1 className={styles.title}>{headerTitle}</h1>
-        <p className={styles.subtitle}>
+        <h1 className={`${styles.title} riseIn`}>{headerTitle}</h1>
+        <p
+          className={`${styles.subtitle} riseIn`}
+          style={{ '--rise-delay': '70ms' }}
+        >
           Set up the baseline that governs every later stage. Your progress
           saves at each step, so you can leave and resume anytime.
         </p>
@@ -1053,7 +1056,11 @@ export default function InitiationWizard({
         )}
       </div>
 
-      <nav className={styles.progress} aria-label="Initiation progress">
+      <nav
+        className={`${styles.progress} riseIn`}
+        style={{ '--rise-delay': '140ms' }}
+        aria-label="Initiation progress"
+      >
         <ol className={styles.steps}>
           {STEPS.map((s) => {
             const isCurrent = s.n === step;
@@ -1092,7 +1099,10 @@ export default function InitiationWizard({
       </nav>
 
       <div className={styles.panel}>
-        {renderStep()}
+        {/* Keyed by step so the content remounts and eases in on each move. */}
+        <div key={step} className={styles.stepAnim}>
+          {renderStep()}
+        </div>
         {error && (
           <p className={styles.error} role="alert">
             {error}

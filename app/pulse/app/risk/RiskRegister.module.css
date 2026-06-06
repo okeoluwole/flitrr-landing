@@ -26,11 +26,21 @@
   color: var(--color-accent-2-grey-blue);
   text-decoration: none;
   margin-bottom: 1.5rem;
+  transition: color var(--dur-fast) var(--ease-out);
 }
 
 .backLink:hover,
 .backLink:focus-visible {
   color: var(--color-accent-1-deep-blue);
+}
+
+.backLink svg {
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.backLink:hover svg,
+.backLink:focus-visible svg {
+  transform: translateX(-3px);
 }
 
 .eyebrow {
@@ -270,6 +280,11 @@
   padding: 0.28rem 0.6rem;
   border-radius: 3px;
   white-space: nowrap;
+  /* Severity is derived from likelihood + impact, so the chip re-grades as
+     the developer scores. Ease the colour change so it morphs, not snaps. */
+  transition: background-color var(--dur-base) var(--ease-out),
+    color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out);
 }
 
 .sevSerious {

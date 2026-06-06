@@ -142,8 +142,10 @@
   font-weight: 700;
   color: var(--color-accent-2-grey-blue);
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease,
-    color 0.15s ease;
+  transition: background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
 }
 
 .dotButton:disabled {
@@ -163,6 +165,7 @@
   border-color: var(--color-accent-1-deep-blue);
   background-color: var(--color-accent-1-deep-blue);
   color: var(--color-foreground-cream);
+  transform: scale(1.08);
 }
 
 .dotButton:focus-visible {
@@ -207,6 +210,15 @@
   border-radius: 16px;
   padding: clamp(1.5rem, 3vw, 2.5rem);
   box-shadow: 0 8px 32px rgba(55, 97, 131, 0.06);
+}
+
+/* Step content eases in on each step change. The wrapper is keyed by step in
+   the wizard, so it remounts and replays. This happens often, so it stays
+   small and quick (a subtle rise, not a slide). */
+@media (prefers-reduced-motion: no-preference) {
+  .stepAnim {
+    animation: flitrr-rise-sm var(--dur-base) var(--ease-out-soft) both;
+  }
 }
 
 .panelEyebrow {

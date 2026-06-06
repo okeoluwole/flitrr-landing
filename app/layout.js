@@ -1,10 +1,18 @@
-import { Montserrat, Inter } from 'next/font/google';
+import { Bricolage_Grotesque, Inter } from 'next/font/google';
 import './globals.css';
 
-const montserrat = Montserrat({
+// Display face for headings and the brief. Prototyping a swap away from
+// Montserrat to a more distinctive grotesque, kept behind the --font-heading
+// variable so every heading picks it up with no per-component change. 700 and
+// 800 are both loaded (800 for landing and panel headings, 700 across the
+// brief and wizard), so the existing weights render true with no faux-bold.
+//
+// To try another candidate, swap the import and the call below. These also
+// ship 700 and 800: Sora (geometric, serious), Outfit (clean, neutral),
+// Schibsted_Grotesk (modern grotesque). Space_Grotesk is a strong option too
+// but tops out at 700, so it would need the 800 heading weights dropped to 700.
+const display = Bricolage_Grotesque({
   subsets: ['latin'],
-  // 700 and 800 are both used (800 for the landing and panel headings, 700
-  // across the PULSE brief and wizard). Loading both avoids faux-bold 700.
   weight: ['700', '800'],
   variable: '--font-heading',
   display: 'swap',
@@ -66,7 +74,7 @@ const ORG_JSON_LD = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${montserrat.variable} ${inter.variable}`}>
+    <html lang="en" className={`${display.variable} ${inter.variable}`}>
       <body>
         <script
           type="application/ld+json"

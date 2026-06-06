@@ -73,28 +73,28 @@ export default function HomeDesignPartner() {
       aria-labelledby="design-partner-heading"
     >
       <div className="container">
-        <h2 id="design-partner-heading" className={styles.sectionHeading}>
+        <h2 id="design-partner-heading" className={styles.sectionHeading} data-reveal>
           Be a Flitrr design partner.
         </h2>
-        <p className={styles.pilotSub}>
+        <p className={styles.pilotSub} data-reveal>
           Ten developers. Direct input into every product Flitrr ships.
           First to put PULSE to work on live projects.
         </p>
 
         <div className={styles.pilotBlocks}>
           {DESIGN_PARTNER_BLOCKS.map(({ heading, body }) => (
-            <div key={heading} className={styles.pilotBlock}>
+            <div key={heading} className={styles.pilotBlock} data-reveal>
               <h3 className={styles.pilotBlockHeading}>{heading}</h3>
               <p className={styles.pilotBlockBody}>{body}</p>
             </div>
           ))}
         </div>
 
-        <div className={styles.pilotFormWrap}>
+        <div className={styles.pilotFormWrap} data-reveal>
           <div className={styles.pilotFormCard}>
             {done ? (
               <div
-                className={styles.successMsg}
+                className={`${styles.successMsg} riseInSm`}
                 role="status"
                 aria-live="polite"
               >

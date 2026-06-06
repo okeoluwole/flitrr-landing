@@ -59,6 +59,17 @@
   flex-direction: column;
   gap: 1rem;
   box-shadow: 0 8px 32px rgba(55, 97, 131, 0.06);
+  transition: transform var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .card:hover {
+    transform: translateY(-3px);
+    border-color: var(--color-accent-3-light-grey-blue);
+    box-shadow: 0 12px 36px rgba(55, 97, 131, 0.12);
+  }
 }
 
 .cardHeader {
@@ -102,7 +113,8 @@
   border: 1.5px solid var(--color-button-primary-bg);
   border-radius: 8px;
   text-decoration: none;
-  transition: filter 0.18s ease;
+  transition: filter var(--dur-fast) var(--ease-out),
+    transform var(--dur-press) var(--ease-out);
 }
 
 .cardCta:hover,
@@ -113,6 +125,10 @@
 .cardCta:focus-visible {
   outline: 2px solid var(--color-accent-1-deep-blue);
   outline-offset: 3px;
+}
+
+.cardCta:active {
+  transform: scale(0.98);
 }
 
 .cardCtaMuted {

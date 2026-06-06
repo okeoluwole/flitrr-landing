@@ -29,13 +29,13 @@ export default function ForgotPasswordPage() {
 
   return (
     <main className={styles.page}>
-      <Link href="/" className={styles.brandWordmark}>
+      <Link href="/" className={`${styles.brandWordmark} riseIn`}>
         Flitrr
       </Link>
 
-      <div className={styles.card}>
+      <div className={`${styles.card} riseIn`} style={{ '--rise-delay': '70ms' }}>
         {doneEmail ? (
-          <div className={styles.success}>
+          <div className={`${styles.success} riseInSm`}>
             <svg
               className={styles.successIcon}
               viewBox="0 0 40 40"

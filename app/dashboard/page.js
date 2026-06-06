@@ -48,13 +48,16 @@ function StatusPill({ status }) {
   );
 }
 
-function ProductCard({ product }) {
+function ProductCard({ product, index = 0 }) {
   const { slug, name, description, status } = product;
   const isPlanned = status === 'planned';
   const href = slug === 'pulse' ? '/pulse/app' : `/${slug}/app`;
 
   return (
-    <article className={styles.card}>
+    <article
+      className={`${styles.card} riseIn`}
+      style={{ '--rise-delay': `${index * 70}ms` }}
+    >
       <div className={styles.cardHeader}>
         <h2 className={styles.cardName}>{name}</h2>
         <StatusPill status={status} />
@@ -115,15 +118,15 @@ export default async function DashboardPage() {
   return (
     <DashboardShell user={navUser}>
       <main className={`container ${styles.page}`} id="main-content">
-        <h1 className={styles.heading}>
+        <h1 className={`${styles.heading} riseIn`}>
           Hi {firstName}. Welcome to Flitrr.
         </h1>
-        <p className={styles.sub}>
+        <p className={`${styles.sub} riseIn`} style={{ '--rise-delay': '70ms' }}>
           Here are the products available to you.
         </p>
 
         {products.length === 0 ? (
-          <div className={styles.empty}>
+          <div className={`${styles.empty} riseIn`}>
             <h2 className={styles.emptyHeading}>
               No products available yet.
             </h2>
@@ -133,8 +136,12 @@ export default async function DashboardPage() {
           </div>
         ) : (
           <div className={styles.grid}>
-            {products.map((row) => (
-              <ProductCard key={row.products.slug} product={row.products} />
+            {products.map((row, i) => (
+              <ProductCard
+                key={row.products.slug}
+                product={row.products}
+                index={i}
+              />
             ))}
           </div>
         )}

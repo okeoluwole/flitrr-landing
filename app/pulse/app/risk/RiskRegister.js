@@ -138,7 +138,7 @@ export default function RiskRegister({
     applyUpdate(id, { response_note: clean === '' ? null : clean });
   };
 
-  const renderCard = (r) => {
+  const renderCard = (r, i = 0) => {
     const critical = isCritical(r);
     const severity = deriveSeverity(r.likelihood, r.impact);
     const objective = r.linked_objective_id
@@ -150,7 +150,8 @@ export default function RiskRegister({
     return (
       <article
         key={r.id}
-        className={`${styles.card} ${critical ? styles.cardCritical : ''}`}
+        className={`${styles.card} ${critical ? styles.cardCritical : ''} riseIn`}
+        style={{ '--rise-delay': `${Math.min(i, 8) * 55}ms` }}
       >
         <div className={styles.cardHead}>
           <div className={styles.cardTags}>
@@ -223,7 +224,7 @@ export default function RiskRegister({
               {noteDirty && (
                 <button
                   type="button"
-                  className={styles.noteSave}
+                  className={`${styles.noteSave} riseInSm`}
                   onClick={() => saveNote(r.id)}
                 >
                   Save
@@ -257,11 +258,21 @@ export default function RiskRegister({
         </svg>
         Back to the project
       </Link>
-      <p className={styles.eyebrow}>Risk module</p>
-      <h1 className={styles.title}>Risk register</h1>
-      <p className={styles.projectName}>{projectName}</p>
+      <p className={`${styles.eyebrow} riseIn`}>Risk module</p>
+      <h1 className={`${styles.title} riseIn`} style={{ '--rise-delay': '60ms' }}>
+        Risk register
+      </h1>
+      <p
+        className={`${styles.projectName} riseIn`}
+        style={{ '--rise-delay': '120ms' }}
+      >
+        {projectName}
+      </p>
 
-      <div className={styles.summary}>
+      <div
+        className={`${styles.summary} riseIn`}
+        style={{ '--rise-delay': '180ms' }}
+      >
         <div className={styles.stat}>
           <span className={styles.statValue}>{active.length}</span>
           <span className={styles.statLabel}>Active</span>

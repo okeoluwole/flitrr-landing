@@ -13,14 +13,26 @@ function PulseHero() {
     <section className={styles.hero} aria-labelledby="hero-heading">
       <div className="container">
         <div className={styles.heroContent}>
-          <p className={styles.heroWordmark} aria-hidden="true">PULSE</p>
-          <p id="hero-heading" className={styles.heroTagline}>
+          <p className={`${styles.heroWordmark} riseIn`} aria-hidden="true">
+            PULSE
+          </p>
+          <p
+            id="hero-heading"
+            className={`${styles.heroTagline} riseIn`}
+            style={{ '--rise-delay': '80ms' }}
+          >
             Monitoring What Matters.
           </p>
-          <p className={styles.heroSentence}>
+          <p
+            className={`${styles.heroSentence} riseIn`}
+            style={{ '--rise-delay': '160ms' }}
+          >
             Every objective. Every project. Defined, classified, monitored.
           </p>
-          <div className={styles.heroCtas}>
+          <div
+            className={`${styles.heroCtas} riseIn`}
+            style={{ '--rise-delay': '240ms' }}
+          >
             <a href="#design-partner" className={styles.btnPrimary}>
               Become a design partner
             </a>
@@ -106,7 +118,7 @@ function Wedge() {
     <section className={styles.wedge} aria-labelledby="wedge-heading">
       <div className="container">
         <div className={styles.wedgeGrid}>
-          <div className={styles.wedgeCopy}>
+          <div className={styles.wedgeCopy} data-reveal>
             <h2 id="wedge-heading" className={styles.sectionHeading}>
               Most PM tools track everything. PULSE monitors what matters.
             </h2>
@@ -127,7 +139,7 @@ function Wedge() {
             </p>
           </div>
 
-          <div className={styles.wedgePanels}>
+          <div className={styles.wedgePanels} data-reveal>
             <div className={styles.objectivePanel}>
               <h3 className={styles.objectivePanelHeading}>GLASS</h3>
               <GlassBallIcon />
@@ -149,7 +161,7 @@ function Wedge() {
           </div>
         </div>
 
-        <p className={styles.wedgeCloser}>
+        <p className={styles.wedgeCloser} data-reveal>
           Glass shatters. Rubber bounces. Know the difference.
         </p>
       </div>
@@ -202,11 +214,11 @@ function GatingStory() {
       aria-labelledby="gating-heading"
     >
       <div className="container">
-        <h2 id="gating-heading" className={styles.sectionHeading}>
+        <h2 id="gating-heading" className={styles.sectionHeading} data-reveal>
           You start with Project Initiation. Everything else flows from
           there.
         </h2>
-        <p className={styles.gatingBody}>
+        <p className={styles.gatingBody} data-reveal>
           Before PULSE tracks what&rsquo;s happening, it asks you to define
           what matters. Project Initiation is a guided 15-minute flow that
           produces your <strong>Project Brief</strong>. The Brief is a
@@ -217,7 +229,7 @@ function GatingStory() {
           Tracker, and Executive Dashboard all read from the Brief.
         </p>
 
-        <div className={styles.gatingFlow}>
+        <div className={styles.gatingFlow} data-reveal>
           <div className={styles.gatingPrimary}>
             <h3 className={styles.gatingPrimaryHeading}>Project Initiation</h3>
             <p className={styles.gatingPrimarySub}>
@@ -238,7 +250,7 @@ function GatingStory() {
           </div>
         </div>
 
-        <p className={styles.gatingNote}>
+        <p className={styles.gatingNote} data-reveal>
           PULSE works best when you start with Project Initiation. You can
           configure manually if you need to. But the discipline is what
           makes the rest of the product powerful.
@@ -317,10 +329,10 @@ function Modules() {
       aria-labelledby="modules-heading"
     >
       <div className="container">
-        <h2 id="modules-heading" className={styles.sectionHeading}>
+        <h2 id="modules-heading" className={styles.sectionHeading} data-reveal>
           Five modules. One discipline.
         </h2>
-        <p className={styles.modulesSub}>
+        <p className={styles.modulesSub} data-reveal>
           PULSE is being built one module at a time. Each module shares
           the same glass-ball and rubber-ball spine. What you classify in
           Project Initiation drives what gets flagged everywhere else.
@@ -333,6 +345,7 @@ function Modules() {
               className={`${styles.moduleCard} ${
                 idx === 4 ? styles.moduleCardSpan : ''
               }`}
+              data-reveal
             >
               <ModuleCardWatermark />
               <div className={styles.moduleCardBody}>
@@ -374,7 +387,7 @@ function PulseFooterCta() {
       </svg>
 
       <div className="container">
-        <div className={styles.footerCtaInner}>
+        <div className={styles.footerCtaInner} data-reveal>
           <h2 id="fcta-heading" className={styles.footerCtaHeading}>
             Ten design partner spots. First come, first served.
           </h2>

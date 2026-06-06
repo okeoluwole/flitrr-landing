@@ -98,11 +98,11 @@ function LoginPageInner() {
 
   return (
     <main className={styles.page}>
-      <Link href="/" className={styles.brandWordmark}>
+      <Link href="/" className={`${styles.brandWordmark} riseIn`}>
         Flitrr
       </Link>
 
-      <div className={styles.card}>
+      <div className={`${styles.card} riseIn`} style={{ '--rise-delay': '70ms' }}>
         {resetSuccess && (
           <p className={styles.banner} role="status">
             Password updated. Sign in with your new password.
@@ -137,6 +137,8 @@ function LoginPageInner() {
           </button>
         </div>
 
+        {/* Keyed so the panel re-mounts and eases in when the tab changes. */}
+        <div key={tab} className="riseInSm">
         {tab === 'signin' && (
           <>
             <h1 className={styles.cardHeading}>Welcome back.</h1>
@@ -196,7 +198,7 @@ function LoginPageInner() {
         {tab === 'register' && (
           <>
             {rgDoneEmail ? (
-              <div className={styles.success}>
+              <div className={`${styles.success} riseInSm`}>
                 <svg
                   className={styles.successIcon}
                   viewBox="0 0 40 40"
@@ -311,6 +313,7 @@ function LoginPageInner() {
             )}
           </>
         )}
+        </div>
       </div>
     </main>
   );
