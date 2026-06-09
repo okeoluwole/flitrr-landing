@@ -1,0 +1,4 @@
+# HyperFrames — generated artifacts and deps
+node_modules/
+renders/
+*.log
