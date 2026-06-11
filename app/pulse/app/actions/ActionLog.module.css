@@ -1,0 +1,659 @@
+/* ─────────────────────────────────────────
+   Action Log (M7.1).
+
+   On-brand, restrained, matching the Risk
+   register in tone. Amber carries one meaning,
+   as everywhere in PULSE: criticality (an
+   action serving a protected objective).
+   Everything else stays navy and greyscale.
+   Sharp edges, hairline rules, no new library.
+───────────────────────────────────────── */
+
+.page {
+  padding-block: 3rem 6rem;
+  max-width: 880px;
+  --ochre: #8a6a16;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-accent-2-grey-blue);
+  text-decoration: none;
+  margin-bottom: 1.5rem;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.backLink:hover,
+.backLink:focus-visible {
+  color: var(--color-accent-1-deep-blue);
+}
+
+.backLink svg {
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.backLink:hover svg,
+.backLink:focus-visible svg {
+  transform: translateX(-3px);
+}
+
+.eyebrow {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-2-grey-blue);
+  margin-bottom: 0.5rem;
+}
+
+.title {
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(1.9rem, 4vw, 2.5rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  color: var(--color-accent-1-deep-blue);
+  margin-bottom: 0.5rem;
+}
+
+.projectName {
+  font-family: var(--font-body), sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-accent-2-grey-blue);
+  margin-bottom: 1.75rem;
+}
+
+/* ── Stage-gate locked state (below Stage 2) ── */
+
+.locked {
+  background: var(--color-foreground-cream);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 2rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.1rem;
+  margin-top: 0.5rem;
+}
+
+.lockedText {
+  font-family: var(--font-body), sans-serif;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--color-accent-2-grey-blue);
+  margin: 0;
+}
+
+.lockedCta {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-button-primary-text);
+  background: var(--color-button-primary-bg);
+  border: 1.5px solid var(--color-button-primary-bg);
+  border-radius: 8px;
+  padding: 0.7rem 1.2rem;
+  text-decoration: none;
+  transition: filter 0.18s ease;
+}
+
+.lockedCta:hover,
+.lockedCta:focus-visible {
+  filter: brightness(0.94);
+}
+
+/* ── Summary bar ───────────────────────── */
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  padding: 1.1rem 1.4rem;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.statValue {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--color-accent-1-deep-blue);
+}
+
+.statCritical {
+  color: var(--ochre);
+}
+
+.statLabel {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-2-grey-blue);
+}
+
+.doneToggle {
+  margin-left: auto;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-accent-1-deep-blue);
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.5rem 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.doneToggle:hover {
+  border-color: var(--color-accent-1-deep-blue);
+  background: rgba(55, 97, 131, 0.05);
+}
+
+.doneToggle:focus-visible {
+  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline-offset: 2px;
+}
+
+.error {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-error);
+  margin-bottom: 1rem;
+}
+
+/* ── Inline add flow ───────────────────── */
+
+.addPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+.addMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.input {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  color: var(--color-accent-1-deep-blue);
+  background: var(--color-foreground-cream);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  min-width: 0;
+}
+
+.input::placeholder {
+  color: var(--color-accent-2-grey-blue);
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline-offset: 1px;
+  border-color: var(--color-accent-1-deep-blue);
+}
+
+.noteInput {
+  flex: 1 1 200px;
+}
+
+.select {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-accent-1-deep-blue);
+  background: var(--color-foreground-cream);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.55rem 0.6rem;
+  max-width: 100%;
+  cursor: pointer;
+}
+
+.select:focus-visible {
+  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline-offset: 1px;
+  border-color: var(--color-accent-1-deep-blue);
+}
+
+/* The cascade made visible: what the link will log the action as. The one
+   amber moment in the add flow, only when it means critical. */
+.addHint {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.28rem 0.55rem;
+  border-radius: 3px;
+  background: rgba(244, 192, 49, 0.18);
+  color: var(--ochre);
+  white-space: nowrap;
+}
+
+.primaryBtn {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-button-primary-text);
+  background: var(--color-button-primary-bg);
+  border: 1.5px solid var(--color-button-primary-bg);
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  transition: filter 0.18s ease, opacity 0.18s ease;
+}
+
+.primaryBtn:hover {
+  filter: brightness(0.94);
+}
+
+.primaryBtn:focus-visible {
+  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline-offset: 2px;
+}
+
+.primaryBtn:disabled {
+  opacity: 0.45;
+  cursor: default;
+  filter: none;
+}
+
+.addBtn {
+  margin-left: auto;
+}
+
+/* ── Empty states ──────────────────────── */
+
+.empty {
+  background: var(--color-foreground-cream);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 2rem 1.75rem;
+}
+
+.emptyText {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--color-accent-2-grey-blue);
+  margin: 0;
+  max-width: 460px;
+}
+
+/* ── Action cards ──────────────────────── */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-accent-3-light-grey-blue);
+  border-radius: 10px;
+  padding: 1.25rem 1.4rem;
+}
+
+/* Critical (protected-objective) actions carry the amber accent, as in the
+   Brief and the register. The one functional colour, meaning the same thing. */
+.cardCritical {
+  border-left-color: var(--color-background-amber);
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.cardTags {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+/* The criticality chip is a button: the one-tap toggle, the only way
+   criticality changes after creation. Chip look, button affordance. */
+.crit {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.45rem;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.15s ease, filter 0.15s ease;
+}
+
+.crit:hover {
+  filter: brightness(0.96);
+}
+
+.crit:focus-visible {
+  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline-offset: 2px;
+}
+
+.critCritical {
+  background: rgba(244, 192, 49, 0.18);
+  color: var(--ochre);
+}
+
+.critCritical:hover {
+  border-color: rgba(138, 106, 22, 0.4);
+}
+
+.critStandard {
+  background: #eef0f3;
+  color: var(--color-accent-2-grey-blue);
+}
+
+.critStandard:hover {
+  border-color: var(--color-accent-3-light-grey-blue);
+}
+
+.objective {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-accent-2-grey-blue);
+}
+
+.description {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--color-accent-1-deep-blue);
+  margin-bottom: 0.35rem;
+}
+
+.noteText {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-accent-2-grey-blue);
+  margin: 0;
+}
+
+/* ── Status control ────────────────────── */
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-top: 1.1rem;
+}
+
+.controlRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.controlLabel {
+  flex: 0 0 auto;
+  width: 168px;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-accent-1-deep-blue);
+}
+
+/* Segmented control (the one-tap status). */
+.seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.segBtn {
+  font-family: var(--font-body), sans-serif;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--color-accent-2-grey-blue);
+  border: 0;
+  background: transparent;
+  padding: 0.42rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.segBtn:hover {
+  color: var(--color-accent-1-deep-blue);
+}
+
+.segBtnActive,
+.segBtnActive:hover {
+  background: var(--color-accent-1-deep-blue);
+  color: var(--color-foreground-cream);
+}
+
+.segBtn:focus-visible {
+  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline-offset: 2px;
+}
+
+/* ── Edit form ─────────────────────────── */
+
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.editForm .input {
+  width: 100%;
+}
+
+.editMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.editMeta .noteInput {
+  width: auto;
+}
+
+.editActions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.ghostBtn {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-accent-2-grey-blue);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.ghostBtn:hover {
+  border-color: var(--color-accent-1-deep-blue);
+  color: var(--color-accent-1-deep-blue);
+}
+
+.ghostBtn:focus-visible {
+  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline-offset: 2px;
+}
+
+/* ── Card footer: logged date, edit, delete ── */
+
+.cardFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1.1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--color-foreground-cream);
+}
+
+.logged {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  color: var(--color-accent-3-light-grey-blue);
+}
+
+.footActions {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.footBtn {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-accent-2-grey-blue);
+  background: transparent;
+  border: 0;
+  padding: 0.2rem 0;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.footBtn:hover {
+  color: var(--color-accent-1-deep-blue);
+}
+
+.footBtn:focus-visible {
+  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline-offset: 2px;
+}
+
+.footBtnDanger:hover {
+  color: var(--color-error);
+}
+
+/* Delete is behind a confirm step: delete is for mistakes, done is for
+   completed work. The confirm Delete is the one place error red acts. */
+.confirm {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.confirmText {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-accent-1-deep-blue);
+}
+
+.dangerBtn {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--color-error);
+  border: 1.5px solid var(--color-error);
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  transition: filter 0.18s ease;
+}
+
+.dangerBtn:hover {
+  filter: brightness(0.94);
+}
+
+.dangerBtn:focus-visible {
+  outline: 2px solid var(--color-error);
+  outline-offset: 2px;
+}
+
+/* ── Done section ──────────────────────── */
+
+.doneSection {
+  margin-top: 2rem;
+}
+
+.doneHeading {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--color-accent-2-grey-blue);
+  margin-bottom: 1rem;
+}
+
+/* Done cards read quieter than open ones. */
+.doneSection .card {
+  opacity: 0.78;
+}
+
+@media (max-width: 640px) {
+  .controlLabel {
+    width: 100%;
+  }
+  .summary {
+    gap: 1.25rem;
+  }
+  .addBtn {
+    margin-left: 0;
+  }
+}

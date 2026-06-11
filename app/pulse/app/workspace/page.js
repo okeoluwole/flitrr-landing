@@ -9,9 +9,9 @@ import styles from './Workspace.module.css';
  *
  * A project's home: a header with its current stage, then the PULSE modules
  * as tiles. The Brief (initiation) is always available; the monitoring
- * modules unlock as the project advances. The Risk register opens at Stage 2
- * (once the gate has committed the baseline); Programme and the project
- * Dashboard are placeholders here, built in later milestones.
+ * modules unlock as the project advances. The Risk register and the Action
+ * Log open at Stage 2 (once the gate has committed the baseline); Programme
+ * and the project Dashboard are placeholders here, built in later milestones.
  *
  * This is the launcher the modules are reached from, so each new module
  * becomes another tile rather than another scattered link.
@@ -72,6 +72,28 @@ function RiskIcon() {
         stroke="currentColor"
         strokeWidth="1.7"
         strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function ActionLogIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+      <path
+        d="M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8.4 12.2l2.5 2.5 4.7-5.4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );
@@ -189,7 +211,9 @@ export default async function WorkspacePage({ searchParams }) {
 
   const stageName =
     STAGE_NAMES[project.current_stage] ?? `Stage ${project.current_stage}`;
-  const riskOpen = project.current_stage >= STAGE_2;
+  // The Risk register and the Action Log both open at Stage 2, once the gate
+  // has committed the baseline.
+  const stage2Reached = project.current_stage >= STAGE_2;
   const briefLocked = brief?.is_locked === true;
 
   return (
@@ -234,12 +258,24 @@ export default async function WorkspacePage({ searchParams }) {
             title="Risk register"
             desc="Monitor, score and manage the risks to your objectives."
             footer={
-              riskOpen
+              stage2Reached
                 ? 'Open'
                 : 'Risk monitoring opens once you pass the gate into Stage 2.'
             }
-            state={riskOpen ? 'open' : 'locked'}
+            state={stage2Reached ? 'open' : 'locked'}
             href={`/pulse/app/risk?project=${project.id}`}
+          />
+          <Tile
+            icon={<ActionLogIcon />}
+            title="Action Log"
+            desc="Log and track the critical actions you are working on."
+            footer={
+              stage2Reached
+                ? 'Open'
+                : 'The Action Log opens once you pass the gate into Stage 2.'
+            }
+            state={stage2Reached ? 'open' : 'locked'}
+            href={`/pulse/app/actions?project=${project.id}`}
           />
           <Tile
             icon={<ProgrammeIcon />}
