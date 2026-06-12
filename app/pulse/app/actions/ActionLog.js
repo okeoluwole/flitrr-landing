@@ -6,13 +6,22 @@ import { createClient } from '../../../../lib/supabase/client';
 import { CLASSIFICATION_LABELS } from '../components/objectiveMeta';
 import { cascadeCriticality } from '../components/listStepConfig';
 import { STATUS_OPTIONS, isCritical, isDone, sortActions } from './actionModel';
+import { deriveRiskItems, buildTrackedActionFromRisk } from './actionFeed';
 import styles from './ActionLog.module.css';
 
 /**
- * ActionLog (M7.1) - the manual substrate, the default view of the Action
- * Log section. Lists the project's hand-logged actions critical-first, with
- * an inline add flow, one-tap status, a one-tap criticality toggle, editing,
- * and delete behind a confirm.
+ * ActionLog (M7.1 + M7.2) - the central attention home. The
+ * needs-your-response band at the top holds risk-derived items computed live
+ * from the register rows (actionFeed.js); below it, the tracked list: the
+ * project's actions critical-first, with an inline add flow, one-tap status,
+ * a one-tap criticality toggle, editing, and delete behind a confirm.
+ *
+ * The band's items are suggestions awaiting a response, never rows: Track
+ * this promotes one into a real tracked action in the same interaction (the
+ * dedupe then suppresses the item), and Review in register navigates to the
+ * risk, because risk status changes happen there, not here. The band
+ * recomputes from local state, so promoting, deleting, or completing a
+ * tracked action moves the item out of or back into the band immediately.
  *
  * Criticality cascades from the linked objective as the DEFAULT at creation
  * only (cascadeCriticality, the wizard's helper). After that it never changes
@@ -20,12 +29,12 @@ import styles from './ActionLog.module.css';
  * toggle does. Predictable beats clever.
  *
  * Writes are optimistic: the change shows immediately and reverts on a
- * failure. Adds and deletes wait for the database (an insert needs its row
- * back; a delete is destructive), with the controls disabled in flight.
+ * failure. Adds, promotions, and deletes wait for the database (an insert
+ * needs its row back; a delete is destructive), with the controls disabled
+ * in flight.
  *
- * Out of scope here (M7.2 and M7.3): the risk feed and aggregation,
- * promote-to-track, the Programme seam, and any notification layer. This log
- * is deterministic and manual.
+ * Out of scope here (M7.3): the notification layer. Everything surfaced is
+ * deterministic.
  */
 
 const DESCRIPTION_PLACEHOLDER = 'Describe the action.';
@@ -38,11 +47,13 @@ const SAVE_ERROR =
   'We could not save that change. Please check your connection and try again.';
 const DELETE_ERROR =
   'We could not delete that action. Please check your connection and try again.';
+const TRACK_ERROR =
+  'We could not track that risk. Please check your connection and try again.';
 
 const CRITICALITY_LABEL = { critical: 'Critical', standard: 'Standard' };
 
 const ACTION_COLUMNS =
-  'id, description, linked_objective_id, criticality, status, note, created_at';
+  'id, description, linked_objective_id, criticality, status, note, source, source_id, created_at';
 
 function formatLogged(iso) {
   if (!iso) return null;
@@ -100,11 +111,17 @@ export default function ActionLog({
   projectId,
   projectName,
   workspaceHref,
+  registerHref,
   initialActions,
   objectives,
+  risks,
 }) {
   const supabase = createClient();
   const [actions, setActions] = useState(initialActions);
+
+  // Promotion in flight (one at a time; the band is a response surface, not
+  // a bulk tool).
+  const [promotingId, setPromotingId] = useState(null);
 
   // The inline add flow.
   const [draftDescription, setDraftDescription] = useState('');
@@ -128,6 +145,13 @@ export default function ActionLog({
   const criticalOpenCount = actions.filter(
     (a) => !isDone(a) && isCritical(a)
   ).length;
+
+  // The needs-your-response items, recomputed from the live register rows
+  // and the current actions every render, so promotion (and deleting or
+  // completing a tracked action) moves an item out of or back into the band
+  // without a reload. Risk status changes happen in the register, so those
+  // arrive on the next visit.
+  const needsResponse = deriveRiskItems(risks, actions);
 
   // What the cascade will default a new action to, shown in the add flow at
   // the moment of linking. The default at creation only; never re-applied.
@@ -164,6 +188,29 @@ export default function ActionLog({
       setDraftNote('');
     }
     setAdding(false);
+  };
+
+  // Track this (M7.2): promote a pushed item into a real tracked action in
+  // one interaction, pre-filled from the risk (actionFeed's deterministic
+  // template) and editable after. No confirmation dialog. The insert waits
+  // for its row back; as it lands, the dedupe suppresses the pushed item.
+  const trackRisk = async (risk) => {
+    if (promotingId) return;
+    setPromotingId(risk.id);
+    setError(null);
+
+    const { data, error: insErr } = await supabase
+      .from('project_actions')
+      .insert(buildTrackedActionFromRisk(risk, projectId))
+      .select(ACTION_COLUMNS)
+      .single();
+
+    if (insErr || !data) {
+      setError(TRACK_ERROR);
+    } else {
+      setActions((as) => [data, ...as]);
+    }
+    setPromotingId(null);
   };
 
   // Optimistic write: apply locally, persist, revert on failure. Status,
@@ -249,6 +296,54 @@ export default function ActionLog({
   const objectiveName = (id) =>
     id ? objectives.find((o) => o.id === id)?.name ?? null : null;
 
+  // One pushed item in the needs-your-response band: the risk name, the
+  // objective it threatens, why it surfaced as plain chips, and the two
+  // responses. Unmistakably a suggestion, never mixed with tracked actions;
+  // the register keeps its own status controls.
+  const renderPushItem = ({ risk, reasons }) => {
+    const linkedName = objectiveName(risk.linked_objective_id);
+    const promoting = promotingId === risk.id;
+
+    return (
+      <article key={risk.id} className={styles.pushItem}>
+        <div className={styles.pushTags}>
+          {reasons.critical && (
+            <span className={`${styles.chip} ${styles.chipCritical}`}>
+              Critical
+            </span>
+          )}
+          {reasons.serious && (
+            <span className={`${styles.chip} ${styles.chipSerious}`}>
+              Serious
+            </span>
+          )}
+          <span className={styles.objective}>
+            {linkedName ? `vs ${linkedName}` : 'Unlinked'}
+          </span>
+        </div>
+        <p className={styles.pushName}>{risk.description}</p>
+        <div className={styles.pushActions}>
+          <button
+            type="button"
+            className={styles.primaryBtn}
+            onClick={() => trackRisk(risk)}
+            disabled={promotingId !== null}
+            aria-label={`Track this: ${risk.description}`}
+          >
+            {promoting ? 'Tracking' : 'Track this'}
+          </button>
+          <Link
+            href={`${registerHref}#risk-${risk.id}`}
+            className={styles.ghostBtn}
+            aria-label={`Review ${risk.description} in the register`}
+          >
+            Review in register
+          </Link>
+        </div>
+      </article>
+    );
+  };
+
   const renderCard = (a) => {
     const critical = isCritical(a);
     const linkedName = objectiveName(a.linked_objective_id);
@@ -275,6 +370,18 @@ export default function ActionLog({
             </button>
             {linkedName && (
               <span className={styles.objective}>for {linkedName}</span>
+            )}
+            {a.source === 'risk' && (
+              <Link
+                href={
+                  a.source_id
+                    ? `${registerHref}#risk-${a.source_id}`
+                    : registerHref
+                }
+                className={styles.fromRisk}
+              >
+                From risk
+              </Link>
             )}
           </div>
         </div>
@@ -415,6 +522,24 @@ export default function ActionLog({
       <p className={styles.eyebrow}>Action Log module</p>
       <h1 className={styles.title}>Action Log</h1>
       <p className={styles.projectName}>{projectName}</p>
+
+      {/* The needs-your-response band (M7.2): pushed items derived live
+          from the register. When nothing qualifies it collapses to one calm
+          line. Quiet is a feature. */}
+      {needsResponse.length > 0 ? (
+        <section className={styles.band} aria-labelledby="needs-response">
+          <h2 id="needs-response" className={styles.bandHeading}>
+            Needs your response
+          </h2>
+          <div className={styles.bandList}>
+            {needsResponse.map(renderPushItem)}
+          </div>
+        </section>
+      ) : (
+        <p className={styles.bandQuiet}>
+          Nothing needs your response right now.
+        </p>
+      )}
 
       <div className={styles.summary}>
         <div className={styles.stat}>

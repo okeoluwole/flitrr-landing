@@ -217,6 +217,9 @@
   border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 1.25rem 1.4rem;
+  /* Cards are anchor targets (the Action Log links into the register by
+     risk id), so give fragment navigation breathing room at the top. */
+  scroll-margin-top: 5rem;
 }
 
 /* Critical (protected-objective) risks carry the amber accent, as in the

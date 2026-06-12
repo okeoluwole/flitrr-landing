@@ -2,6 +2,11 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '../../../../lib/supabase/server';
 import DashboardShell from '../../../components/DashboardShell';
+import {
+  deriveRiskItems,
+  formatActionLogSummary,
+} from '../actions/actionFeed';
+import { isCritical, isDone } from '../actions/actionModel';
 import styles from './Workspace.module.css';
 
 /**
@@ -12,6 +17,11 @@ import styles from './Workspace.module.css';
  * modules unlock as the project advances. The Risk register and the Action
  * Log open at Stage 2 (once the gate has committed the baseline); Programme
  * and the project Dashboard are placeholders here, built in later milestones.
+ *
+ * The Action Log tile sits first (M7.2): it is the central attention home,
+ * and its footer is the live read of what needs the developer, counts of
+ * items needing a response (actionFeed's trigger rule) and open critical
+ * tracked actions, or the calm all-quiet line when there is nothing.
  *
  * This is the launcher the modules are reached from, so each new module
  * becomes another tile rather than another scattered link.
@@ -216,6 +226,32 @@ export default async function WorkspacePage({ searchParams }) {
   const stage2Reached = project.current_stage >= STAGE_2;
   const briefLocked = brief?.is_locked === true;
 
+  // The Action Log tile's live summary (M7.2): what needs a response
+  // (derived from the register by the feed's trigger rule) and what is open
+  // and critical in the tracked list. Only once the log is open; below
+  // Stage 2 the tile stays locked and reads nothing.
+  let actionLogFooter = 'Open';
+  if (stage2Reached) {
+    const [{ data: actions }, { data: risks }] = await Promise.all([
+      supabase
+        .from('project_actions')
+        .select('id, status, criticality, source, source_id')
+        .eq('project_id', project.id),
+      supabase
+        .from('project_risks')
+        .select('id, criticality, likelihood, impact, status, updated_at')
+        .eq('project_id', project.id),
+    ]);
+    const needsResponseCount = deriveRiskItems(risks ?? [], actions ?? []).length;
+    const openCriticalCount = (actions ?? []).filter(
+      (a) => !isDone(a) && isCritical(a)
+    ).length;
+    actionLogFooter = formatActionLogSummary(
+      needsResponseCount,
+      openCriticalCount
+    );
+  }
+
   return (
     <DashboardShell user={navUser}>
       <main className={`container ${styles.page}`} id="main-content">
@@ -246,6 +282,18 @@ export default async function WorkspacePage({ searchParams }) {
 
         <div className={styles.grid}>
           <Tile
+            icon={<ActionLogIcon />}
+            title="Action Log"
+            desc="Log and track the critical actions you are working on."
+            footer={
+              stage2Reached
+                ? actionLogFooter
+                : 'The Action Log opens once you pass the gate into Stage 2.'
+            }
+            state={stage2Reached ? 'open' : 'locked'}
+            href={`/pulse/app/actions?project=${project.id}`}
+          />
+          <Tile
             icon={<BriefIcon />}
             title="Brief"
             desc="The eight-step initiation flow and the version-locked baseline."
@@ -264,18 +312,6 @@ export default async function WorkspacePage({ searchParams }) {
             }
             state={stage2Reached ? 'open' : 'locked'}
             href={`/pulse/app/risk?project=${project.id}`}
-          />
-          <Tile
-            icon={<ActionLogIcon />}
-            title="Action Log"
-            desc="Log and track the critical actions you are working on."
-            footer={
-              stage2Reached
-                ? 'Open'
-                : 'The Action Log opens once you pass the gate into Stage 2.'
-            }
-            state={stage2Reached ? 'open' : 'locked'}
-            href={`/pulse/app/actions?project=${project.id}`}
           />
           <Tile
             icon={<ProgrammeIcon />}

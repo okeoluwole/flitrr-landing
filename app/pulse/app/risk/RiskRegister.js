@@ -150,6 +150,7 @@ export default function RiskRegister({
     return (
       <article
         key={r.id}
+        id={`risk-${r.id}`}
         className={`${styles.card} ${critical ? styles.cardCritical : ''}`}
       >
         <div className={styles.cardHead}>

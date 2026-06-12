@@ -7,13 +7,15 @@ import ActionLog from './ActionLog';
 import styles from './ActionLog.module.css';
 
 /**
- * /pulse/app/actions - the Action Log manual substrate (M7.1).
+ * /pulse/app/actions - the Action Log, the central attention home (M7.1 +
+ * M7.2).
  *
- * The log where the developer records and tracks critical actions by hand:
- * logged inline, sorted critical-first, moved through to_do / doing / done
- * with one tap, and deletable behind a confirm for mistaken entries. Manual
- * only: the aggregation feed from the other modules is M7.2, and the
- * notification layer is M7.3.
+ * The log where the developer records and tracks critical actions: logged
+ * inline, sorted critical-first, moved through to_do / doing / done with one
+ * tap, and deletable behind a confirm for mistaken entries. M7.2 adds the
+ * aggregation feed: risk-derived items computed live from project_risks
+ * (never stored), surfaced in the needs-your-response band and promoted to
+ * tracked actions with one tap. The notification layer is M7.3.
  *
  * Availability mirrors the Risk register's baseline-read pattern: the log
  * opens only once the gate has committed the baseline, so the section is
@@ -113,20 +115,31 @@ export default async function ActionsPage({ searchParams }) {
   }
 
   // The logged actions (newest first; the log's sort keeps that within each
-  // criticality band) and the objectives an action can be linked to.
-  const [{ data: actions }, { data: objectives }] = await Promise.all([
-    supabase
-      .from('project_actions')
-      .select(
-        'id, description, linked_objective_id, criticality, status, note, created_at'
-      )
-      .eq('project_id', project.id)
-      .order('created_at', { ascending: false }),
-    supabase
-      .from('project_objectives')
-      .select('id, objective_type, classification')
-      .eq('project_id', project.id),
-  ]);
+  // criticality band), the objectives an action can be linked to, and the
+  // live register rows the needs-your-response band derives from. The risk
+  // read is non-destructive: the band computes items from these rows and
+  // never writes back (status changes happen in the register).
+  const [{ data: actions }, { data: objectives }, { data: risks }] =
+    await Promise.all([
+      supabase
+        .from('project_actions')
+        .select(
+          'id, description, linked_objective_id, criticality, status, note, source, source_id, created_at'
+        )
+        .eq('project_id', project.id)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('project_objectives')
+        .select('id, objective_type, classification')
+        .eq('project_id', project.id),
+      supabase
+        .from('project_risks')
+        .select(
+          'id, description, linked_objective_id, criticality, likelihood, impact, status, updated_at'
+        )
+        .eq('project_id', project.id)
+        .order('created_at', { ascending: true }),
+    ]);
 
   // The five objectives in canonical order (Scope, Cost, Time, Quality,
   // Funding), shaped for the link select and the cascade: id, display name,
@@ -147,8 +160,10 @@ export default async function ActionsPage({ searchParams }) {
         projectId={project.id}
         projectName={project.name}
         workspaceHref={workspaceHref}
+        registerHref={`/pulse/app/risk?project=${project.id}`}
         initialActions={actions ?? []}
         objectives={objectiveOptions}
+        risks={risks ?? []}
       />
     </DashboardShell>
   );

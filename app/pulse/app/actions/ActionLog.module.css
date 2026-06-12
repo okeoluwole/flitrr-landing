@@ -12,7 +12,7 @@
 .page {
   padding-block: 3rem 6rem;
   max-width: 880px;
-  --ochre: #8a6a16;
+  --ochre: var(--color-ochre);
 }
 
 .backLink {
@@ -44,10 +44,8 @@
 
 .eyebrow {
   font-family: var(--font-body), sans-serif;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
   color: var(--color-accent-2-grey-blue);
   margin-bottom: 0.5rem;
 }
@@ -112,6 +110,130 @@
   filter: brightness(0.94);
 }
 
+/* ── Needs-your-response band (M7.2) ─────
+   Pushed items derived live from the register.
+   The band sits on cream with white item cards,
+   the inverse of the tracked list (white cards
+   on the page), so suggestions awaiting a
+   response can never be mistaken for the
+   developer's own actions. */
+
+.band {
+  background: var(--color-foreground-cream);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.1rem 1.4rem 1.4rem;
+  margin-bottom: 1.5rem;
+}
+
+.bandHeading {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--color-accent-1-deep-blue);
+  margin: 0 0 0.9rem;
+}
+
+.bandList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* One pushed item: a suggestion, not a tracked action. White card, no
+   status controls, just the two responses. */
+.pushItem {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+}
+
+.pushTags {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.pushName {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--color-accent-1-deep-blue);
+  margin: 0 0 0.85rem;
+}
+
+.pushActions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+/* Why it surfaced, as plain chips. Critical wears the amber wash (the one
+   functional colour, same meaning as everywhere); Serious wears the
+   register's own severity treatment, so the two surfaces read identically. */
+.chip {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.28rem 0.6rem;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.chipCritical {
+  background: rgba(244, 192, 49, 0.18);
+  color: var(--ochre);
+  text-transform: uppercase;
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+}
+
+.chipSerious {
+  background: var(--color-accent-1-deep-blue);
+  color: var(--color-foreground-cream);
+}
+
+/* The collapsed state: one calm line. Quiet is a feature. */
+.bandQuiet {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-accent-2-grey-blue);
+  background: var(--color-foreground-cream);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 0.85rem 1.4rem;
+  margin-bottom: 1.5rem;
+}
+
+/* The quiet provenance marker on a tracked action promoted from a risk,
+   linking back to the source risk in the register. */
+.fromRisk {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-accent-2-grey-blue);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-accent-3-light-grey-blue);
+  transition: color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+.fromRisk:hover,
+.fromRisk:focus-visible {
+  color: var(--color-accent-1-deep-blue);
+  border-color: var(--color-accent-1-deep-blue);
+}
+
 /* ── Summary bar ───────────────────────── */
 
 .summary {
@@ -139,6 +261,7 @@
   line-height: 1;
   letter-spacing: -0.01em;
   color: var(--color-accent-1-deep-blue);
+  font-variant-numeric: tabular-nums;
 }
 
 .statCritical {
@@ -326,7 +449,6 @@
 .card {
   background: #fff;
   border: 1px solid var(--color-border);
-  border-left: 3px solid var(--color-accent-3-light-grey-blue);
   border-radius: 10px;
   padding: 1.25rem 1.4rem;
 }
@@ -334,7 +456,8 @@
 /* Critical (protected-objective) actions carry the amber accent, as in the
    Brief and the register. The one functional colour, meaning the same thing. */
 .cardCritical {
-  border-left-color: var(--color-background-amber);
+  border-color: var(--color-critical-card-border);
+  background: var(--color-critical-card-bg);
 }
 
 .cardHead {
@@ -514,7 +637,11 @@
   gap: 0.6rem;
 }
 
+/* Shared by buttons and links (Review in register renders as a Link), so it
+   carries the anchor resets too. */
 .ghostBtn {
+  display: inline-flex;
+  align-items: center;
   font-family: var(--font-body), sans-serif;
   font-size: 0.8125rem;
   font-weight: 600;
@@ -524,6 +651,7 @@
   border-radius: 8px;
   padding: 0.5rem 0.9rem;
   cursor: pointer;
+  text-decoration: none;
   transition: border-color 0.15s ease, color 0.15s ease;
 }
 
