@@ -99,7 +99,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  box-shadow: 0 8px 32px rgba(55, 97, 131, 0.12);
+  box-shadow: var(--shadow-card-hover);
   z-index: 60;
   /* Anchored to the trigger in the top-right, so it scales out from there
      rather than from its own centre. */

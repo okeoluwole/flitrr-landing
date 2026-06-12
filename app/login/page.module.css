@@ -38,7 +38,7 @@
   border: 1px solid var(--color-border);
   border-radius: 16px;
   padding: 2rem;
-  box-shadow: 0 8px 32px rgba(55, 97, 131, 0.08);
+  box-shadow: var(--shadow-card);
 }
 
 .tabStrip {

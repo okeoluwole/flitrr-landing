@@ -25,10 +25,8 @@
 
 .eyebrow {
   font-family: var(--font-body), sans-serif;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
   color: var(--color-accent-2-grey-blue);
   margin-bottom: 0.5rem;
 }

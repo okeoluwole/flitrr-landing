@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { createClient } from '../../lib/supabase/server';
 import PulseNav from './components/PulseNav';
 import PulseDesignPartner from './components/PulseDesignPartner';
@@ -5,38 +6,45 @@ import PulseFaq from './components/PulseFaq';
 import styles from './page.module.css';
 
 /* ─────────────────────────────────────────
-   Section 2 — Hero
+   Section 2: Hero
 ───────────────────────────────────────── */
 
 function PulseHero() {
   return (
     <section className={styles.hero} aria-labelledby="hero-heading">
-      <div className="container">
-        <div className={styles.heroContent}>
-          <p className={`${styles.heroWordmark} riseIn`} aria-hidden="true">
-            PULSE
-          </p>
-          <p
-            id="hero-heading"
-            className={`${styles.heroTagline} riseIn`}
-            style={{ '--rise-delay': '80ms' }}
-          >
-            Monitoring What Matters.
-          </p>
-          <p
-            className={`${styles.heroSentence} riseIn`}
-            style={{ '--rise-delay': '160ms' }}
-          >
-            Every objective. Every project. Defined, classified, monitored.
-          </p>
-          <div
-            className={`${styles.heroCtas} riseIn`}
-            style={{ '--rise-delay': '240ms' }}
-          >
-            <a href="#design-partner" className={styles.btnPrimary}>
-              Become a design partner
-            </a>
-          </div>
+      <div className={styles.heroMedia} aria-hidden="true">
+        <Image
+          src="/images/texture-facades.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className={styles.heroImg}
+        />
+      </div>
+      <div className={`container ${styles.heroContent}`}>
+        <h1 id="hero-heading" className={`${styles.heroWordmark} riseIn`}>
+          PULSE
+        </h1>
+        <p
+          className={`${styles.heroTagline} riseIn`}
+          style={{ '--rise-delay': '80ms' }}
+        >
+          Monitoring What Matters.
+        </p>
+        <p
+          className={`${styles.heroSentence} riseIn`}
+          style={{ '--rise-delay': '160ms' }}
+        >
+          Every objective. Every project. Defined, classified, monitored.
+        </p>
+        <div
+          className={`${styles.heroCtas} riseIn`}
+          style={{ '--rise-delay': '240ms' }}
+        >
+          <a href="#design-partner" className={styles.btnPrimary}>
+            Become a design partner
+          </a>
         </div>
       </div>
     </section>
@@ -44,7 +52,12 @@ function PulseHero() {
 }
 
 /* ─────────────────────────────────────────
-   Section 3 — The Wedge (glass / rubber)
+   Section 3: The Wedge (glass / rubber)
+
+   The flagship classification made physical: a lit glass sphere
+   (critical: protected, amber-lit, watched) against a matte rubber
+   sphere (flexible: absorbs movement). Crafted dimensional SVG,
+   not stock; the one place the page renders its own object.
 ───────────────────────────────────────── */
 
 const GLASS_OBJECTIVES = [
@@ -59,55 +72,88 @@ const RUBBER_OBJECTIVES = [
   'Internal door supplier',
 ];
 
-function GlassBallIcon() {
+function GlassSphere() {
   return (
     <svg
-      viewBox="0 0 64 64"
+      viewBox="0 0 120 120"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
-      aria-label="Glass-ball icon"
+      aria-label="A glass sphere, lit from within"
       className={styles.objectiveIcon}
     >
-      <ellipse
-        cx="32" cy="58" rx="14" ry="2"
-        fill="var(--color-accent-3-light-grey-blue)"
-        opacity="0.5"
-      />
+      <defs>
+        <radialGradient id="glassBody" cx="38%" cy="30%" r="75%">
+          <stop offset="0%" stopColor="#EDF1F5" stopOpacity="0.34" />
+          <stop offset="42%" stopColor="#EDF1F5" stopOpacity="0.1" />
+          <stop offset="78%" stopColor="#0B141E" stopOpacity="0.12" />
+          <stop offset="100%" stopColor="#0B141E" stopOpacity="0.3" />
+        </radialGradient>
+        <radialGradient id="glassGlow" cx="50%" cy="78%" r="55%">
+          <stop offset="0%" stopColor="#F4C031" stopOpacity="0.85" />
+          <stop offset="55%" stopColor="#F4C031" stopOpacity="0.22" />
+          <stop offset="100%" stopColor="#F4C031" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id="glassRim" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#EDF1F5" stopOpacity="0.9" />
+          <stop offset="50%" stopColor="#EDF1F5" stopOpacity="0.25" />
+          <stop offset="100%" stopColor="#F4C031" stopOpacity="0.6" />
+        </linearGradient>
+      </defs>
+      {/* Amber pooling beneath: the light it casts on the ground. */}
+      <ellipse cx="60" cy="106" rx="30" ry="5" fill="#F4C031" opacity="0.22" />
+      <circle cx="60" cy="56" r="40" fill="url(#glassBody)" />
+      <circle cx="60" cy="56" r="40" fill="url(#glassGlow)" />
       <circle
-        cx="32" cy="32" r="26"
-        fill="var(--color-foreground-cream)"
-        stroke="var(--color-accent-1-deep-blue)"
-        strokeWidth="2.5"
+        cx="60"
+        cy="56"
+        r="39.25"
+        fill="none"
+        stroke="url(#glassRim)"
+        strokeWidth="1.5"
       />
+      {/* Specular highlight. */}
       <ellipse
-        cx="22" cy="22" rx="7" ry="4"
-        fill="var(--color-foreground-cream)"
-        opacity="0.6"
-        transform="rotate(-30 22 22)"
-        stroke="var(--color-foreground-cream)"
-        strokeWidth="0.5"
+        cx="46"
+        cy="38"
+        rx="12"
+        ry="6.5"
+        fill="#EDF1F5"
+        opacity="0.55"
+        transform="rotate(-28 46 38)"
       />
+      {/* Refracted base caustic. */}
+      <ellipse cx="62" cy="84" rx="14" ry="4.5" fill="#F4C031" opacity="0.4" />
     </svg>
   );
 }
 
-function RubberBallIcon() {
+function RubberSphere() {
   return (
     <svg
-      viewBox="0 0 64 64"
+      viewBox="0 0 120 120"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
-      aria-label="Rubber-ball icon"
+      aria-label="A matte rubber sphere"
       className={styles.objectiveIcon}
     >
+      <defs>
+        <radialGradient id="rubberBody" cx="36%" cy="28%" r="80%">
+          <stop offset="0%" stopColor="#4A7196" />
+          <stop offset="55%" stopColor="#2C4A66" />
+          <stop offset="100%" stopColor="#16273A" />
+        </radialGradient>
+      </defs>
+      <ellipse cx="60" cy="106" rx="28" ry="5" fill="#000000" opacity="0.35" />
+      <circle cx="60" cy="56" r="40" fill="url(#rubberBody)" />
+      {/* Soft matte highlight, no gloss. */}
       <ellipse
-        cx="32" cy="58" rx="14" ry="2"
-        fill="var(--color-accent-3-light-grey-blue)"
-        opacity="0.5"
-      />
-      <circle
-        cx="32" cy="32" r="26"
-        fill="var(--color-accent-1-deep-blue)"
+        cx="47"
+        cy="39"
+        rx="13"
+        ry="7"
+        fill="#EDF1F5"
+        opacity="0.14"
+        transform="rotate(-26 47 39)"
       />
     </svg>
   );
@@ -140,21 +186,25 @@ function Wedge() {
           </div>
 
           <div className={styles.wedgePanels} data-reveal>
-            <div className={styles.objectivePanel}>
+            <div className={`${styles.objectivePanel} ${styles.panelGlass}`}>
               <h3 className={styles.objectivePanelHeading}>GLASS</h3>
-              <GlassBallIcon />
+              <GlassSphere />
               <ul className={styles.objectiveList}>
                 {GLASS_OBJECTIVES.map((item) => (
-                  <li key={item} className={styles.objectiveItem}>{item}</li>
+                  <li key={item} className={styles.objectiveItem}>
+                    {item}
+                  </li>
                 ))}
               </ul>
             </div>
-            <div className={styles.objectivePanel}>
+            <div className={`${styles.objectivePanel} ${styles.panelRubber}`}>
               <h3 className={styles.objectivePanelHeading}>RUBBER</h3>
-              <RubberBallIcon />
+              <RubberSphere />
               <ul className={styles.objectiveList}>
                 {RUBBER_OBJECTIVES.map((item) => (
-                  <li key={item} className={styles.objectiveItem}>{item}</li>
+                  <li key={item} className={styles.objectiveItem}>
+                    {item}
+                  </li>
                 ))}
               </ul>
             </div>
@@ -170,7 +220,7 @@ function Wedge() {
 }
 
 /* ─────────────────────────────────────────
-   Section 4 — The Gating Story
+   Section 4: The Gating Story
 ───────────────────────────────────────── */
 
 const SECONDARY_MODULES = [
@@ -184,21 +234,15 @@ function GatingArrow() {
   return (
     <svg
       className={styles.gatingArrow}
-      viewBox="0 0 80 24"
+      viewBox="0 0 64 20"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
     >
-      <line
-        x1="2" y1="12" x2="68" y2="12"
-        stroke="var(--color-background-amber)"
-        strokeWidth="4"
-        strokeLinecap="round"
-      />
       <path
-        d="M 60 4 L 76 12 L 60 20"
+        d="M2 10h52M46 3l10 7-10 7"
         fill="none"
-        stroke="var(--color-background-amber)"
-        strokeWidth="4"
+        stroke="currentColor"
+        strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -261,7 +305,13 @@ function GatingStory() {
 }
 
 /* ─────────────────────────────────────────
-   Section 5 — The Modules
+   Section 5: The Modules
+
+   Each card opens with a miniature of the module's own surface,
+   drawn in the product's real visual vocabulary (criticality chips,
+   status segments, severity, bars, figures) on a white paper panel.
+   Decorative and aria-hidden; the status pill tells the truth about
+   what is built.
 ───────────────────────────────────────── */
 
 const MODULES = [
@@ -269,49 +319,148 @@ const MODULES = [
     name: 'Project Initiation',
     statusLabel: 'In build. Design partners Q3 2026.',
     statusVariant: 'inBuild',
+    vignette: 'initiation',
     body: 'A guided 15-minute flow that produces your Project Brief. Vision, objectives, glass-ball and rubber-ball criticality, constraints, milestones, stakeholders. Exportable to PDF and Word.',
     tagline: 'The foundation everything else builds on.',
+    featured: true,
   },
   {
     name: 'Action Log',
     statusLabel: 'Designed. Build follows Project Initiation.',
     statusVariant: 'designed',
+    vignette: 'actions',
     body: 'Every open action across every project, classified against the glass-ball objectives from your Brief. Flagged automatically when an action threatens a glass-ball.',
   },
   {
     name: 'Risk Register',
     statusLabel: 'Designed. Build to follow.',
     statusVariant: 'designed',
+    vignette: 'risks',
     body: 'Structured risk capture tagged to glass-ball objectives. Mitigation tracked alongside the actions that close it.',
   },
   {
     name: 'Programme Tracker',
     statusLabel: 'Designed. Build to follow.',
     statusVariant: 'designed',
+    vignette: 'programme',
     body: 'Critical-path visibility with dependencies, float, and schedule impact. The institutional scheduler, finally built for developers without a PMO.',
   },
   {
     name: 'Executive Dashboard',
     statusLabel: 'Planned.',
     statusVariant: 'planned',
+    vignette: 'dashboard',
     body: 'Cross-project health summary. Stakeholder-specific views. The view a JV partner, lender, or board member needs in one place.',
   },
 ];
 
-function ModuleCardWatermark() {
+function Vignette({ kind }) {
+  if (kind === 'initiation') {
+    return (
+      <div className={styles.vignette} aria-hidden="true">
+        <div className={styles.vgSteps}>
+          {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+            <span key={i} style={{ display: 'contents' }}>
+              {i > 0 && <span className={styles.vgStepLink} />}
+              <span
+                className={`${styles.vgStep} ${
+                  i < 4 ? styles.vgStepDone : i === 4 ? styles.vgStepCurrent : ''
+                }`}
+              />
+            </span>
+          ))}
+        </div>
+        <div className={styles.vgDoc}>
+          <span className={styles.vgDocTitle} />
+          <span className={styles.vgDocLine} />
+          <span className={`${styles.vgDocLine} ${styles.vgDocLineShort}`} />
+          <span className={styles.vgDocSeal}>Baseline locked</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (kind === 'actions') {
+    return (
+      <div className={styles.vignette} aria-hidden="true">
+        <div className={styles.vgRow}>
+          <span className={`${styles.vgChip} ${styles.vgChipCritical}`}>
+            Critical
+          </span>
+          <span className={styles.vgText} />
+          <span className={styles.vgSeg}>
+            <span className={styles.vgSegItem} />
+            <span className={`${styles.vgSegItem} ${styles.vgSegOn}`} />
+            <span className={styles.vgSegItem} />
+          </span>
+        </div>
+        <div className={`${styles.vgRow} ${styles.vgRowFaded}`}>
+          <span className={styles.vgChip}>Standard</span>
+          <span className={`${styles.vgText} ${styles.vgTextShort}`} />
+          <span className={styles.vgSeg}>
+            <span className={`${styles.vgSegItem} ${styles.vgSegOn}`} />
+            <span className={styles.vgSegItem} />
+            <span className={styles.vgSegItem} />
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  if (kind === 'risks') {
+    return (
+      <div className={styles.vignette} aria-hidden="true">
+        <div className={styles.vgRow}>
+          <span className={`${styles.vgChip} ${styles.vgChipCritical}`}>
+            Critical
+          </span>
+          <span className={styles.vgText} />
+          <span className={styles.vgSev}>Serious</span>
+        </div>
+        <div className={`${styles.vgRow} ${styles.vgRowFaded}`}>
+          <span className={styles.vgChip}>Standard</span>
+          <span className={`${styles.vgText} ${styles.vgTextShort}`} />
+          <span className={`${styles.vgSev} ${styles.vgSevQuiet}`}>
+            Watching
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  if (kind === 'programme') {
+    return (
+      <div className={styles.vignette} aria-hidden="true">
+        <div className={styles.vgBars}>
+          <span className={styles.vgToday} />
+          <span className={styles.vgBar} style={{ width: '72%' }} />
+          <span
+            className={`${styles.vgBar} ${styles.vgBarAmber}`}
+            style={{ width: '54%', marginLeft: '18%' }}
+          />
+          <span className={styles.vgBar} style={{ width: '34%', marginLeft: '44%' }} />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <svg
-      className={styles.moduleCardMark}
-      viewBox="0 0 60 60"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <g fill="var(--color-accent-3-light-grey-blue)" opacity="0.55">
-        <rect x="0"  y="0"  width="60" height="10" rx="2" />
-        <rect x="0"  y="0"  width="10" height="60" rx="2" />
-        <rect x="10" y="25" width="36" height="10" rx="2" />
-      </g>
-    </svg>
+    <div className={styles.vignette} aria-hidden="true">
+      <div className={styles.vgKpis}>
+        <span className={styles.vgKpi}>
+          <span className={styles.vgKpiNum}>12</span>
+          <span className={styles.vgKpiLabel}>Open</span>
+        </span>
+        <span className={styles.vgKpi}>
+          <span className={`${styles.vgKpiNum} ${styles.vgKpiNumAmber}`}>3</span>
+          <span className={styles.vgKpiLabel}>Critical</span>
+        </span>
+        <span className={styles.vgKpi}>
+          <span className={styles.vgKpiNum}>82%</span>
+          <span className={styles.vgKpiLabel}>On track</span>
+        </span>
+      </div>
+    </div>
   );
 }
 
@@ -339,17 +488,19 @@ function Modules() {
         </p>
 
         <div className={styles.moduleGrid}>
-          {MODULES.map((mod, idx) => (
+          {MODULES.map((mod) => (
             <article
               key={mod.name}
               className={`${styles.moduleCard} ${
-                idx === 4 ? styles.moduleCardSpan : ''
+                mod.featured ? styles.moduleCardFeatured : ''
               }`}
               data-reveal
             >
-              <ModuleCardWatermark />
+              <Vignette kind={mod.vignette} />
               <div className={styles.moduleCardBody}>
-                <span className={`${styles.statusPill} ${pillClassFor(mod.statusVariant)}`}>
+                <span
+                  className={`${styles.statusPill} ${pillClassFor(mod.statusVariant)}`}
+                >
                   {mod.statusLabel}
                 </span>
                 <h3 className={styles.moduleHeading}>{mod.name}</h3>
@@ -367,7 +518,7 @@ function Modules() {
 }
 
 /* ─────────────────────────────────────────
-   Section 9 — Footer
+   Section 9: Footer
 ───────────────────────────────────────── */
 
 function PulseFooter() {
@@ -386,7 +537,7 @@ function PulseFooter() {
               hello@flitrr.com
             </a>
             <a
-              href="https://linkedin.com"
+              href="https://www.linkedin.com/company/flitrr/"
               target="_blank"
               rel="noopener noreferrer"
               className={styles.footerLink}
@@ -394,9 +545,15 @@ function PulseFooter() {
             >
               LinkedIn
             </a>
-            <a href="#" className={styles.footerLink}>Privacy</a>
-            <a href="#" className={styles.footerLink}>Terms</a>
-            <a href="/" className={styles.footerLink}>Back to Flitrr</a>
+            <a href="/privacy" className={styles.footerLink}>
+              Privacy
+            </a>
+            <a href="/terms" className={styles.footerLink}>
+              Terms
+            </a>
+            <a href="/" className={styles.footerLink}>
+              Back to Flitrr
+            </a>
           </div>
         </div>
         <div className={styles.footerBottom}>
@@ -424,7 +581,7 @@ export default async function PulsePage() {
   return (
     <>
       <PulseNav user={navUser} />
-      <main id="main-content">
+      <main id="main-content" className={styles.main}>
         <PulseHero />
         <Wedge />
         <GatingStory />

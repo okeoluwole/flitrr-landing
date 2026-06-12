@@ -105,14 +105,14 @@
 .tileOpen {
   background: var(--color-foreground-cream);
   cursor: pointer;
-  box-shadow: 0 8px 32px rgba(55, 97, 131, 0.06);
+  box-shadow: var(--shadow-card);
   transition: border-color 0.15s ease, box-shadow 0.15s ease,
     transform 0.15s ease;
 }
 
 .tileOpen:hover {
   border-color: var(--color-accent-1-deep-blue);
-  box-shadow: 0 10px 36px rgba(55, 97, 131, 0.12);
+  box-shadow: var(--shadow-card-hover);
   transform: translateY(-2px);
 }
 
@@ -193,7 +193,7 @@
 /* The gated note is the one place the tile carries an amber caution. */
 .tileLocked .tileFoot {
   font-weight: 500;
-  color: var(--ochre, #8a6a16);
+  color: var(--color-ochre);
 }
 
 .tileSoon .tileFoot {

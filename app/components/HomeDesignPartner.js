@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { createClient } from '../../lib/supabase/client';
 import styles from '../page.module.css';
 
@@ -72,7 +73,16 @@ export default function HomeDesignPartner() {
       className={styles.pilot}
       aria-labelledby="design-partner-heading"
     >
-      <div className="container">
+      <div className={styles.pilotMedia} aria-hidden="true">
+        <Image
+          src="/images/texture-site-overview.jpg"
+          alt=""
+          fill
+          sizes="100vw"
+          className={styles.pilotImg}
+        />
+      </div>
+      <div className={`container ${styles.pilotInner}`}>
         <h2 id="design-partner-heading" className={styles.sectionHeading} data-reveal>
           Ten design partner spots. First come, first served.
         </h2>

@@ -1,6 +1,18 @@
 /* ─────────────────────────────────────────
-   Utility
+   Flitrr landing page, on the ink ground.
+
+   The marketing site stands on the brand navy
+   pushed to near-black. Photography carries the
+   physical world (the dusk grade: amber light
+   against blue), cream appears only as paper
+   (the Brief, the form card), and amber is
+   reserved for signal: the pulse line, the
+   coverage chip, the primary CTA. The product
+   app keeps the light theme; this file is the
+   marketing register only.
 ───────────────────────────────────────── */
+
+/* ── Utility ───────────────────────────── */
 
 .srOnly {
   position: absolute;
@@ -14,646 +26,793 @@
   border: 0;
 }
 
+.main {
+  background: var(--color-ink-950);
+}
+
 /* Skip-to-content link: off-screen until focused by keyboard. */
 .skipLink {
-  position: absolute;
-  left: 1rem;
-  top: -4rem;
-  z-index: 200;
-  background-color: var(--color-accent-1-deep-blue);
-  color: var(--color-foreground-cream);
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 100;
+  background: var(--color-signal-amber);
+  color: var(--color-ink-950);
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 700;
   padding: 0.6rem 1rem;
   border-radius: 8px;
-  transition: top 0.18s ease;
+  transform: translateY(-200%);
 }
 
-.skipLink:focus {
-  top: 1rem;
+.skipLink:focus-visible {
+  transform: none;
+  outline: 2px solid var(--color-ink-950);
+  outline-offset: 2px;
 }
 
-/* ─────────────────────────────────────────
-   Buttons
-───────────────────────────────────────── */
+/* ── Buttons ───────────────────────────── */
 
 .btnPrimary {
-  display: inline-block;
-  background-color: var(--color-button-primary-bg);
-  color: var(--color-button-primary-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   font-family: var(--font-body), sans-serif;
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: 0.005em;
-  padding: 14px 22px;
-  border: 1.5px solid var(--color-button-primary-bg);
-  border-radius: 8px;
-  transition: filter 0.18s ease, transform 0.12s ease;
-  white-space: nowrap;
-  text-align: center;
-  cursor: pointer;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--color-ink-950);
+  background: var(--color-signal-amber);
+  border: 0;
+  border-radius: 9px;
+  padding: 0.85rem 1.4rem;
+  text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-press) var(--ease-out);
 }
 
-.btnPrimary:hover,
-.btnPrimary:focus-visible {
-  filter: brightness(0.94);
-}
-
-.btnPrimary:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
-  outline-offset: 3px;
+.btnPrimary:hover {
+  background: var(--color-signal-amber-deep);
 }
 
 .btnPrimary:active {
-  transform: scale(0.98);
+  transform: translateY(1px);
 }
 
-/* Makes btnPrimary fill its container width — used in pilot form */
+.btnPrimary:focus-visible {
+  outline: 2px solid var(--color-on-ink-primary);
+  outline-offset: 3px;
+}
+
+.btnPrimary:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
 .btnFullWidth {
   width: 100%;
 }
 
+/* On the paper form card the primary button keeps its amber, but the
+   focus ring flips to ink so it stays visible on white. */
+.pilotFormCard .btnPrimary:focus-visible {
+  outline-color: var(--color-ink-950);
+}
+
 .btnGhost {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
   font-family: var(--font-body), sans-serif;
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--color-button-ghost-text);
-  background-color: transparent;
-  border: 1.5px solid var(--color-button-ghost-border);
-  border-radius: 8px;
-  padding: 12.5px 22px;
+  color: var(--color-on-ink-primary);
+  background: rgba(237, 241, 245, 0.03);
+  border: 1px solid var(--color-ink-hairline-strong);
+  border-radius: 9px;
+  padding: 0.8rem 1.3rem;
+  text-decoration: none;
   transition: background-color var(--dur-fast) var(--ease-out),
-    transform var(--dur-press) var(--ease-out);
-  cursor: pointer;
-  text-align: center;
+    border-color var(--dur-fast) var(--ease-out);
 }
 
 .btnGhost:hover,
 .btnGhost:focus-visible {
-  background-color: var(--color-button-ghost-hover-bg);
+  background: rgba(237, 241, 245, 0.08);
+  border-color: var(--color-on-ink-secondary);
 }
 
 .btnGhost:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--color-on-ink-primary);
   outline-offset: 3px;
 }
 
-.btnGhost:active {
-  transform: scale(0.98);
+.btnGhost svg {
+  transition: transform var(--dur-fast) var(--ease-out);
 }
 
-/* ─────────────────────────────────────────
-   Shared section typography
-───────────────────────────────────────── */
-
-.sectionHeading {
-  font-family: var(--font-heading), sans-serif;
-  font-size: clamp(2rem, 4.5vw, 2.75rem);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.015em;
-  color: var(--color-accent-1-deep-blue);
-  margin-bottom: 1.25rem;
-  max-width: 760px;
+.btnGhost:hover svg {
+  transform: translateX(3px);
 }
 
-.sectionSub {
-  font-family: var(--font-body), sans-serif;
-  font-size: 1.125rem;
-  color: var(--color-accent-2-grey-blue);
-  max-width: 660px;
-  margin-bottom: 3rem;
-  line-height: 1.55;
-}
-
-/* ─────────────────────────────────────────
-   Navigation
-───────────────────────────────────────── */
+/* ── Nav ───────────────────────────────── */
 
 .nav {
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 100;
-  background-color: transparent;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 40;
   border-bottom: 1px solid transparent;
-  transition: background-color 0.2s ease, border-color 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: background-color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out);
 }
 
+/* Over the photographic hero the nav rides the scrim built into the
+   hero grade; once the page scrolls it takes its own ink. The blur is
+   functional (legibility over photography), not decoration. */
 .navScrolled {
-  background-color: var(--color-surface-section);
-  border-color: var(--color-border);
-  box-shadow: 0 1px 12px rgba(55, 97, 131, 0.06);
+  background: rgba(11, 20, 30, 0.88);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+  backdrop-filter: saturate(140%) blur(10px);
+  border-bottom-color: var(--color-ink-hairline);
 }
 
 .navInner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 64px;
+  height: 68px;
 }
 
 .navWordmark {
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
   font-family: var(--font-heading), sans-serif;
+  font-size: 1.4rem;
   font-weight: 800;
-  font-size: 22px;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  color: var(--color-accent-1-deep-blue);
-  text-decoration: none;
+  letter-spacing: -0.01em;
+  color: var(--color-on-ink-primary);
 }
 
-@media (min-width: 768px) {
-  .navWordmark {
-    font-size: 28px;
-  }
+.navWordmark:focus-visible {
+  outline: 2px solid var(--color-signal-amber);
+  outline-offset: 4px;
+  border-radius: 2px;
 }
 
 .navLinks {
-  display: none;
+  display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 1.9rem;
 }
 
 .navLinks a {
   font-family: var(--font-body), sans-serif;
   font-size: 0.9375rem;
-  font-weight: 500;
-  letter-spacing: -0.005em;
-  color: var(--color-text-primary);
-  transition: color 0.15s ease, opacity 0.15s ease;
+  font-weight: 600;
+  color: var(--color-on-ink-secondary);
+  transition: color var(--dur-fast) var(--ease-out);
 }
 
 .navLinks a:hover,
 .navLinks a:focus-visible {
-  opacity: 0.7;
+  color: var(--color-on-ink-primary);
 }
 
 .navLinks a:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
-  outline-offset: 2px;
+  outline: 2px solid var(--color-signal-amber);
+  outline-offset: 4px;
   border-radius: 2px;
 }
 
 .navCta {
-  background-color: var(--color-button-primary-bg) !important;
-  color: var(--color-button-primary-text) !important;
-  padding: 0.55rem 1.2rem;
-  border-radius: 999px;
-  font-size: 0.875rem !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.005em;
-  transition: filter var(--dur-fast) var(--ease-out),
-    transform var(--dur-press) var(--ease-out) !important;
+  background: var(--color-signal-amber);
+  border-radius: 8px;
+  padding: 0.55rem 0.95rem;
+  transition: background-color var(--dur-fast) var(--ease-out);
 }
 
-.navCta:hover,
-.navCta:focus-visible {
-  filter: brightness(0.94);
-  opacity: 1 !important;
+.navLinks a.navCta {
+  color: var(--color-ink-950);
+  font-weight: 700;
 }
 
-.navCta:active {
-  transform: scale(0.97);
+.navLinks a.navCta:hover,
+.navLinks a.navCta:focus-visible {
+  color: var(--color-ink-950);
+  background: var(--color-signal-amber-deep);
 }
 
 .hamburger {
-  display: flex;
+  display: none;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
   gap: 5px;
-  background: none;
-  border: none;
-  padding: 4px;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  border: 0;
+}
+
+.hamburger:focus-visible {
+  outline: 2px solid var(--color-signal-amber);
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 
 .bar {
   display: block;
-  height: 1.5px;
-  background-color: var(--color-accent-1-deep-blue);
+  width: 22px;
+  height: 2px;
+  background: var(--color-on-ink-primary);
   border-radius: 2px;
-  transition: transform 0.22s ease, opacity 0.22s ease;
-  transform-origin: center;
+  transition: transform var(--dur-base) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
 }
 
-.barTop  { transform: translateY(6.5px) rotate(45deg); }
-.barMid  { opacity: 0; transform: scaleX(0); }
-.barBot  { transform: translateY(-6.5px) rotate(-45deg); }
-
-@media (min-width: 768px) {
-  .navLinks  { display: flex; }
-  .hamburger { display: none; }
+.barTop {
+  transform: translateY(7px) rotate(45deg);
 }
 
-@media (max-width: 767px) {
-  .navLinks {
-    position: fixed;
-    inset: 64px 0 0 0;
-    background-color: var(--color-surface-section);
-    flex-direction: column;
-    justify-content: flex-start;
-    padding: 2rem 1.5rem;
-    gap: 0;
-    transform: translateX(100%);
-    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-    border-top: 1px solid var(--color-border);
+.barMid {
+  opacity: 0;
+}
+
+.barBot {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+@media (max-width: 860px) {
+  .hamburger {
+    display: flex;
   }
 
-  .navLinksOpen {
-    display: flex;
-    transform: translateX(0);
+  .navLinks {
+    position: fixed;
+    top: 68px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    background: var(--color-ink-900);
+    border-bottom: 1px solid var(--color-ink-hairline);
+    padding: 0.75rem 1.5rem 1.5rem;
+    opacity: 0;
+    transform: translateY(-8px);
+    pointer-events: none;
+    transition: opacity var(--dur-base) var(--ease-out),
+      transform var(--dur-base) var(--ease-out);
   }
 
   .navLinks a {
-    padding: 1rem 0;
-    font-size: 1rem;
-    border-bottom: 1px solid var(--color-border);
     width: 100%;
+    padding: 0.85rem 0;
+    font-size: 1.0625rem;
   }
 
-  .navCta {
-    margin-top: 1.5rem;
-    border-bottom: none !important;
-    border-radius: 4px;
-    padding: 0.8rem 1.5rem !important;
-    text-align: center;
+  .navLinks a.navCta {
+    margin-top: 0.75rem;
+    display: inline-flex;
+    justify-content: center;
+    padding: 0.8rem 1rem;
+  }
+
+  .navLinksOpen {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
   }
 }
 
-/* ─────────────────────────────────────────
-   Hero — type-only brand statement on amber
-───────────────────────────────────────── */
+/* ── Hero ──────────────────────────────── */
 
 .hero {
-  background-color: var(--color-surface-hero);
-  padding-block: 7rem 6rem;
+  position: relative;
+  min-height: clamp(620px, 92svh, 880px);
+  display: flex;
+  align-items: flex-end;
+  background: var(--color-ink-950);
+  overflow: hidden;
+}
+
+.heroMedia {
+  position: absolute;
+  inset: 0;
+}
+
+.heroImg {
+  object-fit: cover;
+  object-position: 62% 38%;
+  filter: saturate(0.88) contrast(1.03);
+}
+
+/* The dusk grade: ink pulling up from the base for the headline, a
+   scrim at the top for the nav, and a left-side pull so the type
+   always sits on quiet ground. */
+.heroMedia::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(11, 20, 30, 0.64) 0%,
+    rgba(11, 20, 30, 0.3) 32%,
+    rgba(11, 20, 30, 0.48) 58%,
+    rgba(11, 20, 30, 0.92) 100%
+  );
+}
+
+.heroMedia::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(11, 20, 30, 0.72) 0%,
+    rgba(11, 20, 30, 0.3) 52%,
+    rgba(11, 20, 30, 0.02) 82%
+  );
 }
 
 .heroContent {
-  max-width: 880px;
+  position: relative;
+  z-index: 1;
+  padding-top: 9rem;
+  padding-bottom: clamp(4rem, 9vh, 6.5rem);
 }
 
 .heroHeading {
-  font-family: var(--font-heading), sans-serif;
-  font-size: clamp(2rem, 4.5vw, 3.5rem);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.015em;
-  margin-bottom: 1.5rem;
-  color: var(--color-accent-1-deep-blue);
-  max-width: 880px;
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  color: var(--color-on-ink-primary);
+  max-width: 19ch;
+  text-wrap: balance;
 }
 
 .heroSub {
+  margin-top: 1.4rem;
   font-family: var(--font-body), sans-serif;
-  font-weight: 400;
-  font-size: clamp(1.25rem, 2vw, 1.5rem);
-  /* Deeper navy than the deep-blue token so body text clears AA contrast on
-     the amber surface. */
-  color: #284b66;
-  line-height: 1.45;
-  margin-bottom: 2.5rem;
-  max-width: 720px;
+  font-size: clamp(1.0625rem, 1.6vw, 1.1875rem);
+  line-height: 1.55;
+  color: rgba(237, 241, 245, 0.92);
+  max-width: 44ch;
 }
 
 .heroCtas {
   display: flex;
+  align-items: center;
+  gap: 0.9rem;
   flex-wrap: wrap;
-  gap: 1rem 1.5rem;
-  align-items: center;
+  margin-top: 2.2rem;
 }
 
-/* Secondary hero action: a navy ghost button that clears AA contrast on the
-   amber surface and points to the product. */
-.heroCtaSecondary {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-family: var(--font-body), sans-serif;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #284b66;
-  background: transparent;
-  border: 1.5px solid #284b66;
-  border-radius: 8px;
-  padding: 12.5px 22px;
-  transition: background-color var(--dur-fast) var(--ease-out),
-    transform var(--dur-press) var(--ease-out);
-  cursor: pointer;
-}
-
-.heroCtaSecondary:hover,
-.heroCtaSecondary:focus-visible {
-  background-color: rgba(40, 75, 102, 0.08);
-}
-
-.heroCtaSecondary:focus-visible {
-  outline: 2px solid #284b66;
-  outline-offset: 3px;
-}
-
-.heroCtaSecondary:active {
-  transform: scale(0.98);
-}
-
-/* The arrow leans forward on hover — a small "go" cue. */
-.heroCtaSecondary svg {
-  transition: transform var(--dur-fast) var(--ease-out);
-}
-
-.heroCtaSecondary:hover svg,
-.heroCtaSecondary:focus-visible svg {
-  transform: translateX(3px);
-}
-
-/* ─────────────────────────────────────────
-   Lifecycle — rings + amber swoosh on Foreground
-───────────────────────────────────────── */
+/* ── Lifecycle: the filmstrip ──────────── */
 
 .lifecycle {
-  background-color: var(--color-surface-section);
-  padding-block: 6rem;
+  background: var(--color-ink-950);
+  padding-block: clamp(5rem, 9vw, 7.5rem) clamp(4rem, 7vw, 6rem);
+}
+
+.sectionHeading {
+  font-size: clamp(2.1rem, 4.2vw, 3.1rem);
+  letter-spacing: -0.02em;
+  line-height: 1.06;
+  color: var(--color-on-ink-primary);
+  text-wrap: balance;
 }
 
 .lifecycleSub {
+  margin-top: 1.25rem;
   font-family: var(--font-body), sans-serif;
-  font-size: 1.125rem;
-  line-height: 1.55;
-  color: var(--color-accent-1-deep-blue);
-  max-width: 720px;
-  margin-bottom: 3rem;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--color-on-ink-secondary);
+  max-width: 58ch;
 }
 
-.lifecycleTrackWrap {
-  width: 100%;
-  margin-block: 3.5rem 2.5rem;
+.strip {
+  margin-top: clamp(2.5rem, 5vw, 3.75rem);
 }
 
-/* The universal developer lifecycle: icon nodes, titles beneath, a connector
-   line through them, and a PULSE coverage band spanning Stages 1 to 7 with a
-   slow travelling pulse. Horizontal on desktop, a vertical timeline on small
-   screens. The stages auto-flow into row 1; the band is placed in row 2. */
-.track {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  row-gap: 1.4rem;
+.stripScroller {
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0,
+    #000 28px,
+    #000 calc(100% - 64px),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0,
+    #000 28px,
+    #000 calc(100% - 64px),
+    transparent 100%
+  );
 }
 
-.trackStage {
+.stripScroller::-webkit-scrollbar {
+  display: none;
+}
+
+.stripScroller:focus-visible {
+  outline: 2px solid var(--color-signal-amber);
+  outline-offset: -2px;
+}
+
+.stripInner {
+  --frame-w: clamp(236px, 23vw, 316px);
+  --frame-gap: 14px;
+  --strip-pad: max(1.5rem, calc((100vw - var(--container-wide)) / 2));
   position: relative;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 0 0.3rem;
-  min-width: 0;
+  gap: var(--frame-gap);
+  width: max-content;
+  padding-block: 6px;
 }
 
-/* Connector line to the previous node, passing behind the nodes. */
-.trackStage:not(:first-child)::before {
+.stripInner > .frame:first-child {
+  margin-left: var(--strip-pad);
+}
+
+.stripInner > .frame:last-of-type {
+  margin-right: var(--strip-pad);
+}
+
+.frame {
+  position: relative;
+  flex: none;
+  width: var(--frame-w);
+  aspect-ratio: 4 / 5;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--color-ink-800);
+  scroll-snap-align: start;
+  scroll-margin-left: var(--strip-pad);
+  margin: 0;
+}
+
+.frameImg {
+  object-fit: cover;
+  filter: saturate(0.82) contrast(1.04) brightness(0.94);
+}
+
+/* One grade for every frame, so mixed sources read as one shoot. */
+.frame::before {
   content: '';
   position: absolute;
-  top: 23px;
-  right: 50%;
-  width: 100%;
-  height: 2px;
-  background: var(--color-accent-3-light-grey-blue);
-  z-index: 0;
-}
-
-.trackNode {
-  position: relative;
+  inset: 0;
   z-index: 1;
-  width: 46px;
-  height: 46px;
-  border-radius: 999px;
-  border: 2px solid var(--color-accent-1-deep-blue);
-  background: var(--color-surface-section);
-  color: var(--color-accent-1-deep-blue);
-  display: grid;
-  place-items: center;
-  margin-bottom: 0.7rem;
+  background: var(--grade-amber);
+  mix-blend-mode: soft-light;
+  pointer-events: none;
 }
 
-.trackIcon {
-  width: 22px;
-  height: 22px;
+.frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    180deg,
+    var(--grade-top) 0%,
+    rgba(11, 20, 30, 0) 26%,
+    rgba(11, 20, 30, 0.08) 48%,
+    var(--grade-bottom) 84%
+  );
+  pointer-events: none;
 }
 
-.trackLabel {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
-  font-weight: 600;
-  line-height: 1.3;
-  color: var(--color-accent-1-deep-blue);
+.frameNum {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  z-index: 3;
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.625rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: rgba(237, 241, 245, 0.55);
 }
 
-/* PULSE coverage band: the delivery arc, Stage 1 to 7 (columns 2 to 8). */
-.pulseBand {
-  grid-column: 2 / 9;
-  grid-row: 2;
+.frameCovered .frameNum {
+  color: var(--color-signal-amber);
+}
+
+.frameText {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 14px;
+  z-index: 3;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.55rem;
-  margin-top: 0.4rem;
+  gap: 0.3rem;
 }
 
-.pulseBandLabel {
+.frameLabel {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: var(--color-on-ink-primary);
+}
+
+.frameDesc {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.45;
+  color: rgba(237, 241, 245, 0.78);
+}
+
+/* The pulse line: PULSE's coverage, stages 1 to 7, drawn straight
+   through the photography. The one continuous amber element. */
+.pulseLine {
+  position: absolute;
+  z-index: 2;
+  height: 3px;
+  bottom: 116px;
+  left: calc(var(--strip-pad) + var(--frame-w) + var(--frame-gap));
+  right: var(--strip-pad);
+  background: var(--color-signal-amber);
+  border-radius: 2px;
+  box-shadow: 0 0 14px rgba(244, 192, 49, 0.55);
+  pointer-events: none;
+  transform-origin: left center;
+}
+
+/* Gate ticks: one at each stage boundary inside the covered arc. */
+.pulseTick {
+  position: absolute;
+  top: 50%;
+  left: calc(
+    var(--i) * (var(--frame-w) + var(--frame-gap)) - (var(--frame-gap) / 2)
+  );
+  width: 2.5px;
+  height: 15px;
+  transform: translate(-50%, -50%);
+  background: var(--color-signal-amber);
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(244, 192, 49, 0.5);
+}
+
+/* Mobile spine segments (rendered per covered frame, hidden on desktop). */
+.frameSpine {
+  display: none;
+}
+
+.stripCaption {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  margin-top: 1.9rem;
+  padding-inline: 1.5rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--color-on-ink-secondary);
+}
+
+.stripCaption span:last-child {
+  max-width: 62ch;
+}
+
+.captionSwatch {
+  flex: none;
+  width: 26px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--color-signal-amber);
+  box-shadow: 0 0 10px rgba(244, 192, 49, 0.5);
+  transform: translateY(-3px);
+}
+
+@media (min-width: 768px) {
+  .stripCaption {
+    padding-inline: 2.5rem;
+  }
+}
+
+/* The line draws itself as the strip enters the viewport. Base state is
+   fully drawn, so unsupported browsers and reduced motion ship complete. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .pulseLine {
+      animation: pulse-draw linear both;
+      animation-timeline: view();
+      animation-range: entry 8% entry 70%;
+    }
+  }
+}
+
+@keyframes pulse-draw {
+  from {
+    transform: scaleX(0.12);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Vertical filmstrip under 760px: full-width frames, the amber line
+   becomes the left spine running through the covered frames. */
+@media (max-width: 760px) {
+  .stripScroller {
+    overflow: visible;
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+
+  .stripInner {
+    flex-direction: column;
+    width: auto;
+    gap: 12px;
+    padding-inline: 1.5rem;
+  }
+
+  .stripInner > .frame:first-child,
+  .stripInner > .frame:last-of-type {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .frame {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+  }
+
+  .pulseLine {
+    display: none;
+  }
+
+  .frameSpine {
+    display: block;
+    position: absolute;
+    z-index: 2;
+    left: 22px;
+    top: -12px;
+    bottom: 0;
+    width: 3px;
+    background: var(--color-signal-amber);
+    box-shadow: 0 0 12px rgba(244, 192, 49, 0.5);
+    pointer-events: none;
+  }
+
+  .frameSpineFirst {
+    top: 14px;
+    border-radius: 2px 2px 0 0;
+  }
+
+  /* The gate tick where the spine crosses into each new stage. */
+  .frameSpine::after {
+    content: '';
+    position: absolute;
+    top: 26px;
+    left: 50%;
+    width: 13px;
+    height: 2.5px;
+    transform: translateX(-50%);
+    background: var(--color-signal-amber);
+    border-radius: 2px;
+  }
+
+  .frameSpineFirst::after {
+    top: 0;
+  }
+
+  .frameNum {
+    left: 44px;
+  }
+
+  .frameText {
+    left: 44px;
+  }
+
+  .stripCaption {
+    padding-inline: 0;
+    margin-inline: 1.5rem;
+    width: auto;
+  }
+}
+
+/* ── Products: paper on ink ────────────── */
+
+.products {
+  background: var(--color-ink-900);
+  border-top: 1px solid var(--color-ink-hairline);
+  border-bottom: 1px solid var(--color-ink-hairline);
+  padding-block: clamp(5rem, 9vw, 7.5rem);
+}
+
+.productLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.04fr) minmax(0, 0.96fr);
+  gap: clamp(3rem, 6vw, 5.5rem);
+  align-items: center;
+  margin-top: clamp(2.5rem, 5vw, 3.5rem);
+}
+
+.productInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.1rem;
+}
+
+.productPill {
+  display: inline-flex;
+  align-items: center;
   font-family: var(--font-body), sans-serif;
   font-size: 0.6875rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #8a6a16;
-  background: rgba(244, 192, 49, 0.22);
-  padding: 0.2rem 0.65rem;
+  color: var(--color-signal-amber);
+  background: var(--color-signal-amber-wash);
   border-radius: 999px;
+  padding: 0.38rem 0.75rem;
 }
 
-.pulseBar {
-  position: relative;
-  width: 100%;
-  height: 8px;
-  border-radius: 999px;
-  background: rgba(244, 192, 49, 0.3);
-  overflow: hidden;
-}
-
-/* The travelling pulse: a soft amber glow sweeping the band on a slow loop. */
-.pulseGlow {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 26%;
-  border-radius: 999px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--color-background-amber) 50%,
-    transparent
-  );
-  animation: pulseTravel 4.5s ease-in-out infinite;
-}
-
-@keyframes pulseTravel {
-  0% {
-    transform: translateX(-115%);
-  }
-  100% {
-    transform: translateX(400%);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .pulseGlow {
-    animation: none;
-    left: 37%;
-    transform: none;
-  }
-}
-
-@media (max-width: 760px) {
-  .track {
-    grid-template-columns: 1fr;
-    row-gap: 0;
-  }
-  .trackStage {
-    flex-direction: row;
-    align-items: flex-start;
-    text-align: left;
-    gap: 1rem;
-    padding: 0.5rem 0;
-  }
-  .trackStage:not(:first-child)::before {
-    display: none;
-  }
-  /* Vertical connector down from each node to the next. */
-  .trackStage:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    top: 23px;
-    left: 22px;
-    width: 2px;
-    height: 100%;
-    background: var(--color-accent-3-light-grey-blue);
-    z-index: 0;
-  }
-  .trackNode {
-    margin-bottom: 0;
-    flex: 0 0 auto;
-  }
-  .trackLabel {
-    padding-top: 0.85rem;
-  }
-  /* The band flows full-width below the stacked stages. */
-  .pulseBand {
-    grid-column: 1;
-    grid-row: auto;
-    margin-top: 1.75rem;
-  }
-}
-
-/* ─────────────────────────────────────────
-   Products — single PULSE coming-soon card
-───────────────────────────────────────── */
-
-.products {
-  background-color: var(--color-surface-section);
-  padding-block: 6rem;
-  border-top: 1px solid var(--color-border);
-}
-
-/* Two-column product block: the PULSE pitch beside a preview of what it
-   produces. Stacks on small screens. */
-.productLayout {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2.25rem;
-  align-items: center;
-  margin-top: 1rem;
-}
-
-@media (min-width: 880px) {
-  .productLayout {
-    grid-template-columns: 1.05fr 0.95fr;
-    gap: 3rem;
-  }
-}
-
-/* White, with a soft shadow, so the card reads as a distinct surface rather
-   than cream on cream. */
-.productCard {
-  background-color: #ffffff;
-  border: 1px solid var(--color-border);
-  border-radius: 14px;
-  padding: clamp(1.5rem, 3vw, 2rem);
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-  box-shadow: 0 8px 32px rgba(55, 97, 131, 0.07);
+.productHeading {
+  font-size: clamp(2.5rem, 4.6vw, 3.5rem);
+  letter-spacing: 0.02em;
+  color: var(--color-on-ink-primary);
 }
 
 .productLede {
   font-family: var(--font-heading), sans-serif;
-  font-size: 1.05rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  letter-spacing: 0.005em;
-  color: var(--color-accent-1-deep-blue);
-  margin: 0;
+  letter-spacing: -0.01em;
+  color: var(--color-signal-amber);
+}
+
+.productBody {
+  font-family: var(--font-body), sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: var(--color-on-ink-secondary);
+  max-width: 54ch;
 }
 
 .productCtas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem 1rem;
-  align-items: center;
-  margin-top: 0.4rem;
+  margin-top: 0.9rem;
 }
 
 .productPreview {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.85rem;
+  position: relative;
+  justify-self: center;
 }
 
-.productPreviewCaption {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
-  color: var(--color-accent-2-grey-blue);
-  text-align: center;
-}
-
-/* ── Brief preview (the real BriefDocument, scaled into a paper frame) ──
-   The marketing preview renders the actual brief component from a sample
-   model, scaled down inside a clipped frame so the genuine document peeks in.
-   Decorative (aria-hidden); the live brief lives in the app. */
 .briefPreview {
-  width: 100%;
-  max-width: 432px;
+  position: relative;
 }
 
 .briefViewport {
   position: relative;
+  width: 100%;
+  max-width: 432px;
   height: 656px;
   overflow: hidden;
-  border-radius: 12px;
-  border: 1px solid var(--color-border);
+  border-radius: 10px;
   background: #ffffff;
-  box-shadow: 0 14px 44px rgba(40, 75, 102, 0.16);
+  box-shadow: var(--shadow-ink);
 }
 
-/* The brief renders at a fixed desktop width, then scales to fit the frame.
-   The top-left origin keeps the navy header pinned to the corner. */
 .briefScale {
   position: absolute;
   top: 0;
@@ -663,143 +822,161 @@
   transform-origin: top left;
 }
 
-/* Soft fade so the clipped foot reads as "the document continues", not a cut. */
 .briefFade {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 64px;
+  height: 72px;
   background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #ffffff);
   pointer-events: none;
 }
 
-@media (max-width: 480px) {
-  .briefPreview {
-    max-width: 332px;
+/* The lock seal: the one amber mark on the paper. */
+.briefSeal {
+  position: absolute;
+  top: -13px;
+  right: 22px;
+  z-index: 2;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.71875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-ink-950);
+  background: var(--color-signal-amber);
+  border-radius: 6px;
+  padding: 0.4rem 0.7rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+.productPreviewCaption {
+  margin-top: 1.1rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  color: var(--color-on-ink-secondary);
+  text-align: center;
+}
+
+.productsFootline {
+  margin-top: clamp(3rem, 6vw, 4.5rem);
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-ink-hairline);
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  color: var(--color-on-ink-secondary);
+  max-width: 52ch;
+}
+
+@media (max-width: 1024px) {
+  .productLayout {
+    grid-template-columns: minmax(0, 1fr);
   }
+
+  .productPreview {
+    justify-self: start;
+  }
+}
+
+@media (max-width: 560px) {
   .briefViewport {
     height: 500px;
   }
+
   .briefScale {
     transform: scale(0.46);
   }
 }
 
-.productPill {
-  display: inline-flex;
-  align-self: flex-start;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 5px 11px;
-  border-radius: 999px;
-  background-color: var(--color-accent-3-light-grey-blue);
-  color: var(--color-accent-1-deep-blue);
-}
-
-.productHeading {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 2rem;
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.015em;
-  color: var(--color-accent-1-deep-blue);
-  margin: 0;
-}
-
-.productBody {
-  font-family: var(--font-body), sans-serif;
-  font-size: 1rem;
-  line-height: 1.6;
-  color: var(--color-accent-1-deep-blue);
-  margin: 0;
-}
-
-.productsFootline {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9375rem;
-  line-height: 1.55;
-  color: var(--color-accent-2-grey-blue);
-  margin-top: 2rem;
-  max-width: 560px;
-}
-
-/* ─────────────────────────────────────────
-   Pilot — design-partner programme (Section 8)
-───────────────────────────────────────── */
+/* ── Design partner ────────────────────── */
 
 .pilot {
-  background-color: var(--color-surface-hero);
-  padding-block: 6rem;
+  position: relative;
+  background: var(--color-ink-950);
+  padding-block: clamp(5.5rem, 10vw, 8rem) clamp(5rem, 9vw, 7rem);
+  overflow: hidden;
+}
+
+.pilotMedia {
+  position: absolute;
+  inset: 0;
+}
+
+.pilotImg {
+  object-fit: cover;
+  filter: saturate(0.55) brightness(0.85);
+}
+
+.pilotMedia::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(11, 20, 30, 0.94) 0%,
+    rgba(11, 20, 30, 0.86) 45%,
+    rgba(11, 20, 30, 0.95) 100%
+  );
+}
+
+.pilotInner {
+  position: relative;
+  z-index: 1;
 }
 
 .pilotSub {
+  margin-top: 1.25rem;
   font-family: var(--font-body), sans-serif;
-  font-size: 1.125rem;
-  line-height: 1.55;
-  color: #284b66;
-  max-width: 660px;
-  margin-bottom: 3rem;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--color-on-ink-secondary);
+  max-width: 56ch;
 }
 
 .pilotBlocks {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
-  margin-bottom: 3.5rem;
-}
-
-@media (min-width: 720px) {
-  .pilotBlocks {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  margin-top: clamp(2.5rem, 5vw, 3.5rem);
 }
 
 .pilotBlock {
-  padding-top: 1.25rem;
-  border-top: 2px solid var(--color-accent-1-deep-blue);
+  border-top: 1px solid var(--color-ink-hairline-strong);
+  padding-top: 1.2rem;
 }
 
 .pilotBlockHeading {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 1.125rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: #284b66;
-  margin-bottom: 0.65rem;
+  font-size: 1.0625rem;
+  color: var(--color-on-ink-primary);
 }
 
 .pilotBlockBody {
+  margin-top: 0.6rem;
   font-family: var(--font-body), sans-serif;
-  font-size: 1rem;
+  font-size: 0.9375rem;
   line-height: 1.6;
-  /* Darker navy, full opacity: 16px body needs AA contrast on amber. */
-  color: #284b66;
+  color: var(--color-on-ink-secondary);
 }
 
-/* Form */
 .pilotFormWrap {
-  max-width: 540px;
-  margin-inline: auto;
+  display: flex;
+  justify-content: center;
+  margin-top: clamp(3rem, 6vw, 4rem);
 }
 
+/* The form card is a paper moment: the application is a document. */
 .pilotFormCard {
-  background-color: var(--color-foreground-cream);
-  border: 1px solid var(--color-border);
-  border-radius: 16px;
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  box-shadow: 0 8px 32px rgba(55, 97, 131, 0.08);
+  width: min(560px, 100%);
+  background: #ffffff;
+  border-radius: 14px;
+  padding: clamp(1.5rem, 4vw, 2.25rem);
+  box-shadow: var(--shadow-ink);
 }
 
 .pilotForm {
-  display: contents; /* children participate in the card's flex flow */
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
 }
 
 .inputWrap {
@@ -810,175 +987,147 @@
 
 .formLabel {
   font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--color-accent-1-deep-blue);
 }
 
 .textInput {
-  width: 100%;
-  height: 48px;
-  padding: 0 0.9rem;
-  border: 1px solid var(--color-input-border);
-  border-radius: 8px;
   font-family: var(--font-body), sans-serif;
-  font-size: 1rem;
-  background-color: var(--color-input-bg);
-  color: var(--color-input-text);
-  transition: border-color var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out);
-  outline: none;
-  appearance: none;
-  -webkit-appearance: none;
+  font-size: 0.9375rem;
+  color: var(--color-accent-1-deep-blue);
+  background: var(--color-foreground-cream);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.7rem 0.85rem;
+  width: 100%;
 }
 
 .textInput::placeholder {
-  color: var(--color-input-placeholder);
+  color: var(--color-accent-2-grey-blue);
 }
 
-/* Focus blooms a soft ring so the field feels responsive the instant it is
-   selected, not just a flat border swap. */
-.textInput:focus {
-  border-color: var(--color-input-focus);
-  box-shadow: 0 0 0 3px rgba(55, 97, 131, 0.13);
+.textInput:focus-visible {
+  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline-offset: 1px;
+  border-color: var(--color-accent-1-deep-blue);
 }
 
 select.textInput {
-  /* Native chevron via background image — keeps the field consistent
-     with text inputs while still indicating it's a selector. */
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'><path d='M1 1l5 5 5-5' stroke='%237793A8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23376183' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 1rem center;
-  padding-right: 2.5rem;
-  cursor: pointer;
-}
-
-.inputError {
-  border-color: var(--color-error);
+  background-position: right 0.85rem center;
+  padding-right: 2.4rem;
 }
 
 .errorMsg {
   font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
+  font-weight: 500;
   color: var(--color-error);
 }
 
 .successMsg {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.9rem;
   font-family: var(--font-body), sans-serif;
   font-size: 0.9375rem;
-  line-height: 1.4;
+  line-height: 1.5;
   color: var(--color-accent-1-deep-blue);
-  font-weight: 500;
+  padding-block: 0.5rem;
+}
+
+.successMsg svg {
+  flex: none;
 }
 
 .pilotNote {
+  margin-top: 1.1rem;
   font-family: var(--font-body), sans-serif;
   font-size: 0.8125rem;
-  color: var(--color-accent-2-grey-blue);
+  font-weight: 500;
   line-height: 1.5;
-  text-align: center;
+  color: var(--color-accent-1-deep-blue);
 }
 
-/* ─────────────────────────────────────────
-   Footer
-───────────────────────────────────────── */
+@media (max-width: 700px) {
+  .pilotBlocks {
+    grid-template-columns: 1fr;
+    gap: 1.4rem;
+  }
+}
+
+/* ── Footer ────────────────────────────── */
 
 .footer {
-  background-color: var(--color-surface-cta-band);
-  padding-block: 3rem 2rem;
-  color: var(--color-text-inverse);
+  background: var(--color-ink-950);
+  border-top: 1px solid var(--color-ink-hairline);
+  padding-block: 3.5rem 2.5rem;
 }
 
 .footerTop {
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid var(--color-divider-on-dark);
-}
-
-@media (min-width: 640px) {
-  .footerTop {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: flex-start;
-  }
+  flex-wrap: wrap;
 }
 
 .footerBrand {
-  max-width: 360px;
+  max-width: 420px;
 }
 
 .footerWordmark {
-  display: block;
   font-family: var(--font-heading), sans-serif;
+  font-size: 1.4rem;
   font-weight: 800;
-  font-size: 36px;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  color: var(--color-text-inverse);
-  margin-bottom: 1rem;
-}
-
-.footerTagline {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 1.125rem;
-  font-weight: 800;
-  line-height: 1.25;
-  color: var(--color-text-inverse);
-  margin-bottom: 0.4rem;
+  color: var(--color-on-ink-primary);
 }
 
 .footerSubTagline {
+  margin-top: 0.5rem;
   font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
-  font-weight: 400;
-  color: rgba(242, 240, 244, 0.7);
-  line-height: 1.5;
+  font-size: 0.9375rem;
+  color: var(--color-on-ink-secondary);
+  max-width: 38ch;
 }
 
 .footerLinks {
   display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-  align-items: flex-start;
-}
-
-@media (min-width: 640px) {
-  .footerLinks {
-    align-items: flex-end;
-  }
+  align-items: center;
+  gap: 1.75rem;
+  flex-wrap: wrap;
 }
 
 .footerLink {
   font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: rgba(242, 240, 244, 0.85);
-  transition: color 0.15s ease;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-on-ink-secondary);
+  transition: color var(--dur-fast) var(--ease-out);
 }
 
 .footerLink:hover,
 .footerLink:focus-visible {
-  color: var(--color-text-inverse);
+  color: var(--color-signal-amber);
 }
 
 .footerLink:focus-visible {
-  outline: 2px solid rgba(242, 240, 244, 0.5);
-  outline-offset: 2px;
+  outline: 2px solid var(--color-signal-amber);
+  outline-offset: 4px;
   border-radius: 2px;
 }
 
 .footerBottom {
+  margin-top: 2.5rem;
   padding-top: 1.5rem;
+  border-top: 1px solid var(--color-ink-hairline);
 }
 
 .footerCopy {
   font-family: var(--font-body), sans-serif;
   font-size: 0.8125rem;
-  font-weight: 400;
-  color: rgba(242, 240, 244, 0.6);
+  color: var(--color-on-ink-secondary);
 }

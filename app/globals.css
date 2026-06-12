@@ -1,5 +1,5 @@
 /* ─────────────────────────────────────────────────────────
-   Flitrr — Design tokens, fonts, and base typography.
+   Flitrr: Design tokens, fonts, and base typography.
    Locked palette per LANDING_ASSET_MAP.md Part D.
 ───────────────────────────────────────────────────────── */
 
@@ -12,7 +12,7 @@
 }
 
 :root {
-  /* Raw palette — locked brand colours */
+  /* Raw palette: locked brand colours */
   --color-background-amber:         #F4C031;
   --color-foreground-cream:         #F2F0F4;
   --color-accent-1-deep-blue:       #376183;
@@ -67,6 +67,48 @@
   /* UI-only error token (for form validation) */
   --color-error: #B02A37;
 
+  /* Criticality ochre: amber's text-safe sibling. One meaning everywhere:
+     the thing that matters. Promoted from per-module hardcodes. */
+  --color-ochre: #8A6A16;
+
+  /* ── Ink theme: the marketing ground ──────────────────────
+     The brand navy pushed to a near-black ramp. The marketing
+     surfaces stand on ink; the product app stays on the light
+     tokens above. Amber is reserved for signal on ink: the
+     pulse line, criticality, the primary CTA. */
+  --color-ink-950: #0B141E;  /* page ground */
+  --color-ink-900: #101C29;  /* raised band */
+  --color-ink-800: #142435;  /* card on ink */
+  --color-ink-700: #1D3349;  /* elevated edge / hover */
+
+  --color-on-ink-primary:   #EDF1F5;  /* body text on ink */
+  --color-on-ink-secondary: #A9BCCC;  /* supporting text on ink */
+  --color-on-ink-faint:     #6E8499;  /* metadata on ink, large/label use only */
+
+  --color-ink-hairline:        rgba(237, 241, 245, 0.12);
+  --color-ink-hairline-strong: rgba(237, 241, 245, 0.22);
+
+  --color-signal-amber:       var(--color-background-amber);
+  --color-signal-amber-deep:  #D9A61F;
+  --color-signal-amber-wash:  rgba(244, 192, 49, 0.12);
+
+  /* Photo grade: every photograph on ink takes the same dusk
+     treatment so mixed sources read as one shoot. */
+  --grade-top:    rgba(11, 20, 30, 0.10);
+  --grade-bottom: rgba(11, 20, 30, 0.62);
+  --grade-amber:  rgba(244, 192, 49, 0.07);
+
+  /* Shadows: the one card shadow recipe, tokenised. Ink gets a
+     deeper, tighter recipe of its own. */
+  --shadow-card:       0 8px 32px rgba(55, 97, 131, 0.06);
+  --shadow-card-hover: 0 10px 36px rgba(55, 97, 131, 0.12);
+  --shadow-ink:        0 24px 64px rgba(0, 0, 0, 0.45);
+
+  /* Critical cards in the app: a full border and a faint wash
+     replace the old 3px side-stripe. Amber still means one thing. */
+  --color-critical-card-border: rgba(212, 165, 39, 0.55);
+  --color-critical-card-bg: #FFFCF4;
+
   /* Watermark opacities */
   --opacity-watermark-faint: 0.10;
   --opacity-watermark-soft:  0.15;
@@ -75,7 +117,15 @@
 
   /* Layout */
   --container: 1200px;
+  --container-wide: 1360px; /* photographic bands breathe wider */
   --section-py: 5rem;
+}
+
+/* Tabular figures for money, dates, and stage numerals: the
+   instrument voice. Apply to any element that sets numbers. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
 }
 
 /* ── Base ──────────────────────────────────────────────── */
@@ -167,18 +217,18 @@ p {
    mount-entrance utilities, and global press feedback. CSS only,
    no library: transitions and animations run off the main thread
    and never ship content blank if JS fails. Curves and timings
-   follow Emil Kowalski's design-engineering guidance — stronger
+   follow Emil Kowalski's design-engineering guidance: stronger
    than the CSS built-ins, short, and always motivated.
 ───────────────────────────────────────────────────────── */
 
 :root {
-  /* Easing — with intent, not the weak built-ins. */
+  /* Easing: with intent, not the weak built-ins. */
   --ease-out:      cubic-bezier(0.23, 1, 0.32, 1);   /* enter/exit UI feedback */
   --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);    /* reveals, larger moves */
   --ease-in-out:   cubic-bezier(0.77, 0, 0.175, 1);  /* on-screen movement */
   --ease-drawer:   cubic-bezier(0.32, 0.72, 0, 1);   /* sheets, dropdowns */
 
-  /* Durations — UI stays snappy, under ~300ms. */
+  /* Durations: UI stays snappy, under ~300ms. */
   --dur-press: 130ms;
   --dur-fast:  180ms;
   --dur-base:  240ms;

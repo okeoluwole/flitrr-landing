@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { createClient } from '../lib/supabase/server';
 import HomeNav from './components/HomeNav';
 import HomeDesignPartner from './components/HomeDesignPartner';
@@ -67,41 +68,47 @@ const SAMPLE_BRIEF_STATE = {
 function Hero() {
   return (
     <section className={styles.hero} aria-labelledby="hero-heading">
-      <div className="container">
-        <div className={styles.heroContent}>
-          <h1
-            id="hero-heading"
-            className={`${styles.heroHeading} riseIn`}
-          >
-            One platform. End-to-end property development lifecycle solutions.
-          </h1>
-          <p
-            className={`${styles.heroSub} riseIn`}
-            style={{ '--rise-delay': '80ms' }}
-          >
-            Built for independent and SME real estate developers.
-          </p>
-          <div
-            className={`${styles.heroCtas} riseIn`}
-            style={{ '--rise-delay': '160ms' }}
-          >
-            <a href="#design-partner" className={styles.btnPrimary}>
-              Become a design partner
-            </a>
-            <a href="/pulse" className={styles.heroCtaSecondary}>
-              See how PULSE works
-              <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true">
-                <path
-                  d="M3 8h9M8.5 4l4 4-4 4"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.75"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </a>
-          </div>
+      <div className={styles.heroMedia} aria-hidden="true">
+        <Image
+          src="/images/hero-crane-dusk.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className={styles.heroImg}
+        />
+      </div>
+      <div className={`container ${styles.heroContent}`}>
+        <h1 id="hero-heading" className={`${styles.heroHeading} riseIn`}>
+          One platform for the whole property development lifecycle.
+        </h1>
+        <p
+          className={`${styles.heroSub} riseIn`}
+          style={{ '--rise-delay': '80ms' }}
+        >
+          Built for independent and SME real estate developers in the UK and
+          Nigeria. From the land you secure to the asset you sell.
+        </p>
+        <div
+          className={`${styles.heroCtas} riseIn`}
+          style={{ '--rise-delay': '160ms' }}
+        >
+          <a href="#design-partner" className={styles.btnPrimary}>
+            Become a design partner
+          </a>
+          <a href="/pulse" className={styles.btnGhost}>
+            See how PULSE works
+            <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true">
+              <path
+                d="M3 8h9M8.5 4l4 4-4 4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </a>
         </div>
       </div>
     </section>
@@ -109,123 +116,139 @@ function Hero() {
 }
 
 // The eight lifecycle stages (the PULSE framework, Section 4), land to
-// disposal. The stages are the universal developer lifecycle; PULSE is shown
-// as an overlay spanning the delivery arc (Stage 1 to 7), not a single stage.
-// Each stage carries a simple line icon.
+// disposal, each carried by a graded photograph. PULSE covers the delivery
+// arc, stages 1 to 7: the amber pulse line runs through those frames, and
+// every tick on it is a gate. Swap any frame for real project photography by
+// replacing the file in /public/images/lifecycle (see CREDITS.md).
 const LIFECYCLE_STAGES = [
   {
+    n: '0',
     label: 'Land & acquisition',
-    paths: (
-      <>
-        <path d="M12 21.5c3.8-4.3 5.8-7.3 5.8-10.5a5.8 5.8 0 1 0-11.6 0c0 3.2 2 6.2 5.8 10.5z" />
-        <circle cx="12" cy="10.8" r="2.1" />
-      </>
-    ),
+    desc: 'Secure the site, clear the title.',
+    img: '/images/lifecycle/land.jpg',
+    alt: 'Open land at sunset, before acquisition',
+    covered: false,
   },
   {
+    n: '1',
     label: 'Objectives & funding',
-    paths: (
-      <>
-        <circle cx="12" cy="12" r="7.5" />
-        <circle cx="12" cy="12" r="3.3" />
-      </>
-    ),
+    desc: 'Classify what cannot move. Confirm the money.',
+    img: '/images/lifecycle/signing.jpg',
+    alt: 'Signing the funding agreement',
+    covered: true,
   },
   {
+    n: '2',
     label: 'Consultant appointment',
-    paths: (
-      <>
-        <circle cx="12" cy="8.5" r="3.2" />
-        <path d="M5.8 19.5a6.2 6.2 0 0 1 12.4 0" />
-      </>
-    ),
+    desc: 'Scope and appoint the professional team.',
+    img: '/images/lifecycle/consultants.jpg',
+    alt: 'An architect working over drawings',
+    covered: true,
   },
   {
+    n: '3',
     label: 'Design & approvals',
-    paths: (
-      <>
-        <path d="M5 19l1.2-4.2L16 5l3 3-9.8 9.8L5 19z" />
-        <path d="M14.2 6.8l3 3" />
-      </>
-    ),
+    desc: 'Freeze the design. Secure permission.',
+    img: '/images/lifecycle/drafting.jpg',
+    alt: 'Hands drafting against a timber scale rule',
+    covered: true,
   },
   {
+    n: '4',
     label: 'Contractor procurement',
-    paths: (
-      <>
-        <path d="M7 3.5h6.5L18 8v12.5H7z" />
-        <path d="M13.5 3.5V8H18" />
-        <path d="M9.5 13h6M9.5 16h4" />
-      </>
-    ),
+    desc: 'Tender, negotiate, execute the contract.',
+    img: '/images/lifecycle/crew.jpg',
+    alt: 'A crew mobilised on rebar columns',
+    covered: true,
   },
   {
+    n: '5',
     label: 'Construction',
-    paths: (
-      <>
-        <path d="M3.5 17.5h17" />
-        <path d="M5.5 17.5a6.5 6.5 0 0 1 13 0" />
-        <path d="M12 6.5v4.5" />
-        <path d="M9.5 11h5" />
-      </>
-    ),
+    desc: 'Build it. Watch cost, time and quality.',
+    img: '/images/lifecycle/cranes.jpg',
+    alt: 'Tower cranes over a scaffolded structure',
+    covered: true,
   },
   {
+    n: '6',
     label: 'Completion & handover',
-    paths: (
-      <>
-        <circle cx="8" cy="11.5" r="3.3" />
-        <path d="M11.2 11.5H20" />
-        <path d="M16.5 11.5v3" />
-        <path d="M19 11.5v2.4" />
-      </>
-    ),
+    desc: 'Practical completion, snagging, final accounts.',
+    img: '/images/lifecycle/handover.jpg',
+    alt: 'A finished home at dusk with the lights on',
+    covered: true,
   },
   {
+    n: '7',
     label: 'Sales & disposal',
-    paths: (
-      <>
-        <path d="M20 4.5h-7L4.5 13l6.5 6.5L20 11z" />
-        <circle cx="16.2" cy="8.3" r="1.3" />
-      </>
-    ),
+    desc: 'Realise the value. Close the loop.',
+    img: '/images/lifecycle/sales.jpg',
+    alt: 'An apartment block at blue hour, windows lit',
+    covered: true,
   },
 ];
 
-function LifecycleTrack() {
+function Filmstrip() {
   return (
-    <div
-      className={styles.track}
-      role="list"
-      aria-label="The eight stages of a development project, from land to disposal"
-    >
-      {LIFECYCLE_STAGES.map((stage) => (
-        <div key={stage.label} role="listitem" className={styles.trackStage} data-reveal>
-          <span className={styles.trackNode}>
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-              className={styles.trackIcon}
+    <div className={styles.strip}>
+      <div
+        className={styles.stripScroller}
+        role="region"
+        aria-label="The eight stages of a development project, from land to disposal"
+        tabIndex={0}
+      >
+        <div className={styles.stripInner} role="list">
+          {LIFECYCLE_STAGES.map((stage, i) => (
+            <figure
+              key={stage.n}
+              role="listitem"
+              className={`${styles.frame} ${stage.covered ? styles.frameCovered : ''}`}
+              data-reveal
             >
-              {stage.paths}
-            </svg>
-          </span>
-          <span className={styles.trackLabel}>{stage.label}</span>
-        </div>
-      ))}
+              <Image
+                src={stage.img}
+                alt={stage.alt}
+                fill
+                sizes="(max-width: 760px) 100vw, 320px"
+                className={styles.frameImg}
+              />
+              {stage.covered && (
+                <span
+                  className={`${styles.frameSpine} ${i === 1 ? styles.frameSpineFirst : ''}`}
+                  aria-hidden="true"
+                />
+              )}
+              <span className={styles.frameNum} aria-hidden="true">
+                {stage.n}
+              </span>
+              <figcaption className={styles.frameText}>
+                <span className={styles.frameLabel}>{stage.label}</span>
+                <span className={styles.frameDesc}>{stage.desc}</span>
+              </figcaption>
+            </figure>
+          ))}
 
-      {/* PULSE coverage: it runs the delivery arc, Stage 1 through 7. */}
-      <div className={styles.pulseBand} aria-hidden="true">
-        <span className={styles.pulseBandLabel}>PULSE</span>
-        <span className={styles.pulseBar}>
-          <span className={styles.pulseGlow} />
-        </span>
+          {/* PULSE coverage: the line runs the delivery arc, stages 1 to 7,
+              with a gate tick at each stage boundary. */}
+          <div className={styles.pulseLine} aria-hidden="true">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <span
+                key={i}
+                className={styles.pulseTick}
+                style={{ '--i': i }}
+              />
+            ))}
+          </div>
+        </div>
       </div>
+
+      <p className={styles.stripCaption} data-reveal>
+        <span className={styles.captionSwatch} aria-hidden="true" />
+        <span>
+          The amber line is PULSE: it runs the delivery arc, stages 1 to 7.
+          Every tick is a gate, a deliberate go or no-go before the next stage
+          begins.
+        </span>
+      </p>
     </div>
   );
 }
@@ -242,33 +265,32 @@ function Lifecycle() {
           From land to disposal, end to end.
         </h2>
         <p className={styles.lifecycleSub} data-reveal>
-          A development project runs through eight stages, each gated before the
-          next begins. PULSE covers the delivery arc, stages one to seven: set
-          the project up properly, then monitor what matters from there.
+          A development project runs through eight stages, each gated before
+          the next begins. PULSE covers the delivery arc, stages one to seven:
+          set the project up properly, then monitor what matters from there.
         </p>
-
-        <div className={styles.lifecycleTrackWrap}>
-          <LifecycleTrack />
-        </div>
       </div>
+
+      <Filmstrip />
     </section>
   );
 }
 
 // The marketing preview: the real BriefDocument, assembled from the sample
 // project above and rendered into a scaled, clipped paper frame so the genuine
-// locked brief peeks in. This is the actual product component (the skill's
-// "real component preview"), not a div replica, so it never drifts from what
-// the app produces. Decorative and aria-hidden; the brief's own text is read
-// in context inside the app, not here.
+// locked brief sits on the ink like a signed document. This is the actual
+// product component, not a div replica, so it never drifts from what the app
+// produces. Decorative and aria-hidden; the brief's own text is read in
+// context inside the app, not here.
 //
 // To pin a static exported image instead (e.g. a PDF page captured from the
 // app's Download PDF), replace the inner BriefDocument with a next/image
-// pointing at the asset; the frame and caption stay as they are.
+// pointing at the asset; the frame, seal, and caption stay as they are.
 function BriefPreview() {
   const model = assembleBrief(SAMPLE_BRIEF_STATE);
   return (
     <div className={styles.briefPreview} aria-hidden="true">
+      <span className={styles.briefSeal}>Baseline locked, v1</span>
       <div className={styles.briefViewport}>
         <div className={styles.briefScale}>
           <BriefDocument
@@ -300,7 +322,7 @@ function Products() {
         </h2>
 
         <div className={styles.productLayout}>
-          <article className={styles.productCard} data-reveal>
+          <article className={styles.productInfo} data-reveal>
             <span className={styles.productPill}>Live for design partners</span>
             <h3 className={styles.productHeading}>PULSE</h3>
             <p className={styles.productLede}>Defined. Classified. Monitored.</p>
@@ -327,8 +349,8 @@ function Products() {
         </div>
 
         <p className={styles.productsFootline} data-reveal>
-          More products on the way. Each will tackle a different stage of
-          the development lifecycle.
+          More products on the way. Each will tackle a different stage of the
+          development lifecycle.
         </p>
       </div>
     </section>
@@ -349,6 +371,15 @@ function Footer() {
           <div className={styles.footerLinks}>
             <a href="mailto:hello@flitrr.com" className={styles.footerLink}>
               hello@flitrr.com
+            </a>
+            <a
+              href="https://www.linkedin.com/company/flitrr/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.footerLink}
+              aria-label="Flitrr on LinkedIn (opens in new tab)"
+            >
+              LinkedIn
             </a>
             <a href="/privacy" className={styles.footerLink}>
               Privacy
@@ -393,7 +424,7 @@ export default async function Home() {
         Skip to content
       </a>
       <HomeNav user={navUser} />
-      <main id="main-content">
+      <main id="main-content" className={styles.main}>
         <Hero />
         <Lifecycle />
         <Products />

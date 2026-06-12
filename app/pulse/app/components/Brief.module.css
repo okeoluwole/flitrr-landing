@@ -217,7 +217,7 @@
 
 .gateBadgeReq {
   background: rgba(244, 192, 49, 0.18);
-  color: #8a6a16;
+  color: var(--color-ochre);
 }
 
 .gateBadgeRec {
@@ -393,7 +393,7 @@
   --hair-2: #d7dbe2;     /* stronger hairline */
   --panel: #f8f9fb;      /* subtle panel fill */
   --amber: var(--color-background-amber); /* criticality accent */
-  --ochre: #8a6a16;      /* amber as text, legible on white */
+  --ochre: var(--color-ochre);      /* amber as text, legible on white */
 
   background: #ffffff;
   border: 1px solid var(--hair);

@@ -17,7 +17,7 @@
 
 /* Local amber-as-text, legible on cream/white. Matches the brief's ochre. */
 .page {
-  --ochre: #8a6a16;
+  --ochre: var(--color-ochre);
 }
 
 .backLink {
@@ -49,10 +49,8 @@
 
 .eyebrow {
   font-family: var(--font-body), sans-serif;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
   color: var(--color-accent-2-grey-blue);
   margin-bottom: 0.5rem;
 }
@@ -161,11 +159,10 @@
 /* The over-constraint caution carries an amber left rule, the brief's one
    accent, so it reads as a caution and not an error. */
 .itemCaution {
-  border-left: 3px solid var(--color-background-amber);
-  background: rgba(244, 192, 49, 0.07);
-  border-radius: 0 6px 6px 0;
+  border: 1px solid var(--color-critical-card-border);
+  background: var(--color-critical-card-bg);
+  border-radius: 8px;
   padding: 0.85rem 1rem;
-  margin-left: -0.25rem;
 }
 
 /* ── Acknowledgement ───────────────────── */
@@ -256,8 +253,7 @@
 
 .passedCard {
   background: #fff;
-  border: 1px solid var(--color-border);
-  border-left: 3px solid var(--color-background-amber);
+  border: 1px solid var(--color-critical-card-border);
   border-radius: 12px;
   padding: 1.6rem 1.75rem;
 }
