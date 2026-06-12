@@ -7,6 +7,10 @@ import { CLASSIFICATION_LABELS } from '../components/objectiveMeta';
 import { cascadeCriticality } from '../components/listStepConfig';
 import { STATUS_OPTIONS, isCritical, isDone, sortActions } from './actionModel';
 import { deriveRiskItems, buildTrackedActionFromRisk } from './actionFeed';
+import {
+  splitProposals,
+  buildActionFromPlay,
+} from '../../../../lib/playbook/playbookModel';
 import styles from './ActionLog.module.css';
 
 /**
@@ -49,6 +53,10 @@ const DELETE_ERROR =
   'We could not delete that action. Please check your connection and try again.';
 const TRACK_ERROR =
   'We could not track that risk. Please check your connection and try again.';
+const ACCEPT_PLAY_ERROR =
+  'We could not add that suggestion. Please check your connection and try again.';
+const DISMISS_PLAY_ERROR =
+  'We could not dismiss that suggestion. Please check your connection and try again.';
 
 const CRITICALITY_LABEL = { critical: 'Critical', standard: 'Standard' };
 
@@ -115,6 +123,7 @@ export default function ActionLog({
   initialActions,
   objectives,
   risks,
+  playSuggestions,
 }) {
   const supabase = createClient();
   const [actions, setActions] = useState(initialActions);
@@ -122,6 +131,12 @@ export default function ActionLog({
   // Promotion in flight (one at a time; the band is a response surface, not
   // a bulk tool).
   const [promotingId, setPromotingId] = useState(null);
+
+  // The PULSE suggests band (M7.4): plays acted on this session leave the
+  // band immediately; the server already excluded previously acted pairs.
+  const [actedPlayIds, setActedPlayIds] = useState(() => new Set());
+  const [actingPlayId, setActingPlayId] = useState(null);
+  const [showAllPlays, setShowAllPlays] = useState(false);
 
   // The inline add flow.
   const [draftDescription, setDraftDescription] = useState('');
@@ -152,6 +167,14 @@ export default function ActionLog({
   // without a reload. Risk status changes happen in the register, so those
   // arrive on the next visit.
   const needsResponse = deriveRiskItems(risks, actions);
+
+  // The live suggestions: the server's proposals minus the ones acted on
+  // this session, top five up front, the rest behind Show all.
+  const livePlays = (playSuggestions ?? []).filter(
+    (s) => !actedPlayIds.has(s.playId)
+  );
+  const { top: topPlays, rest: restPlays } = splitProposals(livePlays);
+  const visiblePlays = showAllPlays ? livePlays : topPlays;
 
   // What the cascade will default a new action to, shown in the add flow at
   // the moment of linking. The default at creation only; never re-applied.
@@ -211,6 +234,67 @@ export default function ActionLog({
       setActions((as) => [data, ...as]);
     }
     setPromotingId(null);
+  };
+
+  // Add to log (M7.4): accept a suggested play. The tracked action lands
+  // and the suggestion leaves the band in the same interaction; the state
+  // row is what keeps it gone on the next visit. One at a time, like
+  // promotion.
+  const acceptPlay = async (suggestion) => {
+    if (actingPlayId) return;
+    setActingPlayId(suggestion.playId);
+    setError(null);
+
+    const { data, error: insErr } = await supabase
+      .from('project_actions')
+      .insert(buildActionFromPlay(suggestion, projectId))
+      .select(ACTION_COLUMNS)
+      .single();
+
+    if (insErr || !data) {
+      setError(ACCEPT_PLAY_ERROR);
+      setActingPlayId(null);
+      return;
+    }
+
+    const { error: stateErr } = await supabase
+      .from('project_playbook_state')
+      .insert({
+        project_id: projectId,
+        play_id: suggestion.playId,
+        state: 'accepted',
+      });
+
+    // The action exists either way; surface a save problem rather than
+    // leaving the developer guessing why the suggestion may return later.
+    if (stateErr) setError(SAVE_ERROR);
+
+    setActions((as) => [data, ...as]);
+    setActedPlayIds((ids) => new Set(ids).add(suggestion.playId));
+    setActingPlayId(null);
+  };
+
+  // Dismiss (M7.4): records dismissed for this project. Dismissed stays
+  // dismissed; no re-nagging.
+  const dismissPlay = async (suggestion) => {
+    if (actingPlayId) return;
+    setActingPlayId(suggestion.playId);
+    setError(null);
+
+    const { error: stateErr } = await supabase
+      .from('project_playbook_state')
+      .insert({
+        project_id: projectId,
+        play_id: suggestion.playId,
+        state: 'dismissed',
+      });
+
+    if (stateErr) {
+      setError(DISMISS_PLAY_ERROR);
+    } else {
+      setActedPlayIds((ids) => new Set(ids).add(suggestion.playId));
+    }
+    setActingPlayId(null);
   };
 
   // Optimistic write: apply locally, persist, revert on failure. Status,
@@ -344,6 +428,48 @@ export default function ActionLog({
     );
   };
 
+  // One suggested play in the PULSE suggests band (M7.4): the title, the
+  // why line in full (the why is the knowledge transfer; never truncated),
+  // a Critical chip when this project's classification derives it critical,
+  // and the two one-tap responses.
+  const renderPlaySuggestion = (s) => {
+    const acting = actingPlayId === s.playId;
+
+    return (
+      <article key={s.playId} className={styles.pushItem}>
+        {s.criticality === 'critical' && (
+          <div className={styles.pushTags}>
+            <span className={`${styles.chip} ${styles.chipCritical}`}>
+              Critical
+            </span>
+          </div>
+        )}
+        <p className={styles.playTitle}>{s.title}</p>
+        <p className={styles.why}>{s.why}</p>
+        <div className={styles.pushActions}>
+          <button
+            type="button"
+            className={styles.primaryBtn}
+            onClick={() => acceptPlay(s)}
+            disabled={actingPlayId !== null}
+            aria-label={`Add to log: ${s.title}`}
+          >
+            {acting ? 'Adding' : 'Add to log'}
+          </button>
+          <button
+            type="button"
+            className={styles.ghostBtn}
+            onClick={() => dismissPlay(s)}
+            disabled={actingPlayId !== null}
+            aria-label={`Dismiss: ${s.title}`}
+          >
+            Dismiss
+          </button>
+        </div>
+      </article>
+    );
+  };
+
   const renderCard = (a) => {
     const critical = isCritical(a);
     const linkedName = objectiveName(a.linked_objective_id);
@@ -382,6 +508,9 @@ export default function ActionLog({
               >
                 From risk
               </Link>
+            )}
+            {a.source === 'playbook' && (
+              <span className={styles.fromPlaybook}>From playbook</span>
             )}
           </div>
         </div>
@@ -539,6 +668,33 @@ export default function ActionLog({
         <p className={styles.bandQuiet}>
           Nothing needs your response right now.
         </p>
+      )}
+
+      {/* The PULSE suggests band (M7.4), below needs-your-response:
+          stage-keyed curated action plays, top five up front. When none
+          remain it is simply gone: suggestions are offered knowledge, not
+          a status. */}
+      {livePlays.length > 0 && (
+        <section
+          className={`${styles.band} ${styles.suggestBand}`}
+          aria-labelledby="pulse-suggests"
+        >
+          <h2 id="pulse-suggests" className={styles.bandHeading}>
+            PULSE suggests
+          </h2>
+          <div className={styles.bandList}>
+            {visiblePlays.map(renderPlaySuggestion)}
+          </div>
+          {!showAllPlays && restPlays.length > 0 && (
+            <button
+              type="button"
+              className={`${styles.ghostBtn} ${styles.showAll}`}
+              onClick={() => setShowAllPlays(true)}
+            >
+              Show all ({livePlays.length})
+            </button>
+          )}
+        </section>
       )}
 
       <div className={styles.summary}>

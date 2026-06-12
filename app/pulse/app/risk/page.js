@@ -3,16 +3,23 @@ import Link from 'next/link';
 import { createClient } from '../../../../lib/supabase/server';
 import DashboardShell from '../../../components/DashboardShell';
 import { OBJECTIVE_META } from '../components/objectiveMeta';
+import { deriveProposals } from '../../../../lib/playbook/playbookModel';
 import RiskRegister from './RiskRegister';
 import styles from './RiskRegister.module.css';
 
 /**
- * /pulse/app/risk - the Risk module register (M6.1).
+ * /pulse/app/risk - the Risk module register (M6.1 + M7.4).
  *
  * The living risk register: the project's risks, scored in plain language,
  * given a status and a one-line response, reviewed, and closed. It reads the
  * live project_risks rows (the same rows the wizard captured), not the frozen
  * Brief snapshot, because it is a working surface.
+ *
+ * M7.4 adds the suggestions area: curated risk plays for the project's
+ * current stage, derived critical or standard by the project's own objective
+ * classification, added to the register or dismissed with one tap. An
+ * accepted play becomes an ordinary project_risks row (not yet reviewed) and
+ * behaves as any risk from there.
  *
  * Availability mirrors the M5 baseline-read pattern: monitoring opens only
  * once the gate has committed the baseline, so the section is gated on
@@ -111,21 +118,35 @@ export default async function RiskPage({ searchParams }) {
     );
   }
 
-  // The living register rows and the objectives they link to. Oldest first,
-  // a stable base order the register's sort keeps for ties.
-  const [{ data: risks }, { data: objectives }] = await Promise.all([
-    supabase
-      .from('project_risks')
-      .select(
-        'id, description, criticality, linked_objective_id, likelihood, impact, status, last_reviewed_at, response_note'
-      )
-      .eq('project_id', project.id)
-      .order('created_at', { ascending: true }),
-    supabase
-      .from('project_objectives')
-      .select('id, objective_type, classification')
-      .eq('project_id', project.id),
-  ]);
+  // The living register rows, the objectives they link to, and the playbook
+  // surface: the curated risk plays for this stage (ordered by slug, the
+  // stable tiebreak under the criticality sort) plus the pairs this project
+  // has already acted on. Risks oldest first, a stable base order the
+  // register's sort keeps for ties.
+  const [{ data: risks }, { data: objectives }, { data: plays }, { data: playStates }] =
+    await Promise.all([
+      supabase
+        .from('project_risks')
+        .select(
+          'id, description, criticality, linked_objective_id, likelihood, impact, status, last_reviewed_at, response_note'
+        )
+        .eq('project_id', project.id)
+        .order('created_at', { ascending: true }),
+      supabase
+        .from('project_objectives')
+        .select('id, objective_type, classification')
+        .eq('project_id', project.id),
+      supabase
+        .from('playbook_plays')
+        .select('id, slug, type, stage, title, why, objective, always_critical')
+        .eq('stage', project.current_stage)
+        .eq('type', 'risk')
+        .order('slug', { ascending: true }),
+      supabase
+        .from('project_playbook_state')
+        .select('play_id')
+        .eq('project_id', project.id),
+    ]);
 
   // Map each objective id to the name and classification the register shows
   // for "the objective it threatens".
@@ -137,6 +158,20 @@ export default async function RiskPage({ searchParams }) {
     };
   }
 
+  // The suggestions area's proposals (M7.4): stage-keyed risk plays not yet
+  // accepted or dismissed, each derived critical or standard by this
+  // project's own classification.
+  const byType = Object.fromEntries(
+    (objectives ?? []).map((o) => [o.objective_type, o])
+  );
+  const playSuggestions = deriveProposals({
+    plays: plays ?? [],
+    states: playStates ?? [],
+    currentStage: project.current_stage,
+    type: 'risk',
+    objectivesByType: byType,
+  });
+
   return (
     <DashboardShell user={navUser}>
       <RiskRegister
@@ -145,6 +180,7 @@ export default async function RiskPage({ searchParams }) {
         workspaceHref={workspaceHref}
         initialRisks={risks ?? []}
         objectivesById={objectivesById}
+        playSuggestions={playSuggestions}
       />
     </DashboardShell>
   );

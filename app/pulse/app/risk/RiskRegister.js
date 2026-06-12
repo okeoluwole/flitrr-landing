@@ -11,18 +11,30 @@ import {
   sortRisks,
   isCritical,
 } from './riskModel';
+import {
+  splitProposals,
+  buildRiskFromPlay,
+} from '../../../../lib/playbook/playbookModel';
 import styles from './RiskRegister.module.css';
 
 /**
- * RiskRegister (M6.1) - the living register, the default view of the Risk
- * section. Lists the project's risks, each scored in plain language, given a
- * status and a one-line response, reviewed, and closed.
+ * RiskRegister (M6.1 + M7.4) - the living register, the default view of the
+ * Risk section. Lists the project's risks, each scored in plain language,
+ * given a status and a one-line response, reviewed, and closed.
  *
  * Every developer action (scoring, status, note) writes to project_risks and
  * stamps last_reviewed_at to now (M6.2 reads that timestamp). Writes are
  * optimistic: the change shows immediately and reverts on a failure. Severity
  * is derived, never stored. The critical count reuses the Brief's definition
  * (the criticality column) so it agrees with the Brief's Critical risks KPI.
+ *
+ * M7.4 adds the suggestions area: curated risk plays for the current stage,
+ * each derived critical or standard by this project's own classification,
+ * with Add to register and Dismiss. An accepted play becomes an ordinary
+ * register row (medium and medium by the register's default convention, not
+ * yet reviewed) and behaves as any risk from there, including qualifying for
+ * the Action Log's needs-your-response band. The register's own behaviour is
+ * otherwise untouched.
  *
  * Out of scope here (M6.2): the attention surface, the posture read, the
  * triggers, the all-quiet state, the starter proposal. This is the substrate.
@@ -34,8 +46,17 @@ const NOTE_PLACEHOLDER = 'Add a one-line response.';
 
 const SAVE_ERROR =
   'We could not save that change. Please check your connection and try again.';
+const ACCEPT_PLAY_ERROR =
+  'We could not add that suggestion. Please check your connection and try again.';
+const DISMISS_PLAY_ERROR =
+  'We could not dismiss that suggestion. Please check your connection and try again.';
 
 const CRITICALITY_LABEL = { critical: 'Critical', standard: 'Standard' };
+
+// The columns the page select returns; an accepted suggestion's returning
+// row carries the same shape so it renders as any other risk card.
+const RISK_COLUMNS =
+  'id, description, criticality, linked_objective_id, likelihood, impact, status, last_reviewed_at, response_note';
 
 const SEVERITY_CLASS = {
   serious: 'sevSerious',
@@ -88,6 +109,7 @@ export default function RiskRegister({
   workspaceHref,
   initialRisks,
   objectivesById,
+  playSuggestions,
 }) {
   const supabase = createClient();
   const [risks, setRisks] = useState(initialRisks);
@@ -96,6 +118,18 @@ export default function RiskRegister({
   );
   const [showClosed, setShowClosed] = useState(false);
   const [error, setError] = useState(null);
+
+  // The suggestions area (M7.4): plays acted on this session leave the area
+  // immediately; the server already excluded previously acted pairs.
+  const [actedPlayIds, setActedPlayIds] = useState(() => new Set());
+  const [actingPlayId, setActingPlayId] = useState(null);
+  const [showAllPlays, setShowAllPlays] = useState(false);
+
+  const livePlays = (playSuggestions ?? []).filter(
+    (s) => !actedPlayIds.has(s.playId)
+  );
+  const { top: topPlays, rest: restPlays } = splitProposals(livePlays);
+  const visiblePlays = showAllPlays ? livePlays : topPlays;
 
   // Critical count is over the whole set (including closed), by the Brief's
   // definition, so it equals the Brief's Critical risks KPI.
@@ -136,6 +170,106 @@ export default function RiskRegister({
     const clean = (noteDrafts[id] ?? '').trim();
     setNoteDrafts((d) => ({ ...d, [id]: clean }));
     applyUpdate(id, { response_note: clean === '' ? null : clean });
+  };
+
+  // Add to register (M7.4): accept a suggested risk play. The new row lands
+  // at the register's default convention (medium and medium, watching, not
+  // yet reviewed) and the suggestion leaves the area in the same
+  // interaction. Deliberately NOT routed through applyUpdate: accepting a
+  // suggestion is not a review, so last_reviewed_at stays null.
+  const acceptPlay = async (suggestion) => {
+    if (actingPlayId) return;
+    setActingPlayId(suggestion.playId);
+    setError(null);
+
+    const { data, error: insErr } = await supabase
+      .from('project_risks')
+      .insert(buildRiskFromPlay(suggestion, projectId))
+      .select(RISK_COLUMNS)
+      .single();
+
+    if (insErr || !data) {
+      setError(ACCEPT_PLAY_ERROR);
+      setActingPlayId(null);
+      return;
+    }
+
+    const { error: stateErr } = await supabase
+      .from('project_playbook_state')
+      .insert({
+        project_id: projectId,
+        play_id: suggestion.playId,
+        state: 'accepted',
+      });
+    if (stateErr) setError(SAVE_ERROR);
+
+    setRisks((rs) => [...rs, data]);
+    setActedPlayIds((ids) => new Set(ids).add(suggestion.playId));
+    setActingPlayId(null);
+  };
+
+  // Dismiss (M7.4): records dismissed for this project. Dismissed stays
+  // dismissed; no re-nagging.
+  const dismissPlay = async (suggestion) => {
+    if (actingPlayId) return;
+    setActingPlayId(suggestion.playId);
+    setError(null);
+
+    const { error: stateErr } = await supabase
+      .from('project_playbook_state')
+      .insert({
+        project_id: projectId,
+        play_id: suggestion.playId,
+        state: 'dismissed',
+      });
+
+    if (stateErr) {
+      setError(DISMISS_PLAY_ERROR);
+    } else {
+      setActedPlayIds((ids) => new Set(ids).add(suggestion.playId));
+    }
+    setActingPlayId(null);
+  };
+
+  // One suggested risk play: the title, the why line in full (never
+  // truncated), a Critical chip when this project's classification derives
+  // it critical, and the two one-tap responses.
+  const renderPlaySuggestion = (s) => {
+    const acting = actingPlayId === s.playId;
+
+    return (
+      <article key={s.playId} className={styles.playItem}>
+        {s.criticality === 'critical' && (
+          <div className={styles.playTags}>
+            <span className={`${styles.crit} ${styles.critCritical}`}>
+              Critical
+            </span>
+          </div>
+        )}
+        <p className={styles.playTitle}>{s.title}</p>
+        <p className={styles.why}>{s.why}</p>
+        <div className={styles.playActions}>
+          <button
+            type="button"
+            className={styles.primaryBtn}
+            onClick={() => acceptPlay(s)}
+            disabled={actingPlayId !== null}
+            aria-label={`Add to register: ${s.title}`}
+          >
+            {acting ? 'Adding' : 'Add to register'}
+          </button>
+          <button
+            type="button"
+            className={styles.ghostBtn}
+            onClick={() => dismissPlay(s)}
+            disabled={actingPlayId !== null}
+            aria-label={`Dismiss: ${s.title}`}
+          >
+            Dismiss
+          </button>
+        </div>
+      </article>
+    );
   };
 
   const renderCard = (r) => {
@@ -291,6 +425,32 @@ export default function RiskRegister({
         <p className={styles.error} role="alert">
           {error}
         </p>
+      )}
+
+      {/* The suggestions area (M7.4): stage-keyed curated risk plays, top
+          five up front. When none remain it is simply gone: suggestions are
+          offered knowledge, not a status. */}
+      {livePlays.length > 0 && (
+        <section
+          className={styles.suggestBand}
+          aria-labelledby="pulse-suggests"
+        >
+          <h2 id="pulse-suggests" className={styles.bandHeading}>
+            PULSE suggests
+          </h2>
+          <div className={styles.bandList}>
+            {visiblePlays.map(renderPlaySuggestion)}
+          </div>
+          {!showAllPlays && restPlays.length > 0 && (
+            <button
+              type="button"
+              className={`${styles.ghostBtn} ${styles.showAll}`}
+              onClick={() => setShowAllPlays(true)}
+            >
+              Show all ({livePlays.length})
+            </button>
+          )}
+        </section>
       )}
 
       {risks.length === 0 ? (

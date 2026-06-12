@@ -206,6 +206,142 @@
 
 /* ── Risk cards ────────────────────────── */
 
+/* ── PULSE suggests area (M7.4) ──────────
+   Curated risk plays offered to the project.
+   Offered knowledge, not required attention:
+   a hairline frame with no filled ground,
+   matching the Action Log's suggests band. */
+
+.suggestBand {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.1rem 1.4rem 1.4rem;
+  margin-bottom: 1.5rem;
+}
+
+.bandHeading {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--color-accent-1-deep-blue);
+  margin: 0 0 0.9rem;
+}
+
+.bandList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* One suggested play: a suggestion, not a register row. No scoring, no
+   status, just the knowledge and the two responses. */
+.playItem {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+}
+
+.playTags {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.playTitle {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--color-accent-1-deep-blue);
+  margin: 0 0 0.35rem;
+}
+
+/* The why line is the knowledge transfer: shown in full, never truncated. */
+.why {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--color-accent-2-grey-blue);
+  margin: 0 0 0.85rem;
+}
+
+.playActions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.primaryBtn {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-button-primary-text);
+  background: var(--color-button-primary-bg);
+  border: 1.5px solid var(--color-button-primary-bg);
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  transition: filter 0.18s ease, opacity 0.18s ease;
+}
+
+.primaryBtn:hover {
+  filter: brightness(0.94);
+}
+
+.primaryBtn:focus-visible {
+  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline-offset: 2px;
+}
+
+.primaryBtn:disabled {
+  opacity: 0.45;
+  cursor: default;
+  filter: none;
+}
+
+.ghostBtn {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-accent-2-grey-blue);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.ghostBtn:hover {
+  border-color: var(--color-accent-1-deep-blue);
+  color: var(--color-accent-1-deep-blue);
+}
+
+.ghostBtn:focus-visible {
+  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline-offset: 2px;
+}
+
+.ghostBtn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.showAll {
+  margin-top: 0.75rem;
+}
+
 .list {
   display: flex;
   flex-direction: column;
