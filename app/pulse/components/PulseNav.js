@@ -38,9 +38,9 @@ export default function PulseNav({ user }) {
           className={`${styles.navLinks} ${menuOpen ? styles.navLinksOpen : ''}`}
           aria-label="Primary navigation"
         >
-          <a href="#how-it-works" onClick={close}>How it works</a>
-          <a href="#modules" onClick={close}>Modules</a>
-          <a href="#faq" onClick={close}>FAQ</a>
+          <a href="#framework" onClick={close}>The Framework</a>
+          <a href="#product" onClick={close}>The product</a>
+          <a href="#playbook" onClick={close}>The playbook</a>
           {isSignedIn ? (
             <Link href="/dashboard" onClick={close}>Dashboard</Link>
           ) : (

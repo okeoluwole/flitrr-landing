@@ -38,8 +38,8 @@ export default function HomeNav({ user }) {
           aria-label="Primary navigation"
         >
           <a href="#lifecycle" onClick={close}>Lifecycle</a>
-          <a href="#products" onClick={close}>Products</a>
-          <a href="#design-partner" onClick={close}>Get involved</a>
+          <a href="#framework" onClick={close}>Flitrr Framework</a>
+          <a href="#pulse" onClick={close}>Product</a>
           {isSignedIn ? (
             <Link href="/dashboard" onClick={close}>Dashboard</Link>
           ) : (

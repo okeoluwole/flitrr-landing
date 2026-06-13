@@ -4,20 +4,9 @@ import { useState } from 'react';
 import { createClient } from '../../../lib/supabase/client';
 import styles from '../page.module.css';
 
-const DESIGN_PARTNER_BLOCKS = [
-  {
-    heading: 'What it is.',
-    body: 'A 90-day programme. Working sessions while we build PULSE module by module. First access on every release. A direct say in what gets built next.',
-  },
-  {
-    heading: 'What you give.',
-    body: 'Two real projects, two hours a week, honest feedback. A willingness to shape PULSE before it is finished.',
-  },
-  {
-    heading: 'What you get.',
-    body: 'Lifetime founding-member pricing on PULSE. Priority access to every module as it ships. A direct line to the team building the product.',
-  },
-];
+/* The design partner close. Heading and line are verbatim from the
+   agreed copy; the form is the working submission path into the
+   design_partner_submissions table and must keep its shape. */
 
 export default function PulseDesignPartner() {
   const supabase = createClient();
@@ -78,22 +67,13 @@ export default function PulseDesignPartner() {
           className={styles.sectionHeading}
           data-reveal
         >
-          Ten design partner spots. First come, first served.
+          PULSE is opening to a small group of design partners.
         </h2>
         <p className={styles.designPartnerSub} data-reveal>
-          PULSE will be shaped by the developers who use it first: direct input
-          before it launches, and first access to Project Initiation the moment
-          it ships.
+          Working developers who want delivery infrastructure shaped around
+          how they actually build. Direct line to the founder. Real influence
+          on the roadmap.
         </p>
-
-        <div className={styles.designPartnerBlocks}>
-          {DESIGN_PARTNER_BLOCKS.map(({ heading, body }) => (
-            <div key={heading} className={styles.designPartnerBlock} data-reveal>
-              <h3 className={styles.designPartnerBlockHeading}>{heading}</h3>
-              <p className={styles.designPartnerBlockBody}>{body}</p>
-            </div>
-          ))}
-        </div>
 
         <div className={styles.designPartnerFormWrap} data-reveal>
           <div className={styles.designPartnerFormCard}>
@@ -232,14 +212,10 @@ export default function PulseDesignPartner() {
                   className={`${styles.btnPrimary} ${styles.btnFullWidth}`}
                   disabled={busy}
                 >
-                  {busy ? 'Sending…' : 'Request a design partner spot'}
+                  {busy ? 'Sending…' : 'Become a design partner'}
                 </button>
               </form>
             )}
-            <p className={styles.formNote}>
-              No payment. No commitment beyond the design partner programme.
-              Ten spots total.
-            </p>
           </div>
         </div>
       </div>

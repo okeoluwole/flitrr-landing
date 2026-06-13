@@ -1,6 +1,6 @@
 const TITLE = 'PULSE. Monitoring What Matters';
 const DESCRIPTION =
-  'PULSE is the project delivery product by Flitrr. Every objective, every project: defined, classified, monitored. Built for independent and SME real estate developers.';
+  'PULSE is project delivery and programme management for independent and SME property developers. Every objective. Every project. Defined, classified, monitored.';
 const URL = 'https://flitrr.com/pulse';
 
 export const metadata = {

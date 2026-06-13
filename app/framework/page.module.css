@@ -1,0 +1,107 @@
+/* ─────────────────────────────────────────
+   /framework — a scaffolded placeholder on the ink
+   system. The full Framework positioning is owned by
+   the team; this page is the dignified shell it grows
+   into, routing visitors to the parts already public.
+───────────────────────────────────────── */
+
+.page {
+  min-height: 100vh;
+  background: var(--color-ink-950);
+  display: flex;
+  flex-direction: column;
+}
+
+.hero {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding-block: clamp(7rem, 16vh, 11rem) clamp(4rem, 9vh, 7rem);
+}
+
+.inner {
+  max-width: 62ch;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-on-ink-secondary);
+  background: rgba(237, 241, 245, 0.04);
+  border: 1px solid var(--color-ink-hairline-strong);
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem 0.35rem 0.65rem;
+}
+
+.tag::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-signal-amber);
+}
+
+.heading {
+  margin-top: 1.4rem;
+  font-size: clamp(2.6rem, 6vw, 4.2rem);
+  letter-spacing: -0.02em;
+  line-height: 1.04;
+  color: var(--color-on-ink-primary);
+  text-wrap: balance;
+}
+
+.lead {
+  margin-top: 1.25rem;
+  font-size: clamp(1.15rem, 2vw, 1.4rem);
+  line-height: 1.5;
+  color: var(--color-on-ink-primary);
+  max-width: 42ch;
+}
+
+.note {
+  margin-top: 1.5rem;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--color-on-ink-secondary);
+  max-width: 58ch;
+  text-wrap: pretty;
+}
+
+.ctas {
+  margin-top: 2.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+}
+
+.footer {
+  border-top: 1px solid var(--color-ink-hairline);
+  padding-block: 2rem;
+}
+
+.footerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.footerWordmark {
+  font-family: var(--font-heading), sans-serif;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--color-on-ink-primary);
+  text-decoration: none;
+}
+
+.footerCopy {
+  font-size: 0.85rem;
+  color: var(--color-on-ink-faint);
+}

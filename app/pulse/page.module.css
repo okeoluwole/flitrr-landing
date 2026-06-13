@@ -1,13 +1,13 @@
 /* ─────────────────────────────────────────
    PULSE product page, on the ink ground.
 
-   Same register as the Flitrr landing page:
+   Same register as the Flitrr vision page:
    ink near-black ground, photography graded
-   to dusk, cream only as paper (the gating
-   document, the form card), amber only as
-   signal. The glass and rubber spheres are
-   the one crafted dimensional moment: the
-   flagship classification made physical.
+   to dusk, cream only as paper (the Brief,
+   the proposal card, the form), amber only
+   as signal. The classification scene is
+   the page's one big interactive moment;
+   everything else stays instrument-calm.
 ───────────────────────────────────────── */
 
 .main {
@@ -23,6 +23,28 @@
   color: var(--color-on-ink-primary);
   text-wrap: balance;
   max-width: 24ch;
+}
+
+/* Skip-to-content link: off-screen until focused by keyboard. */
+.skipLink {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 100;
+  background: var(--color-signal-amber);
+  color: var(--color-ink-950);
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  transform: translateY(-200%);
+}
+
+.skipLink:focus-visible {
+  transform: none;
+  outline: 2px solid var(--color-ink-950);
+  outline-offset: 2px;
 }
 
 /* ── Buttons ───────────────────────────── */
@@ -270,7 +292,7 @@
 
 .hero {
   position: relative;
-  min-height: clamp(560px, 78svh, 760px);
+  min-height: clamp(580px, 84svh, 800px);
   display: flex;
   align-items: flex-end;
   background: var(--color-ink-950);
@@ -319,31 +341,34 @@
   padding-bottom: clamp(3.5rem, 8vh, 5.5rem);
 }
 
-.heroWordmark {
+/* The tagline opens the page: the product's standing promise. */
+.heroEyebrow {
   font-family: var(--font-heading), sans-serif;
-  font-size: clamp(3.4rem, 8.5vw, 5.75rem);
-  font-weight: 800;
-  letter-spacing: 0.03em;
-  line-height: 1;
-  color: var(--color-on-ink-primary);
-}
-
-.heroTagline {
-  margin-top: 0.9rem;
-  font-family: var(--font-heading), sans-serif;
-  font-size: clamp(1.25rem, 2.4vw, 1.625rem);
+  font-size: clamp(1.0625rem, 1.7vw, 1.25rem);
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.005em;
   color: var(--color-signal-amber);
 }
 
-.heroSentence {
-  margin-top: 1rem;
+.heroHeading {
+  margin-top: 0.9rem;
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(2.3rem, 4.8vw, 3.6rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.06;
+  color: var(--color-on-ink-primary);
+  max-width: 18ch;
+  text-wrap: balance;
+}
+
+.heroSub {
+  margin-top: 1.3rem;
   font-family: var(--font-body), sans-serif;
-  font-size: clamp(1rem, 1.5vw, 1.125rem);
+  font-size: clamp(1.0625rem, 1.6vw, 1.1875rem);
   line-height: 1.55;
   color: rgba(237, 241, 245, 0.92);
-  max-width: 46ch;
+  max-width: 52ch;
 }
 
 .heroCtas {
@@ -351,142 +376,107 @@
   align-items: center;
   gap: 0.9rem;
   flex-wrap: wrap;
-  margin-top: 2rem;
+  margin-top: 2.1rem;
 }
 
-/* ── The Wedge: glass and rubber ───────── */
+/* ── The problem: failing politely ─────── */
 
-.wedge {
+.problem {
   background: var(--color-ink-950);
-  padding-block: clamp(5rem, 9vw, 7.5rem);
+  padding-block: clamp(5rem, 9vw, 7.5rem) clamp(4rem, 7vw, 6rem);
 }
 
-.wedgeGrid {
-  display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
-  gap: clamp(2.5rem, 6vw, 5rem);
-  align-items: center;
+.problemInner {
+  max-width: 880px;
 }
 
-.wedgeCopy {
-  max-width: 56ch;
-}
-
-.wedgePara {
-  margin-top: 1.25rem;
+.problemText {
   font-family: var(--font-body), sans-serif;
-  font-size: 1.0625rem;
-  line-height: 1.65;
-  color: var(--color-on-ink-secondary);
-  max-width: 54ch;
-}
-
-.wedgePanels {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.1rem;
-}
-
-.objectivePanel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.2rem;
-  background: var(--color-ink-800);
-  border: 1px solid var(--color-ink-hairline);
-  border-radius: 14px;
-  padding: 1.75rem 1.25rem 1.5rem;
-}
-
-.objectivePanelHeading {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 1.375rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  color: var(--color-on-ink-primary);
-}
-
-.panelGlass .objectivePanelHeading {
-  color: var(--color-signal-amber);
-}
-
-/* Rubber reads quieter than glass: the hierarchy matches the
-   classification it illustrates. */
-.panelRubber .objectivePanelHeading {
-  color: var(--color-on-ink-secondary);
-}
-
-.objectiveIcon {
-  width: 104px;
-  height: 104px;
-}
-
-.objectiveList {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  width: 100%;
-}
-
-.objectiveItem {
-  position: relative;
-  padding-left: 1.1rem;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
-  line-height: 1.45;
-  color: var(--color-on-ink-secondary);
-  text-align: left;
-}
-
-.objectiveItem::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0.5em;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-ink-hairline-strong);
-}
-
-.panelGlass .objectiveItem::before {
-  background: var(--color-signal-amber);
-}
-
-.wedgeCloser {
-  margin-top: clamp(2.5rem, 5vw, 3.5rem);
-  font-family: var(--font-heading), sans-serif;
-  font-size: clamp(1.25rem, 2.4vw, 1.625rem);
-  font-weight: 800;
+  font-size: clamp(1.3rem, 2.6vw, 1.75rem);
+  font-weight: 500;
+  line-height: 1.5;
   letter-spacing: -0.01em;
-  text-align: center;
+  color: var(--color-on-ink-secondary);
+  text-wrap: pretty;
+}
+
+.problemTurn {
   color: var(--color-on-ink-primary);
+  font-weight: 600;
 }
 
-@media (max-width: 980px) {
-  .wedgeGrid {
-    grid-template-columns: 1fr;
+/* The drift made visible: a baseline that quietly leaves level, and
+   the amber mark where attention should have caught it. */
+.driftWrap {
+  margin-top: 2.6rem;
+  max-width: 620px;
+}
+
+.driftSvg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.driftBase {
+  stroke: var(--color-ink-hairline);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 7;
+  fill: none;
+}
+
+.driftPath {
+  stroke: var(--color-on-ink-faint);
+  stroke-width: 2;
+  fill: none;
+}
+
+.driftFlag {
+  fill: var(--color-signal-amber);
+}
+
+.driftHalo {
+  fill: none;
+  stroke: var(--color-signal-amber);
+  stroke-width: 1;
+  opacity: 0.45;
+}
+
+/* The drift draws itself as it scrolls into view; base state is fully
+   drawn so unsupported browsers and reduced motion ship complete. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .driftPath {
+      stroke-dasharray: 1;
+      stroke-dashoffset: 0;
+      animation: drift-draw linear both;
+      animation-timeline: view();
+      animation-range: entry 10% entry 85%;
+    }
   }
 }
 
-@media (max-width: 560px) {
-  .wedgePanels {
-    grid-template-columns: 1fr;
+@keyframes drift-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
   }
 }
 
-/* ── The gating story ──────────────────── */
+/* ── The PULSE Framework ───────────────── */
 
-.gating {
+.framework {
   background: var(--color-ink-900);
   border-top: 1px solid var(--color-ink-hairline);
   border-bottom: 1px solid var(--color-ink-hairline);
   padding-block: clamp(5rem, 9vw, 7.5rem);
 }
 
-.gatingBody {
-  margin-top: 1.25rem;
+.frameworkIntro {
+  margin-top: 1.4rem;
   font-family: var(--font-body), sans-serif;
   font-size: 1.0625rem;
   line-height: 1.65;
@@ -494,266 +484,701 @@
   max-width: 64ch;
 }
 
-.gatingBody strong {
+.introStrong {
   color: var(--color-on-ink-primary);
-  font-weight: 700;
+  font-weight: 600;
 }
 
-.gatingFlow {
+/* The three beats of the method. */
+.beats {
   display: flex;
-  align-items: center;
-  gap: clamp(1.25rem, 3vw, 2.25rem);
-  margin-top: clamp(2.5rem, 5vw, 3.5rem);
+  flex-direction: column;
+  gap: clamp(3.5rem, 7vw, 5.5rem);
+  margin-top: clamp(3rem, 6vw, 4.5rem);
 }
 
-/* Initiation produces the document, so the primary node IS paper. */
-.gatingPrimary {
-  position: relative;
-  flex: 0 0 auto;
-  width: min(300px, 100%);
-  background: #ffffff;
-  border-radius: 10px;
-  padding: 1.6rem 1.5rem 1.4rem;
-  box-shadow: var(--shadow-ink);
-}
-
-.gatingPrimary::before {
-  content: '';
-  display: block;
-  width: 34px;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--color-signal-amber);
-  margin-bottom: 0.9rem;
-}
-
-.gatingPrimaryHeading {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 1.25rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: var(--color-accent-1-deep-blue);
-}
-
-.gatingPrimarySub {
-  margin-top: 0.45rem;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--color-accent-2-grey-blue);
-}
-
-.gatingArrowWrap {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-}
-
-.gatingArrow {
-  width: 64px;
-  height: 20px;
-  color: var(--color-signal-amber);
-  filter: drop-shadow(0 0 8px rgba(244, 192, 49, 0.45));
-}
-
-.gatingSecondaryGrid {
-  flex: 1 1 auto;
+.beat {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.9rem;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: center;
 }
 
-.gatingSecondaryCard {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
+.beatWord {
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(1.45rem, 2.6vw, 1.875rem);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--color-signal-amber);
+}
+
+.beatBody {
+  margin-top: 0.9rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: var(--color-on-ink-secondary);
+  max-width: 56ch;
+}
+
+.beatBody em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--color-on-ink-primary);
+}
+
+/* The classified beat carries the scene full-width beneath its copy. */
+.beatFull {
+  display: block;
+}
+
+.beatFull .beatBody {
+  max-width: 64ch;
+}
+
+.beatScene {
+  margin-top: clamp(1.75rem, 4vw, 2.5rem);
+}
+
+/* Defined: the stage strip as an instrument readout. */
+.definedSpine {
   background: var(--color-ink-800);
   border: 1px solid var(--color-ink-hairline);
-  border-radius: 10px;
-  padding: 0.95rem 1.1rem;
+  border-radius: 14px;
+  padding: 2rem 1.6rem 1.5rem;
+}
+
+.dsTrack {
+  position: relative;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--color-ink-hairline);
+}
+
+.dsFill {
+  position: absolute;
+  inset: 0;
+  border-radius: 2px;
+  background: var(--color-signal-amber);
+  box-shadow: 0 0 12px rgba(244, 192, 49, 0.5);
+  transform-origin: left center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .dsFill {
+      animation: ds-draw linear both;
+      animation-timeline: view();
+      animation-range: entry 12% entry 80%;
+    }
+  }
+}
+
+@keyframes ds-draw {
+  from {
+    transform: scaleX(0.08);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Gate ticks between stages: seven deliberate checkpoints. */
+.dsGate {
+  position: absolute;
+  top: 50%;
+  left: calc((var(--i) - 0.5) / 7 * 100%);
+  width: 2.5px;
+  height: 14px;
+  transform: translate(-50%, -50%);
+  border-radius: 2px;
+  background: var(--color-signal-amber);
+  box-shadow: 0 0 9px rgba(244, 192, 49, 0.5);
+}
+
+.dsNums {
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.9rem;
+  padding: 0;
+}
+
+.dsNum {
   font-family: var(--font-heading), sans-serif;
   font-size: 0.9375rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-on-ink-faint);
+}
+
+.dsCaption {
+  margin-top: 1.1rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  color: var(--color-on-ink-faint);
+}
+
+/* Monitored: two traces, attention in proportion. */
+.monitor {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  background: var(--color-ink-800);
+  border: 1px solid var(--color-ink-hairline);
+  border-radius: 14px;
+  padding: 1.6rem;
+}
+
+.traceRow {
+  display: grid;
+  grid-template-columns: 122px minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+}
+
+.traceLabel {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.78125rem;
   font-weight: 700;
+  color: var(--color-on-ink-secondary);
+}
+
+.traceLabelHot {
+  color: var(--color-signal-amber);
+}
+
+.trace {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 30px;
+  border-radius: 7px;
+  background: rgba(11, 20, 30, 0.55);
+  border: 1px solid var(--color-ink-hairline);
+  padding-inline: 10px;
+  overflow: hidden;
+}
+
+.traceTick {
+  width: 2px;
+  height: 11px;
+  border-radius: 1px;
+  background: var(--color-ink-hairline-strong);
+}
+
+.traceHot .traceTick {
+  background: var(--color-signal-amber);
+  box-shadow: 0 0 6px rgba(244, 192, 49, 0.45);
+}
+
+/* The reading sweep: monitoring as an ongoing act, not a report. */
+.sweep {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -18%;
+  width: 16%;
+  background: linear-gradient(
+    90deg,
+    rgba(237, 241, 245, 0) 0%,
+    rgba(237, 241, 245, 0.14) 50%,
+    rgba(237, 241, 245, 0) 100%
+  );
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .traceHot .sweep {
+    animation: sweep-pass 4.5s linear infinite;
+  }
+
+  .traceCool .sweep {
+    animation: sweep-pass 9s linear infinite;
+  }
+}
+
+@keyframes sweep-pass {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(740%);
+  }
+}
+
+.monitorCaption {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  color: var(--color-on-ink-faint);
+}
+
+/* The six principles: a ruled register, not a card grid. */
+.principles {
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: clamp(2rem, 5vw, 4rem);
+  margin-top: clamp(3.5rem, 7vw, 5rem);
+  padding: 0;
+}
+
+.principle {
+  border-top: 1px solid var(--color-ink-hairline-strong);
+  padding: 1.25rem 0 1.5rem;
+}
+
+.principleName {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 800;
   letter-spacing: -0.005em;
   color: var(--color-on-ink-primary);
 }
 
-.gatingSecondaryCard::before {
-  content: '';
-  flex: none;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--color-signal-amber);
-  opacity: 0.85;
-}
-
-.gatingNote {
-  margin-top: clamp(2rem, 4vw, 2.75rem);
+.principleBody {
+  margin-top: 0.5rem;
   font-family: var(--font-body), sans-serif;
   font-size: 0.9375rem;
   line-height: 1.6;
   color: var(--color-on-ink-secondary);
-  max-width: 58ch;
+  max-width: 44ch;
 }
 
-@media (max-width: 860px) {
-  .gatingFlow {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .gatingArrowWrap {
-    justify-content: center;
-  }
-
-  .gatingArrow {
-    transform: rotate(90deg);
-  }
-
-  .gatingPrimary {
-    width: 100%;
-  }
+.frameworkClose {
+  margin-top: clamp(3rem, 6vw, 4.5rem);
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(1.5rem, 3vw, 2.125rem);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  color: var(--color-on-ink-primary);
+  max-width: 26ch;
+  text-wrap: balance;
 }
 
-@media (max-width: 480px) {
-  .gatingSecondaryGrid {
+.frameworkCloseMark {
+  display: block;
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-signal-amber);
+  box-shadow: 0 0 12px rgba(244, 192, 49, 0.4);
+  margin-bottom: 1.4rem;
+}
+
+@media (max-width: 900px) {
+  .beat {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.75rem;
+  }
+
+  .principles {
     grid-template-columns: 1fr;
   }
 }
 
-/* ── The modules ───────────────────────── */
+/* ── The product walk ──────────────────── */
 
-.modules {
+.walk {
   background: var(--color-ink-950);
   padding-block: clamp(5rem, 9vw, 7.5rem);
 }
 
-.modulesSub {
-  margin-top: 1.25rem;
-  font-family: var(--font-body), sans-serif;
-  font-size: 1.0625rem;
-  line-height: 1.6;
-  color: var(--color-on-ink-secondary);
-  max-width: 58ch;
-}
-
-.moduleGrid {
+.walkBeats {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.25rem;
-  margin-top: clamp(2.5rem, 5vw, 3.5rem);
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  gap: clamp(1rem, 2.5vw, 1.75rem);
+  align-items: start;
+  margin-top: clamp(2.75rem, 5vw, 3.75rem);
 }
 
-.moduleCard {
+.walkBeat {
   display: flex;
   flex-direction: column;
-  background: var(--color-ink-800);
-  border: 1px solid var(--color-ink-hairline);
-  border-radius: 14px;
-  padding: 1.4rem 1.4rem 1.5rem;
-  transition: border-color var(--dur-fast) var(--ease-out);
+  gap: 0.85rem;
+  min-width: 0;
 }
 
-.moduleCard:hover {
-  border-color: var(--color-ink-hairline-strong);
-}
-
-/* Project Initiation leads: full row, vignette beside the copy. */
-.moduleCardFeatured {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: 1fr 1.05fr;
-  gap: clamp(1.5rem, 4vw, 2.75rem);
-  align-items: center;
-}
-
-.moduleCardBody {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.7rem;
-}
-
-.statusPill {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.75rem;
-  font-weight: 600;
-  border-radius: 999px;
-  padding: 0.32rem 0.7rem;
-}
-
-.statusPillInBuild {
-  color: var(--color-signal-amber);
-  background: var(--color-signal-amber-wash);
-}
-
-.statusPillDesigned {
-  color: var(--color-on-ink-secondary);
-  background: rgba(237, 241, 245, 0.07);
-}
-
-.statusPillPlanned {
-  color: var(--color-on-ink-faint);
-  background: transparent;
-  border: 1px solid var(--color-ink-hairline);
-}
-
-.moduleHeading {
+.beatLabel {
   font-family: var(--font-heading), sans-serif;
-  font-size: 1.375rem;
+  font-size: 1.1875rem;
   font-weight: 800;
   letter-spacing: -0.01em;
   color: var(--color-on-ink-primary);
 }
 
-.moduleBody {
+.beatText {
   font-family: var(--font-body), sans-serif;
   font-size: 0.9375rem;
   line-height: 1.6;
   color: var(--color-on-ink-secondary);
 }
 
-.moduleTagline {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9375rem;
-  font-style: italic;
-  color: var(--color-on-ink-secondary);
+.walkArrowWrap {
+  align-self: center;
+  padding-top: 2.5rem;
 }
 
-@media (max-width: 860px) {
-  .moduleGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .moduleCardFeatured {
-    grid-template-columns: 1fr;
-  }
+.walkArrow {
+  width: 44px;
+  height: 18px;
+  color: var(--color-signal-amber);
+  filter: drop-shadow(0 0 8px rgba(244, 192, 49, 0.45));
 }
 
-/* ── Module vignettes: the product's own visual language, miniature.
-      White paper panels carrying the app's real vocabulary (criticality
-      chips, status segments, severity, bars), so each module shows what
-      it is instead of a watermark. Decorative, aria-hidden. ── */
-
-.vignette {
+/* The product's own surfaces, miniature, on paper panels. */
+.panel {
   width: 100%;
   background: #ffffff;
   border-radius: 10px;
-  padding: 0.9rem 1rem;
-  margin-bottom: 1.1rem;
+  padding: 1rem 1.05rem;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.65rem;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
 }
 
-.moduleCardFeatured .vignette {
-  margin-bottom: 0;
-  padding: 1.2rem 1.25rem;
-  gap: 0.8rem;
+/* Initiation: the eight steps. */
+.vgSteps {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.vgStep {
+  flex: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 1.5px solid #c8cfd9;
+  background: #fff;
+}
+
+.vgStepDone {
+  border-color: var(--color-accent-1-deep-blue);
+  background: var(--color-accent-1-deep-blue);
+}
+
+.vgStepCurrent {
+  border-color: var(--color-ochre);
+  background: var(--color-signal-amber);
+}
+
+.vgStepLink {
+  flex: 1 1 auto;
+  height: 1.5px;
+  background: #d8dde4;
+  min-width: 6px;
+}
+
+.vgStepsCaption {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.65625rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--color-accent-2-grey-blue);
+}
+
+/* The Brief: the keystone document. */
+.vgDoc {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.vgDocTitle {
+  width: 52%;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-accent-1-deep-blue);
+  opacity: 0.85;
+}
+
+.vgDocLine {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #e8ebf0;
+}
+
+.vgDocLineShort {
+  width: 68%;
+}
+
+.vgDocSeal {
+  align-self: flex-end;
+  margin-top: 4px;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.59375rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.18rem 0.45rem;
+  border-radius: 3px;
+  background: var(--color-signal-amber);
+  color: var(--color-ink-950);
+}
+
+/* The Gate: two checks, then a decision. */
+.vgGateChecks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.vgCheck {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--color-accent-1-deep-blue);
+}
+
+.vgCheckIcon {
+  flex: none;
+  color: var(--color-accent-1-deep-blue);
+}
+
+.vgGateBar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 2px;
+}
+
+.vgStageChip {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading), sans-serif;
+  font-size: 0.78125rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-accent-1-deep-blue);
+  background: #eef0f3;
+  border-radius: 6px;
+}
+
+.vgStageNext {
+  background: rgba(244, 192, 49, 0.2);
+  color: var(--color-ochre);
+}
+
+.vgGateLine {
+  flex: 1 1 auto;
+  height: 1.5px;
+  background: #d8dde4;
+}
+
+.vgGateTick {
+  flex: none;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.59375rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.18rem 0.45rem;
+  border-radius: 3px;
+  background: var(--color-signal-amber);
+  color: var(--color-ink-950);
+}
+
+@media (max-width: 900px) {
+  .walkBeats {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.1rem;
+  }
+
+  .walkArrowWrap {
+    align-self: flex-start;
+    padding: 0 0 0 0.4rem;
+  }
+
+  .walkArrow {
+    transform: rotate(90deg);
+    width: 34px;
+  }
+}
+
+/* ── The hub: everything feeds the Action Log ── */
+
+.hub {
+  margin-top: clamp(3.5rem, 7vw, 5rem);
+}
+
+.hubGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 56px minmax(0, 1.15fr) 56px minmax(0, 0.7fr);
+  align-items: center;
+  column-gap: 0;
+}
+
+.spokes {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.spokeCard,
+.hubCard {
+  background: var(--color-ink-800);
+  border: 1px solid var(--color-ink-hairline);
+  border-radius: 14px;
+  padding: 1.2rem 1.25rem 1.3rem;
+}
+
+.spokeName,
+.hubName {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: -0.005em;
+  color: var(--color-on-ink-primary);
+}
+
+.spokeBody,
+.hubBody {
+  margin-top: 0.5rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--color-on-ink-secondary);
+}
+
+/* The centre is the one card amber claims. */
+.hubCard {
+  border-color: rgba(244, 192, 49, 0.38);
+  box-shadow: 0 0 0 1px rgba(244, 192, 49, 0.12), var(--shadow-ink);
+}
+
+.hubName {
+  font-size: 1.3125rem;
+}
+
+.hubBody {
+  font-size: 0.9375rem;
+}
+
+/* Lanes: items flowing from the modules into the log, and out to the
+   weekly digest. Pure transform animation on a 7px dot. */
+.laneCol {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2.6rem;
+  height: 100%;
+  padding-block: 2rem;
+}
+
+.lane {
+  position: relative;
+  height: 2px;
+  background: var(--color-ink-hairline);
+  border-radius: 2px;
+}
+
+.lane::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 7px;
+  height: 7px;
+  margin-top: -3.5px;
+  border-radius: 50%;
+  background: var(--color-signal-amber);
+  box-shadow: 0 0 8px rgba(244, 192, 49, 0.6);
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lane::after {
+    animation: lane-flow 2.6s linear infinite;
+    animation-delay: var(--lane-delay, 0ms);
+  }
+}
+
+/* Reduced motion: the connection still reads, statically. */
+@media (prefers-reduced-motion: reduce) {
+  .lane::after {
+    left: 50%;
+    opacity: 0.7;
+  }
+}
+
+@keyframes lane-flow {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(calc(100% * 7));
+    opacity: 0;
+  }
+}
+
+/* The digest: where critical actions land each week. */
+.digest {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.55rem;
+  background: var(--color-ink-800);
+  border: 1px solid var(--color-ink-hairline);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+}
+
+.digestIcon {
+  color: var(--color-signal-amber);
+}
+
+.digestName {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--color-on-ink-primary);
+}
+
+.digestNote {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.78125rem;
+  line-height: 1.5;
+  color: var(--color-on-ink-faint);
+}
+
+/* The hub card's own miniature: the needs-your-response band. */
+.vgBand {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 0.85rem 0.95rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+.vgBandLabel {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-ochre);
 }
 
 .vgRow {
@@ -796,25 +1221,28 @@
   flex: 0 1 56%;
 }
 
-.vgSeg {
+.vgRespond {
   flex: none;
-  display: inline-flex;
-  gap: 2px;
-  background: #fff;
-  border: 1px solid #dfe3e9;
-  border-radius: 5px;
-  padding: 2px;
-}
-
-.vgSegItem {
-  width: 16px;
-  height: 9px;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.18rem 0.45rem;
   border-radius: 3px;
-  background: transparent;
+  background: var(--color-accent-1-deep-blue);
+  color: var(--color-foreground-cream);
 }
 
-.vgSegOn {
-  background: var(--color-accent-1-deep-blue);
+/* Spoke miniatures: each module's own vocabulary, tiny. */
+.vgMini {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+  margin-bottom: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.26);
 }
 
 .vgSev {
@@ -834,92 +1262,16 @@
   color: var(--color-accent-1-deep-blue);
 }
 
-/* Initiation: the eight steps producing the document. */
-.vgSteps {
-  display: flex;
-  align-items: center;
-  gap: 0;
-}
-
-.vgStep {
-  flex: none;
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  border: 1.5px solid #c8cfd9;
-  background: #fff;
-}
-
-.vgStepDone {
-  border-color: var(--color-accent-1-deep-blue);
-  background: var(--color-accent-1-deep-blue);
-}
-
-.vgStepCurrent {
-  border-color: var(--color-ochre);
-  background: var(--color-signal-amber);
-}
-
-.vgStepLink {
-  flex: 1 1 auto;
-  height: 1.5px;
-  background: #d8dde4;
-  min-width: 8px;
-}
-
-.vgDoc {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  border: 1px solid #e3e7ec;
-  border-radius: 7px;
-  padding: 0.7rem 0.8rem;
-}
-
-.vgDocTitle {
-  width: 52%;
-  height: 8px;
-  border-radius: 4px;
-  background: var(--color-accent-1-deep-blue);
-  opacity: 0.85;
-}
-
-.vgDocLine {
-  width: 100%;
-  height: 6px;
-  border-radius: 3px;
-  background: #e8ebf0;
-}
-
-.vgDocLineShort {
-  width: 68%;
-}
-
-.vgDocSeal {
-  align-self: flex-end;
-  margin-top: 2px;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.55rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 0.16rem 0.4rem;
-  border-radius: 3px;
-  background: var(--color-signal-amber);
-  color: var(--color-ink-950);
-}
-
-/* Programme: bars against a today line. */
 .vgBars {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 6px;
   padding-block: 2px;
 }
 
 .vgBar {
-  height: 9px;
+  height: 8px;
   border-radius: 4px;
   background: #dfe3e9;
 }
@@ -938,11 +1290,10 @@
   opacity: 0.55;
 }
 
-/* Dashboard: three small figures. */
 .vgKpis {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.6rem;
+  gap: 0.5rem;
 }
 
 .vgKpi {
@@ -951,12 +1302,12 @@
   gap: 2px;
   border: 1px solid #e3e7ec;
   border-radius: 7px;
-  padding: 0.5rem 0.6rem;
+  padding: 0.45rem 0.55rem;
 }
 
 .vgKpiNum {
   font-family: var(--font-heading), sans-serif;
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   color: var(--color-accent-1-deep-blue);
@@ -976,100 +1327,94 @@
   color: var(--color-accent-2-grey-blue);
 }
 
-/* ── FAQ ───────────────────────────────── */
-
-.faq {
-  background: var(--color-ink-900);
-  border-top: 1px solid var(--color-ink-hairline);
-  padding-block: clamp(5rem, 9vw, 7rem);
-}
-
-.faqInner {
-  max-width: 760px;
-}
-
-.faqList {
-  margin-top: clamp(2rem, 4vw, 2.75rem);
-}
-
-.faqItem {
-  border-top: 1px solid var(--color-ink-hairline);
-}
-
-.faqItem:last-child {
-  border-bottom: 1px solid var(--color-ink-hairline);
-}
-
-.faqQuestion {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.25rem;
-  width: 100%;
-  background: transparent;
-  border: 0;
-  padding: 1.2rem 0.25rem;
-  text-align: left;
-  font-family: var(--font-body), sans-serif;
-  font-size: 1.0625rem;
-  font-weight: 600;
-  color: var(--color-on-ink-primary);
-  transition: color var(--dur-fast) var(--ease-out);
-}
-
-.faqQuestion:hover {
-  color: var(--color-signal-amber);
-}
-
-.faqQuestion:focus-visible {
-  outline: 2px solid var(--color-signal-amber);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-.faqIcon {
-  flex: none;
-  font-family: var(--font-body), sans-serif;
-  font-size: 1.25rem;
-  font-weight: 500;
-  color: var(--color-signal-amber);
-  transition: transform var(--dur-base) var(--ease-out);
-}
-
-.faqItemOpen .faqIcon {
-  transform: rotate(45deg);
-}
-
-.faqAnswer {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows var(--dur-slow) var(--ease-out-soft);
-}
-
-.faqItemOpen .faqAnswer {
-  grid-template-rows: 1fr;
-}
-
-.faqAnswer p {
-  overflow: hidden;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9375rem;
-  line-height: 1.65;
-  color: var(--color-on-ink-secondary);
-  max-width: 64ch;
-}
-
-.faqItemOpen .faqAnswer p {
-  padding-bottom: 1.3rem;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .faqAnswer {
-    transition: none;
+@media (max-width: 980px) {
+  .hubGrid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .faqIcon {
-    transition: none;
+  .laneCol {
+    flex-direction: row;
+    justify-content: center;
+    gap: 2.2rem;
+    height: auto;
+    padding-block: 0.4rem;
+  }
+
+  .lane {
+    width: 2px;
+    height: 38px;
+  }
+
+  .lane::after {
+    left: 50%;
+    top: 0;
+    margin-top: 0;
+    margin-left: -3.5px;
+  }
+
+  .digest {
+    justify-self: start;
+  }
+}
+
+@media (max-width: 980px) and (prefers-reduced-motion: no-preference) {
+  .lane::after {
+    animation-name: lane-flow-v;
+  }
+}
+
+@media (max-width: 980px) and (prefers-reduced-motion: reduce) {
+  .lane::after {
+    top: 50%;
+    left: 50%;
+  }
+}
+
+@keyframes lane-flow-v {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(31px);
+    opacity: 0;
+  }
+}
+
+/* ── The playbook ──────────────────────── */
+
+.playbook {
+  background: var(--color-ink-900);
+  border-top: 1px solid var(--color-ink-hairline);
+  border-bottom: 1px solid var(--color-ink-hairline);
+  padding-block: clamp(5rem, 9vw, 7.5rem);
+}
+
+.playbookGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: clamp(2.5rem, 6vw, 5rem);
+  align-items: start;
+}
+
+.playbookBody {
+  margin-top: 1.4rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: var(--color-on-ink-secondary);
+  max-width: 58ch;
+}
+
+@media (max-width: 900px) {
+  .playbookGrid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -1089,37 +1434,10 @@
   max-width: 56ch;
 }
 
-.designPartnerBlocks {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-  margin-top: clamp(2.5rem, 5vw, 3.5rem);
-}
-
-.designPartnerBlock {
-  border-top: 1px solid var(--color-ink-hairline-strong);
-  padding-top: 1.2rem;
-}
-
-.designPartnerBlockHeading {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 1.0625rem;
-  font-weight: 800;
-  color: var(--color-on-ink-primary);
-}
-
-.designPartnerBlockBody {
-  margin-top: 0.6rem;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9375rem;
-  line-height: 1.6;
-  color: var(--color-on-ink-secondary);
-}
-
 .designPartnerFormWrap {
   display: flex;
   justify-content: center;
-  margin-top: clamp(3rem, 6vw, 4rem);
+  margin-top: clamp(2.75rem, 6vw, 4rem);
 }
 
 .designPartnerFormCard {
@@ -1205,22 +1523,6 @@ select.textInput {
   font-size: 0.9375rem;
   line-height: 1.55;
   color: var(--color-accent-1-deep-blue);
-}
-
-.formNote {
-  margin-top: 1.1rem;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  line-height: 1.5;
-  color: var(--color-accent-1-deep-blue);
-}
-
-@media (max-width: 700px) {
-  .designPartnerBlocks {
-    grid-template-columns: 1fr;
-    gap: 1.4rem;
-  }
 }
 
 /* ── Footer ────────────────────────────── */

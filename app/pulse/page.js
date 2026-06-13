@@ -2,11 +2,16 @@ import Image from 'next/image';
 import { createClient } from '../../lib/supabase/server';
 import PulseNav from './components/PulseNav';
 import PulseDesignPartner from './components/PulseDesignPartner';
-import PulseFaq from './components/PulseFaq';
+import ClassificationScene from './components/ClassificationScene';
+import PlaybookDemo from './components/PlaybookDemo';
 import styles from './page.module.css';
 
 /* ─────────────────────────────────────────
-   Section 2: Hero
+   The PULSE product page. Static sections
+   are server components in this file; the
+   two interactive moments (the classification
+   scene, the playbook demo) are client
+   components in ./components/.
 ───────────────────────────────────────── */
 
 function PulseHero() {
@@ -23,24 +28,23 @@ function PulseHero() {
         />
       </div>
       <div className={`container ${styles.heroContent}`}>
-        <h1 id="hero-heading" className={`${styles.heroWordmark} riseIn`}>
-          PULSE
-        </h1>
-        <p
-          className={`${styles.heroTagline} riseIn`}
-          style={{ '--rise-delay': '80ms' }}
-        >
+        <p className={`${styles.heroEyebrow} riseIn`}>
           Monitoring What Matters.
         </p>
-        <p
-          className={`${styles.heroSentence} riseIn`}
-          style={{ '--rise-delay': '160ms' }}
-        >
+        <h1 id="hero-heading" className={`${styles.heroHeading} riseIn`} style={{ '--rise-delay': '70ms' }}>
           Every objective. Every project. Defined, classified, monitored.
+        </h1>
+        <p
+          className={`${styles.heroSub} riseIn`}
+          style={{ '--rise-delay': '150ms' }}
+        >
+          PULSE is project delivery and programme management for independent
+          and SME property developers. It makes you run your project the way
+          a seasoned programme director would, because one is built in.
         </p>
         <div
           className={`${styles.heroCtas} riseIn`}
-          style={{ '--rise-delay': '240ms' }}
+          style={{ '--rise-delay': '230ms' }}
         >
           <a href="#design-partner" className={styles.btnPrimary}>
             Become a design partner
@@ -51,189 +55,232 @@ function PulseHero() {
   );
 }
 
-/* ─────────────────────────────────────────
-   Section 3: The Wedge (glass / rubber)
-
-   The flagship classification made physical: a lit glass sphere
-   (critical: protected, amber-lit, watched) against a matte rubber
-   sphere (flexible: absorbs movement). Crafted dimensional SVG,
-   not stock; the one place the page renders its own object.
-───────────────────────────────────────── */
-
-const GLASS_OBJECTIVES = [
-  'Practical completion by 31 March',
-  'Planning consent retained',
-  'GIA at or above 4,200 m²',
-];
-
-const RUBBER_OBJECTIVES = [
-  'Bathroom tile spec',
-  'Soft-strip start date plus or minus 2 weeks',
-  'Internal door supplier',
-];
-
-function GlassSphere() {
+/* The problem: drift made visible. The dashed line is the plan; the
+   solid line is the project leaving it quietly; the amber mark is the
+   moment attention should have caught it. */
+function DriftFigure() {
   return (
-    <svg
-      viewBox="0 0 120 120"
-      xmlns="http://www.w3.org/2000/svg"
-      role="img"
-      aria-label="A glass sphere, lit from within"
-      className={styles.objectiveIcon}
-    >
-      <defs>
-        <radialGradient id="glassBody" cx="38%" cy="30%" r="75%">
-          <stop offset="0%" stopColor="#EDF1F5" stopOpacity="0.34" />
-          <stop offset="42%" stopColor="#EDF1F5" stopOpacity="0.1" />
-          <stop offset="78%" stopColor="#0B141E" stopOpacity="0.12" />
-          <stop offset="100%" stopColor="#0B141E" stopOpacity="0.3" />
-        </radialGradient>
-        <radialGradient id="glassGlow" cx="50%" cy="78%" r="55%">
-          <stop offset="0%" stopColor="#F4C031" stopOpacity="0.85" />
-          <stop offset="55%" stopColor="#F4C031" stopOpacity="0.22" />
-          <stop offset="100%" stopColor="#F4C031" stopOpacity="0" />
-        </radialGradient>
-        <linearGradient id="glassRim" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#EDF1F5" stopOpacity="0.9" />
-          <stop offset="50%" stopColor="#EDF1F5" stopOpacity="0.25" />
-          <stop offset="100%" stopColor="#F4C031" stopOpacity="0.6" />
-        </linearGradient>
-      </defs>
-      {/* Amber pooling beneath: the light it casts on the ground. */}
-      <ellipse cx="60" cy="106" rx="30" ry="5" fill="#F4C031" opacity="0.22" />
-      <circle cx="60" cy="56" r="40" fill="url(#glassBody)" />
-      <circle cx="60" cy="56" r="40" fill="url(#glassGlow)" />
-      <circle
-        cx="60"
-        cy="56"
-        r="39.25"
-        fill="none"
-        stroke="url(#glassRim)"
-        strokeWidth="1.5"
-      />
-      {/* Specular highlight. */}
-      <ellipse
-        cx="46"
-        cy="38"
-        rx="12"
-        ry="6.5"
-        fill="#EDF1F5"
-        opacity="0.55"
-        transform="rotate(-28 46 38)"
-      />
-      {/* Refracted base caustic. */}
-      <ellipse cx="62" cy="84" rx="14" ry="4.5" fill="#F4C031" opacity="0.4" />
-    </svg>
+    <div className={styles.driftWrap} aria-hidden="true">
+      <svg
+        viewBox="0 0 600 86"
+        className={styles.driftSvg}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path className={styles.driftBase} d="M0 18 H600" />
+        <path
+          className={styles.driftPath}
+          pathLength="1"
+          d="M0 18 C 140 18, 220 19, 300 30 C 380 41, 470 62, 600 74"
+        />
+        <circle className={styles.driftHalo} cx="300" cy="30" r="9" />
+        <circle className={styles.driftFlag} cx="300" cy="30" r="3.5" />
+      </svg>
+    </div>
   );
 }
 
-function RubberSphere() {
+function PulseProblem() {
   return (
-    <svg
-      viewBox="0 0 120 120"
-      xmlns="http://www.w3.org/2000/svg"
-      role="img"
-      aria-label="A matte rubber sphere"
-      className={styles.objectiveIcon}
+    <section
+      className={styles.problem}
+      aria-label="The problem PULSE exists to solve"
     >
-      <defs>
-        <radialGradient id="rubberBody" cx="36%" cy="28%" r="80%">
-          <stop offset="0%" stopColor="#4A7196" />
-          <stop offset="55%" stopColor="#2C4A66" />
-          <stop offset="100%" stopColor="#16273A" />
-        </radialGradient>
-      </defs>
-      <ellipse cx="60" cy="106" rx="28" ry="5" fill="#000000" opacity="0.35" />
-      <circle cx="60" cy="56" r="40" fill="url(#rubberBody)" />
-      {/* Soft matte highlight, no gloss. */}
-      <ellipse
-        cx="47"
-        cy="39"
-        rx="13"
-        ry="7"
-        fill="#EDF1F5"
-        opacity="0.14"
-        transform="rotate(-26 47 39)"
-      />
-    </svg>
-  );
-}
-
-function Wedge() {
-  return (
-    <section className={styles.wedge} aria-labelledby="wedge-heading">
       <div className="container">
-        <div className={styles.wedgeGrid}>
-          <div className={styles.wedgeCopy} data-reveal>
-            <h2 id="wedge-heading" className={styles.sectionHeading}>
-              Most PM tools track everything. PULSE monitors what matters.
-            </h2>
-            <p className={styles.wedgePara}>
-              Most project management tools treat every task, action, and
-              milestone as equal weight. They give you a long list of things
-              to track, and you decide what&rsquo;s urgent. The result is
-              noise. The catastrophic items get blindsided by the trivial
-              ones, and the trivial ones consume your morning.
-            </p>
-            <p className={styles.wedgePara}>
-              PULSE works differently. Every project objective gets
-              classified. Glass-ball means critical, the project breaks if
-              you miss it. Rubber-ball means it matters, but the project
-              can absorb it. That single classification changes what gets
-              flagged, what gets escalated, and what gets quietly tracked.
-              No other PM tool does this.
-            </p>
+        <div className={styles.problemInner} data-reveal>
+          <p className={styles.problemText}>
+            A development can fail politely. No single disaster, just a
+            hundred small drifts nobody was watching: objectives blur, the
+            baseline moves, a critical risk goes unreviewed for months.{' '}
+            <span className={styles.problemTurn}>
+              PULSE is built so that what matters cannot drift quietly.
+            </span>
+          </p>
+          <DriftFigure />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── The PULSE Framework ───────────────── */
+
+function DefinedSpine() {
+  return (
+    <div className={styles.definedSpine} aria-hidden="true">
+      <div className={styles.dsTrack}>
+        <div className={styles.dsFill} />
+        {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+          <span key={i} className={styles.dsGate} style={{ '--i': i }} />
+        ))}
+      </div>
+      <ol className={styles.dsNums}>
+        {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+          <li key={i} className={`${styles.dsNum} tnum`}>
+            {i}
+          </li>
+        ))}
+      </ol>
+      <p className={styles.dsCaption}>
+        Eight stages, land to disposal. Every tick is a gate.
+      </p>
+    </div>
+  );
+}
+
+function MonitorTraces() {
+  return (
+    <div className={styles.monitor} aria-hidden="true">
+      <div className={styles.traceRow}>
+        <span className={`${styles.traceLabel} ${styles.traceLabelHot}`}>
+          Non-negotiable
+        </span>
+        <span className={`${styles.trace} ${styles.traceHot}`}>
+          {Array.from({ length: 18 }, (_, i) => (
+            <span key={i} className={styles.traceTick} />
+          ))}
+          <span className={styles.sweep} />
+        </span>
+      </div>
+      <div className={styles.traceRow}>
+        <span className={styles.traceLabel}>Flexible</span>
+        <span className={`${styles.trace} ${styles.traceCool}`}>
+          {Array.from({ length: 5 }, (_, i) => (
+            <span key={i} className={styles.traceTick} />
+          ))}
+          <span className={styles.sweep} />
+        </span>
+      </div>
+      <p className={styles.monitorCaption}>
+        Monitoring intensity follows the classification.
+      </p>
+    </div>
+  );
+}
+
+const PRINCIPLES = [
+  {
+    name: 'Staged delivery with gates.',
+    body: 'Every stage transition is a deliberate go or no-go decision, never an automatic slide.',
+  },
+  {
+    name: 'Objective criticality.',
+    body: 'Every objective is classified by the consequence of compromise, set once, at the start.',
+  },
+  {
+    name: 'Cascading classification.',
+    body: 'Criticality flows down from objectives to milestones, risks, and workstreams. Nothing inherits more protection than the objective it serves.',
+  },
+  {
+    name: 'Locked baseline.',
+    body: 'The Brief is version-locked and becomes the single shared truth. Change is explicit and re-approved, never by drift.',
+  },
+  {
+    name: 'Proportional monitoring and escalation.',
+    body: 'Monitoring intensity scales with criticality, and escalation rules are agreed before pressure arrives, not negotiated under it.',
+  },
+  {
+    name: 'Tailoring within discipline.',
+    body: 'The framework adapts to project type and geography. The principles never do.',
+  },
+];
+
+function Framework() {
+  return (
+    <section
+      id="framework"
+      className={styles.framework}
+      aria-labelledby="framework-heading"
+    >
+      <div className="container">
+        <h2 id="framework-heading" className={styles.sectionHeading} data-reveal>
+          The PULSE Framework.
+        </h2>
+        <p className={styles.frameworkIntro} data-reveal>
+          PULSE runs on its own delivery methodology, built specifically for
+          the developer&rsquo;s seat. The industry has plans of work organised
+          around the architect&rsquo;s workflow, and delivery methodologies
+          sized for global consultancies. The PULSE Framework is built around
+          the developer&rsquo;s decisions, at independent and SME scale, and
+          it exists nowhere else.{' '}
+          <span className={styles.introStrong}>
+            Large developers buy this discipline from firms most independent
+            developers are priced out of. PULSE gives it to you directly.
+          </span>
+        </p>
+
+        <div className={styles.beats}>
+          <div className={styles.beat} data-reveal>
+            <div>
+              <h3 className={styles.beatWord}>Defined.</h3>
+              <p className={styles.beatBody}>
+                Eight lifecycle stages, land to disposal, each with a job and
+                a deliberate checkpoint before the next begins. Your project
+                always knows where it is.
+              </p>
+            </div>
+            <DefinedSpine />
           </div>
 
-          <div className={styles.wedgePanels} data-reveal>
-            <div className={`${styles.objectivePanel} ${styles.panelGlass}`}>
-              <h3 className={styles.objectivePanelHeading}>GLASS</h3>
-              <GlassSphere />
-              <ul className={styles.objectiveList}>
-                {GLASS_OBJECTIVES.map((item) => (
-                  <li key={item} className={styles.objectiveItem}>
-                    {item}
-                  </li>
-                ))}
-              </ul>
+          <div className={`${styles.beat} ${styles.beatFull}`} data-reveal>
+            <div>
+              <h3 className={styles.beatWord}>Classified.</h3>
+              <p className={styles.beatBody}>
+                At the start, you decide what your project cannot compromise
+                on and what can flex, across five objectives: scope, cost,
+                time, quality, funding. Some objectives are glass: drop them
+                and they shatter. Some are rubber: they can flex and recover.
+                You decide which is which, once, honestly, and that decision
+                governs everything after it.
+              </p>
             </div>
-            <div className={`${styles.objectivePanel} ${styles.panelRubber}`}>
-              <h3 className={styles.objectivePanelHeading}>RUBBER</h3>
-              <RubberSphere />
-              <ul className={styles.objectiveList}>
-                {RUBBER_OBJECTIVES.map((item) => (
-                  <li key={item} className={styles.objectiveItem}>
-                    {item}
-                  </li>
-                ))}
-              </ul>
+            <div className={styles.beatScene}>
+              <ClassificationScene />
             </div>
+          </div>
+
+          <div className={styles.beat} data-reveal>
+            <div>
+              <h3 className={styles.beatWord}>Monitored.</h3>
+              <p className={styles.beatBody}>
+                Attention in proportion to what you protected. What you said
+                cannot move is watched closely and flagged early. What has
+                room to move is watched, not fussed over. And at every stage
+                transition, one deliberate question:{' '}
+                <em>
+                  is the stage done, and is the project still the project you
+                  committed to?
+                </em>
+              </p>
+            </div>
+            <MonitorTraces />
           </div>
         </div>
 
-        <p className={styles.wedgeCloser} data-reveal>
-          Glass shatters. Rubber bounces. Know the difference.
+        <ul className={styles.principles}>
+          {PRINCIPLES.map((p) => (
+            <li key={p.name} className={styles.principle} data-reveal>
+              <h3 className={styles.principleName}>{p.name}</h3>
+              <p className={styles.principleBody}>{p.body}</p>
+            </li>
+          ))}
+        </ul>
+
+        <p className={styles.frameworkClose} data-reveal>
+          <span className={styles.frameworkCloseMark} aria-hidden="true" />
+          That is the discipline a large developer&rsquo;s project office
+          gives them. PULSE gives it to you.
         </p>
       </div>
     </section>
   );
 }
 
-/* ─────────────────────────────────────────
-   Section 4: The Gating Story
-───────────────────────────────────────── */
+/* ── The product walk ──────────────────── */
 
-const SECONDARY_MODULES = [
-  'Action Log',
-  'Risk Register',
-  'Programme Tracker',
-  'Executive Dashboard',
-];
-
-function GatingArrow() {
+function WalkArrow() {
   return (
     <svg
-      className={styles.gatingArrow}
+      className={styles.walkArrow}
       viewBox="0 0 64 20"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
@@ -250,166 +297,108 @@ function GatingArrow() {
   );
 }
 
-function GatingStory() {
+function CheckIcon() {
   return (
-    <section
-      id="how-it-works"
-      className={styles.gating}
-      aria-labelledby="gating-heading"
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      aria-hidden="true"
+      className={styles.vgCheckIcon}
     >
-      <div className="container">
-        <h2 id="gating-heading" className={styles.sectionHeading} data-reveal>
-          You start with Project Initiation. Everything else flows from
-          there.
-        </h2>
-        <p className={styles.gatingBody} data-reveal>
-          Before PULSE tracks what&rsquo;s happening, it asks you to define
-          what matters. Project Initiation is a guided 15-minute flow that
-          produces your <strong>Project Brief</strong>. The Brief is a
-          formal document setting out the project&rsquo;s vision,
-          objectives, glass-ball and rubber-ball criticality, constraints,
-          milestones, and stakeholders. Once that&rsquo;s done, the rest
-          of PULSE unlocks. The Action Log, Risk Register, Programme
-          Tracker, and Executive Dashboard all read from the Brief.
-        </p>
-
-        <div className={styles.gatingFlow} data-reveal>
-          <div className={styles.gatingPrimary}>
-            <h3 className={styles.gatingPrimaryHeading}>Project Initiation</h3>
-            <p className={styles.gatingPrimarySub}>
-              15 minutes. Generates Project Brief.
-            </p>
-          </div>
-
-          <div className={styles.gatingArrowWrap}>
-            <GatingArrow />
-          </div>
-
-          <div className={styles.gatingSecondaryGrid}>
-            {SECONDARY_MODULES.map((label) => (
-              <div key={label} className={styles.gatingSecondaryCard}>
-                {label}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <p className={styles.gatingNote} data-reveal>
-          PULSE works best when you start with Project Initiation. You can
-          configure manually if you need to. But the discipline is what
-          makes the rest of the product powerful.
-        </p>
-      </div>
-    </section>
+      <path
+        d="M2 6.5l2.6 2.5L10 3.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
-/* ─────────────────────────────────────────
-   Section 5: The Modules
+function InitiationPanel() {
+  return (
+    <div className={styles.panel} aria-hidden="true">
+      <div className={styles.vgSteps}>
+        {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+          <span key={i} style={{ display: 'contents' }}>
+            {i > 0 && <span className={styles.vgStepLink} />}
+            <span
+              className={`${styles.vgStep} ${
+                i < 4 ? styles.vgStepDone : i === 4 ? styles.vgStepCurrent : ''
+              }`}
+            />
+          </span>
+        ))}
+      </div>
+      <span className={styles.vgStepsCaption}>Eight steps, once</span>
+    </div>
+  );
+}
 
-   Each card opens with a miniature of the module's own surface,
-   drawn in the product's real visual vocabulary (criticality chips,
-   status segments, severity, bars, figures) on a white paper panel.
-   Decorative and aria-hidden; the status pill tells the truth about
-   what is built.
-───────────────────────────────────────── */
+function BriefPanel() {
+  return (
+    <div className={styles.panel} aria-hidden="true">
+      <div className={styles.vgDoc}>
+        <span className={styles.vgDocTitle} />
+        <span className={styles.vgDocLine} />
+        <span className={`${styles.vgDocLine} ${styles.vgDocLineShort}`} />
+        <span className={styles.vgDocSeal}>Baseline locked, v1</span>
+      </div>
+    </div>
+  );
+}
 
-const MODULES = [
-  {
-    name: 'Project Initiation',
-    statusLabel: 'In build. Design partners Q3 2026.',
-    statusVariant: 'inBuild',
-    vignette: 'initiation',
-    body: 'A guided 15-minute flow that produces your Project Brief. Vision, objectives, glass-ball and rubber-ball criticality, constraints, milestones, stakeholders. Exportable to PDF and Word.',
-    tagline: 'The foundation everything else builds on.',
-    featured: true,
-  },
-  {
-    name: 'Action Log',
-    statusLabel: 'Designed. Build follows Project Initiation.',
-    statusVariant: 'designed',
-    vignette: 'actions',
-    body: 'Every open action across every project, classified against the glass-ball objectives from your Brief. Flagged automatically when an action threatens a glass-ball.',
-  },
+function GatePanel() {
+  return (
+    <div className={styles.panel} aria-hidden="true">
+      <div className={styles.vgGateChecks}>
+        <span className={styles.vgCheck}>
+          <CheckIcon />
+          Stage checklist complete
+        </span>
+        <span className={styles.vgCheck}>
+          <CheckIcon />
+          Protected objectives intact
+        </span>
+      </div>
+      <div className={styles.vgGateBar}>
+        <span className={`${styles.vgStageChip} tnum`}>2</span>
+        <span className={styles.vgGateLine} />
+        <span className={styles.vgGateTick}>Go</span>
+        <span className={styles.vgGateLine} />
+        <span className={`${styles.vgStageChip} ${styles.vgStageNext} tnum`}>
+          3
+        </span>
+      </div>
+    </div>
+  );
+}
+
+const SPOKES = [
   {
     name: 'Risk Register',
-    statusLabel: 'Designed. Build to follow.',
-    statusVariant: 'designed',
+    body: 'Risks in plain language, scored with two honest questions, surfaced by criticality. The serious ones ask for a response; the quiet ones stay quiet.',
     vignette: 'risks',
-    body: 'Structured risk capture tagged to glass-ball objectives. Mitigation tracked alongside the actions that close it.',
   },
   {
     name: 'Programme Tracker',
-    statusLabel: 'Designed. Build to follow.',
-    statusVariant: 'designed',
+    body: 'The baseline against reality. Milestones, workstreams, and the variance between the plan you locked and the project you have.',
     vignette: 'programme',
-    body: 'Critical-path visibility with dependencies, float, and schedule impact. The institutional scheduler, finally built for developers without a PMO.',
   },
   {
     name: 'Executive Dashboard',
-    statusLabel: 'Planned.',
-    statusVariant: 'planned',
+    body: 'The whole project on one screen: stage, objective health, critical risks, critical actions.',
     vignette: 'dashboard',
-    body: 'Cross-project health summary. Stakeholder-specific views. The view a JV partner, lender, or board member needs in one place.',
   },
 ];
 
-function Vignette({ kind }) {
-  if (kind === 'initiation') {
-    return (
-      <div className={styles.vignette} aria-hidden="true">
-        <div className={styles.vgSteps}>
-          {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
-            <span key={i} style={{ display: 'contents' }}>
-              {i > 0 && <span className={styles.vgStepLink} />}
-              <span
-                className={`${styles.vgStep} ${
-                  i < 4 ? styles.vgStepDone : i === 4 ? styles.vgStepCurrent : ''
-                }`}
-              />
-            </span>
-          ))}
-        </div>
-        <div className={styles.vgDoc}>
-          <span className={styles.vgDocTitle} />
-          <span className={styles.vgDocLine} />
-          <span className={`${styles.vgDocLine} ${styles.vgDocLineShort}`} />
-          <span className={styles.vgDocSeal}>Baseline locked</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (kind === 'actions') {
-    return (
-      <div className={styles.vignette} aria-hidden="true">
-        <div className={styles.vgRow}>
-          <span className={`${styles.vgChip} ${styles.vgChipCritical}`}>
-            Critical
-          </span>
-          <span className={styles.vgText} />
-          <span className={styles.vgSeg}>
-            <span className={styles.vgSegItem} />
-            <span className={`${styles.vgSegItem} ${styles.vgSegOn}`} />
-            <span className={styles.vgSegItem} />
-          </span>
-        </div>
-        <div className={`${styles.vgRow} ${styles.vgRowFaded}`}>
-          <span className={styles.vgChip}>Standard</span>
-          <span className={`${styles.vgText} ${styles.vgTextShort}`} />
-          <span className={styles.vgSeg}>
-            <span className={`${styles.vgSegItem} ${styles.vgSegOn}`} />
-            <span className={styles.vgSegItem} />
-            <span className={styles.vgSegItem} />
-          </span>
-        </div>
-      </div>
-    );
-  }
-
+function SpokeVignette({ kind }) {
   if (kind === 'risks') {
     return (
-      <div className={styles.vignette} aria-hidden="true">
+      <div className={styles.vgMini} aria-hidden="true">
         <div className={styles.vgRow}>
           <span className={`${styles.vgChip} ${styles.vgChipCritical}`}>
             Critical
@@ -420,9 +409,7 @@ function Vignette({ kind }) {
         <div className={`${styles.vgRow} ${styles.vgRowFaded}`}>
           <span className={styles.vgChip}>Standard</span>
           <span className={`${styles.vgText} ${styles.vgTextShort}`} />
-          <span className={`${styles.vgSev} ${styles.vgSevQuiet}`}>
-            Watching
-          </span>
+          <span className={`${styles.vgSev} ${styles.vgSevQuiet}`}>Quiet</span>
         </div>
       </div>
     );
@@ -430,7 +417,7 @@ function Vignette({ kind }) {
 
   if (kind === 'programme') {
     return (
-      <div className={styles.vignette} aria-hidden="true">
+      <div className={styles.vgMini} aria-hidden="true">
         <div className={styles.vgBars}>
           <span className={styles.vgToday} />
           <span className={styles.vgBar} style={{ width: '72%' }} />
@@ -438,25 +425,30 @@ function Vignette({ kind }) {
             className={`${styles.vgBar} ${styles.vgBarAmber}`}
             style={{ width: '54%', marginLeft: '18%' }}
           />
-          <span className={styles.vgBar} style={{ width: '34%', marginLeft: '44%' }} />
+          <span
+            className={styles.vgBar}
+            style={{ width: '34%', marginLeft: '44%' }}
+          />
         </div>
       </div>
     );
   }
 
   return (
-    <div className={styles.vignette} aria-hidden="true">
+    <div className={styles.vgMini} aria-hidden="true">
       <div className={styles.vgKpis}>
         <span className={styles.vgKpi}>
-          <span className={styles.vgKpiNum}>12</span>
+          <span className={`${styles.vgKpiNum} tnum`}>12</span>
           <span className={styles.vgKpiLabel}>Open</span>
         </span>
         <span className={styles.vgKpi}>
-          <span className={`${styles.vgKpiNum} ${styles.vgKpiNumAmber}`}>3</span>
+          <span className={`${styles.vgKpiNum} ${styles.vgKpiNumAmber} tnum`}>
+            3
+          </span>
           <span className={styles.vgKpiLabel}>Critical</span>
         </span>
         <span className={styles.vgKpi}>
-          <span className={styles.vgKpiNum}>82%</span>
+          <span className={`${styles.vgKpiNum} tnum`}>82%</span>
           <span className={styles.vgKpiLabel}>On track</span>
         </span>
       </div>
@@ -464,62 +456,179 @@ function Vignette({ kind }) {
   );
 }
 
-function pillClassFor(variant) {
-  if (variant === 'inBuild') return styles.statusPillInBuild;
-  if (variant === 'planned') return styles.statusPillPlanned;
-  return styles.statusPillDesigned;
-}
-
-function Modules() {
+function ProductWalk() {
   return (
     <section
-      id="modules"
-      className={styles.modules}
-      aria-labelledby="modules-heading"
+      id="product"
+      className={styles.walk}
+      aria-labelledby="walk-heading"
     >
       <div className="container">
-        <h2 id="modules-heading" className={styles.sectionHeading} data-reveal>
-          Five modules. One discipline.
+        <h2 id="walk-heading" className={styles.sectionHeading} data-reveal>
+          Fifteen minutes of discipline. A lifecycle of control.
         </h2>
-        <p className={styles.modulesSub} data-reveal>
-          PULSE is being built one module at a time. Each module shares
-          the same glass-ball and rubber-ball spine. What you classify in
-          Project Initiation drives what gets flagged everywhere else.
-        </p>
 
-        <div className={styles.moduleGrid}>
-          {MODULES.map((mod) => (
-            <article
-              key={mod.name}
-              className={`${styles.moduleCard} ${
-                mod.featured ? styles.moduleCardFeatured : ''
-              }`}
-              data-reveal
-            >
-              <Vignette kind={mod.vignette} />
-              <div className={styles.moduleCardBody}>
-                <span
-                  className={`${styles.statusPill} ${pillClassFor(mod.statusVariant)}`}
-                >
-                  {mod.statusLabel}
-                </span>
-                <h3 className={styles.moduleHeading}>{mod.name}</h3>
-                <p className={styles.moduleBody}>{mod.body}</p>
-                {mod.tagline && (
-                  <p className={styles.moduleTagline}>{mod.tagline}</p>
-                )}
+        <div className={styles.walkBeats}>
+          <div className={styles.walkBeat} data-reveal>
+            <InitiationPanel />
+            <h3 className={styles.beatLabel}>Project Initiation</h3>
+            <p className={styles.beatText}>
+              A guided flow that produces your Project Brief: vision,
+              objectives, classification, constraints, milestones, risks.
+              Fifteen minutes, once.
+            </p>
+          </div>
+
+          <div className={styles.walkArrowWrap} aria-hidden="true">
+            <WalkArrow />
+          </div>
+
+          <div className={styles.walkBeat} data-reveal>
+            <BriefPanel />
+            <h3 className={styles.beatLabel}>The Brief</h3>
+            <p className={styles.beatText}>
+              The keystone document. Lock it, and it becomes the baseline
+              every module reads from. Export it, share it, hold your whole
+              team to it.
+            </p>
+          </div>
+
+          <div className={styles.walkArrowWrap} aria-hidden="true">
+            <WalkArrow />
+          </div>
+
+          <div className={styles.walkBeat} data-reveal>
+            <GatePanel />
+            <h3 className={styles.beatLabel}>The Gate</h3>
+            <p className={styles.beatText}>
+              Advancing a stage is a decision, not a date. PULSE checks the
+              work against your protected objectives before the project
+              moves.
+            </p>
+          </div>
+        </div>
+
+        {/* The modules: everything feeding the Action Log at the centre. */}
+        <div className={styles.hub}>
+          <div className={styles.hubGrid}>
+            <div className={styles.spokes}>
+              {SPOKES.map((spoke) => (
+                <article key={spoke.name} className={styles.spokeCard} data-reveal>
+                  <SpokeVignette kind={spoke.vignette} />
+                  <h3 className={styles.spokeName}>{spoke.name}</h3>
+                  <p className={styles.spokeBody}>{spoke.body}</p>
+                </article>
+              ))}
+            </div>
+
+            <div className={styles.laneCol} aria-hidden="true">
+              <span className={styles.lane} style={{ '--lane-delay': '0ms' }} />
+              <span className={styles.lane} style={{ '--lane-delay': '850ms' }} />
+              <span className={styles.lane} style={{ '--lane-delay': '1700ms' }} />
+            </div>
+
+            <article className={styles.hubCard} data-reveal>
+              <div className={styles.vgBand} aria-hidden="true">
+                <span className={styles.vgBandLabel}>Needs your response</span>
+                <div className={styles.vgRow}>
+                  <span className={`${styles.vgChip} ${styles.vgChipCritical}`}>
+                    Critical
+                  </span>
+                  <span className={styles.vgText} />
+                  <span className={styles.vgRespond}>Respond</span>
+                </div>
+                <div className={`${styles.vgRow} ${styles.vgRowFaded}`}>
+                  <span className={styles.vgChip}>Standard</span>
+                  <span className={`${styles.vgText} ${styles.vgTextShort}`} />
+                </div>
               </div>
+              <h3 className={styles.hubName}>Action Log</h3>
+              <p className={styles.hubBody}>
+                The centre of PULSE. Everything that needs you, from every
+                module, in one place, pushed by the platform and sorted by
+                what you protected. Your critical actions reach your inbox
+                weekly.
+              </p>
             </article>
-          ))}
+
+            <div className={styles.laneCol} aria-hidden="true">
+              <span className={styles.lane} style={{ '--lane-delay': '400ms' }} />
+            </div>
+
+            <div className={styles.digest} data-reveal>
+              <svg
+                width="22"
+                height="18"
+                viewBox="0 0 22 18"
+                aria-hidden="true"
+                className={styles.digestIcon}
+              >
+                <rect
+                  x="1"
+                  y="1"
+                  width="20"
+                  height="16"
+                  rx="2.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                />
+                <path
+                  d="M2 3.5l9 7 9-7"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span className={styles.digestName}>Weekly digest</span>
+              <span className={styles.digestNote}>
+                Critical actions, in your inbox
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-/* ─────────────────────────────────────────
-   Section 9: Footer
-───────────────────────────────────────── */
+/* ── The playbook ──────────────────────── */
+
+function Playbook() {
+  return (
+    <section
+      id="playbook"
+      className={styles.playbook}
+      aria-labelledby="playbook-heading"
+    >
+      <div className="container">
+        <div className={styles.playbookGrid}>
+          <div data-reveal>
+            <h2 id="playbook-heading" className={styles.sectionHeading}>
+              The knowledge you were never handed.
+            </h2>
+            <p className={styles.playbookBody}>
+              Most developers learn programme management by paying for the
+              lessons. PULSE ships with the playbook instead: at every stage,
+              it proposes the actions and risks a veteran programme director
+              would already be watching for, each one explained in a single
+              plain sentence, each one prioritised by the objectives you
+              protected. Accept with a tap, or dismiss it. Your project, your
+              call, with the experience already in the room.
+            </p>
+          </div>
+          <div data-reveal>
+            <PlaybookDemo />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Footer ────────────────────────────── */
 
 function PulseFooter() {
   return (
@@ -580,13 +689,16 @@ export default async function PulsePage() {
 
   return (
     <>
+      <a href="#main-content" className={styles.skipLink}>
+        Skip to content
+      </a>
       <PulseNav user={navUser} />
       <main id="main-content" className={styles.main}>
         <PulseHero />
-        <Wedge />
-        <GatingStory />
-        <Modules />
-        <PulseFaq />
+        <PulseProblem />
+        <Framework />
+        <ProductWalk />
+        <Playbook />
         <PulseDesignPartner />
       </main>
       <PulseFooter />

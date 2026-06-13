@@ -5,20 +5,9 @@ import Image from 'next/image';
 import { createClient } from '../../lib/supabase/client';
 import styles from '../page.module.css';
 
-const DESIGN_PARTNER_BLOCKS = [
-  {
-    heading: 'What it is',
-    body: 'A 90-day programme. Working sessions while we build. First access on release. A direct say in what we ship next.',
-  },
-  {
-    heading: 'What you give',
-    body: 'Two real projects, two hours a week, honest feedback. A willingness to shape products before they are finished.',
-  },
-  {
-    heading: 'What you get',
-    body: 'Lifetime founding-member pricing on every Flitrr product. Priority access to each product as it ships. A direct line to the team.',
-  },
-];
+/* The design partner close. Heading and line are verbatim from the
+   agreed copy; the form is the working submission path into the
+   design_partner_submissions table and must keep its shape. */
 
 export default function HomeDesignPartner() {
   const supabase = createClient();
@@ -83,26 +72,26 @@ export default function HomeDesignPartner() {
         />
       </div>
       <div className={`container ${styles.pilotInner}`}>
-        <h2 id="design-partner-heading" className={styles.sectionHeading} data-reveal>
-          Ten design partner spots. First come, first served.
-        </h2>
-        <p className={styles.pilotSub} data-reveal>
-          Flitrr will be shaped by the developers who use it first: direct
-          input into every product we ship, and first to put PULSE to work on
-          live projects.
-        </p>
+        <div className={styles.pilotSplit}>
+          <div className={styles.pilotLeft} data-reveal>
+            <h2 id="design-partner-heading" className={styles.sectionHeading}>
+              Built with developers, not just for them.
+            </h2>
+            <p className={styles.pilotSub}>
+              Flitrr is being shaped with a small group of working developers.
+              If you want the infrastructure before everyone else has it, talk
+              to us.
+            </p>
+            <p className={styles.pilotReassure}>
+              Prefer email? Reach us directly at{' '}
+              <a href="mailto:hello@flitrr.com" className={styles.pilotReassureLink}>
+                hello@flitrr.com
+              </a>
+              .
+            </p>
+          </div>
 
-        <div className={styles.pilotBlocks}>
-          {DESIGN_PARTNER_BLOCKS.map(({ heading, body }) => (
-            <div key={heading} className={styles.pilotBlock} data-reveal>
-              <h3 className={styles.pilotBlockHeading}>{heading}</h3>
-              <p className={styles.pilotBlockBody}>{body}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className={styles.pilotFormWrap} data-reveal>
-          <div className={styles.pilotFormCard}>
+          <div className={styles.pilotRight} data-reveal>
             {done ? (
               <div
                 className={`${styles.successMsg} riseInSm`}
@@ -118,12 +107,12 @@ export default function HomeDesignPartner() {
                 >
                   <circle
                     cx="20" cy="20" r="18"
-                    stroke="var(--color-accent-1-deep-blue)"
+                    stroke="var(--color-signal-amber)"
                     strokeWidth="2"
                   />
                   <path
                     d="M11 20.5l6 6 12-12"
-                    stroke="var(--color-accent-1-deep-blue)"
+                    stroke="var(--color-signal-amber)"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -237,14 +226,10 @@ export default function HomeDesignPartner() {
                   className={`${styles.btnPrimary} ${styles.btnFullWidth}`}
                   disabled={busy}
                 >
-                  {busy ? 'Sending…' : 'Request a design partner spot'}
+                  {busy ? 'Sending…' : 'Become a design partner'}
                 </button>
               </form>
             )}
-            <p className={styles.pilotNote}>
-              No payment. No commitment beyond the design partner programme.
-              Ten spots total.
-            </p>
           </div>
         </div>
       </div>

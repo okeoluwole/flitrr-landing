@@ -1,0 +1,300 @@
+/* ─────────────────────────────────────────
+   Lifecycle journey styles.
+
+   Desktop: the spine list on the left, a
+   sticky photographic viewer on the right.
+   Mobile: the viewer becomes a sticky band
+   at the top and the spine scrolls beneath
+   it, so one thumb-scroll walks the stages.
+
+   The amber line is the journey itself:
+   each stage segment lights as the journey
+   reaches it, and the tick at the top of a
+   segment marks the boundary into that
+   stage. Reached state is plain CSS classes
+   set from React, so reduced motion simply
+   removes the transitions, never the state.
+───────────────────────────────────────── */
+
+.journey {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: clamp(2.5rem, 5vw, 4.5rem);
+  align-items: start;
+  margin-top: clamp(2.5rem, 5vw, 3.75rem);
+}
+
+/* ── The spine ─────────────────────────── */
+
+.spine {
+  list-style: none;
+  order: 1;
+}
+
+.stageItem {
+  position: relative;
+  padding-left: 2.6rem;
+}
+
+/* The line: one segment per stage, lit when reached. */
+.stageItem::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--color-ink-hairline);
+  transition: background-color var(--dur-slow) var(--ease-out-soft),
+    box-shadow var(--dur-slow) var(--ease-out-soft);
+}
+
+/* The gate tick at each stage boundary (none above stage 0). */
+.stageItem:not(:first-child)::after {
+  content: '';
+  position: absolute;
+  left: 12.5px;
+  top: 0;
+  width: 15px;
+  height: 2.5px;
+  transform: translateX(-50%);
+  border-radius: 2px;
+  background: var(--color-ink-hairline-strong);
+  transition: background-color var(--dur-slow) var(--ease-out-soft),
+    box-shadow var(--dur-slow) var(--ease-out-soft);
+}
+
+.stageReached::before {
+  background: var(--color-signal-amber);
+  box-shadow: 0 0 12px rgba(244, 192, 49, 0.45);
+}
+
+.stageReached::after {
+  background: var(--color-signal-amber);
+  box-shadow: 0 0 10px rgba(244, 192, 49, 0.5);
+}
+
+.stageBtn {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  padding: 1.05rem 0 1.15rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.stageBtn:focus-visible {
+  outline: 2px solid var(--color-signal-amber);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
+.stageNum {
+  position: absolute;
+  left: 0;
+  width: 25px;
+  text-align: center;
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.6;
+  color: var(--color-on-ink-faint);
+  transition: color var(--dur-base) var(--ease-out);
+}
+
+.stageReached .stageNum {
+  color: var(--color-signal-amber);
+}
+
+.stageText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.stageName {
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(1.15rem, 1.9vw, 1.45rem);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  color: var(--color-on-ink-secondary);
+  transition: color var(--dur-base) var(--ease-out);
+  text-wrap: balance;
+}
+
+.stageDesc {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--color-on-ink-faint);
+  max-width: 38ch;
+  transition: color var(--dur-base) var(--ease-out);
+}
+
+.stageActive .stageName {
+  color: var(--color-on-ink-primary);
+}
+
+.stageActive .stageDesc {
+  color: var(--color-on-ink-secondary);
+}
+
+.stageBtn:hover .stageName {
+  color: var(--color-on-ink-primary);
+}
+
+/* ── The viewer ────────────────────────── */
+
+/* The figure is the grid item: align-self start keeps it free to
+   stick through the full height of the row the spine defines. */
+.viewer {
+  order: 2;
+  align-self: start;
+  position: sticky;
+  top: clamp(84px, 12vh, 120px);
+  height: clamp(440px, 76vh, 700px);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--color-ink-800);
+  box-shadow: var(--shadow-ink);
+  margin: 0;
+}
+
+/* Absolute layer holding the crossfading stack, so the fill images
+   have a positioned (non-sticky) parent. */
+.viewerStack {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.viewerImg {
+  object-fit: cover;
+  opacity: 0;
+  transform: scale(1.045);
+  filter: saturate(0.82) contrast(1.04) brightness(0.94);
+  transition: opacity 520ms var(--ease-in-out),
+    transform 1200ms var(--ease-out-soft);
+}
+
+.viewerImgActive {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* One dusk grade over every frame, same recipe as the rest of the site. */
+.viewerGrade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    var(--grade-top) 0%,
+    rgba(11, 20, 30, 0) 30%,
+    rgba(11, 20, 30, 0.1) 52%,
+    var(--grade-bottom) 88%
+  );
+}
+
+.viewerNum {
+  position: absolute;
+  z-index: 2;
+  top: 14px;
+  left: 22px;
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(2.6rem, 4.5vw, 3.6rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: rgba(237, 241, 245, 0.42);
+}
+
+.viewerLabel {
+  position: absolute;
+  z-index: 2;
+  left: 22px;
+  right: 22px;
+  bottom: 18px;
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(1.125rem, 1.8vw, 1.375rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: var(--color-on-ink-primary);
+  text-wrap: balance;
+}
+
+/* ── Mobile: sticky photo band, spine beneath ── */
+
+@media (max-width: 860px) {
+  .journey {
+    display: block;
+    margin-top: 2rem;
+  }
+
+  .viewer {
+    top: 68px;
+    height: clamp(250px, 40svh, 360px);
+    border-radius: 14px;
+    z-index: 5;
+  }
+
+  .viewerNum {
+    top: 10px;
+    left: 16px;
+  }
+
+  .viewerLabel {
+    left: 16px;
+    right: 16px;
+    bottom: 13px;
+  }
+
+  .spine {
+    margin-top: 1.4rem;
+  }
+
+  .stageItem {
+    padding-left: 2.35rem;
+  }
+
+  .stageBtn {
+    padding: 0.95rem 0 1.05rem;
+  }
+
+  .stageName {
+    font-size: 1.15rem;
+  }
+
+  .stageDesc {
+    font-size: 0.875rem;
+  }
+}
+
+/* The last reading position on phones sits under the sticky band, so
+   give the final stage room to reach the viewport centre while the
+   photo is still pinned. */
+@media (max-width: 860px) {
+  .spine {
+    padding-bottom: 3.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stageItem::before,
+  .stageItem::after,
+  .stageNum,
+  .stageName,
+  .stageDesc {
+    transition: none;
+  }
+
+  .viewerImg {
+    transition: none;
+    transform: none;
+  }
+}

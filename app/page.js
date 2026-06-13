@@ -2,63 +2,11 @@ import Image from 'next/image';
 import { createClient } from '../lib/supabase/server';
 import HomeNav from './components/HomeNav';
 import HomeDesignPartner from './components/HomeDesignPartner';
-import BriefDocument from './pulse/app/components/BriefDocument';
-import { assembleBrief } from './pulse/app/components/briefModel';
+import LifecycleJourney from './components/LifecycleJourney';
+import HeroMark from './components/HeroMark';
+import RubiksCube from './components/RubiksCube';
+import PulseWorkspaceDemo from './components/PulseWorkspaceDemo';
 import styles from './page.module.css';
-
-// A realistic sample project, assembled through the real brief pipeline
-// (assembleBrief) so the marketing preview renders the genuine BriefDocument
-// rather than a hand-built div mock. Decorative only; the live product sits
-// behind the login. Figures are illustrative.
-const SAMPLE_BRIEF_STATE = {
-  def: {
-    name: 'Holloway Place',
-    project_type: 'Residential',
-    category: 'New build',
-    size: '24 units',
-    location: 'Salford',
-    target_completion_date: '2027-03-31',
-    currency: 'GBP',
-    budget: '6400000',
-    projected_gdv: '9200000',
-    projected_roi: '28',
-    financial_detail_url: '',
-  },
-  ctx: {
-    strategic_rationale: 'Funded by a senior facility with developer equity.',
-    exit_strategy: '',
-    target_end_user: '',
-    strategic_alignment: '',
-  },
-  objectives: [
-    { id: 'o-scope', objective_type: 'scope', classification: 'non_negotiable', definition: '24 residential units, 4,200 m2 GIA.', tolerance: '' },
-    { id: 'o-cost', objective_type: 'cost', classification: 'non_negotiable', definition: 'Delivery within the GBP 6.4m budget.', tolerance: '' },
-    { id: 'o-time', objective_type: 'time', classification: 'flexible', definition: 'Practical completion in Q1 2027.', tolerance: 'Up to 8 weeks of slippage before sales are affected.' },
-    { id: 'o-quality', objective_type: 'quality', classification: 'flexible', definition: 'Local market specification.', tolerance: 'Internal finishes can flex to protect cost.' },
-    { id: 'o-funding', objective_type: 'funding', classification: 'non_negotiable', definition: 'Senior facility plus equity, drawn to programme.', tolerance: '' },
-  ],
-  rankOrder: ['funding', 'cost', 'scope', 'time', 'quality'],
-  lists: {
-    milestones: [
-      { name: 'Funding close', target_date: '2026-07-31', criticality: 'critical', linked_objective_id: 'o-funding' },
-      { name: 'Planning approval', target_date: '2026-09-30', criticality: 'standard', linked_objective_id: 'o-scope' },
-      { name: 'Contractor appointed', target_date: '2026-11-30', criticality: 'critical', linked_objective_id: 'o-cost' },
-      { name: 'Practical completion', target_date: '2027-03-31', criticality: 'standard', linked_objective_id: 'o-time' },
-    ],
-    workstreams: [
-      { name: 'Funding and finance', lead: 'A. Mensah', criticality: 'critical', linked_objective_id: 'o-funding' },
-      { name: 'Design and planning', lead: 'R. Okafor', criticality: 'standard', linked_objective_id: 'o-scope' },
-      { name: 'Cost and commercial', lead: 'J. Bello', criticality: 'critical', linked_objective_id: 'o-cost' },
-    ],
-    risks: [
-      { description: 'Funding tranche delayed past the construction start', likelihood: 'medium', impact: 'high', criticality: 'critical', linked_objective_id: 'o-funding', mitigation: 'Conditions tracked weekly with the lender.' },
-      { description: 'Construction costs exceed the fixed budget', likelihood: 'high', impact: 'high', criticality: 'critical', linked_objective_id: 'o-cost', mitigation: 'Two-stage tender with a held contingency.' },
-      { description: 'Planning conditions force a redesign', likelihood: 'medium', impact: 'medium', criticality: 'critical', linked_objective_id: 'o-scope', mitigation: 'Pre-application advice secured.' },
-      { description: 'Programme slips beyond the spring sales window', likelihood: 'medium', impact: 'medium', criticality: 'critical', linked_objective_id: 'o-time', mitigation: 'Float held in the early works.' },
-      { description: 'Sales slower than forecast', likelihood: 'low', impact: 'medium', criticality: 'standard', linked_objective_id: null, mitigation: 'Phased release of units.' },
-    ],
-  },
-};
 
 /* ─────────────────────────────────────────
    Static (server-renderable) sections live in this file.
@@ -78,178 +26,91 @@ function Hero() {
           className={styles.heroImg}
         />
       </div>
+      <span className={styles.heroScrim} aria-hidden="true" />
       <div className={`container ${styles.heroContent}`}>
-        <h1 id="hero-heading" className={`${styles.heroHeading} riseIn`}>
-          One platform for the whole property development lifecycle.
-        </h1>
-        <p
-          className={`${styles.heroSub} riseIn`}
-          style={{ '--rise-delay': '80ms' }}
-        >
-          Built for independent and SME real estate developers in the UK and
-          Nigeria. From the land you secure to the asset you sell.
-        </p>
-        <div
-          className={`${styles.heroCtas} riseIn`}
-          style={{ '--rise-delay': '160ms' }}
-        >
-          <a href="#design-partner" className={styles.btnPrimary}>
-            Become a design partner
-          </a>
-          <a href="/pulse" className={styles.btnGhost}>
-            See how PULSE works
-            <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true">
-              <path
-                d="M3 8h9M8.5 4l4 4-4 4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </a>
+        <div className={styles.heroCopy}>
+          <h1 id="hero-heading" className={`${styles.heroHeading} riseIn`}>
+            One platform for the whole property development lifecycle.
+          </h1>
+          <p
+            className={`${styles.heroSub} riseIn`}
+            style={{ '--rise-delay': '80ms' }}
+          >
+            Practical delivery solutions for independent and SME property
+            developers, from land acquisition to asset disposal.
+          </p>
+        </div>
+        <HeroMark className={styles.heroMark} />
+      </div>
+    </section>
+  );
+}
+
+function Problem() {
+  return (
+    <section className={styles.problem} aria-label="The problem Flitrr exists to solve">
+      <div className="container">
+        <div className={styles.problemInner} data-reveal>
+          <span className={styles.problemMark} aria-hidden="true" />
+          <p className={styles.problemText}>
+            Property development is one of the most demanding delivery
+            environments there is. Long lifecycles, high capital exposure,
+            many parties, and decisions whose consequences surface years
+            later. Major developers meet it with programme offices and
+            dedicated delivery infrastructure.{' '}
+            <span className={styles.problemTurn}>
+              At independent and SME scale, that infrastructure has never
+              existed. Flitrr is building it.
+            </span>
+          </p>
         </div>
       </div>
     </section>
   );
 }
 
-// The eight lifecycle stages (the PULSE framework, Section 4), land to
-// disposal, each carried by a graded photograph. PULSE covers the delivery
-// arc, stages 1 to 7: the amber pulse line runs through those frames, and
-// every tick on it is a gate. Swap any frame for real project photography by
-// replacing the file in /public/images/lifecycle (see CREDITS.md).
-const LIFECYCLE_STAGES = [
-  {
-    n: '0',
-    label: 'Land & acquisition',
-    desc: 'Secure the site, clear the title.',
-    img: '/images/lifecycle/land.jpg',
-    alt: 'Open land at sunset, before acquisition',
-    covered: false,
-  },
-  {
-    n: '1',
-    label: 'Objectives & funding',
-    desc: 'Classify what cannot move. Confirm the money.',
-    img: '/images/lifecycle/signing.jpg',
-    alt: 'Signing the funding agreement',
-    covered: true,
-  },
-  {
-    n: '2',
-    label: 'Consultant appointment',
-    desc: 'Scope and appoint the professional team.',
-    img: '/images/lifecycle/consultants.jpg',
-    alt: 'An architect working over drawings',
-    covered: true,
-  },
-  {
-    n: '3',
-    label: 'Design & approvals',
-    desc: 'Freeze the design. Secure permission.',
-    img: '/images/lifecycle/drafting.jpg',
-    alt: 'Hands drafting against a timber scale rule',
-    covered: true,
-  },
-  {
-    n: '4',
-    label: 'Contractor procurement',
-    desc: 'Tender, negotiate, execute the contract.',
-    img: '/images/lifecycle/crew.jpg',
-    alt: 'A crew mobilised on rebar columns',
-    covered: true,
-  },
-  {
-    n: '5',
-    label: 'Construction',
-    desc: 'Build it. Watch cost, time and quality.',
-    img: '/images/lifecycle/cranes.jpg',
-    alt: 'Tower cranes over a scaffolded structure',
-    covered: true,
-  },
-  {
-    n: '6',
-    label: 'Completion & handover',
-    desc: 'Practical completion, snagging, final accounts.',
-    img: '/images/lifecycle/handover.jpg',
-    alt: 'A finished home at dusk with the lights on',
-    covered: true,
-  },
-  {
-    n: '7',
-    label: 'Sales & disposal',
-    desc: 'Realise the value. Close the loop.',
-    img: '/images/lifecycle/sales.jpg',
-    alt: 'An apartment block at blue hour, windows lit',
-    covered: true,
-  },
-];
-
-function Filmstrip() {
+// Band 2 opener: the Flitrr Framework. A landing-resident one-liner beside
+// the self-solving cube; the deeper Framework positioning is owned by the
+// team and lives on /framework. Anchor #framework feeds the nav.
+function Framework() {
   return (
-    <div className={styles.strip}>
-      <div
-        className={styles.stripScroller}
-        role="region"
-        aria-label="The eight stages of a development project, from land to disposal"
-        tabIndex={0}
-      >
-        <div className={styles.stripInner} role="list">
-          {LIFECYCLE_STAGES.map((stage, i) => (
-            <figure
-              key={stage.n}
-              role="listitem"
-              className={`${styles.frame} ${stage.covered ? styles.frameCovered : ''}`}
-              data-reveal
-            >
-              <Image
-                src={stage.img}
-                alt={stage.alt}
-                fill
-                sizes="(max-width: 760px) 100vw, 320px"
-                className={styles.frameImg}
-              />
-              {stage.covered && (
-                <span
-                  className={`${styles.frameSpine} ${i === 1 ? styles.frameSpineFirst : ''}`}
-                  aria-hidden="true"
-                />
-              )}
-              <span className={styles.frameNum} aria-hidden="true">
-                {stage.n}
-              </span>
-              <figcaption className={styles.frameText}>
-                <span className={styles.frameLabel}>{stage.label}</span>
-                <span className={styles.frameDesc}>{stage.desc}</span>
-              </figcaption>
-            </figure>
-          ))}
-
-          {/* PULSE coverage: the line runs the delivery arc, stages 1 to 7,
-              with a gate tick at each stage boundary. */}
-          <div className={styles.pulseLine} aria-hidden="true">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <span
-                key={i}
-                className={styles.pulseTick}
-                style={{ '--i': i }}
-              />
-            ))}
+    <section
+      id="framework"
+      className={styles.framework}
+      aria-labelledby="framework-heading"
+    >
+      <div className="container">
+        <div className={styles.frameworkLayout}>
+          <div className={styles.frameworkInner} data-reveal>
+            <h2 id="framework-heading" className={styles.sectionHeading}>
+              The Flitrr Framework.
+            </h2>
+            <p className={styles.frameworkLine}>
+              The Flitrr Framework is a delivery methodology for independent and
+              SME developers, the kind of discipline large developers have always
+              had and smaller ones never did. It sets how a development is
+              decided, governed, and delivered, from land to disposal.
+            </p>
+            <div className={styles.frameworkCta}>
+              <a href="/framework" className={styles.btnGhost}>
+                Explore the Framework
+                <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true">
+                  <path
+                    d="M3 8h9M8.5 4l4 4-4 4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </a>
+            </div>
           </div>
+          <RubiksCube className={styles.frameworkVisual} />
         </div>
       </div>
-
-      <p className={styles.stripCaption} data-reveal>
-        <span className={styles.captionSwatch} aria-hidden="true" />
-        <span>
-          The amber line is PULSE: it runs the delivery arc, stages 1 to 7.
-          Every tick is a gate, a deliberate go or no-go before the next stage
-          begins.
-        </span>
-      </p>
-    </div>
+    </section>
   );
 }
 
@@ -262,96 +123,116 @@ function Lifecycle() {
     >
       <div className="container">
         <h2 id="lifecycle-heading" className={styles.sectionHeading} data-reveal>
-          From land to disposal, end to end.
+          One journey. Eight stages. One system.
         </h2>
         <p className={styles.lifecycleSub} data-reveal>
-          A development project runs through eight stages, each gated before
-          the next begins. PULSE covers the delivery arc, stages one to seven:
-          set the project up properly, then monitor what matters from there.
+          Every development walks the same road. Flitrr maps it, stage by
+          stage, so every decision lands where it belongs.
         </p>
-      </div>
 
-      <Filmstrip />
+        <LifecycleJourney />
+      </div>
     </section>
   );
 }
 
-// The marketing preview: the real BriefDocument, assembled from the sample
-// project above and rendered into a scaled, clipped paper frame so the genuine
-// locked brief sits on the ink like a signed document. This is the actual
-// product component, not a div replica, so it never drifts from what the app
-// produces. Decorative and aria-hidden; the brief's own text is read in
-// context inside the app, not here.
-//
-// To pin a static exported image instead (e.g. a PDF page captured from the
-// app's Download PDF), replace the inner BriefDocument with a next/image
-// pointing at the asset; the frame, seal, and caption stay as they are.
-function BriefPreview() {
-  const model = assembleBrief(SAMPLE_BRIEF_STATE);
+// Band 3: PULSE, the first product. A standalone product-line framing, the
+// name and one-liner, the live interactive workspace (the real app, on), and
+// the two CTAs. The methodology is not re-explained here; that is the Framework
+// band and the /pulse page. The suite roadmap follows in Roadmap().
+function Pulse() {
   return (
-    <div className={styles.briefPreview} aria-hidden="true">
-      <span className={styles.briefSeal}>Baseline locked, v1</span>
-      <div className={styles.briefViewport}>
-        <div className={styles.briefScale}>
-          <BriefDocument
-            model={model}
-            lens="jv"
-            lockState={{
-              locked: true,
-              version: 1,
-              generatedAt: '2026-06-01T09:00:00.000Z',
-            }}
-          />
-        </div>
-        <div className={styles.briefFade} />
-      </div>
-    </div>
-  );
-}
-
-function Products() {
-  return (
-    <section
-      id="products"
-      className={styles.products}
-      aria-labelledby="products-heading"
-    >
+    <section id="pulse" className={styles.pulse} aria-labelledby="pulse-heading">
       <div className="container">
-        <h2 id="products-heading" className={styles.sectionHeading} data-reveal>
-          Our first product.
-        </h2>
-
-        <div className={styles.productLayout}>
-          <article className={styles.productInfo} data-reveal>
-            <span className={styles.productPill}>Live for design partners</span>
-            <h3 className={styles.productHeading}>PULSE</h3>
-            <p className={styles.productLede}>Defined. Classified. Monitored.</p>
-            <p className={styles.productBody}>
-              Set a project up properly, then watch what matters across every
-              stage. PULSE gives independent developers the delivery discipline
-              big firms buy from consultancies: classified objectives, a
-              version-locked brief built for your lender or JV partner, and
-              monitoring that scales to what you cannot afford to get wrong.
+        <div className={styles.pulseLayout}>
+          <div className={styles.pulseInfo} data-reveal>
+            <p className={styles.pulseLead}>Our first product</p>
+            <h2 id="pulse-heading" className={styles.pulseHeading}>
+              PULSE.
+            </h2>
+            <p className={styles.pulseNameLine}>
+              Project delivery and programme management for independent and SME
+              developers.
             </p>
-            <div className={styles.productCtas}>
+            <div className={styles.pulseCtas}>
               <a href="/pulse" className={styles.btnPrimary}>
-                See how PULSE works
+                Discover PULSE
+              </a>
+              <a href="#design-partner" className={styles.btnGhost}>
+                Become a design partner
+                <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true">
+                  <path
+                    d="M3 8h9M8.5 4l4 4-4 4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               </a>
             </div>
-          </article>
+          </div>
 
-          <div className={styles.productPreview} data-reveal>
-            <BriefPreview />
-            <p className={styles.productPreviewCaption}>
-              A locked PULSE brief, framed for a JV partner.
+          <div className={styles.pulseWindow} data-reveal>
+            <PulseWorkspaceDemo />
+            <p className={styles.pulseWindowCaption}>
+              The live PULSE workspace. Open any module.
             </p>
           </div>
         </div>
+      </div>
+    </section>
+  );
+}
 
-        <p className={styles.productsFootline} data-reveal>
-          More products on the way. Each will tackle a different stage of the
-          development lifecycle.
-        </p>
+const ROADMAP_NODES = [
+  { name: 'PULSE', status: 'Live', desc: 'Project delivery and programme management.', live: true },
+  { name: 'STACK', status: 'In design', desc: 'Build and lock your funding.' },
+  { name: 'ROUTE', status: 'In design', desc: 'Appoint the right team, and run the tender.' },
+  { name: 'And more', status: '', desc: '' },
+];
+
+// The suite: PULSE live, three products in design, framed as direction (the
+// problem each solves) not availability. Product copy is placeholder, pending
+// sign-off.
+function Roadmap() {
+  return (
+    <section
+      id="roadmap"
+      className={styles.roadmap}
+      aria-labelledby="roadmap-label"
+    >
+      <div className="container">
+        <div className={styles.roadmapGrid}>
+          <div data-reveal>
+            <h2 id="roadmap-label" className={styles.roadmapLabel}>
+              The suite
+            </h2>
+            <p className={styles.roadmapText}>
+              PULSE leads the suite. More follow it across the lifecycle, each
+              built to the same discipline.
+            </p>
+          </div>
+          <div className={styles.roadmapLine} data-reveal>
+            {ROADMAP_NODES.map((node) => (
+              <div
+                key={node.name}
+                className={`${styles.roadmapNode} ${
+                  node.live ? styles.roadmapNodeLive : ''
+                }`}
+              >
+                <span className={styles.roadmapName}>{node.name}</span>
+                {node.status && (
+                  <span className={styles.roadmapStatus}>{node.status}</span>
+                )}
+                {node.desc && (
+                  <span className={styles.roadmapDesc}>{node.desc}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -365,7 +246,7 @@ function Footer() {
           <div className={styles.footerBrand}>
             <span className={styles.footerWordmark}>Flitrr</span>
             <p className={styles.footerSubTagline}>
-              One platform for independent and SME real estate developers.
+              One platform for the whole property development lifecycle.
             </p>
           </div>
           <div className={styles.footerLinks}>
@@ -426,8 +307,11 @@ export default async function Home() {
       <HomeNav user={navUser} />
       <main id="main-content" className={styles.main}>
         <Hero />
+        <Problem />
+        <Framework />
         <Lifecycle />
-        <Products />
+        <Pulse />
+        <Roadmap />
         <HomeDesignPartner />
       </main>
       <Footer />
