@@ -20,19 +20,23 @@
 .cardBehind {
   position: absolute;
   inset: 10px -6px -8px 6px;
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(237, 241, 245, 0.04);
   border: 1px solid var(--color-ink-hairline);
   border-radius: 12px;
   transform: rotate(1.1deg);
 }
 
-/* The proposal: paper on ink, the product's own vocabulary. */
+/* The proposal: a dark instrument, the product's own surface. */
 .card {
   position: relative;
-  background: #ffffff;
+  background: #101f2c;
+  border: 1px solid var(--color-ink-hairline-strong);
   border-radius: 12px;
   padding: 1.2rem 1.3rem 1.25rem;
-  box-shadow: var(--shadow-ink);
+  box-shadow:
+    0 30px 64px -30px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(237, 241, 245, 0.06),
+    0 0 0 1px rgba(244, 192, 49, 0.1);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -76,7 +80,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.71875rem;
   font-weight: 600;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--color-on-ink-faint);
 }
 
 .kindChip {
@@ -87,13 +91,13 @@
   text-transform: uppercase;
   padding: 0.22rem 0.5rem;
   border-radius: 4px;
-  background: rgba(119, 147, 168, 0.16);
-  color: var(--color-accent-1-deep-blue);
+  background: rgba(237, 241, 245, 0.08);
+  color: var(--color-on-ink-secondary);
 }
 
 .kindChipCritical {
-  background: rgba(244, 192, 49, 0.22);
-  color: var(--color-ochre);
+  background: rgba(244, 192, 49, 0.14);
+  color: var(--color-signal-amber);
 }
 
 .cardKind {
@@ -103,7 +107,7 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--color-on-ink-faint);
 }
 
 .cardText {
@@ -113,7 +117,7 @@
   font-weight: 700;
   letter-spacing: -0.005em;
   line-height: 1.35;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--color-on-ink-primary);
   text-wrap: pretty;
 }
 
@@ -122,7 +126,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   line-height: 1.55;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--color-on-ink-secondary);
 }
 
 .cardActions {
@@ -162,9 +166,9 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--color-on-ink-primary);
   background: transparent;
-  border: 1px solid var(--color-accent-3-light-grey-blue);
+  border: 1px solid var(--color-ink-hairline-strong);
   border-radius: 8px;
   padding: 0.55rem 1.05rem;
   transition: background-color var(--dur-fast) var(--ease-out),
@@ -172,12 +176,12 @@
 }
 
 .dismissBtn:hover:not(:disabled) {
-  background: rgba(55, 97, 131, 0.07);
-  border-color: var(--color-accent-2-grey-blue);
+  background: rgba(237, 241, 245, 0.06);
+  border-color: var(--color-on-ink-secondary);
 }
 
 .dismissBtn:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--color-signal-amber);
   outline-offset: 2px;
 }
 

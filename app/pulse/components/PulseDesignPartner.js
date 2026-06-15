@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { createClient } from '../../../lib/supabase/client';
-import styles from '../page.module.css';
+import styles from './PulseDesignPartner.module.css';
 
-/* The design partner close. Heading and line are verbatim from the
-   agreed copy; the form is the working submission path into the
-   design_partner_submissions table and must keep its shape. */
+/* The design-partner close, adopted from the main page's partner band:
+   the form dissolved onto the ink in an editorial split, on its own dusk
+   ground. The submission path into design_partner_submissions is unchanged
+   (source_page: pulse_page). */
 
 export default function PulseDesignPartner() {
   const supabase = createClient();
@@ -58,63 +60,62 @@ export default function PulseDesignPartner() {
   return (
     <section
       id="design-partner"
-      className={styles.designPartner}
+      className={styles.pilot}
       aria-labelledby="design-partner-heading"
     >
-      <div className="container">
-        <h2
-          id="design-partner-heading"
-          className={styles.sectionHeading}
-          data-reveal
-        >
-          PULSE is opening to a small group of design partners.
-        </h2>
-        <p className={styles.designPartnerSub} data-reveal>
-          Working developers who want delivery infrastructure shaped around
-          how they actually build. Direct line to the founder. Real influence
-          on the roadmap.
-        </p>
+      <div className={styles.pilotMedia} aria-hidden="true">
+        <Image
+          src="/images/texture-rebar-crew.jpg"
+          alt=""
+          fill
+          sizes="100vw"
+          className={styles.pilotImg}
+        />
+      </div>
+      <div className={`container ${styles.pilotInner}`}>
+        <div className={styles.pilotSplit}>
+          <div data-reveal>
+            <h2 id="design-partner-heading" className={styles.heading}>
+              Build PULSE with us.
+            </h2>
+            <p className={styles.pilotSub}>
+              PULSE is being shaped with a small group of working developers.
+              Come in early, use it before anyone else, and have a real say in
+              what we build next.
+            </p>
+            <p className={styles.pilotReassure}>
+              Prefer email? Reach us directly at{' '}
+              <a href="mailto:hello@flitrr.com" className={styles.pilotReassureLink}>
+                hello@flitrr.com
+              </a>
+              .
+            </p>
+          </div>
 
-        <div className={styles.designPartnerFormWrap} data-reveal>
-          <div className={styles.designPartnerFormCard}>
+          <div className={styles.pilotRight} data-reveal>
             {done ? (
               <div
-                className={`${styles.successState} riseInSm`}
+                className={`${styles.successMsg} riseInSm`}
                 role="status"
                 aria-live="polite"
               >
-                <svg
-                  width="40"
-                  height="40"
-                  viewBox="0 0 40 40"
-                  fill="none"
-                  aria-hidden="true"
-                >
-                  <circle
-                    cx="20" cy="20" r="18"
-                    stroke="var(--color-accent-1-deep-blue)"
-                    strokeWidth="2"
-                  />
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                  <circle cx="20" cy="20" r="18" stroke="var(--color-signal-amber)" strokeWidth="2" />
                   <path
                     d="M11 20.5l6 6 12-12"
-                    stroke="var(--color-accent-1-deep-blue)"
+                    stroke="var(--color-signal-amber)"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                 </svg>
-                <h3 className={styles.successHeading}>Request received</h3>
-                <p className={styles.successBody}>
-                  We will be in touch within 48 hours. In the meantime,
-                  keep an eye on your inbox.
-                </p>
+                <span>
+                  <strong>Request received.</strong> We will be in touch within
+                  48 hours.
+                </span>
               </div>
             ) : (
-              <form
-                className={styles.designPartnerForm}
-                onSubmit={handleSubmit}
-                noValidate
-              >
+              <form className={styles.pilotForm} onSubmit={handleSubmit} noValidate>
                 <input type="hidden" name="source_page" value="pulse_page" />
 
                 <div className={styles.inputWrap}>

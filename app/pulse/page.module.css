@@ -85,6 +85,42 @@
   cursor: default;
 }
 
+.btnGhost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-on-ink-primary);
+  background: rgba(237, 241, 245, 0.03);
+  border: 1px solid var(--color-ink-hairline-strong);
+  border-radius: 9px;
+  padding: 0.8rem 1.3rem;
+  text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+.btnGhost:hover,
+.btnGhost:focus-visible {
+  background: rgba(237, 241, 245, 0.08);
+  border-color: var(--color-on-ink-secondary);
+}
+
+.btnGhost:focus-visible {
+  outline: 2px solid var(--color-on-ink-primary);
+  outline-offset: 3px;
+}
+
+.btnGhost svg {
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.btnGhost:hover svg {
+  transform: translateY(2px);
+}
+
 .btnFullWidth {
   width: 100%;
 }
@@ -294,7 +330,7 @@
   position: relative;
   min-height: clamp(580px, 84svh, 800px);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   background: var(--color-ink-950);
   overflow: hidden;
 }
@@ -307,7 +343,7 @@
 .heroImg {
   object-fit: cover;
   object-position: 70% 30%;
-  filter: saturate(0.78) contrast(1.04) brightness(0.9);
+  filter: saturate(0.7) contrast(1.02) brightness(0.5);
 }
 
 .heroMedia::before {
@@ -337,8 +373,20 @@
 .heroContent {
   position: relative;
   z-index: 1;
-  padding-top: 8.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+  align-items: center;
+  gap: clamp(2rem, 4.5vw, 4.5rem);
+  padding-top: clamp(7rem, 12vh, 9rem);
   padding-bottom: clamp(3.5rem, 8vh, 5.5rem);
+}
+
+.heroCopy {
+  max-width: 30rem;
+}
+
+.heroBoard {
+  justify-self: end;
 }
 
 /* The tagline opens the page: the product's standing promise. */
@@ -353,10 +401,10 @@
 .heroHeading {
   margin-top: 0.9rem;
   font-family: var(--font-heading), sans-serif;
-  font-size: clamp(2.3rem, 4.8vw, 3.6rem);
+  font-size: clamp(2.05rem, 3.6vw, 3rem);
   font-weight: 800;
   letter-spacing: -0.02em;
-  line-height: 1.06;
+  line-height: 1.07;
   color: var(--color-on-ink-primary);
   max-width: 18ch;
   text-wrap: balance;
@@ -377,6 +425,20 @@
   gap: 0.9rem;
   flex-wrap: wrap;
   margin-top: 2.1rem;
+}
+
+@media (max-width: 900px) {
+  .heroContent {
+    grid-template-columns: 1fr;
+    gap: clamp(2.5rem, 7vw, 3.5rem);
+    padding-top: clamp(6.5rem, 16vh, 8rem);
+  }
+  .heroCopy {
+    max-width: 36rem;
+  }
+  .heroBoard {
+    justify-self: stretch;
+  }
 }
 
 /* ── The problem: failing politely ─────── */
@@ -1390,13 +1452,37 @@
 /* ── The playbook ──────────────────────── */
 
 .playbook {
+  position: relative;
   background: var(--color-ink-900);
   border-top: 1px solid var(--color-ink-hairline);
   border-bottom: 1px solid var(--color-ink-hairline);
   padding-block: clamp(5rem, 9vw, 7.5rem);
+  overflow: hidden;
+}
+
+/* a quiet amber bloom behind the proposal card: the lit-instrument family,
+   without a competing background image (keeps the photo/flat alternation). */
+.playbookBloom {
+  position: absolute;
+  top: 50%;
+  right: -6%;
+  width: 46%;
+  height: 118%;
+  transform: translateY(-50%);
+  background: radial-gradient(
+    50% 50% at 60% 50%,
+    rgba(244, 192, 49, 0.16),
+    rgba(244, 192, 49, 0.04) 50%,
+    transparent 72%
+  );
+  filter: blur(50px);
+  z-index: 0;
+  pointer-events: none;
 }
 
 .playbookGrid {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
   gap: clamp(2.5rem, 6vw, 5rem);
@@ -1410,6 +1496,90 @@
   line-height: 1.65;
   color: var(--color-on-ink-secondary);
   max-width: 58ch;
+}
+
+/* ── Band 5: the Flitrr Framework credit / doorway ── */
+.fwCredit {
+  background: var(--color-ink-950);
+  padding-block: clamp(3rem, 5.5vw, 4.5rem);
+}
+
+.fwLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(1.4rem, 4vw, 3rem);
+  flex-wrap: wrap;
+  padding: clamp(1.5rem, 3vw, 2.1rem) clamp(1.6rem, 3vw, 2.4rem);
+  background: rgba(237, 241, 245, 0.02);
+  border: 1px solid var(--color-ink-hairline-strong);
+  border-radius: 14px;
+  text-decoration: none;
+  transition: border-color var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out);
+}
+
+.fwLink:hover,
+.fwLink:focus-visible {
+  border-color: rgba(244, 192, 49, 0.5);
+  background: rgba(244, 192, 49, 0.04);
+  outline: none;
+}
+
+.fwLink:focus-visible {
+  outline: 2px solid var(--color-signal-amber);
+  outline-offset: 3px;
+}
+
+.fwEyebrow {
+  display: block;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-signal-amber);
+}
+
+.fwLine {
+  display: block;
+  margin-top: 0.6rem;
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(1.15rem, 2vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: var(--color-on-ink-primary);
+  max-width: 42ch;
+  text-wrap: balance;
+}
+
+.fwCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-signal-amber);
+}
+
+.fwCta svg {
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.fwLink:hover .fwCta svg,
+.fwLink:focus-visible .fwCta svg {
+  transform: translateX(4px);
+}
+
+@media (max-width: 640px) {
+  .fwLink {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.4rem;
+  }
 }
 
 @media (max-width: 900px) {

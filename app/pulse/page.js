@@ -2,6 +2,9 @@ import Image from 'next/image';
 import { createClient } from '../../lib/supabase/server';
 import PulseNav from './components/PulseNav';
 import PulseDesignPartner from './components/PulseDesignPartner';
+import HeroBoard from './components/HeroBoard';
+import HowItWorks from './components/HowItWorks';
+import BriefKeystone from './components/BriefKeystone';
 import ClassificationScene from './components/ClassificationScene';
 import PlaybookDemo from './components/PlaybookDemo';
 import styles from './page.module.css';
@@ -28,28 +31,44 @@ function PulseHero() {
         />
       </div>
       <div className={`container ${styles.heroContent}`}>
-        <p className={`${styles.heroEyebrow} riseIn`}>
-          Monitoring What Matters.
-        </p>
-        <h1 id="hero-heading" className={`${styles.heroHeading} riseIn`} style={{ '--rise-delay': '70ms' }}>
-          Every objective. Every project. Defined, classified, monitored.
-        </h1>
-        <p
-          className={`${styles.heroSub} riseIn`}
-          style={{ '--rise-delay': '150ms' }}
-        >
-          PULSE is project delivery and programme management for independent
-          and SME property developers. It makes you run your project the way
-          a seasoned programme director would, because one is built in.
-        </p>
-        <div
-          className={`${styles.heroCtas} riseIn`}
-          style={{ '--rise-delay': '230ms' }}
-        >
-          <a href="#design-partner" className={styles.btnPrimary}>
-            Become a design partner
-          </a>
+        <div className={styles.heroCopy}>
+          <p className={`${styles.heroEyebrow} riseIn`}>
+            Monitoring What Matters.
+          </p>
+          <h1 id="hero-heading" className={`${styles.heroHeading} riseIn`} style={{ '--rise-delay': '70ms' }}>
+            Run your development like you have a programme office.
+          </h1>
+          <p
+            className={`${styles.heroSub} riseIn`}
+            style={{ '--rise-delay': '150ms' }}
+          >
+            PULSE is project delivery and programme management for independent
+            and SME property developers. It makes you run your project the way
+            a seasoned programme director would, because one is built in.
+          </p>
+          <div
+            className={`${styles.heroCtas} riseIn`}
+            style={{ '--rise-delay': '230ms' }}
+          >
+            <a href="#design-partner" className={styles.btnPrimary}>
+              Become a design partner
+            </a>
+            <a href="#product" className={styles.btnGhost}>
+              See it work
+              <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true">
+                <path
+                  d="M8 3v9M4 8.5l4 4 4-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </a>
+          </div>
         </div>
+        <HeroBoard className={styles.heroBoard} />
       </div>
     </section>
   );
@@ -603,6 +622,7 @@ function Playbook() {
       className={styles.playbook}
       aria-labelledby="playbook-heading"
     >
+      <span className={styles.playbookBloom} aria-hidden="true" />
       <div className="container">
         <div className={styles.playbookGrid}>
           <div data-reveal>
@@ -629,6 +649,43 @@ function Playbook() {
 }
 
 /* ── Footer ────────────────────────────── */
+
+/* ── Band 5: the Flitrr Framework credit, a slim doorway to /framework ── */
+
+function FrameworkCredit() {
+  return (
+    <section
+      id="framework-credit"
+      className={styles.fwCredit}
+      aria-labelledby="fw-credit-heading"
+    >
+      <div className="container" data-reveal>
+        <a href="/framework" className={styles.fwLink}>
+          <span className={styles.fwText}>
+            <span className={styles.fwEyebrow}>Built on the Flitrr Framework</span>
+            <span id="fw-credit-heading" className={styles.fwLine}>
+              The delivery discipline behind every Flitrr product. PULSE is the
+              first to run on it.
+            </span>
+          </span>
+          <span className={styles.fwCta}>
+            Explore the Framework
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+              <path
+                d="M3 8h9M8.5 4l4 4-4 4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+        </a>
+      </div>
+    </section>
+  );
+}
 
 function PulseFooter() {
   return (
@@ -695,10 +752,10 @@ export default async function PulsePage() {
       <PulseNav user={navUser} />
       <main id="main-content" className={styles.main}>
         <PulseHero />
-        <PulseProblem />
-        <Framework />
-        <ProductWalk />
+        <HowItWorks />
+        <BriefKeystone />
         <Playbook />
+        <FrameworkCredit />
         <PulseDesignPartner />
       </main>
       <PulseFooter />
