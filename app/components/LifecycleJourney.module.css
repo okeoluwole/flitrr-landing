@@ -50,29 +50,11 @@
     box-shadow var(--dur-slow) var(--ease-out-soft);
 }
 
-/* The gate tick at each stage boundary (none above stage 0). */
-.stageItem:not(:first-child)::after {
-  content: '';
-  position: absolute;
-  left: 12.5px;
-  top: 0;
-  width: 15px;
-  height: 2.5px;
-  transform: translateX(-50%);
-  border-radius: 2px;
-  background: var(--color-ink-hairline-strong);
-  transition: background-color var(--dur-slow) var(--ease-out-soft),
-    box-shadow var(--dur-slow) var(--ease-out-soft);
-}
+/* (gate ticks removed; the stage nodes below now mark each stage) */
 
 .stageReached::before {
   background: var(--color-signal-amber);
   box-shadow: 0 0 12px rgba(244, 192, 49, 0.45);
-}
-
-.stageReached::after {
-  background: var(--color-signal-amber);
-  box-shadow: 0 0 10px rgba(244, 192, 49, 0.5);
 }
 
 .stageBtn {
@@ -80,7 +62,7 @@
   width: 100%;
   background: transparent;
   border: 0;
-  padding: 1.05rem 0 1.15rem;
+  padding: 1.3rem 0 1.4rem;
   text-align: left;
   cursor: pointer;
 }
@@ -91,21 +73,65 @@
   border-radius: 6px;
 }
 
+/* Each stage number sits in a node centred on the line. Unreached: a faint
+   hollow ring. Reached: an amber ring. Active: a filled, glowing node with a
+   pulsing halo — the live position on the journey. */
 .stageNum {
   position: absolute;
   left: 0;
-  width: 25px;
-  text-align: center;
+  top: 0.8rem;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--color-ink-950);
+  border: 2px solid var(--color-ink-hairline-strong);
   font-family: var(--font-heading), sans-serif;
-  font-size: 1rem;
+  font-size: 0.8125rem;
   font-weight: 800;
-  line-height: 1.6;
+  line-height: 1;
   color: var(--color-on-ink-faint);
-  transition: color var(--dur-base) var(--ease-out);
+  transition: color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
 }
 
 .stageReached .stageNum {
   color: var(--color-signal-amber);
+  border-color: var(--color-signal-amber);
+  box-shadow: 0 0 12px rgba(244, 192, 49, 0.35);
+}
+
+.stageActive .stageNum {
+  color: var(--color-ink-950);
+  background: var(--color-signal-amber);
+  border-color: var(--color-signal-amber);
+  box-shadow: 0 0 22px rgba(244, 192, 49, 0.6);
+}
+
+.stageActive .stageNum::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid var(--color-signal-amber);
+  opacity: 0;
+  animation: lcPulse 2.4s ease-out infinite;
+}
+
+@keyframes lcPulse {
+  0% {
+    opacity: 0.55;
+    transform: scale(0.8);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
 }
 
 .stageText {
@@ -296,5 +322,9 @@
   .viewerImg {
     transition: none;
     transform: none;
+  }
+
+  .stageActive .stageNum::after {
+    animation: none;
   }
 }

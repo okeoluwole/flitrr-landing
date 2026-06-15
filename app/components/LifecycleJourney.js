@@ -73,34 +73,51 @@ export default function LifecycleJourney() {
   const itemRefs = useRef([]);
   const sceneRef = useRef(null);
 
-  /* Scroll drives the journey: the stage whose list item sits in the
-     centre band of the viewport becomes active. Buttons can override
-     by scrolling their stage into that band. */
+  /* Scroll drives the journey: the active stage is the one whose midpoint is
+     nearest a fixed reading line. Computed on a rAF-throttled scroll handler,
+     so it advances exactly one stage at a time — the hand-off happens at the
+     midpoint between two stages, with no band-edge flicker. Buttons override
+     by scrolling their stage to that line. */
   useEffect(() => {
     const items = itemRefs.current.filter(Boolean);
-    if (!items.length || typeof IntersectionObserver === 'undefined') return;
+    if (!items.length) return;
 
-    // On phones the viewer is pinned across the top of the viewport, so
-    // the activation band sits below it; on desktop it straddles centre.
-    const compact = window.matchMedia('(max-width: 860px)').matches;
-    const rootMargin = compact ? '-52% 0px -34% 0px' : '-42% 0px -42% 0px';
+    let raf = 0;
+    const pick = () => {
+      raf = 0;
+      // On phones the viewer is pinned across the top, so the reading line
+      // sits below it; on desktop it straddles centre.
+      const compact = window.innerWidth <= 860;
+      const lineY = window.innerHeight * (compact ? 0.62 : 0.5);
+      let best = 0;
+      let bestDist = Infinity;
+      items.forEach((el, i) => {
+        const r = el.getBoundingClientRect();
+        const dist = Math.abs(r.top + r.height / 2 - lineY);
+        if (dist < bestDist) {
+          bestDist = dist;
+          best = i;
+        }
+      });
+      setActive(best);
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(pick);
+    };
 
-    const io = new IntersectionObserver(
-      (entries) => {
-        let best = null;
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          if (!best || entry.intersectionRatio > best.intersectionRatio) {
-            best = entry;
-          }
-        });
-        if (best) setActive(Number(best.target.dataset.index));
-      },
-      { rootMargin, threshold: 0 }
-    );
-
-    items.forEach((el) => io.observe(el));
-    return () => io.disconnect();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    // Layout can shift after fonts/images settle without firing a scroll
+    // event; re-pick when the document box changes so the active never goes
+    // stale. ResizeObserver also fires once on observe, covering first paint.
+    const ro = new ResizeObserver(onScroll);
+    ro.observe(document.body);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      ro.disconnect();
+      if (raf) cancelAnimationFrame(raf);
+    };
   }, []);
 
   const jumpTo = (i) => {

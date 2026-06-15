@@ -36,6 +36,46 @@ const FACE = {
 const BODY = '#0E1822';
 const AMBER = '#F4C031';
 
+// Begin downloading three.js at module load (shared module cache) so the cube
+// is ready as soon as it scrolls into view, not only once the effect fires.
+const cubeModules =
+  typeof window === 'undefined'
+    ? new Promise(() => {})
+    : Promise.all([
+        import('three'),
+        import('three/examples/jsm/geometries/RoundedBoxGeometry.js'),
+      ]);
+
+// Isometric 3×3 cube for the fallback: a finished, amber-crowned cube (not a
+// flat placeholder) shown until WebGL paints. Same palette as the live cube,
+// so the hand-off reads as one object coming alive rather than a swap. Each
+// face is split into nine tiles from a corner origin and two edge vectors.
+function isoFace(o, e1, e2, tile, key) {
+  const g = 0.022; // tile inset → dark seams between tiles
+  const out = [];
+  const P = (s, t) =>
+    `${(o[0] + e1[0] * s + e2[0] * t).toFixed(1)},${(
+      o[1] +
+      e1[1] * s +
+      e2[1] * t
+    ).toFixed(1)}`;
+  for (let i = 0; i < 3; i++)
+    for (let j = 0; j < 3; j++) {
+      const s0 = i / 3 + g;
+      const s1 = (i + 1) / 3 - g;
+      const t0 = j / 3 + g;
+      const t1 = (j + 1) / 3 - g;
+      out.push(
+        <polygon
+          key={`${key}-${i}-${j}`}
+          points={`${P(s0, t0)} ${P(s1, t0)} ${P(s1, t1)} ${P(s0, t1)}`}
+          fill={tile}
+        />
+      );
+    }
+  return out;
+}
+
 export default function RubiksCube({ className }) {
   const canvasRef = useRef(null);
   const svgRef = useRef(null);
@@ -49,10 +89,7 @@ export default function RubiksCube({ className }) {
     let disposed = false;
     let cleanup = () => {};
 
-    Promise.all([
-      import('three'),
-      import('three/examples/jsm/geometries/RoundedBoxGeometry.js'),
-    ])
+    cubeModules
       .then(([THREE, { RoundedBoxGeometry }]) => {
         if (disposed) return;
         let renderer;
@@ -410,11 +447,13 @@ export default function RubiksCube({ className }) {
         ref={svgRef}
         viewBox="0 0 120 132"
         fill="none"
-        style={{ ...fill, opacity: 0.9, transition: 'opacity 500ms ease' }}
+        style={{ ...fill, opacity: 1, transition: 'opacity 500ms ease' }}
       >
-        <polygon points="60,16 102,40 60,64 18,40" fill="rgba(244,192,49,0.92)" />
-        <polygon points="18,40 18,92 60,116 60,64" fill="rgba(92,122,148,0.92)" />
-        <polygon points="102,40 102,92 60,116 60,64" fill="rgba(156,178,197,0.92)" />
+        {/* dark body so the tile seams read as a real cube */}
+        <polygon points="60,16 102,40 102,92 60,116 18,92 18,40" fill={BODY} />
+        {isoFace([18, 40], [42, -24], [42, 24], AMBER, 'top')}
+        {isoFace([18, 40], [0, 52], [42, 24], FACE.nx, 'left')}
+        {isoFace([102, 40], [-42, 24], [0, 52], FACE.pz, 'right')}
       </svg>
       <canvas ref={canvasRef} style={{ ...fill, opacity: 0, transition: 'opacity 600ms ease' }} />
     </span>

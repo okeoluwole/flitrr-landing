@@ -308,7 +308,7 @@
 
 .heroImg {
   object-fit: cover;
-  object-position: 62% 38%;
+  object-position: 50% 35%;
   filter: saturate(0.8) contrast(1.04) brightness(0.74);
 }
 
@@ -364,10 +364,6 @@
 .heroContent {
   position: relative;
   z-index: 2;
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-  align-items: center;
-  gap: clamp(2rem, 5vw, 4.5rem);
   width: 100%;
   padding-top: 8rem;
   padding-bottom: clamp(3rem, 7vh, 5rem);
@@ -377,19 +373,9 @@
   min-width: 0;
 }
 
-.heroMark {
-  justify-self: center;
-}
-
 @media (max-width: 860px) {
   .heroContent {
-    grid-template-columns: minmax(0, 1fr);
-    gap: clamp(2.25rem, 8vw, 3.25rem);
     padding-top: 7rem;
-  }
-
-  .heroMark {
-    justify-self: start;
   }
 }
 
@@ -690,6 +676,7 @@
   min-width: 0;
 }
 
+/* In-design products: faint hollow rings — on the line, not yet lit. */
 .roadmapNode::before {
   content: '';
   position: absolute;
@@ -698,19 +685,52 @@
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: var(--color-ink-700);
+  background: var(--color-ink-900);
   border: 1.5px solid var(--color-ink-hairline-strong);
 }
 
+/* PULSE: the live node — filled amber, glowing, with a slow ping halo. */
 .roadmapNodeLive::before {
   background: var(--color-signal-amber);
   border-color: var(--color-signal-amber);
-  box-shadow: 0 0 12px rgba(244, 192, 49, 0.55);
+  box-shadow: 0 0 16px rgba(244, 192, 49, 0.7);
+}
+
+.roadmapNodeLive::after {
+  content: '';
+  position: absolute;
+  top: -18px;
+  left: 3px;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-signal-amber);
+  opacity: 0;
+  animation: roadmapPing 2.8s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes roadmapPing {
+  0% {
+    opacity: 0.5;
+    transform: scale(0.45);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .roadmapNodeLive::after {
+    animation: none;
+  }
 }
 
 .roadmapName {
   font-family: var(--font-heading), sans-serif;
-  font-size: 0.9375rem;
+  font-size: 1.0625rem;
   font-weight: 700;
   letter-spacing: -0.005em;
   line-height: 1.25;

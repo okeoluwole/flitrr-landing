@@ -3,9 +3,8 @@ import { createClient } from '../lib/supabase/server';
 import HomeNav from './components/HomeNav';
 import HomeDesignPartner from './components/HomeDesignPartner';
 import LifecycleJourney from './components/LifecycleJourney';
-import HeroMark from './components/HeroMark';
 import RubiksCube from './components/RubiksCube';
-import PulseWorkspaceDemo from './components/PulseWorkspaceDemo';
+import PulseGlance from './components/PulseGlance';
 import styles from './page.module.css';
 
 /* ─────────────────────────────────────────
@@ -18,7 +17,7 @@ function Hero() {
     <section className={styles.hero} aria-labelledby="hero-heading">
       <div className={styles.heroMedia} aria-hidden="true">
         <Image
-          src="/images/hero-crane-dusk.jpg"
+          src="/images/hero-aerial-aylesbury-dusk.jpg"
           alt=""
           fill
           priority
@@ -40,7 +39,6 @@ function Hero() {
             developers, from land acquisition to asset disposal.
           </p>
         </div>
-        <HeroMark className={styles.heroMark} />
       </div>
     </section>
   );
@@ -175,9 +173,9 @@ function Pulse() {
           </div>
 
           <div className={styles.pulseWindow} data-reveal>
-            <PulseWorkspaceDemo />
+            <PulseGlance />
             <p className={styles.pulseWindowCaption}>
-              The live PULSE workspace. Open any module.
+              The PULSE workspace, at a glance.
             </p>
           </div>
         </div>

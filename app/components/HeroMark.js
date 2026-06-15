@@ -52,6 +52,18 @@ const WORDMARK_SVG =
   '<path transform="translate(2201.0,0)" d="M63.59750509262085 0V527.3060457706451H205.67669582366943L217.82876443862915 442.1800072193146H225.569593667984Q238.9841890335083 471.8589313030243 259.8648042678833 493.895880818367Q280.7454195022583 515.9328303337097 308.82526218891144 527.8911665678024Q336.9051048755646 539.8495028018951 370.0695044994354 539.8495028018951Q389.2032935619354 539.8495028018951 405.59058487415314 536.6764603853226Q421.97787618637085 533.50341796875 433.3811345100403 528.7391512393951V384.42544412612915H364.5224783420563Q331.26768469810486 384.42544412612915 307.18548488616943 374.5689368247986Q283.103285074234 364.712429523468 267.73281717300415 346.4319565296173Q252.3623492717743 328.1514835357666 244.91668605804443 303.2048660516739Q237.47102284431458 278.2582485675812 237.47102284431458 247.83545899391174V0Z"/>' +
   '</g></svg>';
 
+// Begin loading three the moment this client module hydrates (not on mount),
+// so the 3D mark spools in as early as possible. The flat SVG F shows instantly
+// until it arrives.
+const threeModules =
+  typeof window !== 'undefined'
+    ? Promise.all([
+        import('three'),
+        import('three/examples/jsm/geometries/RoundedBoxGeometry.js'),
+        import('three/examples/jsm/loaders/SVGLoader.js'),
+      ])
+    : null;
+
 export default function HeroMark({ className }) {
   const markRef = useRef(null);
   const canvasRef = useRef(null);
@@ -65,11 +77,7 @@ export default function HeroMark({ className }) {
     let disposed = false;
     let cleanup = () => {};
 
-    Promise.all([
-      import('three'),
-      import('three/examples/jsm/geometries/RoundedBoxGeometry.js'),
-      import('three/examples/jsm/loaders/SVGLoader.js'),
-    ])
+    threeModules
       .then(([THREE, { RoundedBoxGeometry }, { SVGLoader }]) => {
         if (disposed) return;
 
