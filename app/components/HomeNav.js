@@ -7,7 +7,8 @@ import styles from '../page.module.css';
 /**
  * Home page nav. Receives the server-resolved user from the page
  * server component so initial render matches the auth state without
- * a client flash.
+ * a client flash. Section anchors are root-relative (/#...) so the nav
+ * also works from other routes that mount it (for example /framework).
  */
 export default function HomeNav({ user }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -37,15 +38,15 @@ export default function HomeNav({ user }) {
           className={`${styles.navLinks} ${menuOpen ? styles.navLinksOpen : ''}`}
           aria-label="Primary navigation"
         >
-          <a href="#lifecycle" onClick={close}>Lifecycle</a>
-          <a href="#framework" onClick={close}>Flitrr Framework</a>
-          <a href="#pulse" onClick={close}>Product</a>
+          <a href="/#lifecycle" onClick={close}>Lifecycle</a>
+          <a href="/#framework" onClick={close}>Flitrr Framework</a>
+          <a href="/#pulse" onClick={close}>Product</a>
           {isSignedIn ? (
             <Link href="/dashboard" onClick={close}>Dashboard</Link>
           ) : (
             <Link href="/login" onClick={close}>Sign in</Link>
           )}
-          <a href="#design-partner" className={styles.navCta} onClick={close}>
+          <a href="/#design-partner" className={styles.navCta} onClick={close}>
             Become a partner
           </a>
         </nav>

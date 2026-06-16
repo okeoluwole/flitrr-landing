@@ -67,9 +67,12 @@ function Problem() {
   );
 }
 
-// Band 2 opener: the Flitrr Framework. A landing-resident one-liner beside
-// the self-solving cube; the deeper Framework positioning is owned by the
-// team and lives on /framework. Anchor #framework feeds the nav.
+// Band 2: the Flitrr Framework teaser, with the lifecycle as its eight stages.
+// A short teaser names the framework and its 8-6-4 methodology but does not
+// explain them (the full unpacking lives on /framework), the self-solving cube
+// sits beside it, then the eight-stage journey runs over a large ghosted 8-6-4
+// motif. The lifecycle and the framework are one story, so they are one
+// section. Anchors #framework and #lifecycle both resolve inside it for the nav.
 function Framework() {
   return (
     <section
@@ -84,14 +87,14 @@ function Framework() {
               The Flitrr Framework.
             </h2>
             <p className={styles.frameworkLine}>
-              The Flitrr Framework is a delivery methodology for independent and
-              SME developers, the kind of discipline large developers have always
-              had and smaller ones never did. It sets how a development is
-              decided, governed, and delivered, from land to disposal.
+              It is the backbone behind everything Flitrr builds. A delivery
+              framework powered by the 8-6-4 methodology, built to bring
+              independent and SME developers the rigour that large developers
+              have always had.
             </p>
             <div className={styles.frameworkCta}>
               <a href="/framework" className={styles.btnGhost}>
-                Explore the Framework
+                Explore the Flitrr Framework
                 <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true">
                   <path
                     d="M3 8h9M8.5 4l4 4-4 4"
@@ -107,28 +110,23 @@ function Framework() {
           </div>
           <RubiksCube className={styles.frameworkVisual} />
         </div>
-      </div>
-    </section>
-  );
-}
 
-function Lifecycle() {
-  return (
-    <section
-      id="lifecycle"
-      className={styles.lifecycle}
-      aria-labelledby="lifecycle-heading"
-    >
-      <div className="container">
-        <h2 id="lifecycle-heading" className={styles.sectionHeading} data-reveal>
-          One journey. Eight stages. One system.
-        </h2>
-        <p className={styles.lifecycleSub} data-reveal>
-          Every development walks the same road. Flitrr maps it, stage by
-          stage, so every decision lands where it belongs.
-        </p>
-
-        <LifecycleJourney />
+        {/* The eight stages: the lifecycle journey, framed as the framework's
+            stages, over a large ghosted 8-6-4 motif. id="lifecycle" keeps the
+            nav anchor working. */}
+        <div id="lifecycle" className={styles.stages}>
+          <div className={styles.bgMark} aria-hidden="true">
+            <span className={styles.bgMarkText}>8-6-4</span>
+          </div>
+          <h3 className={styles.stagesHeading} data-reveal>
+            The eight stages, land to disposal.
+          </h3>
+          <p className={styles.lifecycleSub} data-reveal>
+            Every development walks the same road. Flitrr maps it, stage by
+            stage, so every decision lands where it belongs.
+          </p>
+          <LifecycleJourney />
+        </div>
       </div>
     </section>
   );
@@ -307,7 +305,6 @@ export default async function Home() {
         <Hero />
         <Problem />
         <Framework />
-        <Lifecycle />
         <Pulse />
         <Roadmap />
         <HomeDesignPartner />
