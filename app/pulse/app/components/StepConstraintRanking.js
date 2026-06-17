@@ -8,7 +8,7 @@ import {
 import styles from './InitiationWizard.module.css';
 
 /**
- * Step 4 — Constraint Ranking. The developer orders the five objectives by
+ * Step 5 (priority ranking). The developer orders the five objectives by
  * priority, highest at the top, so that when two objectives pull against
  * each other the project knows which one holds (framework Section 7).
  *
@@ -78,13 +78,14 @@ export default function StepConstraintRanking({
 
   return (
     <>
-      <p className={styles.panelEyebrow}>Step 4 of 8</p>
-      <h2 className={styles.panelHeading}>Constraint Ranking</h2>
-      <p className={styles.panelIntro}>
-        Rank your objectives by priority, highest at the top. When two
-        objectives pull against each other, this order decides which one
-        holds.
-      </p>
+      <div className={styles.groupHead}>
+        <h3 className={styles.groupTitle}>Priority order</h3>
+        <p className={styles.groupHint}>
+          Rank your objectives by priority, highest at the top. When two
+          objectives pull against each other, this order decides which one
+          holds.
+        </p>
+      </div>
 
       {frozen ? (
         <div className={styles.frozenNote}>

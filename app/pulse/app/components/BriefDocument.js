@@ -8,7 +8,7 @@ import {
 import styles from './Brief.module.css';
 
 /**
- * BriefDocument — the presentational PULSE Brief.
+ * BriefDocument, the presentational PULSE Brief.
  *
  * Pure and stateless: it renders a `model` (from assembleBrief, or a locked
  * snapshot of one) under a `lens`, with a `lockState` for the header chips

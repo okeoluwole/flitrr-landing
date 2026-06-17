@@ -6,7 +6,7 @@ import { CRITICALITY_OPTIONS } from './listStepConfig';
 import styles from './InitiationWizard.module.css';
 
 /**
- * StepItemList — the shared editable list behind Steps 5, 6 and 7.
+ * StepItemList, the shared editable list behind the list steps (4, 7 and 8).
  *
  * Presentational and controlled, like the earlier steps: it owns no item
  * state. The wizard shell holds the list and the persistence; this component
@@ -129,7 +129,7 @@ export default function StepItemList({
 
   return (
     <>
-      <p className={styles.panelEyebrow}>Step {config.step} of 8</p>
+      <p className={styles.panelEyebrow}>Step {config.step} of 9</p>
       <h2 className={styles.panelHeading}>{config.title}</h2>
       <p className={styles.panelIntro}>{config.intro}</p>
 

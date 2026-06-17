@@ -5,7 +5,7 @@ import DashboardShell from '../../components/DashboardShell';
 import styles from './page.module.css';
 
 /**
- * /pulse/app — the PULSE project dashboard. The signed-in user's launch
+ * /pulse/app: the PULSE project dashboard. The signed-in user's launch
  * point for the Project Initiation flow: a "New project" action and a
  * minimal list of their existing projects (name, status, current stage),
  * each opening its project workspace when clicked.
@@ -118,7 +118,7 @@ export default async function PulseAppPage() {
           <div className={styles.empty}>
             <h2 className={styles.emptyHeading}>No projects yet.</h2>
             <p className={styles.emptyBody}>
-              Your first PULSE project starts with the eight-step initiation
+              Your first PULSE project starts with the nine-step initiation
               flow. It defines the baseline that governs every later stage.
             </p>
             <Link href="/pulse/app/initiate" className={styles.emptyCta}>

@@ -9,6 +9,7 @@ import StepProjectObjectives from './StepProjectObjectives';
 import StepConstraintRanking from './StepConstraintRanking';
 import StepItemList from './StepItemList';
 import StepGeneratedBrief from './StepGeneratedBrief';
+import StepPlaceholder from './StepPlaceholder';
 import { OBJECTIVE_ORDER } from './objectiveMeta';
 import {
   LIST_CONFIG,
@@ -18,13 +19,15 @@ import {
 import styles from './InitiationWizard.module.css';
 
 /**
- * InitiationWizard — the eight-step PULSE Project Initiation flow.
+ * InitiationWizard, the nine-step PULSE Project Initiation flow.
  *
- * Steps 1 and 2 (M3.2), 3 and 4 (M3.3), and 5 to 7 (M3.4) are built. Step 8
- * (the generated brief) remains a navigable placeholder until M3.5.
- * Architecture decisions (fixed in the M3.2 spec):
+ * The widened nine-step flow. Steps 3 (Scope and Site) and 6 (Financial
+ * Baseline) are navigable placeholders for now; step 4 holds the workstreams
+ * list until the parties, the authority and the cadence are added; step 5
+ * merges the objective definitions and the priority ranking. The rest are built.
+ * Architecture decisions:
  *
- *   - One route, one wizard. The progress indicator shows all eight steps.
+ *   - One route, one wizard. The progress indicator shows all nine steps.
  *   - The project row is created on advancing from Step 1 (INSERT), which
  *     fires handle_new_project() to seed objectives and stage gates.
  *   - Per-step saving: Steps 1 and 2 write to `projects` on advance, so a
@@ -40,35 +43,34 @@ import styles from './InitiationWizard.module.css';
  * Gate 1 to 2 concern, handled in a later sub-step.
  */
 
-// The eight steps. `short` labels the progress dot; `name` titles the
-// panel and the dot's accessible label. `body` is the placeholder copy
-// for the not-yet-built Step 8; every other step renders its own form.
+// The nine steps. `short` labels the progress node; `name` titles the panel
+// and the node's accessible label. `body` is the placeholder copy for the
+// steps not yet built (3 Scope and Site, 6 Financial Baseline); every other
+// step renders its own form.
 const STEPS = [
   { n: 1, name: 'Project Definition', short: 'Define' },
   { n: 2, name: 'Strategic Context', short: 'Context' },
   {
     n: 3,
-    name: 'Project Objectives',
-    short: 'Objectives',
-    body: 'Define scope, cost, time, quality, and funding, and classify each by how much it can flex before the project is compromised.',
+    name: 'Scope and Site',
+    short: 'Scope',
+    body: 'The development brief at headline level, what is being built and to what standard, and the site with its planning status and the constraints that cap it.',
   },
+  { n: 4, name: 'Organisation and Governance', short: 'Organisation' },
+  { n: 5, name: 'Objectives and Priority', short: 'Objectives' },
   {
-    n: 4,
-    name: 'Constraint Ranking',
-    short: 'Ranking',
-    body: 'Rank the objectives in priority order, confirm their classification, and surface a warning if the project is over-constrained.',
+    n: 6,
+    name: 'Financial Baseline',
+    short: 'Financial',
+    body: 'The headline budget as hard cost, soft cost and contingency, the funding structure, and the funding milestones the project is governed against.',
   },
-  // Steps 5 to 7 render their own forms (StepItemList); their intro copy
-  // lives in listStepConfig, so no placeholder body is needed here.
-  { n: 5, name: 'Critical Milestones', short: 'Milestones' },
-  { n: 6, name: 'Workstreams', short: 'Workstreams' },
-  { n: 7, name: 'Initial Risk Profile', short: 'Risks' },
+  { n: 7, name: 'Programme', short: 'Programme' },
   {
     n: 8,
-    name: 'Generated Brief',
-    short: 'Brief',
-    body: 'Assemble, export, and version-lock the baseline Project Brief that governs every later stage.',
+    name: 'Risks, Assumptions, Constraints and Dependencies',
+    short: 'Risks',
   },
+  { n: 9, name: 'Generated Brief', short: 'Brief' },
 ];
 
 const TOTAL_STEPS = STEPS.length;
@@ -820,31 +822,33 @@ export default function InitiationWizard({
       return;
     }
 
+    // Steps 3 and 6 are placeholders for now: nothing to persist yet.
     if (step === 3) {
-      setBusy(true);
-      const err = await persistStep3();
-      setBusy(false);
-      if (err) {
-        setError(SAVE_ERROR);
-        return;
-      }
       advanceTo(4);
       return;
     }
-
-    if (step === 4) {
-      setBusy(true);
-      const err = await persistStep4();
-      setBusy(false);
-      if (err) {
-        setError(SAVE_ERROR);
-        return;
-      }
-      advanceTo(5);
+    if (step === 6) {
+      advanceTo(7);
       return;
     }
 
-    if (step >= 5 && step <= 7) {
+    // Step 5: persist the objective definitions and the priority ranking
+    // together. Both are no-ops once the baseline is committed (frozen).
+    if (step === 5) {
+      setBusy(true);
+      const objErr = await persistStep3();
+      const rankErr = objErr ? null : await persistStep4();
+      setBusy(false);
+      if (objErr || rankErr) {
+        setError(SAVE_ERROR);
+        return;
+      }
+      advanceTo(6);
+      return;
+    }
+
+    // Steps 4, 7 and 8: the editable list steps (workstreams, milestones, risks).
+    if (step === 4 || step === 7 || step === 8) {
       const cfg = CONFIG_BY_STEP[step];
       setBusy(true);
       const err = await persistList(cfg.key);
@@ -857,7 +861,7 @@ export default function InitiationWizard({
       return;
     }
 
-    // Step 8 (the brief) is the last step and has no Next; its button is
+    // Step 9 (the brief) is the last step and has no Next; its button is
     // disabled, so there is nothing to handle here.
   };
 
@@ -886,11 +890,10 @@ export default function InitiationWizard({
   // Loading / error fallback for Steps 3 and 4 while the objective rows
   // are fetched. Mirrors the step header so the panel stays consistent.
   const renderObjectivesNotReady = (n) => {
-    const title = n === 3 ? 'Project Objectives' : 'Constraint Ranking';
     return (
       <>
-        <p className={styles.panelEyebrow}>Step {n} of 8</p>
-        <h2 className={styles.panelHeading}>{title}</h2>
+        <p className={styles.panelEyebrow}>Step {n} of 9</p>
+        <h2 className={styles.panelHeading}>Objectives and Priority</h2>
         {objStatus === 'error' ? (
           <>
             <p className={styles.panelIntro}>
@@ -928,7 +931,7 @@ export default function InitiationWizard({
     const failed = objStatus === 'error' || listsStatus === 'error';
     return (
       <>
-        <p className={styles.panelEyebrow}>Step {n} of 8</p>
+        <p className={styles.panelEyebrow}>Step {n} of 9</p>
         <h2 className={styles.panelHeading}>{title}</h2>
         {failed ? (
           <>
@@ -967,37 +970,43 @@ export default function InitiationWizard({
     if (step === 2) {
       return <StepStrategicContext values={ctx} onChange={onCtxChange} />;
     }
-    if (step === 3 || step === 4) {
+    // Steps 3 and 6 are navigable placeholders for now.
+    if (step === 3) {
+      return <StepPlaceholder name="Scope and Site" body={STEPS[2].body} />;
+    }
+    if (step === 6) {
+      return <StepPlaceholder name="Financial Baseline" body={STEPS[5].body} />;
+    }
+    // Step 5 merges the objective definitions and the priority ranking.
+    if (step === 5) {
       if (objStatus !== 'loaded') {
         return renderObjectivesNotReady(step);
       }
-      if (step === 3) {
-        return (
+      return (
+        <>
           <StepProjectObjectives
             objectives={objectives}
             onChange={onObjectiveChange}
             frozen={objectivesFrozen}
           />
-        );
-      }
-      return (
-        <StepConstraintRanking
-          order={rankOrder}
-          objectives={objectives}
-          overConstrained={overConstrained}
-          onMove={moveObjective}
-          onReorder={onReorder}
-          frozen={objectivesFrozen}
-        />
+          <StepConstraintRanking
+            order={rankOrder}
+            objectives={objectives}
+            overConstrained={overConstrained}
+            onMove={moveObjective}
+            onReorder={onReorder}
+            frozen={objectivesFrozen}
+          />
+        </>
       );
     }
-    if (step >= 5 && step <= 7) {
+    if (step === 4 || step === 7 || step === 8) {
       if (objStatus !== 'loaded' || listsStatus !== 'loaded') {
         return renderListNotReady(step);
       }
       const cfg = CONFIG_BY_STEP[step];
       // key per step so StepItemList remounts (and resets its focus
-      // bookkeeping) when switching between Steps 5, 6 and 7.
+      // bookkeeping) when switching between the list steps.
       return (
         <StepItemList
           key={cfg.key}
@@ -1016,11 +1025,11 @@ export default function InitiationWizard({
         />
       );
     }
-    if (step === 8) {
-      // The brief assembles from the objectives and the three lists, so it
-      // waits on the same loads as Steps 5 to 7.
+    if (step === 9) {
+      // The brief assembles from the objectives and the lists, so it waits on
+      // the same loads as the list steps.
       if (!projectId || objStatus !== 'loaded' || listsStatus !== 'loaded') {
-        return renderListNotReady(8, 'Generated Brief');
+        return renderListNotReady(9, 'Generated Brief');
       }
       return (
         <StepGeneratedBrief
@@ -1035,7 +1044,7 @@ export default function InitiationWizard({
         />
       );
     }
-    // Unreachable: every step (1 to 8) is handled above.
+    // Unreachable: every step (1 to 9) is handled above.
     return null;
   };
 
@@ -1043,9 +1052,8 @@ export default function InitiationWizard({
     busy ||
     step === TOTAL_STEPS ||
     (step === 1 && !nameValid) ||
-    ((step === 3 || step === 4) && objStatus !== 'loaded') ||
-    (step >= 5 &&
-      step <= 7 &&
+    (step === 5 && objStatus !== 'loaded') ||
+    ((step === 4 || step === 7 || step === 8) &&
       (objStatus !== 'loaded' || listsStatus !== 'loaded'));
 
   const headerTitle = def.name.trim() ? def.name.trim() : 'New project';
@@ -1093,7 +1101,8 @@ export default function InitiationWizard({
         )}
       </div>
 
-      <nav className={styles.progress} aria-label="Initiation progress">
+      <div className={styles.layout}>
+        <nav className={styles.progress} aria-label="Initiation progress">
         <ol className={styles.steps}>
           {STEPS.map((s) => {
             const isCurrent = s.n === step;
@@ -1129,9 +1138,10 @@ export default function InitiationWizard({
             );
           })}
         </ol>
-      </nav>
+        </nav>
 
-      <div className={styles.panel}>
+        <div className={styles.work}>
+          <div className={styles.panel}>
         {/* Keyed by step so the content remounts and eases in on each move. */}
         <div key={step} className={styles.stepAnim}>
           {renderStep()}
@@ -1201,6 +1211,8 @@ export default function InitiationWizard({
             )}
           </button>
         )}
+        </div>
+        </div>
       </div>
     </main>
   );

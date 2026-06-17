@@ -2,7 +2,7 @@ import { OBJECTIVE_META } from './objectiveMeta';
 import styles from './InitiationWizard.module.css';
 
 /**
- * Step 3 — Project Objectives. The framework's central act: the developer
+ * Step 5 (objectives definition). The framework's central act: the developer
  * defines each of the five objectives and classifies how much each can
  * flex (framework Section 6). This is where objective criticality stops
  * being theory and becomes something they set.
@@ -53,8 +53,8 @@ export default function StepProjectObjectives({
 
   return (
     <>
-      <p className={styles.panelEyebrow}>Step 3 of 8</p>
-      <h2 className={styles.panelHeading}>Project Objectives</h2>
+      <p className={styles.panelEyebrow}>Step 5 of 9</p>
+      <h2 className={styles.panelHeading}>Objectives and Priority</h2>
       <p className={styles.panelIntro}>
         Define what each objective means for this project, then mark how
         much each one can flex. This is the decision that shapes everything

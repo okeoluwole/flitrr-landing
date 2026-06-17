@@ -1,5 +1,5 @@
 /* ─────────────────────────────────────────
-   /pulse/app — the PULSE project dashboard.
+   /pulse/app: the PULSE project dashboard.
    "New project" action + a minimal list of the
    user's projects. Wraps in DashboardShell.
 ───────────────────────────────────────── */
@@ -27,7 +27,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   margin-bottom: 0.5rem;
 }
 
@@ -37,7 +37,7 @@
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.015em;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   margin-bottom: 0.75rem;
 }
 
@@ -46,7 +46,7 @@
   font-size: 1.0625rem;
   font-weight: 400;
   line-height: 1.55;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   max-width: 540px;
 }
 
@@ -76,7 +76,7 @@
 }
 
 .newBtn:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 3px;
 }
 
@@ -106,8 +106,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  background-color: var(--color-foreground-cream);
-  border: 1px solid var(--color-border);
+  background-color: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 14px;
   padding: 1.25rem 1.5rem;
   text-decoration: none;
@@ -117,17 +117,17 @@
 }
 
 .cardLink:hover {
-  border-color: var(--color-accent-1-deep-blue);
+  border-color: var(--app-ink);
   box-shadow: 0 10px 36px rgba(55, 97, 131, 0.12);
   transform: translateY(-2px);
 }
 
 .cardLink:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 2px;
 }
 
-/* Press settles the card back down — tactile feedback on tap/click. */
+/* Press settles the card back down, tactile feedback on tap/click. */
 .cardLink:active {
   transform: translateY(0) scale(0.995);
 }
@@ -142,7 +142,7 @@
   font-weight: 800;
   line-height: 1.2;
   letter-spacing: -0.01em;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   margin: 0 0 0.3rem;
   overflow-wrap: break-word;
 }
@@ -152,7 +152,7 @@
   font-size: 0.875rem;
   font-weight: 400;
   line-height: 1.45;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   margin: 0;
 }
 
@@ -164,12 +164,12 @@
 }
 
 .cardChevron {
-  color: var(--color-accent-3-light-grey-blue);
+  color: var(--app-ink-muted);
   transition: color 0.15s ease, transform 0.15s ease;
 }
 
 .cardLink:hover .cardChevron {
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   transform: translateX(2px);
 }
 
@@ -191,25 +191,25 @@
 
 .pillDraft {
   background-color: rgba(181, 188, 202, 0.3);
-  color: var(--color-accent-2-grey-blue);
-  border: 1px solid var(--color-border);
+  color: var(--app-ink-secondary);
+  border: 1px solid var(--app-border);
 }
 
 .pillActive {
-  background-color: var(--color-background-amber);
-  color: var(--color-accent-1-deep-blue);
+  background-color: var(--app-signal);
+  color: var(--app-ink);
 }
 
 .pillMuted {
-  background-color: var(--color-accent-1-deep-blue);
-  color: var(--color-foreground-cream);
+  background-color: var(--app-ink);
+  color: var(--app-surface);
 }
 
 /* ── Empty state ───────────────────────── */
 
 .empty {
-  background-color: var(--color-foreground-cream);
-  border: 1px solid var(--color-border);
+  background-color: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 16px;
   padding: 3rem 2.5rem;
   text-align: center;
@@ -222,7 +222,7 @@
   font-size: 1.375rem;
   font-weight: 800;
   letter-spacing: -0.01em;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   margin-bottom: 0.75rem;
 }
 
@@ -231,7 +231,7 @@
   font-size: 0.9375rem;
   font-weight: 400;
   line-height: 1.55;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   margin: 0 auto 1.75rem;
   max-width: 400px;
 }
@@ -256,6 +256,6 @@
 }
 
 .emptyCta:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 3px;
 }

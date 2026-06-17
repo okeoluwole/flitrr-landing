@@ -121,6 +121,83 @@
   --section-py: 5rem;
 }
 
+/* ─────────────────────────────────────────────────────────
+   PULSE product theme: "Instrument"
+   The authenticated app surface: a dark console frame (the
+   existing ink ramp, reused) around a light, cool paper canvas
+   that produces the formal Brief. Distinct from the marketing
+   ink pages and from the retired flat cream app. Composed from
+   the locked palette (console = ink, signal = amber, ochre for
+   amber as text); only the cool paper neutrals are new. The
+   system and its primitives are documented in DESIGN.md.
+───────────────────────────────────────────────────────── */
+:root {
+  /* Console: app chrome (top bar, the step rail, footers). */
+  --app-console:        var(--color-ink-950);
+  --app-console-raised: var(--color-ink-900);
+  --app-console-edge:   var(--color-ink-700);
+  --app-on-console:           var(--color-on-ink-primary);
+  --app-on-console-secondary: var(--color-on-ink-secondary);
+  --app-on-console-faint:     var(--color-on-ink-faint);
+  --app-console-hairline:        var(--color-ink-hairline);
+  --app-console-hairline-strong: var(--color-ink-hairline-strong);
+
+  /* Paper: the work canvas and the cards on it. Cooler than the
+     retired cream; the only genuinely new neutrals in the system. */
+  --app-paper:          #F5F8FB;
+  --app-surface:        #FFFFFF;
+  --app-surface-sunken: #EEF2F7;
+  --app-ink:            #1B2A3A;
+  --app-ink-secondary:  #51677C;
+  --app-ink-muted:      #7C93A6;
+  --app-hairline:       #E4E9EF;
+  --app-border:         #D6DEE7;
+  --app-border-strong:  #B7C3CF;
+
+  /* Signal: amber keeps one meaning, the thing that matters. */
+  --app-signal:        var(--color-signal-amber);
+  --app-signal-strong: var(--color-signal-amber-deep);
+  --app-signal-wash:   var(--color-signal-amber-wash);
+  --app-signal-ink:    var(--color-ochre);
+  --app-signal-border: var(--color-critical-card-border);
+
+  /* Criticality: the cascade's loud end (the app critical wash). */
+  --app-critical-bg:     var(--color-critical-card-bg);
+  --app-critical-border: var(--color-critical-card-border);
+
+  /* Semantic states. Placeholders use --app-ink-secondary, not muted,
+     to hold AA contrast; --app-ink-muted is non-essential metadata only. */
+  --app-focus:            var(--color-accent-1-deep-blue);
+  --app-focus-on-console: var(--color-signal-amber);
+  --app-danger:  var(--color-error);
+  --app-success: #15795F;
+  --app-warning: var(--color-ochre);
+
+  /* Elevation: paper sits just above the canvas; console gets depth. */
+  --app-elev-1: 0 1px 2px rgba(16, 28, 41, 0.05), 0 2px 6px rgba(16, 28, 41, 0.06);
+  --app-elev-2: 0 4px 16px rgba(16, 28, 41, 0.08);
+  --app-elev-console: var(--shadow-ink);
+
+  /* Radii (product scale: inputs 8 to 10, cards 12 to 14). */
+  --app-radius-sm: 8px;
+  --app-radius:    10px;
+  --app-radius-lg: 14px;
+
+  /* The pulse-line rail (the signature motif). */
+  --app-rail-line:      var(--color-ink-hairline);
+  --app-rail-line-done: var(--color-signal-amber);
+  --app-rail-node:      var(--color-on-ink-faint);
+  --app-rail-node-done: var(--color-signal-amber);
+
+  /* Instrument type scale: fixed rem, product register (about 1.2 ratio). */
+  --app-text-xs:   0.75rem;
+  --app-text-sm:   0.8125rem;
+  --app-text-base: 0.9375rem;
+  --app-text-md:   1.0625rem;
+  --app-text-lg:   1.375rem;
+  --app-text-xl:   1.75rem;
+}
+
 /* Tabular figures for money, dates, and stage numerals: the
    instrument voice. Apply to any element that sets numbers. */
 .tnum {

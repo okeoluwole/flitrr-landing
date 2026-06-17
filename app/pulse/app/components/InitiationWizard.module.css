@@ -1,11 +1,31 @@
 /* ─────────────────────────────────────────
-   InitiationWizard — the eight-step PULSE
+   InitiationWizard, the nine-step PULSE
    Project Initiation flow. Shared by the
    wizard shell and every step component.
 ───────────────────────────────────────── */
 
 .page {
   padding-block: 2.5rem 5rem;
+}
+
+/* ── Layout: header full width, then a vertical rail beside the work column.
+   Single column on mobile (the rail collapses to a node strip on top). ── */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+.work {
+  min-width: 0;
+}
+
+@media (min-width: 880px) {
+  .layout {
+    grid-template-columns: 236px minmax(0, 1fr);
+    gap: 1.75rem;
+    align-items: start;
+  }
 }
 
 /* ── Wizard header ─────────────────────── */
@@ -21,14 +41,14 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   text-decoration: none;
   margin-bottom: 1.25rem;
 }
 
 .backLink:hover,
 .backLink:focus-visible {
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 .title {
@@ -37,7 +57,7 @@
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.015em;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   margin-bottom: 0.5rem;
 }
 
@@ -46,7 +66,7 @@
   font-size: 1.0625rem;
   font-weight: 400;
   line-height: 1.55;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   max-width: 640px;
 }
 
@@ -69,8 +89,8 @@
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: var(--color-foreground-cream);
-  background: var(--color-accent-1-deep-blue);
+  color: var(--app-surface);
+  background: var(--app-ink);
   padding: 0.32rem 0.7rem;
   border-radius: 999px;
 }
@@ -79,13 +99,17 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
 }
 
-/* ── Progress indicator ────────────────── */
+/* ── Progress: the pulse line. A compact node strip on mobile, a vertical
+   rail beside the work column on desktop (see the 880px block below). ── */
 
 .progress {
-  margin-bottom: 2rem;
+  background-color: var(--app-console);
+  border-radius: var(--app-radius-lg);
+  padding: 1.1rem 1.25rem 0.95rem;
+  box-shadow: var(--app-elev-console);
 }
 
 .steps {
@@ -94,7 +118,7 @@
   gap: 0;
   list-style: none;
   overflow-x: auto;
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -109,7 +133,9 @@
   text-align: center;
 }
 
-/* Connector line to the previous step. */
+/* The pulse line: a faint connector to the previous node, lit amber once
+   the step has been reached. Horizontal on mobile; the 880px block turns it
+   into the vertical rail. */
 .step:not(:first-child)::before {
   content: '';
   position: absolute;
@@ -117,13 +143,13 @@
   right: 50%;
   width: 100%;
   height: 2px;
-  background-color: var(--color-border);
+  background-color: var(--app-rail-line);
   z-index: 0;
 }
 
 .stepReached:not(:first-child)::before,
 .stepCurrent:not(:first-child)::before {
-  background-color: var(--color-accent-1-deep-blue);
+  background-color: var(--app-rail-line-done);
 }
 
 .dotButton {
@@ -135,16 +161,17 @@
   width: 36px;
   height: 36px;
   border-radius: 999px;
-  border: 2px solid var(--color-border);
-  background-color: var(--color-foreground-cream);
+  border: 2px solid var(--app-console-hairline-strong);
+  background-color: var(--app-console);
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   font-weight: 700;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-on-console-faint);
   cursor: pointer;
   transition: background-color var(--dur-fast) var(--ease-out),
     border-color var(--dur-fast) var(--ease-out),
     color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
     transform var(--dur-fast) var(--ease-out);
 }
 
@@ -153,23 +180,24 @@
 }
 
 .stepReached .dotButton {
-  border-color: var(--color-accent-1-deep-blue);
-  color: var(--color-accent-1-deep-blue);
+  border-color: var(--app-signal);
+  color: var(--app-signal);
 }
 
 .stepReached .dotButton:hover {
-  background-color: rgba(55, 97, 131, 0.08);
+  background-color: rgba(244, 192, 49, 0.14);
 }
 
 .stepCurrent .dotButton {
-  border-color: var(--color-accent-1-deep-blue);
-  background-color: var(--color-accent-1-deep-blue);
-  color: var(--color-foreground-cream);
+  border-color: var(--app-signal);
+  background-color: var(--app-signal);
+  color: var(--app-console);
   transform: scale(1.08);
+  box-shadow: 0 0 0 4px var(--app-signal-wash);
 }
 
 .dotButton:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus-on-console);
   outline-offset: 2px;
 }
 
@@ -178,38 +206,73 @@
   font-size: 0.75rem;
   font-weight: 500;
   line-height: 1.25;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-on-console-faint);
   max-width: 88px;
 }
 
+.stepReached .stepName {
+  color: var(--app-on-console-secondary);
+}
+
 .stepCurrent .stepName {
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-on-console);
   font-weight: 600;
 }
 
-/* Step labels are noise on small screens; the panel heading names the
-   current step instead. Keep the numbered dots for orientation. */
+/* Mobile: dots only, the panel heading names the current step. */
 .stepName {
   display: none;
 }
 
-@media (min-width: 760px) {
+/* Desktop: the rail goes vertical, each step a node-and-label row, the
+   pulse line running down through the nodes. */
+@media (min-width: 880px) {
+  .progress {
+    position: sticky;
+    top: 88px;
+    padding: 1.35rem 1.2rem;
+  }
+
+  .steps {
+    flex-direction: column;
+    align-items: stretch;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  .step {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 0 0 auto;
+    min-width: 0;
+    min-height: 46px;
+    text-align: left;
+  }
+
+  .step:not(:first-child)::before {
+    top: -23px;
+    left: 17px;
+    right: auto;
+    width: 2px;
+    height: 46px;
+  }
+
   .stepName {
     display: block;
-  }
-  .step {
-    min-width: 0;
+    max-width: none;
+    flex: 1 1 auto;
   }
 }
 
 /* ── Step panel ────────────────────────── */
 
 .panel {
-  background-color: var(--color-foreground-cream);
-  border: 1px solid var(--color-border);
-  border-radius: 16px;
+  background-color: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
   padding: clamp(1.5rem, 3vw, 2.5rem);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--app-elev-1);
 }
 
 /* Step content eases in on each step change. The wrapper is keyed by step in
@@ -232,7 +295,7 @@
 .skelBar {
   height: 46px;
   border-radius: 8px;
-  background-color: var(--color-border);
+  background-color: var(--app-border);
   opacity: 0.5;
 }
 
@@ -253,7 +316,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   margin-bottom: 0.5rem;
 }
 
@@ -262,7 +325,7 @@
   font-size: clamp(1.375rem, 3vw, 1.75rem);
   font-weight: 800;
   letter-spacing: -0.01em;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   margin-bottom: 0.5rem;
 }
 
@@ -271,7 +334,7 @@
   font-size: 0.9375rem;
   font-weight: 400;
   line-height: 1.55;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   margin-bottom: 1.75rem;
   max-width: 620px;
 }
@@ -304,17 +367,17 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 .required {
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-signal-ink);
   margin-left: 0.15rem;
 }
 
 .optional {
   font-weight: 400;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   margin-left: 0.3rem;
 }
 
@@ -325,10 +388,10 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.9375rem;
   font-weight: 400;
-  color: var(--color-accent-1-deep-blue);
-  background-color: #ffffff;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
+  color: var(--app-ink);
+  background-color: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-sm);
   padding: 0.7rem 0.85rem;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -341,14 +404,14 @@
 
 .input::placeholder,
 .textarea::placeholder {
-  color: var(--color-accent-3-light-grey);
+  color: var(--app-ink-secondary);
 }
 
 .input:focus,
 .select:focus,
 .textarea:focus {
   outline: none;
-  border-color: var(--color-accent-1-deep-blue);
+  border-color: var(--app-focus);
   box-shadow: 0 0 0 3px rgba(55, 97, 131, 0.15);
 }
 
@@ -365,7 +428,7 @@
   font-size: 0.8125rem;
   font-weight: 400;
   line-height: 1.4;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
 }
 
 /* Sub-group divider within a step form (e.g. the optional financials group
@@ -373,7 +436,7 @@
 .groupHead {
   margin-top: 0.5rem;
   padding-top: 1.5rem;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--app-border);
 }
 
 .groupTitle {
@@ -381,7 +444,7 @@
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: -0.01em;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   margin-bottom: 0.3rem;
 }
 
@@ -390,7 +453,7 @@
   font-size: 0.8125rem;
   font-weight: 400;
   line-height: 1.45;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   max-width: 560px;
 }
 
@@ -400,7 +463,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #b3261e;
+  color: var(--app-danger);
   margin-top: 1.5rem;
 }
 
@@ -429,12 +492,12 @@
 
 .btnBack {
   background-color: transparent;
-  border: 1.5px solid var(--color-border);
-  color: var(--color-accent-1-deep-blue);
+  border: 1.5px solid var(--app-border);
+  color: var(--app-ink);
 }
 
 .btnBack:hover:not(:disabled) {
-  border-color: var(--color-accent-1-deep-blue);
+  border-color: var(--app-border-strong);
 }
 
 .btnNext {
@@ -455,7 +518,7 @@
 
 .btnBack:focus-visible,
 .btnNext:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 2px;
 }
 
@@ -469,7 +532,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   text-decoration: none;
   padding: 0.75rem 0.85rem;
   border-radius: 8px;
@@ -481,7 +544,7 @@
 }
 
 .returnLink:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 2px;
 }
 
@@ -503,8 +566,8 @@
   padding: 5px 11px;
   border-radius: 999px;
   background-color: rgba(181, 188, 202, 0.3);
-  color: var(--color-accent-2-grey-blue);
-  border: 1px solid var(--color-border);
+  color: var(--app-ink-secondary);
+  border: 1px solid var(--app-border);
   margin-bottom: 1.25rem;
 }
 
@@ -513,7 +576,7 @@
   font-size: clamp(1.375rem, 3vw, 1.75rem);
   font-weight: 800;
   letter-spacing: -0.01em;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   margin-bottom: 0.75rem;
 }
 
@@ -522,7 +585,7 @@
   font-size: 0.9375rem;
   font-weight: 400;
   line-height: 1.55;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   max-width: 460px;
   margin: 0 auto;
 }
@@ -539,8 +602,8 @@
   display: flex;
   flex-direction: column;
   gap: 1.1rem;
-  background-color: #ffffff;
-  border: 1px solid var(--color-border);
+  background-color: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 12px;
   padding: clamp(1.1rem, 2.5vw, 1.5rem);
 }
@@ -556,7 +619,7 @@
   font-size: 1.0625rem;
   font-weight: 800;
   letter-spacing: -0.01em;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 .objDesc {
@@ -564,7 +627,7 @@
   font-size: 0.875rem;
   font-weight: 400;
   line-height: 1.45;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
 }
 
 /* Classification choice: two radios styled as selectable cards. The
@@ -582,7 +645,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   padding: 0;
   margin-bottom: 0.5rem;
 }
@@ -604,7 +667,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--app-border);
   border-radius: 10px;
   padding: 0.7rem 0.85rem 0.75rem;
   cursor: pointer;
@@ -613,13 +676,13 @@
 }
 
 .choice:not(.choiceFrozen):hover {
-  border-color: var(--color-accent-2-grey-blue);
+  border-color: var(--app-ink-secondary);
 }
 
 .choiceSelected {
-  border-color: var(--color-accent-1-deep-blue);
+  border-color: var(--app-ink);
   background-color: rgba(55, 97, 131, 0.06);
-  box-shadow: inset 0 0 0 1px var(--color-accent-1-deep-blue);
+  box-shadow: inset 0 0 0 1px var(--app-ink);
 }
 
 .choiceInput {
@@ -631,7 +694,7 @@
 }
 
 .choice:focus-within {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 2px;
 }
 
@@ -639,7 +702,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 .choiceHint {
@@ -647,7 +710,7 @@
   font-size: 0.8125rem;
   font-weight: 400;
   line-height: 1.35;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
 }
 
 /* ── Step 4: Constraint Ranking ────────── */
@@ -665,8 +728,8 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background-color: #ffffff;
-  border: 1.5px solid var(--color-border);
+  background-color: var(--app-surface);
+  border: 1.5px solid var(--app-border);
   border-radius: 10px;
   padding: 0.7rem 0.85rem;
   transition: border-color 0.15s ease, background-color 0.15s ease,
@@ -678,7 +741,7 @@
 }
 
 .rankRowDragOver {
-  border-color: var(--color-accent-1-deep-blue);
+  border-color: var(--app-ink);
   background-color: rgba(55, 97, 131, 0.06);
 }
 
@@ -686,7 +749,7 @@
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
-  color: var(--color-accent-3-light-grey-blue);
+  color: var(--app-ink-muted);
   cursor: grab;
 }
 
@@ -698,8 +761,8 @@
   width: 26px;
   height: 26px;
   border-radius: 999px;
-  background-color: var(--color-accent-1-deep-blue);
-  color: var(--color-foreground-cream);
+  background-color: var(--app-ink);
+  color: var(--app-surface);
   font-family: var(--font-body), sans-serif;
   font-size: 0.8125rem;
   font-weight: 700;
@@ -718,7 +781,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 .rankBadge {
@@ -734,15 +797,15 @@
 }
 
 .rankBadgeNN {
-  background-color: rgba(55, 97, 131, 0.1);
-  color: var(--color-accent-1-deep-blue);
-  border-color: rgba(55, 97, 131, 0.25);
+  background-color: var(--app-signal-wash);
+  color: var(--app-signal-ink);
+  border-color: var(--app-signal-border);
 }
 
 .rankBadgeFlex {
   background-color: rgba(119, 147, 168, 0.12);
-  color: var(--color-accent-2-grey-blue);
-  border-color: var(--color-border);
+  color: var(--app-ink-secondary);
+  border-color: var(--app-border);
 }
 
 .rankControls {
@@ -759,16 +822,16 @@
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  border: 1px solid var(--color-border);
-  background-color: var(--color-foreground-cream);
-  color: var(--color-accent-1-deep-blue);
+  border: 1px solid var(--app-border);
+  background-color: var(--app-surface);
+  color: var(--app-ink);
   cursor: pointer;
   transition: border-color 0.15s ease, background-color 0.15s ease,
     opacity 0.15s ease;
 }
 
 .moveBtn:hover:not(:disabled) {
-  border-color: var(--color-accent-1-deep-blue);
+  border-color: var(--app-ink);
   background-color: rgba(55, 97, 131, 0.06);
 }
 
@@ -778,7 +841,7 @@
 }
 
 .moveBtn:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 2px;
 }
 
@@ -789,7 +852,7 @@
   align-items: flex-start;
   gap: 0.75rem;
   background-color: rgba(244, 192, 49, 0.16);
-  border: 1px solid var(--color-background-amber);
+  border: 1px solid var(--app-signal);
   border-radius: 12px;
   padding: 1rem 1.1rem;
   margin-top: 1.25rem;
@@ -798,7 +861,7 @@
 .warningIcon {
   flex: 0 0 auto;
   margin-top: 1px;
-  color: #9a6b00;
+  color: var(--app-signal-ink);
 }
 
 .warningText {
@@ -806,7 +869,7 @@
   font-size: 0.9rem;
   font-weight: 400;
   line-height: 1.5;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   margin: 0;
 }
 
@@ -830,7 +893,7 @@
 .frozenNoteIcon {
   flex: 0 0 auto;
   margin-top: 1px;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
 }
 
 .frozenNoteText {
@@ -838,7 +901,7 @@
   font-size: 0.875rem;
   font-weight: 400;
   line-height: 1.5;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   margin: 0;
 }
 
@@ -848,7 +911,7 @@
 .inputFrozen,
 .inputFrozen:focus {
   background-color: rgba(55, 97, 131, 0.04);
-  border-color: var(--color-border);
+  border-color: var(--app-border);
   box-shadow: none;
   cursor: default;
 }
@@ -885,9 +948,9 @@
   min-width: 0;
   margin: 0;
   padding: clamp(1rem, 2.5vw, 1.4rem);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--app-border);
   border-radius: 12px;
-  background-color: #ffffff;
+  background-color: var(--app-surface);
 }
 
 .itemHead {
@@ -904,7 +967,7 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
 }
 
 .removeBtn {
@@ -915,22 +978,22 @@
   width: 30px;
   height: 30px;
   border-radius: 8px;
-  border: 1px solid var(--color-border);
-  background-color: var(--color-foreground-cream);
-  color: var(--color-accent-2-grey-blue);
+  border: 1px solid var(--app-border);
+  background-color: var(--app-surface);
+  color: var(--app-ink-secondary);
   cursor: pointer;
   transition: border-color 0.15s ease, background-color 0.15s ease,
     color 0.15s ease;
 }
 
 .removeBtn:hover {
-  border-color: #b3261e;
-  color: #b3261e;
-  background-color: rgba(179, 38, 30, 0.06);
+  border-color: var(--app-danger);
+  color: var(--app-danger);
+  background-color: rgba(176, 42, 55, 0.08);
 }
 
 .removeBtn:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 2px;
 }
 
@@ -964,9 +1027,9 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   background-color: transparent;
-  border: 1.5px dashed var(--color-border);
+  border: 1.5px dashed var(--app-border);
   border-radius: 8px;
   padding: 0.6rem 1.05rem;
   cursor: pointer;
@@ -974,12 +1037,12 @@
 }
 
 .addBtn:hover {
-  border-color: var(--color-accent-1-deep-blue);
+  border-color: var(--app-ink);
   background-color: rgba(55, 97, 131, 0.05);
 }
 
 .addBtn:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 2px;
 }
 
@@ -988,10 +1051,10 @@
   font-size: 0.9rem;
   font-weight: 400;
   line-height: 1.5;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   margin: 1.25rem 0 0;
   padding: 1.1rem 1.25rem;
-  border: 1px dashed var(--color-border);
+  border: 1px dashed var(--app-border);
   border-radius: 12px;
   text-align: center;
 }

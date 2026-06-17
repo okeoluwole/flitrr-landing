@@ -4,7 +4,7 @@ import DashboardShell from '../../../components/DashboardShell';
 import InitiationWizard from '../components/InitiationWizard';
 
 /**
- * /pulse/app/initiate — host for the PULSE Project Initiation wizard.
+ * /pulse/app/initiate: host for the PULSE Project Initiation wizard.
  *
  * Two modes, keyed off the ?project=<id> search param:
  *   - No param: a fresh wizard. No project row exists yet; it is created

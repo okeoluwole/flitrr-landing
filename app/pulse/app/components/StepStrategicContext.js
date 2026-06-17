@@ -1,7 +1,7 @@
 import styles from './InitiationWizard.module.css';
 
 /**
- * Step 2 — Strategic Context. Grounds the project in its business
+ * Step 2, Strategic Context. Grounds the project in its business
  * rationale (framework Section 7). Controlled and presentational, like
  * Step 1: `values` in, `onChange(field, value)` out, no own state.
  *
@@ -12,7 +12,7 @@ export default function StepStrategicContext({ values, onChange }) {
 
   return (
     <>
-      <p className={styles.panelEyebrow}>Step 2 of 8</p>
+      <p className={styles.panelEyebrow}>Step 2 of 9</p>
       <h2 className={styles.panelHeading}>Strategic Context</h2>
       <p className={styles.panelIntro}>
         Ground the project in its business rationale: why you are doing it,

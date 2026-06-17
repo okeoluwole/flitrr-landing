@@ -31,7 +31,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.9375rem;
   line-height: 1.55;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   margin-bottom: 1.5rem;
   max-width: 640px;
 }
@@ -55,14 +55,14 @@
   font-size: 0.6875rem;
   letter-spacing: 0.13em;
   text-transform: uppercase;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   font-weight: 600;
 }
 
 .seg {
   display: flex;
   background: #fff;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--app-border);
   border-radius: 8px;
   padding: 3px;
 }
@@ -71,7 +71,7 @@
   font-family: var(--font-body), sans-serif;
   font-weight: 600;
   font-size: 0.8125rem;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   border: 0;
   background: transparent;
   padding: 0.5rem 0.85rem;
@@ -81,17 +81,17 @@
 }
 
 .segBtn:hover {
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 .segBtnActive,
 .segBtnActive:hover {
-  background: var(--color-accent-1-deep-blue);
+  background: var(--app-ink);
   color: #fff;
 }
 
 .segBtn:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 2px;
 }
 
@@ -104,7 +104,7 @@
 .lockHint {
   font-family: var(--font-body), sans-serif;
   font-size: 0.8125rem;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   max-width: 260px;
   line-height: 1.4;
 }
@@ -119,9 +119,9 @@
   border-radius: 8px;
   padding: 0.7rem 1.2rem;
   cursor: pointer;
-  border: 1.5px solid var(--color-background-amber);
-  background: var(--color-background-amber);
-  color: var(--color-accent-1-deep-blue);
+  border: 1.5px solid var(--app-signal);
+  background: var(--app-signal);
+  color: var(--app-ink);
   transition: filter 0.18s ease, opacity 0.15s ease;
 }
 
@@ -130,9 +130,9 @@
 }
 
 .unlockBtn {
-  border-color: var(--color-border);
+  border-color: var(--app-border);
   background: transparent;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 .lockBtn:disabled {
@@ -141,7 +141,7 @@
 }
 
 .lockBtn:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 2px;
 }
 
@@ -153,9 +153,9 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   background: #fff;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--app-border);
   border-radius: 8px;
   padding: 0.5rem 0.85rem;
   cursor: pointer;
@@ -163,12 +163,12 @@
 }
 
 .downloadBtn:hover {
-  border-color: var(--color-accent-1-deep-blue);
+  border-color: var(--app-ink);
   background: rgba(55, 97, 131, 0.05);
 }
 
 .downloadBtn:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 2px;
 }
 
@@ -176,7 +176,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--color-error);
+  color: var(--app-danger);
   margin-bottom: 1rem;
 }
 
@@ -184,7 +184,7 @@
    The pre-lock checklist. App chrome that sits with the lock control; hidden
    in the printed brief. */
 .gate {
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--app-border);
   border-radius: 10px;
   background: #fff;
   padding: 1.1rem 1.25rem;
@@ -194,7 +194,7 @@
 .gateSection + .gateSection {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--app-border);
 }
 
 .gateSectionHead {
@@ -217,18 +217,18 @@
 
 .gateBadgeReq {
   background: rgba(244, 192, 49, 0.18);
-  color: var(--color-ochre);
+  color: var(--app-signal-ink);
 }
 
 .gateBadgeRec {
   background: rgba(119, 147, 168, 0.14);
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
 }
 
 .gateNote {
   font-family: var(--font-body), sans-serif;
   font-size: 0.8125rem;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
 }
 
 .gateList {
@@ -247,19 +247,19 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   line-height: 1.4;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 .gateIconReq {
   flex: 0 0 auto;
   margin-top: 0.18rem;
-  color: var(--color-background-amber);
+  color: var(--app-signal);
 }
 
 .gateIconRec {
   flex: 0 0 auto;
   margin-top: 0.18rem;
-  color: var(--color-accent-3-light-grey-blue);
+  color: var(--app-ink-muted);
 }
 
 .gateLabel {
@@ -267,14 +267,14 @@
 }
 
 .gateDetail {
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   font-weight: 400;
 }
 
 .gateItemNote {
   display: block;
   font-size: 0.78rem;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   margin-top: 0.1rem;
 }
 
@@ -285,12 +285,12 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 .gateSatisfied svg {
   flex: 0 0 auto;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 /* ── Stage 1 to 2 gate entry point (M5) ──
@@ -303,7 +303,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 1rem;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--app-border);
   border-radius: 10px;
   background: #fff;
   padding: 1.1rem 1.25rem;
@@ -323,14 +323,14 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 .gateEntryNote {
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   line-height: 1.45;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
 }
 
 .gateEntryBtn {
@@ -356,15 +356,15 @@
 }
 
 .gateEntryBtn:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 3px;
 }
 
 /* The pre-lock disabled state: a muted, non-interactive span. */
 .gateEntryBtnDisabled,
 .gateEntryBtnDisabled:hover {
-  background: var(--color-accent-3-light-grey-blue);
-  border-color: var(--color-accent-3-light-grey-blue);
+  background: var(--app-ink-muted);
+  border-color: var(--app-ink-muted);
   color: #fff;
   opacity: 0.75;
   cursor: not-allowed;
@@ -384,16 +384,16 @@
      (M4) is self-contained. The brand tokens supply amber, deep blue, cream,
      grey-blue and light grey; these are the institutional darks, the body
      greys, and the hairlines the document leans on. */
-  --navy: #284b66;       /* header band */
-  --ink: #1f2a33;        /* primary headings, near-black slate */
+  --navy: var(--app-console-raised); /* header band, the app console */
+  --ink: var(--app-ink);             /* primary headings */
   --body: #3e4b56;       /* body copy */
   --muted: #6c7783;      /* secondary labels */
   --faint: #9aa3ad;      /* faintest: placeholders, section numbers */
   --hair: #e8eaef;       /* hairline rules */
   --hair-2: #d7dbe2;     /* stronger hairline */
   --panel: #f8f9fb;      /* subtle panel fill */
-  --amber: var(--color-background-amber); /* criticality accent */
-  --ochre: var(--color-ochre);      /* amber as text, legible on white */
+  --amber: var(--app-signal); /* criticality accent */
+  --ochre: var(--app-signal-ink);      /* amber as text, legible on white */
 
   background: #ffffff;
   border: 1px solid var(--hair);
@@ -1177,7 +1177,7 @@
 .loading {
   font-family: var(--font-body), sans-serif;
   font-size: 0.9375rem;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   padding: 2rem 0;
 }
 

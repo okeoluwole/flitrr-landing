@@ -1,8 +1,8 @@
 /**
  * Shared configuration for the three list-based initiation steps:
- *   Step 5  Critical Milestones   -> project_milestones
- *   Step 6  Workstreams           -> project_workstreams
- *   Step 7  Initial Risk Profile  -> project_risks
+ *   Step 4  Organisation and Governance (workstreams)   -> project_workstreams
+ *   Step 7  Programme (critical milestones)             -> project_milestones
+ *   Step 8  Risks, Assumptions, Constraints, Dependencies (risks) -> project_risks
  *
  * The three steps share one shape: an editable, pre-filled list of items,
  * each with type-specific fields plus a shared "serves objective" link and a
@@ -67,8 +67,8 @@ export const LIST_CONFIG = {
   milestones: {
     key: 'milestones',
     table: 'project_milestones',
-    step: 5,
-    title: 'Critical Milestones',
+    step: 7,
+    title: 'Programme',
     intro:
       'Set the milestones that mark real progress, and link each to the objective it serves. A milestone serving a non-negotiable objective is treated as critical.',
     itemNoun: 'milestone',
@@ -110,10 +110,10 @@ export const LIST_CONFIG = {
   workstreams: {
     key: 'workstreams',
     table: 'project_workstreams',
-    step: 6,
-    title: 'Workstreams',
+    step: 4,
+    title: 'Organisation and Governance',
     intro:
-      'Define the workstreams that deliver this project and who leads each, and link a workstream to the objective it serves.',
+      'Define the workstreams that deliver the project and who leads each, and link a workstream to the objective it serves. The parties, the named authority, and the reporting cadence join this step in a later build.',
     itemNoun: 'workstream',
     addLabel: 'Add workstream',
     requiredField: 'name',
@@ -153,8 +153,8 @@ export const LIST_CONFIG = {
   risks: {
     key: 'risks',
     table: 'project_risks',
-    step: 7,
-    title: 'Initial Risk Profile',
+    step: 8,
+    title: 'Risks, Assumptions, Constraints and Dependencies',
     intro:
       'Capture the risks you can already see. Tag each to the objective it threatens, rate it, and note how you would respond.',
     itemNoun: 'risk',
@@ -203,7 +203,7 @@ export const LIST_CONFIG = {
 
 // Step number -> config, for the shell's render and save switch.
 export const CONFIG_BY_STEP = {
-  5: LIST_CONFIG.milestones,
-  6: LIST_CONFIG.workstreams,
-  7: LIST_CONFIG.risks,
+  4: LIST_CONFIG.workstreams,
+  7: LIST_CONFIG.milestones,
+  8: LIST_CONFIG.risks,
 };

@@ -296,7 +296,7 @@ export default async function WorkspacePage({ searchParams }) {
           <Tile
             icon={<BriefIcon />}
             title="Brief"
-            desc="The eight-step initiation flow and the version-locked baseline."
+            desc="The nine-step initiation flow and the version-locked baseline."
             footer={briefLocked ? 'Baseline locked' : 'In setup'}
             state="open"
             href={`/pulse/app/initiate?project=${project.id}`}

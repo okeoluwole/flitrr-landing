@@ -1,7 +1,7 @@
 import styles from './InitiationWizard.module.css';
 
 /**
- * Steps 3 to 8 — placeholder panel. These steps are navigable (the
+ * Placeholder panel for a step not yet built. These steps are navigable (the
  * progress indicator and Next control reach them) but carry no form or
  * data logic in M3.2. Each states its name and a one-line description of
  * what it will do, plus a badge marking it as not yet built.

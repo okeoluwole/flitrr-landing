@@ -1,11 +1,13 @@
 /* ─────────────────────────────────────────
-   DashboardShell — top bar + user menu shared
-   across /dashboard and /pulse/app.
+   DashboardShell: top bar + user menu shared
+   across /dashboard and /pulse/app. Instrument
+   product theme: a dark console bar over the
+   light paper work canvas. See DESIGN.md.
 ───────────────────────────────────────── */
 
 .shell {
   min-height: 100vh;
-  background-color: var(--color-foreground-cream);
+  background-color: var(--app-paper);
   display: flex;
   flex-direction: column;
 }
@@ -14,8 +16,8 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  background-color: var(--color-foreground-cream);
-  border-bottom: 1px solid var(--color-border);
+  background-color: var(--app-console-raised);
+  border-bottom: 1px solid var(--app-console-hairline);
 }
 
 .topBarInner {
@@ -31,7 +33,7 @@
   font-size: 22px;
   line-height: 1;
   letter-spacing: -0.02em;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-on-console);
   text-decoration: none;
 }
 
@@ -58,28 +60,29 @@
   gap: 0.5rem;
   background: none;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: var(--app-radius-sm);
   padding: 0.4rem 0.75rem;
   font-family: var(--font-body), sans-serif;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-on-console);
   cursor: pointer;
   transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .menuTrigger:hover {
-  background-color: rgba(181, 188, 202, 0.25);
+  background-color: rgba(237, 241, 245, 0.08);
 }
 
 .menuTrigger:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus-on-console);
   outline-offset: 2px;
 }
 
 .menuChevron {
   width: 12px;
   height: 12px;
+  color: var(--app-on-console-secondary);
   transition: transform 0.18s ease;
 }
 
@@ -92,14 +95,14 @@
   top: calc(100% + 8px);
   right: 0;
   min-width: 200px;
-  background-color: var(--color-foreground-cream);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
+  background-color: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
   padding: 0.4rem;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  box-shadow: var(--shadow-card-hover);
+  box-shadow: var(--app-elev-2);
   z-index: 60;
   /* Anchored to the trigger in the top-right, so it scales out from there
      rather than from its own centre. */
@@ -118,22 +121,23 @@
   text-align: left;
   background: none;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--app-radius-sm);
   padding: 0.6rem 0.75rem;
   font-family: var(--font-body), sans-serif;
   font-size: 0.9375rem;
   font-weight: 500;
+  color: var(--app-ink);
   cursor: pointer;
   transition: background-color 0.12s ease;
 }
 
 .menuItem:hover,
 .menuItem:focus-visible {
-  background-color: rgba(181, 188, 202, 0.35);
+  background-color: rgba(27, 42, 58, 0.06);
 }
 
 .menuItem:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: -2px;
 }
 
@@ -142,7 +146,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-muted);
   cursor: default;
 }
 
@@ -155,14 +159,14 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--color-accent-2-grey-blue);
-  background-color: rgba(119, 147, 168, 0.16);
+  color: var(--app-ink-secondary);
+  background-color: var(--app-surface-sunken);
   padding: 2px 7px;
   border-radius: 999px;
 }
 
 .menuItemAction {
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 /* ── Body ──────────────────────────────── */
@@ -172,7 +176,7 @@
   width: 100%;
 }
 
-/* Print (M4): hide the top bar, drop the cream shell so the page is white.
+/* Print (M4): hide the top bar, drop the paper shell so the page is white.
    The brief is printed by its own module's @media print rules. */
 @media print {
   .topBar {

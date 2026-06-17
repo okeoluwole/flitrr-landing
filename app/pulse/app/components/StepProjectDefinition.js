@@ -1,7 +1,7 @@
 import styles from './InitiationWizard.module.css';
 
 /**
- * Step 1 — Project Definition. The facts the rest of the project is built
+ * Step 1, Project Definition. The facts the rest of the project is built
  * on (framework Section 7). A controlled, presentational form: it owns no
  * state. `values` holds the current field values and `onChange(field,
  * value)` reports edits up to the wizard shell, which handles saving.
@@ -34,7 +34,7 @@ export default function StepProjectDefinition({ values, onChange }) {
 
   return (
     <>
-      <p className={styles.panelEyebrow}>Step 1 of 8</p>
+      <p className={styles.panelEyebrow}>Step 1 of 9</p>
       <h2 className={styles.panelHeading}>Project Definition</h2>
       <p className={styles.panelIntro}>
         Capture the facts the rest of the project is built on: what it is,

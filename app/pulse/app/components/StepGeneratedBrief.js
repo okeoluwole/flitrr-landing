@@ -10,7 +10,7 @@ import wizard from './InitiationWizard.module.css';
 import styles from './Brief.module.css';
 
 /**
- * Step 8 — Generated Brief. The keystone of initiation: it assembles the
+ * Step 9, Generated Brief. The keystone of initiation: it assembles the
  * brief from the project's data, renders it under a selectable audience
  * lens, and locks it as the version-controlled baseline.
  *
@@ -211,7 +211,7 @@ export default function StepGeneratedBrief({
 
   const Header = (
     <>
-      <p className={wizard.panelEyebrow}>Step 8 of 8</p>
+      <p className={wizard.panelEyebrow}>Step 9 of 9</p>
       <h2 className={wizard.panelHeading}>Generated Brief</h2>
     </>
   );
