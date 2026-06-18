@@ -1,11 +1,8 @@
 /* ─────────────────────────────────────────
-   Project workspace hub.
-
-   A project's home: a stage header and the PULSE
-   modules as tiles. Open tiles behave like the
-   dashboard project cards; gated and coming-soon
-   tiles read quieter. Restraint, brand tokens,
-   no new library.
+   Project workspace hub. Instrument product
+   theme: the Brief leads as a featured card
+   (it creates the baseline every module reads),
+   the monitoring modules follow as a grid.
 ───────────────────────────────────────── */
 
 .page {
@@ -19,7 +16,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   text-decoration: none;
   margin-bottom: 1.5rem;
   transition: color var(--dur-fast) var(--ease-out);
@@ -27,7 +24,7 @@
 
 .backLink:hover,
 .backLink:focus-visible {
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 .backLink svg {
@@ -53,7 +50,7 @@
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.015em;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   overflow-wrap: break-word;
 }
 
@@ -63,9 +60,9 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--color-foreground-cream);
-  background: var(--color-accent-1-deep-blue);
+  letter-spacing: 0.02em;
+  color: var(--app-surface);
+  background: var(--app-ink);
   padding: 0.34rem 0.72rem;
   border-radius: 999px;
 }
@@ -75,16 +72,138 @@
   font-size: 1.0625rem;
   font-weight: 400;
   line-height: 1.55;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   max-width: 560px;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2.25rem;
 }
 
-/* ── Module tiles ──────────────────────── */
+/* ── The Brief: the keystone, featured ───── */
+
+.featured {
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
+  padding: 1.6rem 1.85rem;
+  box-shadow: var(--app-elev-1);
+  text-decoration: none;
+  margin-bottom: 2.5rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.featured:hover {
+  border-color: var(--app-border-strong);
+  box-shadow: var(--app-elev-2);
+  transform: translateY(-2px);
+}
+
+.featured:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+}
+
+.featured:active {
+  transform: translateY(0) scale(0.995);
+}
+
+.featuredIcon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
+  background: rgba(27, 42, 58, 0.07);
+  color: var(--app-ink);
+  transition: background-color var(--dur-base) var(--ease-out);
+}
+
+.featured:hover .featuredIcon {
+  background: rgba(27, 42, 58, 0.12);
+}
+
+.featuredMain {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.featuredEyebrow {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--app-ink-secondary);
+}
+
+.featuredTitle {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--app-ink);
+}
+
+.featuredDesc {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--app-ink-secondary);
+  max-width: 54ch;
+  margin-top: 0.15rem;
+}
+
+.featuredAside {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  text-align: right;
+}
+
+.featuredStatus {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--app-ink);
+}
+
+.featuredCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-button-primary-bg);
+}
+
+.featuredCta svg {
+  transition: transform 0.15s ease;
+}
+
+.featured:hover .featuredCta svg {
+  transform: translateX(2px);
+}
+
+/* ── Monitoring modules ──────────────────── */
+
+.sectionLabel {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--app-ink-secondary);
+  margin-bottom: 1rem;
+}
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.25rem;
 }
 
@@ -93,58 +212,53 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 0.55rem;
-  background: var(--color-foreground-cream);
-  border: 1px solid var(--color-border);
-  border-radius: 14px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
   padding: 1.5rem 1.6rem 1.4rem;
-  min-height: 188px;
+  min-height: 184px;
   text-decoration: none;
 }
 
-/* Open tiles behave like the dashboard project cards. */
+/* Open tiles lift on hover, like the project cards. */
 .tileOpen {
-  background: var(--color-foreground-cream);
   cursor: pointer;
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--app-elev-1);
   transition: border-color 0.15s ease, box-shadow 0.15s ease,
     transform 0.15s ease;
 }
 
 .tileOpen:hover {
-  border-color: var(--color-accent-1-deep-blue);
-  box-shadow: var(--shadow-card-hover);
+  border-color: var(--app-border-strong);
+  box-shadow: var(--app-elev-2);
   transform: translateY(-2px);
 }
 
 .tileOpen:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 2px;
 }
 
-/* Press settles the tile back down. */
 .tileOpen:active {
   transform: translateY(0) scale(0.992);
 }
 
-/* The icon badge lifts toward brand on hover, so the whole tile feels
-   reactive, not just the border. */
 .tileOpen .tileIcon {
-  transition: background-color var(--dur-base) var(--ease-out),
-    color var(--dur-base) var(--ease-out);
+  transition: background-color var(--dur-base) var(--ease-out);
 }
 
 .tileOpen:hover .tileIcon {
-  background: rgba(55, 97, 131, 0.16);
+  background: rgba(27, 42, 58, 0.12);
 }
 
 /* Gated and coming-soon tiles are inert and read quieter. */
-.tileLocked,
-.tileSoon {
-  background: #fff;
+.tileLocked {
+  background: var(--app-surface-sunken);
 }
 
 .tileSoon {
-  opacity: 0.72;
+  background: var(--app-surface-sunken);
+  opacity: 0.85;
 }
 
 .tileIcon {
@@ -152,17 +266,16 @@
   place-items: center;
   width: 46px;
   height: 46px;
-  border-radius: 10px;
-  background: rgba(55, 97, 131, 0.09);
-  color: var(--color-accent-1-deep-blue);
+  border-radius: 11px;
+  background: rgba(27, 42, 58, 0.07);
+  color: var(--app-ink);
   margin-bottom: 0.35rem;
 }
 
-/* Inert tiles get a muted icon badge. */
 .tileLocked .tileIcon,
 .tileSoon .tileIcon {
-  background: rgba(119, 147, 168, 0.14);
-  color: var(--color-accent-2-grey-blue);
+  background: rgba(27, 42, 58, 0.06);
+  color: var(--app-ink-muted);
 }
 
 .tileTitle {
@@ -170,14 +283,14 @@
   font-size: 1.1875rem;
   font-weight: 800;
   letter-spacing: -0.01em;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 .tileDesc {
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   line-height: 1.45;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
 }
 
 .tileFoot {
@@ -187,18 +300,33 @@
   font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.4;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
-/* The gated note is the one place the tile carries an amber caution. */
+/* The gated note is the one place a tile carries the amber caution. */
 .tileLocked .tileFoot {
   font-weight: 500;
-  color: var(--color-ochre);
+  color: var(--app-signal-ink);
 }
 
 .tileSoon .tileFoot {
   font-weight: 600;
-  color: var(--color-accent-3-light-grey-blue);
+  color: var(--app-ink-muted);
+}
+
+@media (max-width: 720px) {
+  .featured {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .featuredAside {
+    align-items: flex-start;
+    text-align: left;
+    flex-direction: row;
+    gap: 1rem;
+    align-items: center;
+  }
 }
 
 @media (max-width: 640px) {

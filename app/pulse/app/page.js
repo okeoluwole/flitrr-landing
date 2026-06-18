@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '../../../lib/supabase/server';
 import DashboardShell from '../../components/DashboardShell';
+import ProjectList from './ProjectList';
 import styles from './page.module.css';
 
 /**
@@ -13,49 +14,6 @@ import styles from './page.module.css';
  * Deliberately minimal in M3.2. The rich portfolio view is a separate
  * future module, not this sub-step.
  */
-
-// Lifecycle stage names (framework Section 4). A draft in initiation sits
-// at Stage 1 until gate logic (a later sub-step) advances it.
-const STAGE_NAMES = {
-  0: 'Land and Site Acquisition',
-  1: 'Project Objectives and Funding',
-  2: 'Consultant Appointment',
-  3: 'Design and Planning Approvals',
-  4: 'Contractor Procurement',
-  5: 'Construction',
-  6: 'Completion and Handover',
-  7: 'Sales and Disposal',
-};
-
-const STATUS_LABELS = {
-  draft: 'Draft',
-  active: 'Active',
-  on_hold: 'On hold',
-  completed: 'Completed',
-  archived: 'Archived',
-};
-
-function formatUpdated(iso) {
-  if (!iso) return null;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-}
-
-function StatusPill({ status }) {
-  const label = STATUS_LABELS[status] ?? STATUS_LABELS.draft;
-  const variant =
-    status === 'active'
-      ? styles.pillActive
-      : status === 'draft'
-        ? styles.pillDraft
-        : styles.pillMuted;
-  return <span className={`${styles.pill} ${variant}`}>{label}</span>;
-}
 
 export default async function PulseAppPage() {
   const supabase = await createClient();
@@ -126,48 +84,7 @@ export default async function PulseAppPage() {
             </Link>
           </div>
         ) : (
-          <ul className={styles.list}>
-            {list.map((p) => {
-              const stageName =
-                STAGE_NAMES[p.current_stage] ?? `Stage ${p.current_stage}`;
-              const updated = formatUpdated(p.updated_at);
-              return (
-                <li key={p.id} className={styles.listItem}>
-                  <Link
-                    href={`/pulse/app/workspace?project=${p.id}`}
-                    className={styles.cardLink}
-                  >
-                    <div className={styles.cardMain}>
-                      <h2 className={styles.cardName}>{p.name}</h2>
-                      <p className={styles.cardMeta}>
-                        Stage {p.current_stage}: {stageName}
-                        {updated ? ` · Updated ${updated}` : ''}
-                      </p>
-                    </div>
-                    <div className={styles.cardRight}>
-                      <StatusPill status={p.status} />
-                      <svg
-                        className={styles.cardChevron}
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        aria-hidden="true"
-                      >
-                        <path
-                          d="M6 3l5 5-5 5"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.75"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+          <ProjectList projects={list} />
         )}
       </main>
     </DashboardShell>

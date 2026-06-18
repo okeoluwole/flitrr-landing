@@ -1,6 +1,6 @@
 /**
  * Shared configuration for the three list-based initiation steps:
- *   Step 4  Organisation and Governance (workstreams)   -> project_workstreams
+ *   Step 5  Organisation and Governance (workstreams)   -> project_workstreams
  *   Step 7  Programme (critical milestones)             -> project_milestones
  *   Step 8  Risks, Assumptions, Constraints, Dependencies (risks) -> project_risks
  *
@@ -110,7 +110,7 @@ export const LIST_CONFIG = {
   workstreams: {
     key: 'workstreams',
     table: 'project_workstreams',
-    step: 4,
+    step: 5,
     title: 'Organisation and Governance',
     intro:
       'Define the workstreams that deliver the project and who leads each, and link a workstream to the objective it serves. The parties, the named authority, and the reporting cadence join this step in a later build.',
@@ -203,7 +203,7 @@ export const LIST_CONFIG = {
 
 // Step number -> config, for the shell's render and save switch.
 export const CONFIG_BY_STEP = {
-  4: LIST_CONFIG.workstreams,
+  5: LIST_CONFIG.workstreams,
   7: LIST_CONFIG.milestones,
   8: LIST_CONFIG.risks,
 };

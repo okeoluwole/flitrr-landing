@@ -280,6 +280,45 @@ export default async function WorkspacePage({ searchParams }) {
           each monitoring module as the project advances through its stages.
         </p>
 
+        {/* The Brief is the keystone: it creates the baseline every other
+            module reads, so it leads as a featured card. */}
+        <Link
+          href={`/pulse/app/initiate?project=${project.id}`}
+          className={styles.featured}
+        >
+          <span className={styles.featuredIcon}>
+            <BriefIcon />
+          </span>
+          <span className={styles.featuredMain}>
+            <span className={styles.featuredEyebrow}>The baseline</span>
+            <span className={styles.featuredTitle}>Brief</span>
+            <span className={styles.featuredDesc}>
+              The nine-step initiation flow and the version-locked baseline
+              every module reads from.
+            </span>
+          </span>
+          <span className={styles.featuredAside}>
+            <span className={styles.featuredStatus}>
+              {briefLocked ? 'Baseline locked' : 'In setup'}
+            </span>
+            <span className={styles.featuredCta}>
+              Open
+              <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+                <path
+                  d="M5 3l4 4-4 4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+          </span>
+        </Link>
+
+        <p className={styles.sectionLabel}>Monitoring modules</p>
+
         <div className={styles.grid}>
           <Tile
             icon={<ActionLogIcon />}
@@ -292,14 +331,6 @@ export default async function WorkspacePage({ searchParams }) {
             }
             state={stage2Reached ? 'open' : 'locked'}
             href={`/pulse/app/actions?project=${project.id}`}
-          />
-          <Tile
-            icon={<BriefIcon />}
-            title="Brief"
-            desc="The nine-step initiation flow and the version-locked baseline."
-            footer={briefLocked ? 'Baseline locked' : 'In setup'}
-            state="open"
-            href={`/pulse/app/initiate?project=${project.id}`}
           />
           <Tile
             icon={<RiskIcon />}

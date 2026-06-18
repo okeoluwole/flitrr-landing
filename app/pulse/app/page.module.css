@@ -99,6 +99,7 @@
 
 .listItem {
   margin: 0;
+  position: relative;
 }
 
 .cardLink {
@@ -171,6 +172,133 @@
 .cardLink:hover .cardChevron {
   color: var(--app-ink);
   transform: translateX(2px);
+}
+
+/* ── Delete a draft (two-step) ─────────── */
+
+.cardDelete {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--app-ink-muted);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.cardDelete:hover {
+  background: rgba(176, 42, 55, 0.08);
+  border-color: rgba(176, 42, 55, 0.4);
+  color: var(--app-danger);
+}
+
+.cardDelete:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+}
+
+/* The confirm prompt replaces the card row. A destructive action, so it
+   carries a danger-tinted edge, not the amber criticality accent. */
+.confirm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  background-color: var(--app-surface);
+  border: 1px solid rgba(176, 42, 55, 0.35);
+  border-radius: 14px;
+  padding: 1.15rem 1.5rem;
+  box-shadow: var(--app-elev-1);
+}
+
+.confirmText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.confirmTitle {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--app-ink);
+}
+
+.confirmNote {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--app-ink-secondary);
+  max-width: 60ch;
+}
+
+.confirmActions {
+  display: inline-flex;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.cancelBtn,
+.deleteBtn {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  transition: filter 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.cancelBtn {
+  color: var(--app-ink);
+  background: transparent;
+  border: 1.5px solid var(--app-border);
+}
+
+.cancelBtn:hover:not(:disabled) {
+  border-color: var(--app-border-strong);
+}
+
+.deleteBtn {
+  color: #fff;
+  background: var(--app-danger);
+  border: 1.5px solid var(--app-danger);
+}
+
+.deleteBtn:hover:not(:disabled) {
+  filter: brightness(0.95);
+}
+
+.cancelBtn:disabled,
+.deleteBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.cancelBtn:focus-visible,
+.deleteBtn:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+}
+
+.deleteError {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--app-danger);
+  margin-top: 1rem;
 }
 
 /* ── Status pills ──────────────────────── */

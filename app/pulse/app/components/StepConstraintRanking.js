@@ -8,7 +8,7 @@ import {
 import styles from './InitiationWizard.module.css';
 
 /**
- * Step 5 (priority ranking). The developer orders the five objectives by
+ * Step 3 (priority ranking). The developer orders the five objectives by
  * priority, highest at the top, so that when two objectives pull against
  * each other the project knows which one holds (framework Section 7).
  *

@@ -45,19 +45,21 @@ import styles from './InitiationWizard.module.css';
 
 // The nine steps. `short` labels the progress node; `name` titles the panel
 // and the node's accessible label. `body` is the placeholder copy for the
-// steps not yet built (3 Scope and Site, 6 Financial Baseline); every other
-// step renders its own form.
+// steps not yet built (4 Scope and Site, 6 Financial Baseline); every other
+// step renders its own form. Objectives and Priority leads the body steps,
+// before Scope and Organisation, so the classification is set before the
+// workstreams, milestones and risks that cascade from it.
 const STEPS = [
   { n: 1, name: 'Project Definition', short: 'Define' },
   { n: 2, name: 'Strategic Context', short: 'Context' },
+  { n: 3, name: 'Objectives and Priority', short: 'Objectives' },
   {
-    n: 3,
+    n: 4,
     name: 'Scope and Site',
     short: 'Scope',
     body: 'The development brief at headline level, what is being built and to what standard, and the site with its planning status and the constraints that cap it.',
   },
-  { n: 4, name: 'Organisation and Governance', short: 'Organisation' },
-  { n: 5, name: 'Objectives and Priority', short: 'Objectives' },
+  { n: 5, name: 'Organisation and Governance', short: 'Organisation' },
   {
     n: 6,
     name: 'Financial Baseline',
@@ -486,6 +488,13 @@ export default function InitiationWizard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, objStatus]);
 
+  // On step change, return to the top of the page. Advancing from the Next
+  // button at the foot of a long step would otherwise leave the next step
+  // scrolled to its base.
+  useEffect(() => {
+    if (typeof window !== 'undefined') window.scrollTo(0, 0);
+  }, [step]);
+
   const onObjectiveChange = (type, field, value) => {
     setObjectives((prev) =>
       prev
@@ -822,19 +831,9 @@ export default function InitiationWizard({
       return;
     }
 
-    // Steps 3 and 6 are placeholders for now: nothing to persist yet.
-    if (step === 3) {
-      advanceTo(4);
-      return;
-    }
-    if (step === 6) {
-      advanceTo(7);
-      return;
-    }
-
-    // Step 5: persist the objective definitions and the priority ranking
+    // Step 3: persist the objective definitions and the priority ranking
     // together. Both are no-ops once the baseline is committed (frozen).
-    if (step === 5) {
+    if (step === 3) {
       setBusy(true);
       const objErr = await persistStep3();
       const rankErr = objErr ? null : await persistStep4();
@@ -843,12 +842,22 @@ export default function InitiationWizard({
         setError(SAVE_ERROR);
         return;
       }
-      advanceTo(6);
+      advanceTo(4);
       return;
     }
 
-    // Steps 4, 7 and 8: the editable list steps (workstreams, milestones, risks).
-    if (step === 4 || step === 7 || step === 8) {
+    // Steps 4 and 6 are placeholders for now: nothing to persist yet.
+    if (step === 4) {
+      advanceTo(5);
+      return;
+    }
+    if (step === 6) {
+      advanceTo(7);
+      return;
+    }
+
+    // Steps 5, 7 and 8: the editable list steps (workstreams, milestones, risks).
+    if (step === 5 || step === 7 || step === 8) {
       const cfg = CONFIG_BY_STEP[step];
       setBusy(true);
       const err = await persistList(cfg.key);
@@ -880,15 +889,15 @@ export default function InitiationWizard({
     }
   };
 
-  // The over-constraint condition for Step 4: every objective marked
+  // The over-constraint condition for step 3: every objective marked
   // non-negotiable, so the project has left itself no room to flex. Drives
   // the soft advisory warning only; it never blocks advancing.
   const overConstrained =
     objStatus === 'loaded' &&
     objectives.every((o) => o.classification === 'non_negotiable');
 
-  // Loading / error fallback for Steps 3 and 4 while the objective rows
-  // are fetched. Mirrors the step header so the panel stays consistent.
+  // Loading / error fallback for the objectives step (3) while the objective
+  // rows are fetched. Mirrors the step header so the panel stays consistent.
   const renderObjectivesNotReady = (n) => {
     return (
       <>
@@ -970,15 +979,8 @@ export default function InitiationWizard({
     if (step === 2) {
       return <StepStrategicContext values={ctx} onChange={onCtxChange} />;
     }
-    // Steps 3 and 6 are navigable placeholders for now.
+    // Step 3 merges the objective definitions and the priority ranking.
     if (step === 3) {
-      return <StepPlaceholder name="Scope and Site" body={STEPS[2].body} />;
-    }
-    if (step === 6) {
-      return <StepPlaceholder name="Financial Baseline" body={STEPS[5].body} />;
-    }
-    // Step 5 merges the objective definitions and the priority ranking.
-    if (step === 5) {
       if (objStatus !== 'loaded') {
         return renderObjectivesNotReady(step);
       }
@@ -1000,7 +1002,14 @@ export default function InitiationWizard({
         </>
       );
     }
-    if (step === 4 || step === 7 || step === 8) {
+    // Steps 4 and 6 are navigable placeholders for now.
+    if (step === 4) {
+      return <StepPlaceholder name="Scope and Site" body={STEPS[3].body} />;
+    }
+    if (step === 6) {
+      return <StepPlaceholder name="Financial Baseline" body={STEPS[5].body} />;
+    }
+    if (step === 5 || step === 7 || step === 8) {
       if (objStatus !== 'loaded' || listsStatus !== 'loaded') {
         return renderListNotReady(step);
       }
@@ -1052,8 +1061,8 @@ export default function InitiationWizard({
     busy ||
     step === TOTAL_STEPS ||
     (step === 1 && !nameValid) ||
-    (step === 5 && objStatus !== 'loaded') ||
-    ((step === 4 || step === 7 || step === 8) &&
+    (step === 3 && objStatus !== 'loaded') ||
+    ((step === 5 || step === 7 || step === 8) &&
       (objStatus !== 'loaded' || listsStatus !== 'loaded'));
 
   const headerTitle = def.name.trim() ? def.name.trim() : 'New project';
