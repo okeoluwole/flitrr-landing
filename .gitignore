@@ -32,5 +32,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# claude code (local agent tooling)
-.claude/
+# claude code: ignore local agent state, but track shared skills
+.claude/*
+!.claude/skills/
