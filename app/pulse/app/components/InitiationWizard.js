@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { createClient } from '../../../../lib/supabase/client';
 import StepProjectDefinition from './StepProjectDefinition';
 import StepStrategicContext from './StepStrategicContext';
+import StepScopeSite from './StepScopeSite';
 import StepProjectObjectives from './StepProjectObjectives';
 import StepConstraintRanking from './StepConstraintRanking';
 import StepItemList from './StepItemList';
@@ -45,20 +46,15 @@ import styles from './InitiationWizard.module.css';
 
 // The nine steps. `short` labels the progress node; `name` titles the panel
 // and the node's accessible label. `body` is the placeholder copy for the
-// steps not yet built (4 Scope and Site, 6 Financial Baseline); every other
-// step renders its own form. Objectives and Priority leads the body steps,
-// before Scope and Organisation, so the classification is set before the
-// workstreams, milestones and risks that cascade from it.
+// steps not yet built (6 Financial Baseline); every other step renders its own
+// form. Objectives and Priority leads the body steps, before Scope and
+// Organisation, so the classification is set before the workstreams,
+// milestones and risks that cascade from it.
 const STEPS = [
   { n: 1, name: 'Project Definition', short: 'Define' },
   { n: 2, name: 'Strategic Context', short: 'Context' },
   { n: 3, name: 'Objectives and Priority', short: 'Objectives' },
-  {
-    n: 4,
-    name: 'Scope and Site',
-    short: 'Scope',
-    body: 'The development brief at headline level, what is being built and to what standard, and the site with its planning status and the constraints that cap it.',
-  },
+  { n: 4, name: 'Scope and Site', short: 'Scope' },
   { n: 5, name: 'Organisation and Governance', short: 'Organisation' },
   {
     n: 6,
@@ -116,6 +112,18 @@ const EMPTY_CTX = {
   target_end_user: '',
   exit_strategy: '',
   strategic_alignment: '',
+};
+
+// Step 4 Scope and Site, the scalar fields of the project_scope_site 1:1
+// record. The mix and quantum is held separately as a list of rows (see
+// scopeFrom). planning_status is the enum, empty mapping to null on save.
+const EMPTY_SCOPE = {
+  development_summary: '',
+  spec_standard: '',
+  site_area: '',
+  planning_status: '',
+  planning_constraints: '',
+  physical_constraints: '',
 };
 
 const SAVE_ERROR =
@@ -195,6 +203,19 @@ function buildSizeMeasures(def) {
   return Object.keys(filled).length > 0 ? filled : null;
 }
 
+/**
+ * Assemble the Step 4 mix-and-quantum rows into the mix_quantum JSONB array.
+ * A row counts if either its label or its quantum is filled; blank rows are
+ * dropped, and an empty list stores null rather than an empty array. The
+ * client-only _key is never persisted.
+ */
+function buildMixQuantum(mix) {
+  const rows = (mix ?? [])
+    .map((r) => ({ label: clean(r.label), quantum: clean(r.quantum) }))
+    .filter((r) => r.label != null || r.quantum != null);
+  return rows.length > 0 ? rows : null;
+}
+
 // Map a stored projects row onto Step 1 / Step 2 field state. DATE
 // columns come back as 'YYYY-MM-DD' strings, which is exactly what
 // <input type="date"> expects.
@@ -236,6 +257,29 @@ function ctxFrom(p) {
     target_end_user: p.target_end_user ?? '',
     exit_strategy: p.exit_strategy ?? '',
     strategic_alignment: p.strategic_alignment ?? '',
+  };
+}
+
+// Map a project_scope_site row (or null, for a project predating the seed)
+// onto Step 4 state. The mix_quantum JSONB array becomes editable rows, each
+// given a stable client key for React and focus. A missing or malformed
+// mix_quantum is treated as no rows.
+function scopeFrom(row, makeKey) {
+  if (!row) return { ...EMPTY_SCOPE, mix: [] };
+  return {
+    development_summary: row.development_summary ?? '',
+    spec_standard: row.spec_standard ?? '',
+    site_area: row.site_area ?? '',
+    planning_status: row.planning_status ?? '',
+    planning_constraints: row.planning_constraints ?? '',
+    physical_constraints: row.physical_constraints ?? '',
+    mix: Array.isArray(row.mix_quantum)
+      ? row.mix_quantum.map((m) => ({
+          _key: makeKey(),
+          label: m?.label ?? '',
+          quantum: m?.quantum ?? '',
+        }))
+      : [],
   };
 }
 
@@ -404,6 +448,13 @@ export default function InitiationWizard({
   const [objStatus, setObjStatus] = useState('idle'); // idle | loading | loaded | error
   const objLoadStartedRef = useRef(null);
 
+  // Step 4 Scope and Site state. The 1:1 project_scope_site record loads once
+  // the project exists. scope holds the scalar fields plus the editable mix
+  // rows; scopeStatus gates the form until the row (or its absence) is known.
+  const [scope, setScope] = useState(null);
+  const [scopeStatus, setScopeStatus] = useState('idle'); // idle | loading | loaded | error
+  const scopeLoadStartedRef = useRef(null);
+
   // Step 5 to 7 state. The three lists load once the project exists and its
   // objectives are in hand (the link selector and the cascade need them).
   // `lists` holds { milestones, workstreams, risks } once loaded; listsStatus
@@ -430,6 +481,44 @@ export default function InitiationWizard({
 
   const onCtxChange = (field, value) => {
     setCtx((prev) => ({ ...prev, [field]: value }));
+    if (error) setError(null);
+  };
+
+  // Step 4 Scope and Site edits. The scalar fields go through onScopeChange;
+  // the mix-and-quantum rows have their own add / edit / remove, each keyed by
+  // the row's stable client key.
+  const onScopeChange = (field, value) => {
+    setScope((prev) => (prev ? { ...prev, [field]: value } : prev));
+    if (error) setError(null);
+  };
+
+  const onMixField = (key, field, value) => {
+    setScope((prev) =>
+      prev
+        ? {
+            ...prev,
+            mix: prev.mix.map((r) =>
+              r._key === key ? { ...r, [field]: value } : r
+            ),
+          }
+        : prev
+    );
+    if (error) setError(null);
+  };
+
+  const onMixAdd = () => {
+    setScope((prev) =>
+      prev
+        ? { ...prev, mix: [...prev.mix, { _key: makeKey(), label: '', quantum: '' }] }
+        : prev
+    );
+    if (error) setError(null);
+  };
+
+  const onMixRemove = (key) => {
+    setScope((prev) =>
+      prev ? { ...prev, mix: prev.mix.filter((r) => r._key !== key) } : prev
+    );
     if (error) setError(null);
   };
 
@@ -461,6 +550,37 @@ export default function InitiationWizard({
     if (objLoadStartedRef.current === projectId) return;
     objLoadStartedRef.current = projectId;
     loadObjectives();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]);
+
+  // Fetch the Step 4 scope and site record. maybeSingle: a project created
+  // before migration 015 has no seeded row, which is not an error; it loads as
+  // empty and the save upserts it. Used by the load effect and the retry.
+  const loadScopeSite = async () => {
+    if (!projectId) return;
+    setScopeStatus('loading');
+    const { data, error: selErr } = await supabase
+      .from('project_scope_site')
+      .select(
+        'development_summary, mix_quantum, spec_standard, site_area, planning_status, planning_constraints, physical_constraints'
+      )
+      .eq('project_id', projectId)
+      .maybeSingle();
+    if (selErr) {
+      setScopeStatus('error');
+      return;
+    }
+    setScope(scopeFrom(data, makeKey));
+    setScopeStatus('loaded');
+  };
+
+  // Load the scope and site record once the project exists. Independent of the
+  // objectives load (nothing here reads them), so it has its own ref guard.
+  useEffect(() => {
+    if (!projectId) return;
+    if (scopeLoadStartedRef.current === projectId) return;
+    scopeLoadStartedRef.current = projectId;
+    loadScopeSite();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
@@ -760,6 +880,25 @@ export default function InitiationWizard({
     return results.find((r) => r.error)?.error ?? null;
   };
 
+  // Save Step 4 Scope and Site. Upsert on project_id (insert-if-absent), so a
+  // project seeded with a row updates it and one predating the seed inserts.
+  // The mix and quantum rows assemble into the mix_quantum JSONB.
+  const persistScopeSite = async () => {
+    const payload = {
+      development_summary: clean(scope.development_summary),
+      mix_quantum: buildMixQuantum(scope.mix),
+      spec_standard: clean(scope.spec_standard),
+      site_area: clean(scope.site_area),
+      planning_status: clean(scope.planning_status),
+      planning_constraints: clean(scope.planning_constraints),
+      physical_constraints: clean(scope.physical_constraints),
+    };
+    const { error: upErr } = await supabase
+      .from('project_scope_site')
+      .upsert({ project_id: projectId, ...payload }, { onConflict: 'project_id' });
+    return upErr ?? null;
+  };
+
   // Save a Step 5 to 7 list: reconcile the screen against the database so the
   // two match exactly. Blank rows (empty required field) are not real items,
   // so they are never inserted and are dropped from the screen. Rows already
@@ -887,11 +1026,20 @@ export default function InitiationWizard({
       return;
     }
 
-    // Steps 4 and 6 are placeholders for now: nothing to persist yet.
+    // Step 4 Scope and Site: upsert the project_scope_site record.
     if (step === 4) {
+      setBusy(true);
+      const err = await persistScopeSite();
+      setBusy(false);
+      if (err) {
+        setError(SAVE_ERROR);
+        return;
+      }
       advanceTo(5);
       return;
     }
+
+    // Step 6 is a placeholder for now: nothing to persist yet.
     if (step === 6) {
       advanceTo(7);
       return;
@@ -936,6 +1084,43 @@ export default function InitiationWizard({
   const overConstrained =
     objStatus === 'loaded' &&
     objectives.every((o) => o.classification === 'non_negotiable');
+
+  // Loading / error fallback for Step 4 while the scope and site record is
+  // fetched. Mirrors the step header so the panel stays consistent.
+  const renderScopeNotReady = () => {
+    return (
+      <>
+        <p className={styles.panelEyebrow}>Step 4 of 9</p>
+        <h2 className={styles.panelHeading}>Scope and Site</h2>
+        {scopeStatus === 'error' ? (
+          <>
+            <p className={styles.panelIntro}>
+              We could not load this step. Please check your connection and try
+              again.
+            </p>
+            <button
+              type="button"
+              className={styles.btnNext}
+              onClick={loadScopeSite}
+            >
+              Try again
+            </button>
+          </>
+        ) : (
+          <>
+            <div className={styles.skeleton} aria-hidden="true">
+              <div className={`${styles.skelBar} ${styles.skelShort}`} />
+              <div className={styles.skelBar} />
+              <div className={styles.skelBar} />
+            </div>
+            <span className={styles.srOnly} role="status">
+              Loading…
+            </span>
+          </>
+        )}
+      </>
+    );
+  };
 
   // Loading / error fallback for the objectives step (3) while the objective
   // rows are fetched. Mirrors the step header so the panel stays consistent.
@@ -1043,10 +1228,24 @@ export default function InitiationWizard({
         </>
       );
     }
-    // Steps 4 and 6 are navigable placeholders for now.
+    // Step 4 Scope and Site.
     if (step === 4) {
-      return <StepPlaceholder name="Scope and Site" body={STEPS[3].body} />;
+      if (scopeStatus !== 'loaded') {
+        return renderScopeNotReady();
+      }
+      return (
+        <StepScopeSite
+          values={scope}
+          onChange={onScopeChange}
+          mix={scope.mix}
+          onMixField={onMixField}
+          onMixAdd={onMixAdd}
+          onMixRemove={onMixRemove}
+          country={def.country}
+        />
+      );
     }
+    // Step 6 is a navigable placeholder for now.
     if (step === 6) {
       return <StepPlaceholder name="Financial Baseline" body={STEPS[5].body} />;
     }
@@ -1103,6 +1302,7 @@ export default function InitiationWizard({
     step === TOTAL_STEPS ||
     (step === 1 && !nameValid) ||
     (step === 3 && objStatus !== 'loaded') ||
+    (step === 4 && scopeStatus !== 'loaded') ||
     ((step === 5 || step === 7 || step === 8) &&
       (objStatus !== 'loaded' || listsStatus !== 'loaded'));
 

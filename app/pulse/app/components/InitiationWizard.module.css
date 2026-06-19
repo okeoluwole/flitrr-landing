@@ -1059,6 +1059,34 @@
   text-align: center;
 }
 
+/* ── Scope and Site: mix and quantum repeater ──
+   A light inline list of label + quantum rows, not the heavier criticality
+   item cards. The label grows, the quantum sits in a fixed narrow column, and
+   the remove control reuses the shared .removeBtn. */
+.mixList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0;
+  margin: 0 0 0.75rem;
+}
+
+.mixRow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.mixRow .input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mixRow .mixQuantum {
+  flex: 0 0 6.5rem;
+}
+
 /* ── Accessibility ─────────────────────── */
 
 .srOnly {
