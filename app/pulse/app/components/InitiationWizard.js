@@ -10,8 +10,8 @@ import StepOrganisation from './StepOrganisation';
 import StepProjectObjectives from './StepProjectObjectives';
 import StepConstraintRanking from './StepConstraintRanking';
 import StepItemList from './StepItemList';
+import StepFinancialBaseline from './StepFinancialBaseline';
 import StepGeneratedBrief from './StepGeneratedBrief';
-import StepPlaceholder from './StepPlaceholder';
 import { OBJECTIVE_ORDER } from './objectiveMeta';
 import {
   LIST_CONFIG,
@@ -46,23 +46,17 @@ import styles from './InitiationWizard.module.css';
  */
 
 // The nine steps. `short` labels the progress node; `name` titles the panel
-// and the node's accessible label. `body` is the placeholder copy for the
-// steps not yet built (6 Financial Baseline); every other step renders its own
-// form. Objectives and Priority leads the body steps, before Scope and
-// Organisation, so the classification is set before the workstreams,
-// milestones and risks that cascade from it.
+// and the node's accessible label. Every step renders its own form.
+// Objectives and Priority leads the body steps, before Scope and Organisation,
+// so the classification is set before the workstreams, milestones and risks
+// that cascade from it.
 const STEPS = [
   { n: 1, name: 'Project Definition', short: 'Define' },
   { n: 2, name: 'Strategic Context', short: 'Context' },
   { n: 3, name: 'Objectives and Priority', short: 'Objectives' },
   { n: 4, name: 'Scope and Site', short: 'Scope' },
   { n: 5, name: 'Organisation and Governance', short: 'Organisation' },
-  {
-    n: 6,
-    name: 'Financial Baseline',
-    short: 'Financial',
-    body: 'The headline budget as hard cost, soft cost and contingency, the funding structure, and the funding milestones the project is governed against.',
-  },
+  { n: 6, name: 'Financial Baseline', short: 'Financial' },
   { n: 7, name: 'Programme', short: 'Programme' },
   {
     n: 8,
@@ -228,6 +222,23 @@ function buildMixQuantum(mix) {
   return rows.length > 0 ? rows : null;
 }
 
+/**
+ * Assemble the three budget-breakdown cost fields into the budget_breakdown
+ * JSONB. Each is parsed as money (cleanNumeric); only the filled ones are
+ * carried, and an all-empty breakdown stores null rather than an empty object.
+ */
+function buildBreakdown(financial) {
+  const bd = {
+    hard_cost: cleanNumeric(financial.hard_cost),
+    soft_cost: cleanNumeric(financial.soft_cost),
+    contingency: cleanNumeric(financial.contingency),
+  };
+  const filled = Object.fromEntries(
+    Object.entries(bd).filter(([, v]) => v != null)
+  );
+  return Object.keys(filled).length > 0 ? filled : null;
+}
+
 // Map a stored projects row onto Step 1 / Step 2 field state. DATE
 // columns come back as 'YYYY-MM-DD' strings, which is exactly what
 // <input type="date"> expects.
@@ -304,6 +315,29 @@ function orgFrom(p) {
     reporting_cadence: p.reporting_cadence ?? '',
     digest_recipient: p.digest_recipient ?? '',
     authority_key: '',
+  };
+}
+
+// Map the project_budget row (or null) and the funding-milestone rows onto the
+// Step 6 state. The breakdown's numeric values render as plain strings for the
+// controlled inputs; each milestone gets a stable client key.
+function financialFrom(budgetRow, milestoneRows, makeKey) {
+  const bd = budgetRow?.budget_breakdown ?? {};
+  return {
+    hard_cost: bd?.hard_cost != null ? String(bd.hard_cost) : '',
+    soft_cost: bd?.soft_cost != null ? String(bd.soft_cost) : '',
+    contingency: bd?.contingency != null ? String(bd.contingency) : '',
+    funding_structure_type: budgetRow?.funding_structure_type ?? '',
+    funding_notes: budgetRow?.funding_notes ?? '',
+    milestones: (milestoneRows ?? []).map((r) => ({
+      _key: makeKey(),
+      id: r.id,
+      label: r.label ?? '',
+      amount: r.amount != null ? String(r.amount) : '',
+      target_date: r.target_date ?? '',
+      status: r.status ?? 'planned',
+      note: r.note ?? '',
+    })),
   };
 }
 
@@ -490,6 +524,16 @@ export default function InitiationWizard({
   const stakeholderLoadStartedRef = useRef(null);
   const persistedStakeholderIdsRef = useRef(new Set());
 
+  // Step 6 Financial Baseline state. The project_budget 1:1 record plus the
+  // funding milestones load once the project exists. financial holds the
+  // breakdown, the funding structure and notes, and the milestones list;
+  // financialStatus gates the step, and persistedFmIdsRef tracks the saved
+  // milestone ids so a save computes deletes precisely.
+  const [financial, setFinancial] = useState(null);
+  const [financialStatus, setFinancialStatus] = useState('idle'); // idle | loading | loaded | error
+  const financialLoadStartedRef = useRef(null);
+  const persistedFmIdsRef = useRef(new Set());
+
   // Step 5 to 7 state. The three lists load once the project exists and its
   // objectives are in hand (the link selector and the cascade need them).
   // `lists` holds { milestones, workstreams, risks } once loaded; listsStatus
@@ -584,6 +628,61 @@ export default function InitiationWizard({
     setStakeholders((prev) => prev.filter((p) => p._key !== key));
     setOrg((prev) =>
       prev.authority_key === key ? { ...prev, authority_key: '' } : prev
+    );
+    if (error) setError(null);
+  };
+
+  // Step 6 Financial Baseline edits. The breakdown and funding fields go
+  // through onFinancialChange; the funding milestones have their own add / edit
+  // / remove. The headline figures (currency, budget, GDV, ROI, appraisal link)
+  // stay on `def` and use onDefChange, since they live on the projects row.
+  const onFinancialChange = (field, value) => {
+    setFinancial((prev) => (prev ? { ...prev, [field]: value } : prev));
+    if (error) setError(null);
+  };
+
+  const onFmField = (key, field, value) => {
+    setFinancial((prev) =>
+      prev
+        ? {
+            ...prev,
+            milestones: prev.milestones.map((m) =>
+              m._key === key ? { ...m, [field]: value } : m
+            ),
+          }
+        : prev
+    );
+    if (error) setError(null);
+  };
+
+  const onFmAdd = () => {
+    setFinancial((prev) =>
+      prev
+        ? {
+            ...prev,
+            milestones: [
+              ...prev.milestones,
+              {
+                _key: makeKey(),
+                id: null,
+                label: '',
+                amount: '',
+                target_date: '',
+                status: 'planned',
+                note: '',
+              },
+            ],
+          }
+        : prev
+    );
+    if (error) setError(null);
+  };
+
+  const onFmRemove = (key) => {
+    setFinancial((prev) =>
+      prev
+        ? { ...prev, milestones: prev.milestones.filter((m) => m._key !== key) }
+        : prev
     );
     if (error) setError(null);
   };
@@ -688,6 +787,41 @@ export default function InitiationWizard({
     if (stakeholderLoadStartedRef.current === projectId) return;
     stakeholderLoadStartedRef.current = projectId;
     loadStakeholders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]);
+
+  // Fetch the Step 6 budget record and its funding milestones. maybeSingle for
+  // the budget: a project predating migration 015 has no seeded row, which is
+  // not an error (it loads empty and the save upserts).
+  const loadFinancial = async () => {
+    if (!projectId) return;
+    setFinancialStatus('loading');
+    const [b, m] = await Promise.all([
+      supabase
+        .from('project_budget')
+        .select('budget_breakdown, funding_structure_type, funding_notes')
+        .eq('project_id', projectId)
+        .maybeSingle(),
+      supabase
+        .from('project_funding_milestones')
+        .select('id, label, amount, target_date, status, note')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: true }),
+    ]);
+    if (b.error || m.error) {
+      setFinancialStatus('error');
+      return;
+    }
+    setFinancial(financialFrom(b.data, m.data, makeKey));
+    persistedFmIdsRef.current = new Set((m.data ?? []).map((x) => x.id));
+    setFinancialStatus('loaded');
+  };
+
+  useEffect(() => {
+    if (!projectId) return;
+    if (financialLoadStartedRef.current === projectId) return;
+    financialLoadStartedRef.current = projectId;
+    loadFinancial();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
@@ -889,17 +1023,12 @@ export default function InitiationWizard({
       size: clean(def.size),
       size_measures: buildSizeMeasures(def),
       procurement_route: clean(def.procurement_route),
-      funding_structure: clean(def.funding_structure),
       start_date: clean(def.start_date),
       target_completion_date: clean(def.target_completion_date),
-      // Optional headline financials (M3.5 Phase A). Numerics parsed to a
-      // number or null; the appraisal link is cleaned like any other text.
-      // currency is a NOT NULL enum, so fall back to GBP if somehow unset.
-      currency: def.currency || 'GBP',
-      budget: cleanNumeric(def.budget),
-      projected_gdv: cleanNumeric(def.projected_gdv),
-      projected_roi: cleanNumeric(def.projected_roi),
-      financial_detail_url: clean(def.financial_detail_url),
+      // The headline financials and the funding structure now live on Step 6
+      // (Financial Baseline) and are saved by persistFinancial, so they are no
+      // longer written here. currency stays on the projects row with a NOT NULL
+      // GBP default, so omitting it from this insert is safe.
     };
 
     if (!projectId) {
@@ -1113,6 +1242,113 @@ export default function InitiationWizard({
     return updErr ?? null;
   };
 
+  // Reconcile the Step 6 funding milestones against the database, the same way
+  // the other lists do: blank rows (no label) are dropped, existing rows
+  // updated, new rows inserted, removed rows deleted. Returns the save error
+  // or null.
+  const persistFundingMilestones = async () => {
+    const items = financial.milestones;
+    const keep = items.filter((it) => clean(it.label) != null);
+    const keepIdsInDb = new Set(keep.filter((it) => it.id).map((it) => it.id));
+    const prevIds = persistedFmIdsRef.current;
+    const toDelete = [...prevIds].filter((id) => !keepIdsInDb.has(id));
+    const toUpdate = keep.filter((it) => it.id);
+    const toInsert = keep.filter((it) => !it.id);
+
+    const rowOf = (it) => ({
+      label: clean(it.label),
+      amount: cleanNumeric(it.amount),
+      target_date: clean(it.target_date),
+      status: it.status,
+      note: clean(it.note),
+    });
+
+    let errored = false;
+    let deletedSet = new Set();
+
+    if (toDelete.length) {
+      const { error: delErr } = await supabase
+        .from('project_funding_milestones')
+        .delete()
+        .in('id', toDelete);
+      if (delErr) errored = true;
+      else deletedSet = new Set(toDelete);
+    }
+
+    if (toUpdate.length) {
+      const updRes = await Promise.all(
+        toUpdate.map((it) =>
+          supabase
+            .from('project_funding_milestones')
+            .update(rowOf(it))
+            .eq('id', it.id)
+        )
+      );
+      if (updRes.some((r) => r.error)) errored = true;
+    }
+
+    const newIdByKey = {};
+    if (toInsert.length) {
+      const insRes = await Promise.all(
+        toInsert.map((it) =>
+          supabase
+            .from('project_funding_milestones')
+            .insert({ project_id: projectId, ...rowOf(it) })
+            .select('id')
+            .single()
+            .then((res) => ({ it, res }))
+        )
+      );
+      for (const { it, res } of insRes) {
+        if (res.error || !res.data) errored = true;
+        else newIdByKey[it._key] = res.data.id;
+      }
+    }
+
+    const nextItems = keep.map((it) =>
+      it.id || !newIdByKey[it._key] ? it : { ...it, id: newIdByKey[it._key] }
+    );
+    setFinancial((prev) => (prev ? { ...prev, milestones: nextItems } : prev));
+
+    const nextPersisted = new Set(
+      [...prevIds].filter((id) => !deletedSet.has(id))
+    );
+    for (const k in newIdByKey) nextPersisted.add(newIdByKey[k]);
+    persistedFmIdsRef.current = nextPersisted;
+
+    return errored ? new Error('funding_milestones_save_failed') : null;
+  };
+
+  // Save Step 6. The headline figures moved from Step 1 are written to the
+  // projects row (they live in `def`); the breakdown, the funding structure and
+  // the notes upsert onto project_budget; then the funding milestones reconcile.
+  const persistFinancial = async () => {
+    const { error: projErr } = await supabase
+      .from('projects')
+      .update({
+        currency: def.currency || 'GBP',
+        budget: cleanNumeric(def.budget),
+        projected_gdv: cleanNumeric(def.projected_gdv),
+        projected_roi: cleanNumeric(def.projected_roi),
+        financial_detail_url: clean(def.financial_detail_url),
+      })
+      .eq('id', projectId);
+    if (projErr) return projErr;
+
+    const { error: budgetErr } = await supabase.from('project_budget').upsert(
+      {
+        project_id: projectId,
+        budget_breakdown: buildBreakdown(financial),
+        funding_structure_type: clean(financial.funding_structure_type),
+        funding_notes: clean(financial.funding_notes),
+      },
+      { onConflict: 'project_id' }
+    );
+    if (budgetErr) return budgetErr;
+
+    return await persistFundingMilestones();
+  };
+
   // Save a Step 5 to 7 list: reconcile the screen against the database so the
   // two match exactly. Blank rows (empty required field) are not real items,
   // so they are never inserted and are dropped from the screen. Rows already
@@ -1253,8 +1489,16 @@ export default function InitiationWizard({
       return;
     }
 
-    // Step 6 is a placeholder for now: nothing to persist yet.
+    // Step 6 Financial Baseline: the headline figures on the projects row, the
+    // budget breakdown and funding on project_budget, and the funding milestones.
     if (step === 6) {
+      setBusy(true);
+      const err = await persistFinancial();
+      setBusy(false);
+      if (err) {
+        setError(SAVE_ERROR);
+        return;
+      }
       advanceTo(7);
       return;
     }
@@ -1331,6 +1575,42 @@ export default function InitiationWizard({
               type="button"
               className={styles.btnNext}
               onClick={loadScopeSite}
+            >
+              Try again
+            </button>
+          </>
+        ) : (
+          <>
+            <div className={styles.skeleton} aria-hidden="true">
+              <div className={`${styles.skelBar} ${styles.skelShort}`} />
+              <div className={styles.skelBar} />
+              <div className={styles.skelBar} />
+            </div>
+            <span className={styles.srOnly} role="status">
+              Loading…
+            </span>
+          </>
+        )}
+      </>
+    );
+  };
+
+  // Loading / error fallback for Step 6 while the budget record is fetched.
+  const renderFinancialNotReady = () => {
+    return (
+      <>
+        <p className={styles.panelEyebrow}>Step 6 of 9</p>
+        <h2 className={styles.panelHeading}>Financial Baseline</h2>
+        {financialStatus === 'error' ? (
+          <>
+            <p className={styles.panelIntro}>
+              We could not load this step. Please check your connection and try
+              again.
+            </p>
+            <button
+              type="button"
+              className={styles.btnNext}
+              onClick={loadFinancial}
             >
               Try again
             </button>
@@ -1477,9 +1757,23 @@ export default function InitiationWizard({
         />
       );
     }
-    // Step 6 is a navigable placeholder for now.
+    // Step 6 Financial Baseline.
     if (step === 6) {
-      return <StepPlaceholder name="Financial Baseline" body={STEPS[5].body} />;
+      if (financialStatus !== 'loaded') {
+        return renderFinancialNotReady();
+      }
+      return (
+        <StepFinancialBaseline
+          def={def}
+          onDefChange={onDefChange}
+          financial={financial}
+          onFinancialChange={onFinancialChange}
+          milestones={financial.milestones}
+          onFmField={onFmField}
+          onFmAdd={onFmAdd}
+          onFmRemove={onFmRemove}
+        />
+      );
     }
     // Step 5 Organisation and Governance: the parties, the named authority and
     // the cadence, then the workstreams list as a continuation section.
@@ -1581,6 +1875,7 @@ export default function InitiationWizard({
       (objStatus !== 'loaded' ||
         listsStatus !== 'loaded' ||
         stakeholdersStatus !== 'loaded')) ||
+    (step === 6 && financialStatus !== 'loaded') ||
     ((step === 7 || step === 8) &&
       (objStatus !== 'loaded' || listsStatus !== 'loaded'));
 
