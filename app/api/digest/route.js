@@ -18,11 +18,11 @@ import { createUnsubscribeToken } from '../../../lib/digest/unsubscribeToken';
  *
  * Triggered by Vercel cron (vercel.json, Monday 06:00 UTC) with the
  * CRON_SECRET bearer header, or manually with ?secret= for testing. For
- * each user with the digest on, it gathers their open critical tracked
- * actions across their projects (the locked notification rule, B1), groups
- * them by project, and sends one email via Resend. A user with nothing to
- * say gets nothing. Each send is recorded in digest_sends keyed by the
- * week's run key, so one scheduled run can never email a user twice.
+ * each user with the digest on, it gathers the open tracked actions across
+ * their projects, selects the live must-hold ones (A6), frames each project by
+ * the gate it is working toward, and sends one email via Resend. A user with
+ * nothing to say gets nothing. Each send is recorded in digest_sends keyed by
+ * the week's run key, so one scheduled run can never email a user twice.
  *
  * Degrades gracefully: missing configuration is a clear 503, never a crash.
  * Everything selected, ordered, and written is deterministic (the pure
@@ -110,13 +110,13 @@ export async function GET(request) {
     return NextResponse.json(counts);
   }
 
-  // The recipients' projects, and the digest candidates across them: open
-  // critical tracked actions only (the locked rule, also re-applied by the
-  // pure model), plus objective ids for the display names.
+  // The recipients' projects (with stage, for the gate framing), and the
+  // digest candidates across them: all open tracked actions, from which the
+  // pure model selects the live must-hold ones (A6) and reads the gate.
   const userIds = recipients.map((u) => u.id);
   const { data: projects, error: projectsErr } = await admin
     .from('projects')
-    .select('id, name, user_id')
+    .select('id, name, user_id, current_stage')
     .in('user_id', userIds);
   if (projectsErr) {
     return NextResponse.json(
@@ -133,14 +133,13 @@ export async function GET(request) {
       admin
         .from('project_actions')
         .select(
-          'id, project_id, description, linked_objective_id, criticality, status, created_at'
+          'id, project_id, description, linked_objective_id, criticality_override, status, created_at, stage'
         )
         .in('project_id', projectIds)
-        .neq('status', 'done')
-        .eq('criticality', 'critical'),
+        .neq('status', 'done'),
       admin
         .from('project_objectives')
-        .select('id, objective_type')
+        .select('id, objective_type, classification')
         .in('project_id', projectIds),
     ]);
     if (actionsRes.error || objectivesRes.error) {
@@ -153,15 +152,21 @@ export async function GET(request) {
     objectives = objectivesRes.data ?? [];
   }
 
-  const objectiveNamesById = Object.fromEntries(
-    objectives.map((o) => [o.id, NAME_BY_TYPE[o.objective_type] ?? null])
+  const objectivesById = Object.fromEntries(
+    objectives.map((o) => [
+      o.id,
+      {
+        classification: o.classification,
+        name: NAME_BY_TYPE[o.objective_type] ?? null,
+      },
+    ])
   );
 
   for (const user of recipients) {
     const ownProjects = (projects ?? []).filter(
       (p) => p.user_id === user.id
     );
-    const digest = buildUserDigest(ownProjects, actions, objectiveNamesById);
+    const digest = buildUserDigest(ownProjects, actions, objectivesById);
 
     // The digest only speaks when there is something to say.
     if (digest.totalCount === 0) {
