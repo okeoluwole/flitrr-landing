@@ -341,7 +341,7 @@ function InitiationPanel() {
   return (
     <div className={styles.panel} aria-hidden="true">
       <div className={styles.vgSteps}>
-        {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+        {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
           <span key={i} style={{ display: 'contents' }}>
             {i > 0 && <span className={styles.vgStepLink} />}
             <span
@@ -352,7 +352,7 @@ function InitiationPanel() {
           </span>
         ))}
       </div>
-      <span className={styles.vgStepsCaption}>Eight steps, once</span>
+      <span className={styles.vgStepsCaption}>Nine steps, once</span>
     </div>
   );
 }

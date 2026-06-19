@@ -1,8 +1,9 @@
 /* ─────────────────────────────────────────
    Gate 1 to 2 review screen (M5).
 
-   App chrome that evaluates the locked baseline.
-   Restraint, sharp-ish edges, brand tokens only.
+   App chrome that evaluates the locked baseline,
+   in the Instrument product theme (--app-* tokens):
+   the cool paper canvas, ink text, sharp-ish edges.
    Amber is reserved for its one meaning from the
    brief: criticality and caution (the outstanding
    funding item, the over-constraint acknowledgement).
@@ -15,9 +16,9 @@
   max-width: 820px;
 }
 
-/* Local amber-as-text, legible on cream/white. Matches the brief's ochre. */
+/* Local amber-as-text, legible on paper. Matches the brief's ochre. */
 .page {
-  --ochre: var(--color-ochre);
+  --ochre: var(--app-signal-ink);
 }
 
 .backLink {
@@ -27,7 +28,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   text-decoration: none;
   margin-bottom: 1.5rem;
   transition: color var(--dur-fast) var(--ease-out);
@@ -35,7 +36,7 @@
 
 .backLink:hover,
 .backLink:focus-visible {
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 .backLink svg {
@@ -51,7 +52,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   margin-bottom: 0.5rem;
 }
 
@@ -61,7 +62,7 @@
   font-weight: 800;
   line-height: 1.12;
   letter-spacing: -0.015em;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   margin-bottom: 0.6rem;
 }
 
@@ -69,7 +70,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 1rem;
   font-weight: 600;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   margin-bottom: 1.75rem;
 }
 
@@ -77,7 +78,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.9375rem;
   line-height: 1.6;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   max-width: 620px;
   margin-bottom: 2rem;
 }
@@ -91,8 +92,8 @@
 }
 
 .group {
-  background: #fff;
-  border: 1px solid var(--color-border);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 12px;
   padding: 1.4rem 1.5rem 1.5rem;
 }
@@ -103,7 +104,7 @@
   font-weight: 700;
   letter-spacing: 0.13em;
   text-transform: uppercase;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   margin-bottom: 1rem;
 }
 
@@ -125,7 +126,7 @@
 .iconMet {
   flex: 0 0 auto;
   margin-top: 0.1rem;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 .iconOut {
@@ -146,7 +147,7 @@
   font-size: 0.9375rem;
   font-weight: 600;
   line-height: 1.4;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 .itemDetail {
@@ -159,8 +160,8 @@
 /* The over-constraint caution carries an amber left rule, the brief's one
    accent, so it reads as a caution and not an error. */
 .itemCaution {
-  border: 1px solid var(--color-critical-card-border);
-  background: var(--color-critical-card-bg);
+  border: 1px solid var(--app-critical-border);
+  background: var(--app-critical-bg);
   border-radius: 8px;
   padding: 0.85rem 1rem;
 }
@@ -180,7 +181,7 @@
   width: 18px;
   height: 18px;
   margin-top: 0.12rem;
-  accent-color: var(--color-accent-1-deep-blue);
+  accent-color: var(--app-focus);
   cursor: pointer;
 }
 
@@ -188,7 +189,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.8375rem;
   line-height: 1.5;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 /* ── Confirm action ────────────────────── */
@@ -197,7 +198,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--color-error);
+  color: var(--app-danger);
   margin-top: 1.5rem;
 }
 
@@ -213,7 +214,7 @@
 .confirmHint {
   font-family: var(--font-body), sans-serif;
   font-size: 0.8125rem;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   text-align: right;
   max-width: 340px;
   line-height: 1.4;
@@ -245,15 +246,15 @@
 }
 
 .confirmBtn:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 3px;
 }
 
 /* ── Already passed (read-only) ────────── */
 
 .passedCard {
-  background: #fff;
-  border: 1px solid var(--color-critical-card-border);
+  background: var(--app-surface);
+  border: 1px solid var(--app-critical-border);
   border-radius: 12px;
   padding: 1.6rem 1.75rem;
 }
@@ -267,8 +268,8 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-accent-1-deep-blue);
-  background: var(--color-background-amber);
+  color: var(--app-ink);
+  background: var(--app-signal);
   padding: 0.3rem 0.6rem 0.3rem 0.45rem;
   border-radius: 4px;
   margin-bottom: 1rem;
@@ -290,7 +291,7 @@
 
 .passedBadge .iconMet {
   margin-top: 0;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 .passedLine {
@@ -299,7 +300,7 @@
   font-weight: 700;
   line-height: 1.3;
   letter-spacing: -0.01em;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 .passedAck {
@@ -314,7 +315,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.9375rem;
   line-height: 1.55;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   margin-top: 0.75rem;
 }
 
@@ -332,9 +333,9 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--color-accent-1-deep-blue);
-  background: #fff;
-  border: 1.5px solid var(--color-border);
+  color: var(--app-ink);
+  background: var(--app-surface);
+  border: 1.5px solid var(--app-border);
   border-radius: 8px;
   padding: 0.7rem 1.2rem;
   text-decoration: none;
@@ -343,7 +344,7 @@
 
 .secondaryCta:hover,
 .secondaryCta:focus-visible {
-  border-color: var(--color-accent-1-deep-blue);
+  border-color: var(--app-ink);
   background: rgba(55, 97, 131, 0.05);
 }
 
@@ -351,20 +352,20 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   text-decoration: none;
 }
 
 .tertiaryLink:hover,
 .tertiaryLink:focus-visible {
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 /* ── Not available (pre-lock direct visit) ── */
 
 .notAvailable {
-  background: var(--color-foreground-cream);
-  border: 1px solid var(--color-border);
+  background: var(--app-surface-sunken);
+  border: 1px solid var(--app-border);
   border-radius: 12px;
   padding: 2rem 1.75rem;
   display: flex;
@@ -378,7 +379,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 1rem;
   line-height: 1.55;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   margin: 0;
 }
 

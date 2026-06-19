@@ -12,7 +12,7 @@
 .page {
   padding-block: 3rem 6rem;
   max-width: 880px;
-  --ochre: var(--color-ochre);
+  --ochre: var(--app-signal-ink);
 }
 
 .backLink {
@@ -22,7 +22,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   text-decoration: none;
   margin-bottom: 1.5rem;
   transition: color var(--dur-fast) var(--ease-out);
@@ -30,7 +30,7 @@
 
 .backLink:hover,
 .backLink:focus-visible {
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 .backLink svg {
@@ -46,7 +46,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   margin-bottom: 0.5rem;
 }
 
@@ -56,7 +56,7 @@
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.015em;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   margin-bottom: 0.5rem;
 }
 
@@ -64,15 +64,15 @@
   font-family: var(--font-body), sans-serif;
   font-size: 1rem;
   font-weight: 600;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   margin-bottom: 1.75rem;
 }
 
 /* ── Stage-gate locked state (below Stage 2) ── */
 
 .locked {
-  background: var(--color-foreground-cream);
-  border: 1px solid var(--color-border);
+  background: var(--app-surface-sunken);
+  border: 1px solid var(--app-border);
   border-radius: 12px;
   padding: 2rem 1.75rem;
   display: flex;
@@ -86,7 +86,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 1rem;
   line-height: 1.55;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   margin: 0;
 }
 
@@ -119,8 +119,8 @@
    developer's own actions. */
 
 .band {
-  background: var(--color-foreground-cream);
-  border: 1px solid var(--color-border);
+  background: var(--app-surface-sunken);
+  border: 1px solid var(--app-border);
   border-radius: 12px;
   padding: 1.1rem 1.4rem 1.4rem;
   margin-bottom: 1.5rem;
@@ -132,7 +132,7 @@
   font-weight: 700;
   letter-spacing: 0.13em;
   text-transform: uppercase;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   margin: 0 0 0.9rem;
 }
 
@@ -145,8 +145,8 @@
 /* One pushed item: a suggestion, not a tracked action. White card, no
    status controls, just the two responses. */
 .pushItem {
-  background: #fff;
-  border: 1px solid var(--color-border);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 10px;
   padding: 1rem 1.1rem;
 }
@@ -165,7 +165,7 @@
   font-weight: 700;
   line-height: 1.35;
   letter-spacing: -0.01em;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   margin: 0 0 0.85rem;
 }
 
@@ -198,8 +198,8 @@
 }
 
 .chipSerious {
-  background: var(--color-accent-1-deep-blue);
-  color: var(--color-foreground-cream);
+  background: var(--app-ink);
+  color: var(--app-surface-sunken);
 }
 
 /* The collapsed state: one calm line. Quiet is a feature. */
@@ -207,9 +207,9 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--color-accent-2-grey-blue);
-  background: var(--color-foreground-cream);
-  border: 1px solid var(--color-border);
+  color: var(--app-ink-secondary);
+  background: var(--app-surface-sunken);
+  border: 1px solid var(--app-border);
   border-radius: 12px;
   padding: 0.85rem 1.4rem;
   margin-bottom: 1.5rem;
@@ -234,7 +234,7 @@
   font-weight: 700;
   line-height: 1.35;
   letter-spacing: -0.01em;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   margin: 0 0 0.35rem;
 }
 
@@ -242,7 +242,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   line-height: 1.55;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   margin: 0 0 0.85rem;
 }
 
@@ -256,7 +256,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
 }
 
 /* The quiet provenance marker on a tracked action promoted from a risk,
@@ -265,17 +265,17 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   text-decoration: none;
-  border-bottom: 1px solid var(--color-accent-3-light-grey-blue);
+  border-bottom: 1px solid var(--app-ink-muted);
   transition: color var(--dur-fast) var(--ease-out),
     border-color var(--dur-fast) var(--ease-out);
 }
 
 .fromRisk:hover,
 .fromRisk:focus-visible {
-  color: var(--color-accent-1-deep-blue);
-  border-color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
+  border-color: var(--app-ink);
 }
 
 /* ── Summary bar ───────────────────────── */
@@ -286,8 +286,8 @@
   gap: 2rem;
   flex-wrap: wrap;
   padding: 1.1rem 1.4rem;
-  background: #fff;
-  border: 1px solid var(--color-border);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 12px;
   margin-bottom: 1.5rem;
 }
@@ -304,7 +304,7 @@
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.01em;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   font-variant-numeric: tabular-nums;
 }
 
@@ -318,7 +318,7 @@
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
 }
 
 .doneToggle {
@@ -326,9 +326,9 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--color-accent-1-deep-blue);
-  background: #fff;
-  border: 1px solid var(--color-border);
+  color: var(--app-ink);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 8px;
   padding: 0.5rem 0.85rem;
   cursor: pointer;
@@ -336,12 +336,12 @@
 }
 
 .doneToggle:hover {
-  border-color: var(--color-accent-1-deep-blue);
+  border-color: var(--app-ink);
   background: rgba(55, 97, 131, 0.05);
 }
 
 .doneToggle:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 2px;
 }
 
@@ -349,7 +349,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--color-error);
+  color: var(--app-danger);
   margin-bottom: 1rem;
 }
 
@@ -359,8 +359,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
-  background: #fff;
-  border: 1px solid var(--color-border);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 10px;
   padding: 1rem 1.1rem;
   margin-bottom: 1.5rem;
@@ -376,22 +376,22 @@
 .input {
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
-  color: var(--color-accent-1-deep-blue);
-  background: var(--color-foreground-cream);
-  border: 1px solid var(--color-border);
+  color: var(--app-ink);
+  background: var(--app-surface-sunken);
+  border: 1px solid var(--app-border);
   border-radius: 8px;
   padding: 0.55rem 0.75rem;
   min-width: 0;
 }
 
 .input::placeholder {
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
 }
 
 .input:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 1px;
-  border-color: var(--color-accent-1-deep-blue);
+  border-color: var(--app-ink);
 }
 
 .noteInput {
@@ -402,9 +402,9 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-accent-1-deep-blue);
-  background: var(--color-foreground-cream);
-  border: 1px solid var(--color-border);
+  color: var(--app-ink);
+  background: var(--app-surface-sunken);
+  border: 1px solid var(--app-border);
   border-radius: 8px;
   padding: 0.55rem 0.6rem;
   max-width: 100%;
@@ -412,9 +412,9 @@
 }
 
 .select:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 1px;
-  border-color: var(--color-accent-1-deep-blue);
+  border-color: var(--app-ink);
 }
 
 /* The cascade made visible: what the link will log the action as. The one
@@ -450,7 +450,7 @@
 }
 
 .primaryBtn:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 2px;
 }
 
@@ -467,8 +467,8 @@
 /* ── Empty states ──────────────────────── */
 
 .empty {
-  background: var(--color-foreground-cream);
-  border: 1px solid var(--color-border);
+  background: var(--app-surface-sunken);
+  border: 1px solid var(--app-border);
   border-radius: 12px;
   padding: 2rem 1.75rem;
 }
@@ -477,7 +477,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.9375rem;
   line-height: 1.55;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   margin: 0;
   max-width: 460px;
 }
@@ -491,8 +491,8 @@
 }
 
 .card {
-  background: #fff;
-  border: 1px solid var(--color-border);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 10px;
   padding: 1.25rem 1.4rem;
 }
@@ -500,8 +500,8 @@
 /* Critical (protected-objective) actions carry the amber accent, as in the
    Brief and the register. The one functional colour, meaning the same thing. */
 .cardCritical {
-  border-color: var(--color-critical-card-border);
-  background: var(--color-critical-card-bg);
+  border-color: var(--app-critical-border);
+  background: var(--app-critical-bg);
 }
 
 .cardHead {
@@ -541,7 +541,7 @@
 }
 
 .crit:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 2px;
 }
 
@@ -555,19 +555,19 @@
 }
 
 .critStandard {
-  background: #eef0f3;
-  color: var(--color-accent-2-grey-blue);
+  background: var(--app-surface-sunken);
+  color: var(--app-ink-secondary);
 }
 
 .critStandard:hover {
-  border-color: var(--color-accent-3-light-grey-blue);
+  border-color: var(--app-ink-muted);
 }
 
 .objective {
   font-family: var(--font-body), sans-serif;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
 }
 
 .description {
@@ -576,7 +576,7 @@
   font-weight: 700;
   line-height: 1.35;
   letter-spacing: -0.01em;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   margin-bottom: 0.35rem;
 }
 
@@ -584,7 +584,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.875rem;
   line-height: 1.5;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   margin: 0;
 }
 
@@ -610,15 +610,15 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 /* Segmented control (the one-tap status). */
 .seg {
   display: inline-flex;
   flex-wrap: wrap;
-  background: #fff;
-  border: 1px solid var(--color-border);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 8px;
   padding: 3px;
   gap: 2px;
@@ -628,7 +628,7 @@
   font-family: var(--font-body), sans-serif;
   font-weight: 600;
   font-size: 0.8125rem;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   border: 0;
   background: transparent;
   padding: 0.42rem 0.8rem;
@@ -638,17 +638,17 @@
 }
 
 .segBtn:hover {
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 .segBtnActive,
 .segBtnActive:hover {
-  background: var(--color-accent-1-deep-blue);
-  color: var(--color-foreground-cream);
+  background: var(--app-ink);
+  color: var(--app-surface-sunken);
 }
 
 .segBtn:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 2px;
 }
 
@@ -689,9 +689,9 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   background: transparent;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--app-border);
   border-radius: 8px;
   padding: 0.5rem 0.9rem;
   cursor: pointer;
@@ -700,12 +700,12 @@
 }
 
 .ghostBtn:hover {
-  border-color: var(--color-accent-1-deep-blue);
-  color: var(--color-accent-1-deep-blue);
+  border-color: var(--app-ink);
+  color: var(--app-ink);
 }
 
 .ghostBtn:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 2px;
 }
 
@@ -724,13 +724,13 @@
   flex-wrap: wrap;
   margin-top: 1.1rem;
   padding-top: 0.85rem;
-  border-top: 1px solid var(--color-foreground-cream);
+  border-top: 1px solid var(--app-surface-sunken);
 }
 
 .logged {
   font-family: var(--font-body), sans-serif;
   font-size: 0.75rem;
-  color: var(--color-accent-3-light-grey-blue);
+  color: var(--app-ink-muted);
 }
 
 .footActions {
@@ -743,7 +743,7 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   background: transparent;
   border: 0;
   padding: 0.2rem 0;
@@ -752,16 +752,16 @@
 }
 
 .footBtn:hover {
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 .footBtn:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 2px;
 }
 
 .footBtnDanger:hover {
-  color: var(--color-error);
+  color: var(--app-danger);
 }
 
 /* Delete is behind a confirm step: delete is for mistakes, done is for
@@ -777,16 +777,16 @@
   font-family: var(--font-body), sans-serif;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
 }
 
 .dangerBtn {
   font-family: var(--font-body), sans-serif;
   font-size: 0.8125rem;
   font-weight: 700;
-  color: #fff;
-  background: var(--color-error);
-  border: 1.5px solid var(--color-error);
+  color: var(--app-surface);
+  background: var(--app-danger);
+  border: 1.5px solid var(--app-danger);
   border-radius: 8px;
   padding: 0.5rem 0.9rem;
   cursor: pointer;
@@ -798,7 +798,7 @@
 }
 
 .dangerBtn:focus-visible {
-  outline: 2px solid var(--color-error);
+  outline: 2px solid var(--app-danger);
   outline-offset: 2px;
 }
 
@@ -814,7 +814,7 @@
   font-weight: 700;
   letter-spacing: 0.13em;
   text-transform: uppercase;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   margin-bottom: 1rem;
 }
 

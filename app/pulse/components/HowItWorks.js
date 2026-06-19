@@ -16,7 +16,7 @@ const STEPS = [
   {
     n: '1',
     title: 'Set it up once',
-    body: 'A guided start turns your project into a formal Brief, version-locked as the baseline every module reads from.',
+    body: 'A nine-step guided start turns your project into a formal Brief, version-locked as the baseline every module reads from.',
     kind: 'brief',
   },
   {
