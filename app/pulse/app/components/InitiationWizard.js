@@ -83,8 +83,19 @@ const EMPTY_DEF = {
   category: '',
   sub_category: '',
   description: '',
+  // Location is the city (in `location`) plus the country, the jurisdiction
+  // the later steps tailor to (framework Section 7). country is the
+  // project_country enum, nullable, so it defaults to empty (maps to null).
   location: '',
+  country: '',
+  // Size: structured measures (assembled into the size_measures JSONB on save,
+  // see buildSizeMeasures) plus the legacy free-text `size` summary the brief
+  // still reads. All held as strings for the controlled inputs.
   size: '',
+  size_unit_count: '',
+  size_gross_internal_area: '',
+  size_plot_size: '',
+  size_storeys: '',
   procurement_route: '',
   funding_structure: '',
   start_date: '',
@@ -164,6 +175,26 @@ function cleanNumeric(v) {
   return Number.isFinite(n) ? n : null;
 }
 
+/**
+ * Assemble the four structured size fields into the size_measures JSONB.
+ * Each measure is kept as the developer typed it (permissive, like the rest
+ * of the flow: "1,800 sqm", "0.6 ha"); only the non-empty ones are carried,
+ * and an all-empty set stores null rather than an empty object, so the column
+ * stays clean. The legacy free-text summary is saved separately on `size`.
+ */
+function buildSizeMeasures(def) {
+  const measures = {
+    unit_count: clean(def.size_unit_count),
+    gross_internal_area: clean(def.size_gross_internal_area),
+    plot_size: clean(def.size_plot_size),
+    storeys: clean(def.size_storeys),
+  };
+  const filled = Object.fromEntries(
+    Object.entries(measures).filter(([, v]) => v != null)
+  );
+  return Object.keys(filled).length > 0 ? filled : null;
+}
+
 // Map a stored projects row onto Step 1 / Step 2 field state. DATE
 // columns come back as 'YYYY-MM-DD' strings, which is exactly what
 // <input type="date"> expects.
@@ -176,7 +207,14 @@ function defFrom(p) {
     sub_category: p.sub_category ?? '',
     description: p.description ?? '',
     location: p.location ?? '',
+    country: p.country ?? '',
+    // size_measures is a JSONB object (or null); unpack its keys onto the flat
+    // controlled fields. The legacy free-text summary stays in `size`.
     size: p.size ?? '',
+    size_unit_count: p.size_measures?.unit_count ?? '',
+    size_gross_internal_area: p.size_measures?.gross_internal_area ?? '',
+    size_plot_size: p.size_measures?.plot_size ?? '',
+    size_storeys: p.size_measures?.storeys ?? '',
     procurement_route: p.procurement_route ?? '',
     funding_structure: p.funding_structure ?? '',
     start_date: p.start_date ?? '',
@@ -613,7 +651,10 @@ export default function InitiationWizard({
       sub_category: clean(def.sub_category),
       description: clean(def.description),
       location: clean(def.location),
+      country: clean(def.country),
+      // Structured measures into the JSONB; the free-text summary on `size`.
       size: clean(def.size),
+      size_measures: buildSizeMeasures(def),
       procurement_route: clean(def.procurement_route),
       funding_structure: clean(def.funding_structure),
       start_date: clean(def.start_date),

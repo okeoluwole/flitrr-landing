@@ -1,0 +1,71 @@
+/* ─────────────────────────────────────────
+   SuiteNudge: a quiet pointer to a sibling
+   product (ROUTE, STACK) at the field where
+   it does the deeper job. Informational, not
+   a signal, so it stays in the calm navy
+   register and never borrows the amber that
+   means criticality. Mirrors the wizard's
+   .frozenNote info-note treatment.
+───────────────────────────────────────── */
+
+.nudge {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  background-color: rgba(55, 97, 131, 0.05);
+  border: 1px solid rgba(55, 97, 131, 0.18);
+  border-radius: var(--app-radius);
+  padding: 0.8rem 0.95rem;
+  margin-top: 0.6rem;
+}
+
+.mark {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--app-focus);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.text {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--app-ink);
+  margin: 0;
+}
+
+.tag {
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--app-focus);
+  margin-right: 0.4rem;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  align-self: flex-start;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--app-ink);
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}

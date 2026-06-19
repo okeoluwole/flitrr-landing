@@ -1,3 +1,4 @@
+import SuiteNudge from './SuiteNudge';
 import styles from './InitiationWizard.module.css';
 
 /**
@@ -5,6 +6,13 @@ import styles from './InitiationWizard.module.css';
  * on (framework Section 7). A controlled, presentational form: it owns no
  * state. `values` holds the current field values and `onChange(field,
  * value)` reports edits up to the wizard shell, which handles saving.
+ *
+ * Location is held as the city (in `location`) plus a country, the country
+ * being the jurisdiction the rest of the flow tailors to (PULSE Framework
+ * Section 7). Size is held as structured measures suited to the project type
+ * (unit count, gross internal area, plot size, storeys), assembled into the
+ * `size_measures` JSONB on save; the free-text `size` line is kept alongside
+ * as the headline the brief reads, until a later sub-step folds it in.
  *
  * Only `name` is required (the wizard enforces this before advancing).
  * Every other field is optional at entry; completeness is checked later
@@ -18,6 +26,15 @@ const PROCUREMENT_OPTIONS = [
   { value: 'design_build', label: 'Design-Build' },
   { value: 'construction_management', label: 'Construction Management' },
   { value: 'management_contracting', label: 'Management Contracting' },
+  { value: 'other', label: 'Other' },
+];
+
+// project_country enum values, paired with readable labels. The empty option
+// maps to null on save. The country drives the geography tailoring in the
+// later steps (framework Section 7).
+const COUNTRY_OPTIONS = [
+  { value: 'united_kingdom', label: 'United Kingdom' },
+  { value: 'nigeria', label: 'Nigeria' },
   { value: 'other', label: 'Other' },
 ];
 
@@ -38,8 +55,8 @@ export default function StepProjectDefinition({ values, onChange }) {
       <h2 className={styles.panelHeading}>Project Definition</h2>
       <p className={styles.panelIntro}>
         Capture the facts the rest of the project is built on: what it is,
-        where it sits, how it is procured and funded, and the dates that
-        frame it. Only the project name is required to begin. You can fill
+        where it sits, its size, how it is procured and funded, and the dates
+        that frame it. Only the project name is required to begin. You can fill
         in the rest now or come back to it later.
       </p>
 
@@ -94,7 +111,7 @@ export default function StepProjectDefinition({ values, onChange }) {
           />
         </div>
 
-        <div className={styles.field}>
+        <div className={`${styles.field} ${styles.fieldFull}`}>
           <label className={styles.label} htmlFor="pd-subcategory">
             Sub-category
           </label>
@@ -110,8 +127,118 @@ export default function StepProjectDefinition({ values, onChange }) {
         </div>
 
         <div className={styles.field}>
+          <label className={styles.label} htmlFor="pd-location">
+            City or town
+          </label>
+          <input
+            id="pd-location"
+            type="text"
+            className={styles.input}
+            value={values.location}
+            onChange={set('location')}
+            placeholder="e.g. Leeds"
+            autoComplete="off"
+          />
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="pd-country">
+            Country
+          </label>
+          <select
+            id="pd-country"
+            className={styles.select}
+            value={values.country}
+            onChange={set('country')}
+            aria-describedby="pd-country-hint"
+          >
+            <option value="">Select…</option>
+            {COUNTRY_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <p id="pd-country-hint" className={styles.hint}>
+            The jurisdiction the project is governed in.
+          </p>
+        </div>
+
+        {/* Structured size measures (size_measures JSONB). Suited to the
+            project type: a tower might use units and storeys, a single plot
+            its area. All optional; the wizard assembles only the filled ones. */}
+        <div className={`${styles.fieldFull} ${styles.groupHead}`}>
+          <h3 className={styles.groupTitle}>Project size</h3>
+          <p className={styles.groupHint}>
+            The measures that fit this project. Fill only the ones that apply.
+          </p>
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="pd-units">
+            Number of units
+          </label>
+          <input
+            id="pd-units"
+            type="text"
+            inputMode="numeric"
+            className={styles.input}
+            value={values.size_unit_count}
+            onChange={set('size_unit_count')}
+            placeholder="e.g. 24"
+            autoComplete="off"
+          />
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="pd-storeys">
+            Storeys
+          </label>
+          <input
+            id="pd-storeys"
+            type="text"
+            inputMode="numeric"
+            className={styles.input}
+            value={values.size_storeys}
+            onChange={set('size_storeys')}
+            placeholder="e.g. 4"
+            autoComplete="off"
+          />
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="pd-gia">
+            Gross internal area
+          </label>
+          <input
+            id="pd-gia"
+            type="text"
+            className={styles.input}
+            value={values.size_gross_internal_area}
+            onChange={set('size_gross_internal_area')}
+            placeholder="e.g. 1,800 sqm"
+            autoComplete="off"
+          />
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="pd-plot">
+            Plot size
+          </label>
+          <input
+            id="pd-plot"
+            type="text"
+            className={styles.input}
+            value={values.size_plot_size}
+            onChange={set('size_plot_size')}
+            placeholder="e.g. 0.6 ha"
+            autoComplete="off"
+          />
+        </div>
+
+        <div className={`${styles.field} ${styles.fieldFull}`}>
           <label className={styles.label} htmlFor="pd-size">
-            Size
+            Size summary
           </label>
           <input
             id="pd-size"
@@ -121,25 +248,14 @@ export default function StepProjectDefinition({ values, onChange }) {
             onChange={set('size')}
             placeholder="e.g. 24 units, 1,800 sqm"
             autoComplete="off"
+            aria-describedby="pd-size-hint"
           />
+          <p id="pd-size-hint" className={styles.hint}>
+            A short headline for the brief.
+          </p>
         </div>
 
-        <div className={styles.field}>
-          <label className={styles.label} htmlFor="pd-location">
-            Location
-          </label>
-          <input
-            id="pd-location"
-            type="text"
-            className={styles.input}
-            value={values.location}
-            onChange={set('location')}
-            placeholder="e.g. Leeds, UK"
-            autoComplete="off"
-          />
-        </div>
-
-        <div className={styles.field}>
+        <div className={`${styles.field} ${styles.fieldFull}`}>
           <label className={styles.label} htmlFor="pd-procurement">
             Procurement route
           </label>
@@ -156,6 +272,9 @@ export default function StepProjectDefinition({ values, onChange }) {
               </option>
             ))}
           </select>
+          {/* ROUTE nudge (framework Section 10). Dormant: silent until ROUTE
+              ships and for App-tier developers only. Renders nothing today. */}
+          <SuiteNudge product="route" />
         </div>
 
         <div className={styles.field}>
@@ -212,7 +331,8 @@ export default function StepProjectDefinition({ values, onChange }) {
 
         {/* Optional headline financials (M3.5 Phase A). PULSE presents these
             on the brief but never models them; full detail lives elsewhere
-            and is reached through the appraisal link. All optional. */}
+            and is reached through the appraisal link. All optional. Stays on
+            Step 1 for now; a later sub-step moves it to the Financial Baseline. */}
         <div className={`${styles.fieldFull} ${styles.groupHead}`}>
           <h3 className={styles.groupTitle}>Budget and projections</h3>
           <p className={styles.groupHint}>
