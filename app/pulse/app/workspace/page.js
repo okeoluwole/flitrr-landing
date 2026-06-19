@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { createClient } from '../../../../lib/supabase/server';
 import DashboardShell from '../../../components/DashboardShell';
 import {
-  deriveRiskItems,
+  deriveResponseFeed,
   formatActionLogSummary,
 } from '../actions/actionFeed';
 import { isCritical, isDone, objectivesById } from '../actions/actionModel';
@@ -232,27 +232,45 @@ export default async function WorkspacePage({ searchParams }) {
   // Stage 2 the tile stays locked and reads nothing.
   let actionLogFooter = 'Open';
   if (stage2Reached) {
-    const [{ data: actions }, { data: risks }, { data: objectives }] =
-      await Promise.all([
-        supabase
-          .from('project_actions')
-          .select(
-            'id, status, criticality, criticality_override, linked_objective_id, source, source_id'
-          )
-          .eq('project_id', project.id),
-        supabase
-          .from('project_risks')
-          .select('id, criticality, likelihood, impact, status, updated_at')
-          .eq('project_id', project.id),
-        supabase
-          .from('project_objectives')
-          .select('id, classification')
-          .eq('project_id', project.id),
-      ]);
+    const raidColumns = 'id, linked_objective_id, updated_at';
+    const [
+      { data: actions },
+      { data: risks },
+      { data: objectives },
+      { data: assumptions },
+      { data: constraints },
+      { data: dependencies },
+    ] = await Promise.all([
+      supabase
+        .from('project_actions')
+        .select(
+          'id, status, criticality, criticality_override, linked_objective_id, source, source_id'
+        )
+        .eq('project_id', project.id),
+      supabase
+        .from('project_risks')
+        .select('id, criticality, likelihood, impact, status, updated_at')
+        .eq('project_id', project.id),
+      supabase
+        .from('project_objectives')
+        .select('id, classification')
+        .eq('project_id', project.id),
+      supabase.from('project_assumptions').select(raidColumns).eq('project_id', project.id),
+      supabase.from('project_constraints').select(raidColumns).eq('project_id', project.id),
+      supabase.from('project_dependencies').select(raidColumns).eq('project_id', project.id),
+    ]);
     // Criticality is derived live from the linked objective (A2), so the tile
-    // counts critical the same way the log does, override included.
+    // counts critical the same way the log does, override included. The
+    // needs-a-response count is the full feed (risks plus RAID, A5).
     const byId = objectivesById(objectives ?? []);
-    const needsResponseCount = deriveRiskItems(risks ?? [], actions ?? []).length;
+    const needsResponseCount = deriveResponseFeed({
+      risks: risks ?? [],
+      assumptions: assumptions ?? [],
+      constraints: constraints ?? [],
+      dependencies: dependencies ?? [],
+      actions: actions ?? [],
+      objectivesById: byId,
+    }).length;
     const openCriticalCount = (actions ?? []).filter(
       (a) => !isDone(a) && isCritical(a, byId)
     ).length;

@@ -18,7 +18,11 @@ import {
   gateReadiness,
   provenanceLabel,
 } from './actionModel';
-import { deriveRiskItems, buildTrackedActionFromRisk } from './actionFeed';
+import {
+  deriveResponseFeed,
+  buildTrackedActionFromRisk,
+  buildTrackedActionFromRaid,
+} from './actionFeed';
 import {
   splitProposals,
   buildActionFromPlay,
@@ -27,8 +31,8 @@ import styles from './ActionLog.module.css';
 
 /**
  * ActionLog (M7.1 + M7.2) - the central attention home. The
- * needs-your-response band at the top holds risk-derived items computed live
- * from the register rows (actionFeed.js); below it, the tracked list: the
+ * needs-your-response band at the top holds the risk and RAID items that need a
+ * response, computed live (actionFeed.js); below it, the tracked list: the
  * project's actions critical-first, with an inline add flow, one-tap status,
  * editing, and delete behind a confirm. Criticality is derived live from the
  * linked objective, with a constrained downward override. A gate-readiness
@@ -79,6 +83,13 @@ const DISMISS_PLAY_ERROR =
 const CRITICALITY_LABEL = { critical: 'Critical', standard: 'Standard' };
 const NEEDS_LINK_LABEL = 'Needs a link';
 const OVERRIDE_REASON_PLACEHOLDER = 'Why reduce this to standard?';
+
+// The RAID kinds the feed surfaces (A5), for the band's kind label.
+const KIND_LABEL = {
+  assumption: 'Assumption',
+  constraint: 'Constraint',
+  dependency: 'Dependency',
+};
 
 // The final lifecycle stage; beyond it there is no onward gate.
 const LAST_STAGE = 7;
@@ -147,6 +158,9 @@ export default function ActionLog({
   initialActions,
   objectives,
   risks,
+  assumptions,
+  constraints,
+  dependencies,
   playSuggestions,
 }) {
   const supabase = createClient();
@@ -207,12 +221,20 @@ export default function ActionLog({
       ? `the gate into Stage ${nextStage}`
       : `the close of Stage ${currentStage}`;
 
-  // The needs-your-response items, recomputed from the live register rows
-  // and the current actions every render, so promotion (and deleting or
-  // completing a tracked action) moves an item out of or back into the band
-  // without a reload. Risk status changes happen in the register, so those
-  // arrive on the next visit.
-  const needsResponse = deriveRiskItems(risks, actions);
+  // The needs-your-response feed (A5): the qualifying risks plus the RAID items
+  // that threaten a must-hold objective, recomputed from the live source rows
+  // and the current actions every render, so promoting (or deleting or
+  // completing) a tracked action moves an item out of or back into the band
+  // without a reload. Risk status changes and RAID edits happen elsewhere, so
+  // those arrive on the next visit.
+  const needsResponse = deriveResponseFeed({
+    risks,
+    assumptions,
+    constraints,
+    dependencies,
+    actions,
+    objectivesById: byId,
+  });
 
   // The live suggestions: the server's proposals minus the ones acted on
   // this session, top five up front, the rest behind Show all.
@@ -260,18 +282,29 @@ export default function ActionLog({
     setAdding(false);
   };
 
-  // Track this (M7.2): promote a pushed item into a real tracked action in
-  // one interaction, pre-filled from the risk (actionFeed's deterministic
-  // template) and editable after. No confirmation dialog. The insert waits
-  // for its row back; as it lands, the dedupe suppresses the pushed item.
-  const trackRisk = async (risk) => {
+  // Track this (M7.2, A5): promote a pushed feed entry (a risk or a RAID item)
+  // into a real tracked action in one interaction, pre-filled by its kind
+  // (actionFeed's deterministic templates) and editable after. No confirmation
+  // dialog. The insert waits for its row back; as it lands, the dedupe
+  // suppresses the pushed item.
+  const trackItem = async (entry) => {
     if (promotingId) return;
-    setPromotingId(risk.id);
+    setPromotingId(entry.row.id);
     setError(null);
+
+    const insert =
+      entry.kind === 'risk'
+        ? buildTrackedActionFromRisk(entry.row, projectId, currentStage)
+        : buildTrackedActionFromRaid(
+            entry.row,
+            projectId,
+            currentStage,
+            entry.kind
+          );
 
     const { data, error: insErr } = await supabase
       .from('project_actions')
-      .insert(buildTrackedActionFromRisk(risk, projectId, currentStage))
+      .insert(insert)
       .select(ACTION_COLUMNS)
       .single();
 
@@ -457,16 +490,19 @@ export default function ActionLog({
   const objectiveName = (id) =>
     id ? objectives.find((o) => o.id === id)?.name ?? null : null;
 
-  // One pushed item in the needs-your-response band: the risk name, the
-  // objective it threatens, why it surfaced as plain chips, and the two
-  // responses. Unmistakably a suggestion, never mixed with tracked actions;
-  // the register keeps its own status controls.
-  const renderPushItem = ({ risk, reasons }) => {
-    const linkedName = objectiveName(risk.linked_objective_id);
-    const promoting = promotingId === risk.id;
+  // One pushed item in the needs-your-response band (A5): a risk or a RAID
+  // item (assumption, constraint, dependency). Its description, the objective
+  // it bears on, why it surfaced as plain chips, its provenance, and Track this
+  // (plus Review in register for a risk, which keeps its own controls there).
+  // Unmistakably a suggestion, never mixed with tracked actions.
+  const renderPushItem = (entry) => {
+    const { kind, row, reasons } = entry;
+    const isRisk = kind === 'risk';
+    const linkedName = objectiveName(row.linked_objective_id);
+    const promoting = promotingId === row.id;
 
     return (
-      <article key={risk.id} className={styles.pushItem}>
+      <article key={`${kind}-${row.id}`} className={styles.pushItem}>
         <div className={styles.pushTags}>
           {reasons.critical && (
             <span className={`${styles.chip} ${styles.chipCritical}`}>
@@ -478,29 +514,32 @@ export default function ActionLog({
               Serious
             </span>
           )}
+          {!isRisk && <span className={styles.kind}>{KIND_LABEL[kind]}</span>}
           <span className={styles.objective}>
             {linkedName ? `vs ${linkedName}` : 'Unlinked'}
           </span>
-          <span className={styles.provenance}>{provenanceLabel('risk')}</span>
+          <span className={styles.provenance}>{provenanceLabel(kind)}</span>
         </div>
-        <p className={styles.pushName}>{risk.description}</p>
+        <p className={styles.pushName}>{row.description}</p>
         <div className={styles.pushActions}>
           <button
             type="button"
             className={styles.primaryBtn}
-            onClick={() => trackRisk(risk)}
+            onClick={() => trackItem(entry)}
             disabled={promotingId !== null}
-            aria-label={`Track this: ${risk.description}`}
+            aria-label={`Track this: ${row.description}`}
           >
             {promoting ? 'Tracking' : 'Track this'}
           </button>
-          <Link
-            href={`${registerHref}#risk-${risk.id}`}
-            className={styles.ghostBtn}
-            aria-label={`Review ${risk.description} in the register`}
-          >
-            Review in register
-          </Link>
+          {isRisk && (
+            <Link
+              href={`${registerHref}#risk-${row.id}`}
+              className={styles.ghostBtn}
+              aria-label={`Review ${row.description} in the register`}
+            >
+              Review in register
+            </Link>
+          )}
         </div>
       </article>
     );
@@ -704,6 +743,13 @@ export default function ActionLog({
             {a.source === 'playbook' && (
               <span className={styles.provenance}>
                 {provenanceLabel('playbook')}
+              </span>
+            )}
+            {(a.source === 'assumption' ||
+              a.source === 'constraint' ||
+              a.source === 'dependency') && (
+              <span className={styles.provenance}>
+                {provenanceLabel(a.source)}
               </span>
             )}
           </div>

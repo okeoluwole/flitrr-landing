@@ -161,13 +161,17 @@ export function gateReadiness(actions, byId, currentStage) {
 /**
  * The engine knowledge source a surfaced or engine-raised item is labelled by
  * (A4), derived from its source. Only the sources that exist today carry a
- * label: a risk is an observation from this project, a playbook item is a draw
- * from PULSE's curated knowledge. External reference and the network are not
- * built, so nothing is ever labelled with a source PULSE cannot stand behind,
- * and a hand-logged action (the developer's own) has no engine provenance.
+ * label: a risk or a RAID item (assumption, constraint, dependency) is an
+ * observation from this project, a playbook item is a draw from PULSE's curated
+ * knowledge. External reference and the network are not built, so nothing is
+ * ever labelled with a source PULSE cannot stand behind, and a hand-logged
+ * action (the developer's own) has no engine provenance.
  */
 export const PROVENANCE = {
   risk: 'This project',
+  assumption: 'This project',
+  constraint: 'This project',
+  dependency: 'This project',
   playbook: 'Playbook library',
 };
 

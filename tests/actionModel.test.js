@@ -242,6 +242,12 @@ describe('provenance label (A4)', () => {
     expect(provenanceLabel('playbook')).toBe('Playbook library');
   });
 
+  it('labels the RAID sources as this project (A5)', () => {
+    expect(provenanceLabel('assumption')).toBe('This project');
+    expect(provenanceLabel('constraint')).toBe('This project');
+    expect(provenanceLabel('dependency')).toBe('This project');
+  });
+
   it('gives a hand-logged or unbuilt source no engine provenance', () => {
     // manual is the developer's own; programme/external/network are not
     // labelled (the last two are not built), so PULSE never overclaims.

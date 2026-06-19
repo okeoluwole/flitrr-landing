@@ -4,6 +4,10 @@ import {
   trackedRiskIds,
   buildTrackedActionFromRisk,
   riskRaiseReason,
+  deriveRaidItems,
+  deriveResponseFeed,
+  buildTrackedActionFromRaid,
+  raidRaiseReason,
   formatActionLogSummary,
 } from '../app/pulse/app/actions/actionFeed.js';
 import { deriveSeverity } from '../app/pulse/app/risk/riskModel.js';
@@ -38,6 +42,24 @@ function trackedAction(overrides = {}) {
     criticality: 'critical',
     source: 'risk',
     source_id: 'risk-1',
+    ...overrides,
+  };
+}
+
+// A small objectives map for the RAID must-hold test, and a RAID row (the
+// assumption/constraint/dependency tables share this shape).
+const RAID_OBJECTIVES = {
+  'obj-cost': { id: 'obj-cost', classification: 'non_negotiable' },
+  'obj-time': { id: 'obj-time', classification: 'flexible' },
+};
+
+function raid(overrides = {}) {
+  return {
+    id: 'raid-1',
+    description: 'Planning approval lands by Q3',
+    linked_objective_id: 'obj-cost',
+    criticality: 'standard',
+    updated_at: '2026-06-05T10:00:00+00:00',
     ...overrides,
   };
 }
@@ -272,6 +294,143 @@ describe('riskRaiseReason (A4): the citable why', () => {
 
   it('falls back to the register when neither', () => {
     expect(riskRaiseReason(risk())).toBe('Raised from your risk register.');
+  });
+});
+
+describe('the RAID feed (A5)', () => {
+  it('surfaces an item linked to a non-negotiable objective', () => {
+    const items = deriveRaidItems([raid()], [], RAID_OBJECTIVES, 'assumption');
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({
+      kind: 'assumption',
+      reasons: { critical: true, serious: false },
+      severity: null,
+    });
+    expect(items[0].row.id).toBe('raid-1');
+  });
+
+  it('does not surface an item on a flexible objective', () => {
+    const items = deriveRaidItems(
+      [raid({ linked_objective_id: 'obj-time' })],
+      [],
+      RAID_OBJECTIVES,
+      'constraint'
+    );
+    expect(items).toHaveLength(0);
+  });
+
+  it('does not surface an unlinked item', () => {
+    const items = deriveRaidItems(
+      [raid({ linked_objective_id: null })],
+      [],
+      RAID_OBJECTIVES,
+      'dependency'
+    );
+    expect(items).toHaveLength(0);
+  });
+
+  it('suppresses an item with an open tracked action of its kind, returns when done', () => {
+    const open = [{ id: 'a1', status: 'to_do', source: 'assumption', source_id: 'raid-1' }];
+    expect(deriveRaidItems([raid()], open, RAID_OBJECTIVES, 'assumption')).toHaveLength(0);
+    const done = [{ id: 'a1', status: 'done', source: 'assumption', source_id: 'raid-1' }];
+    expect(deriveRaidItems([raid()], done, RAID_OBJECTIVES, 'assumption')).toHaveLength(1);
+  });
+
+  it('keys the dedupe by kind: a risk action does not suppress an assumption', () => {
+    const tracked = [{ id: 'a1', status: 'to_do', source: 'risk', source_id: 'raid-1' }];
+    expect(deriveRaidItems([raid()], tracked, RAID_OBJECTIVES, 'assumption')).toHaveLength(1);
+  });
+});
+
+describe('the unified response feed (A5)', () => {
+  it('critical first: a critical RAID item outranks a serious-but-not-critical risk', () => {
+    const feed = deriveResponseFeed({
+      risks: [risk({ id: 'r-serious', likelihood: 'high', impact: 'high' })],
+      assumptions: [raid({ id: 'a-crit' })],
+      constraints: [],
+      dependencies: [],
+      actions: [],
+      objectivesById: RAID_OBJECTIVES,
+    });
+    expect(feed.map((e) => [e.kind, e.row.id])).toEqual([
+      ['assumption', 'a-crit'],
+      ['risk', 'r-serious'],
+    ]);
+  });
+
+  it('within the critical band a serious risk outranks a RAID item (no severity)', () => {
+    const feed = deriveResponseFeed({
+      risks: [
+        risk({ id: 'r-crit-serious', criticality: 'critical', likelihood: 'high', impact: 'high' }),
+      ],
+      assumptions: [raid({ id: 'a-crit' })],
+      constraints: [],
+      dependencies: [],
+      actions: [],
+      objectivesById: RAID_OBJECTIVES,
+    });
+    expect(feed[0].kind).toBe('risk');
+    expect(feed[1].kind).toBe('assumption');
+  });
+
+  it('draws RAID from all three tables', () => {
+    const feed = deriveResponseFeed({
+      risks: [],
+      assumptions: [raid({ id: 'a1' })],
+      constraints: [raid({ id: 'c1' })],
+      dependencies: [raid({ id: 'd1' })],
+      actions: [],
+      objectivesById: RAID_OBJECTIVES,
+    });
+    expect(feed.map((e) => e.kind).sort()).toEqual([
+      'assumption',
+      'constraint',
+      'dependency',
+    ]);
+  });
+});
+
+describe('RAID promotion (A5)', () => {
+  it('raidRaiseReason names the kind and the non-negotiable objective', () => {
+    expect(raidRaiseReason('assumption')).toBe(
+      'Raised from an assumption on a non-negotiable objective.'
+    );
+    expect(raidRaiseReason('constraint')).toBe(
+      'Raised from a constraint on a non-negotiable objective.'
+    );
+    expect(raidRaiseReason('dependency')).toBe(
+      'Raised from a dependency on a non-negotiable objective.'
+    );
+  });
+
+  it('builds the tracked action with the kind verb, source link, stage, reason', () => {
+    const item = raid({
+      id: 'raid-9',
+      description: 'Main access road is adopted',
+      linked_objective_id: 'obj-cost',
+    });
+    expect(buildTrackedActionFromRaid(item, 'project-1', 3, 'dependency')).toEqual({
+      project_id: 'project-1',
+      description: 'Secure: Main access road is adopted',
+      linked_objective_id: 'obj-cost',
+      criticality: 'standard',
+      stage: 3,
+      reason: 'Raised from a dependency on a non-negotiable objective.',
+      source: 'dependency',
+      source_id: 'raid-9',
+    });
+  });
+
+  it('leads the description with the verb for each kind', () => {
+    expect(buildTrackedActionFromRaid(raid(), 'p', 2, 'assumption').description).toMatch(
+      /^Validate: /
+    );
+    expect(buildTrackedActionFromRaid(raid(), 'p', 2, 'constraint').description).toMatch(
+      /^Plan around: /
+    );
+    expect(buildTrackedActionFromRaid(raid(), 'p', 2, 'dependency').description).toMatch(
+      /^Secure: /
+    );
   });
 });
 

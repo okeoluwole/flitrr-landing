@@ -261,6 +261,17 @@
   color: var(--app-ink-secondary);
 }
 
+/* The RAID kind label (A5): the item type in the band (Assumption, Constraint,
+   Dependency). A small muted category tag, never amber. */
+.kind {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--app-ink-secondary);
+}
+
 /* The quiet provenance marker on a tracked action promoted from a risk,
    linking back to the source risk in the register. */
 .fromRisk {

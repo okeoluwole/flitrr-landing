@@ -126,12 +126,17 @@ export default async function ActionsPage({ searchParams }) {
   // this project has already acted on. The risk read is non-destructive:
   // the band computes items from these rows and never writes back (status
   // changes happen in the register).
+  const RAID_COLUMNS = 'id, description, linked_objective_id, criticality, updated_at';
+
   const [
     { data: actions },
     { data: objectives },
     { data: risks },
     { data: plays },
     { data: playStates },
+    { data: assumptions },
+    { data: constraints },
+    { data: dependencies },
   ] = await Promise.all([
     supabase
       .from('project_actions')
@@ -161,6 +166,21 @@ export default async function ActionsPage({ searchParams }) {
       .from('project_playbook_state')
       .select('play_id')
       .eq('project_id', project.id),
+    supabase
+      .from('project_assumptions')
+      .select(RAID_COLUMNS)
+      .eq('project_id', project.id)
+      .order('created_at', { ascending: true }),
+    supabase
+      .from('project_constraints')
+      .select(RAID_COLUMNS)
+      .eq('project_id', project.id)
+      .order('created_at', { ascending: true }),
+    supabase
+      .from('project_dependencies')
+      .select(RAID_COLUMNS)
+      .eq('project_id', project.id)
+      .order('created_at', { ascending: true }),
   ]);
 
   // The five objectives in canonical order (Scope, Cost, Time, Quality,
@@ -198,6 +218,9 @@ export default async function ActionsPage({ searchParams }) {
         initialActions={actions ?? []}
         objectives={objectiveOptions}
         risks={risks ?? []}
+        assumptions={assumptions ?? []}
+        constraints={constraints ?? []}
+        dependencies={dependencies ?? []}
         playSuggestions={playSuggestions}
       />
     </DashboardShell>
