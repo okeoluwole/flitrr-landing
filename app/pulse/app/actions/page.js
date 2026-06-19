@@ -136,7 +136,7 @@ export default async function ActionsPage({ searchParams }) {
     supabase
       .from('project_actions')
       .select(
-        'id, description, linked_objective_id, criticality, status, note, source, source_id, created_at'
+        'id, description, linked_objective_id, criticality, criticality_override, override_reason, status, note, source, source_id, created_at'
       )
       .eq('project_id', project.id)
       .order('created_at', { ascending: false }),

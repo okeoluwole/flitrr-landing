@@ -6,7 +6,7 @@ import {
   deriveRiskItems,
   formatActionLogSummary,
 } from '../actions/actionFeed';
-import { isCritical, isDone } from '../actions/actionModel';
+import { isCritical, isDone, objectivesById } from '../actions/actionModel';
 import styles from './Workspace.module.css';
 
 /**
@@ -232,19 +232,29 @@ export default async function WorkspacePage({ searchParams }) {
   // Stage 2 the tile stays locked and reads nothing.
   let actionLogFooter = 'Open';
   if (stage2Reached) {
-    const [{ data: actions }, { data: risks }] = await Promise.all([
-      supabase
-        .from('project_actions')
-        .select('id, status, criticality, source, source_id')
-        .eq('project_id', project.id),
-      supabase
-        .from('project_risks')
-        .select('id, criticality, likelihood, impact, status, updated_at')
-        .eq('project_id', project.id),
-    ]);
+    const [{ data: actions }, { data: risks }, { data: objectives }] =
+      await Promise.all([
+        supabase
+          .from('project_actions')
+          .select(
+            'id, status, criticality, criticality_override, linked_objective_id, source, source_id'
+          )
+          .eq('project_id', project.id),
+        supabase
+          .from('project_risks')
+          .select('id, criticality, likelihood, impact, status, updated_at')
+          .eq('project_id', project.id),
+        supabase
+          .from('project_objectives')
+          .select('id, classification')
+          .eq('project_id', project.id),
+      ]);
+    // Criticality is derived live from the linked objective (A2), so the tile
+    // counts critical the same way the log does, override included.
+    const byId = objectivesById(objectives ?? []);
     const needsResponseCount = deriveRiskItems(risks ?? [], actions ?? []).length;
     const openCriticalCount = (actions ?? []).filter(
-      (a) => !isDone(a) && isCritical(a)
+      (a) => !isDone(a) && isCritical(a, byId)
     ).length;
     actionLogFooter = formatActionLogSummary(
       needsResponseCount,

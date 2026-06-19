@@ -1,11 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '../../../../lib/supabase/client';
 import { CLASSIFICATION_LABELS } from '../components/objectiveMeta';
 import { cascadeCriticality } from '../components/listStepConfig';
-import { STATUS_OPTIONS, isCritical, isDone, sortActions } from './actionModel';
+import {
+  STATUS_OPTIONS,
+  CRITICALITY,
+  objectivesById,
+  derivedCriticality,
+  hasDownwardOverride,
+  effectiveCriticality,
+  isCritical,
+  isDone,
+  sortActions,
+} from './actionModel';
 import { deriveRiskItems, buildTrackedActionFromRisk } from './actionFeed';
 import {
   splitProposals,
@@ -18,7 +28,8 @@ import styles from './ActionLog.module.css';
  * needs-your-response band at the top holds risk-derived items computed live
  * from the register rows (actionFeed.js); below it, the tracked list: the
  * project's actions critical-first, with an inline add flow, one-tap status,
- * a one-tap criticality toggle, editing, and delete behind a confirm.
+ * editing, and delete behind a confirm. Criticality is derived live from the
+ * linked objective, with a constrained downward override.
  *
  * The band's items are suggestions awaiting a response, never rows: Track
  * this promotes one into a real tracked action in the same interaction (the
@@ -27,10 +38,14 @@ import styles from './ActionLog.module.css';
  * recomputes from local state, so promoting, deleting, or completing a
  * tracked action moves the item out of or back into the band immediately.
  *
- * Criticality cascades from the linked objective as the DEFAULT at creation
- * only (cascadeCriticality, the wizard's helper). After that it never changes
- * silently: re-linking an action does not re-flip it; only the developer's
- * toggle does. Predictable beats clever.
+ * Criticality is LIVE (A2): an action inherits the classification of the
+ * objective it serves, read from that objective's current state, so the log
+ * orders critical-first by what the baseline protects. The link is the only
+ * lever; an action with no link reads "needs a link", never a silent standard.
+ * The one change the developer makes by hand is a downward override, which
+ * reduces a derived-critical action to standard with a recorded reason and can
+ * never raise it. The derivation is always shown, even when overridden. The
+ * stored criticality column is now only the baseline snapshot set at creation.
  *
  * Writes are optimistic: the change shows immediately and reverts on a
  * failure. Adds, promotions, and deletes wait for the database (an insert
@@ -59,9 +74,11 @@ const DISMISS_PLAY_ERROR =
   'We could not dismiss that suggestion. Please check your connection and try again.';
 
 const CRITICALITY_LABEL = { critical: 'Critical', standard: 'Standard' };
+const NEEDS_LINK_LABEL = 'Needs a link';
+const OVERRIDE_REASON_PLACEHOLDER = 'Why reduce this to standard?';
 
 const ACTION_COLUMNS =
-  'id, description, linked_objective_id, criticality, status, note, source, source_id, created_at';
+  'id, description, linked_objective_id, criticality, criticality_override, override_reason, status, note, source, source_id, created_at';
 
 function formatLogged(iso) {
   if (!iso) return null;
@@ -128,6 +145,10 @@ export default function ActionLog({
   const supabase = createClient();
   const [actions, setActions] = useState(initialActions);
 
+  // Objectives indexed by id, so criticality is derived live from the linked
+  // objective (A2). Stable for the life of the page.
+  const byId = useMemo(() => objectivesById(objectives), [objectives]);
+
   // Promotion in flight (one at a time; the band is a response surface, not
   // a bulk tool).
   const [promotingId, setPromotingId] = useState(null);
@@ -149,16 +170,24 @@ export default function ActionLog({
   const [editDraft, setEditDraft] = useState(null);
   const [confirmingId, setConfirmingId] = useState(null);
 
+  // The downward criticality override (A2): one action at a time in the
+  // reason-tagged reduce flow.
+  const [overridingId, setOverridingId] = useState(null);
+  const [overrideReason, setOverrideReason] = useState('');
+
   const [showDone, setShowDone] = useState(false);
   const [error, setError] = useState(null);
 
-  const open = sortActions(actions.filter((a) => !isDone(a)));
-  const done = sortActions(actions.filter(isDone));
+  const open = sortActions(
+    actions.filter((a) => !isDone(a)),
+    byId
+  );
+  const done = sortActions(actions.filter(isDone), byId);
 
-  // The attention stat: critical actions still open. Done criticals are
-  // completed work, not open attention.
+  // The attention stat: critical actions still open, by live criticality. Done
+  // criticals are completed work, not open attention.
   const criticalOpenCount = actions.filter(
-    (a) => !isDone(a) && isCritical(a)
+    (a) => !isDone(a) && isCritical(a, byId)
   ).length;
 
   // The needs-your-response items, recomputed from the live register rows
@@ -317,15 +346,44 @@ export default function ActionLog({
 
   const setStatus = (id, value) => applyUpdate(id, { status: value });
 
-  // The one-tap criticality toggle: the only way criticality changes after
-  // creation. The cascade never re-fires.
-  const toggleCriticality = (a) =>
-    applyUpdate(a.id, {
-      criticality: isCritical(a) ? 'standard' : 'critical',
+  // The downward override (A2): reduce a derived-critical action to standard
+  // with a recorded reason. Opening it closes any edit or delete-confirm on the
+  // same card, so only one inline flow is ever open.
+  const startOverride = (a) => {
+    setConfirmingId(null);
+    setEditingId(null);
+    setEditDraft(null);
+    setOverrideReason('');
+    setOverridingId(a.id);
+  };
+
+  const cancelOverride = () => {
+    setOverridingId(null);
+    setOverrideReason('');
+  };
+
+  // Reason is required, so this is reached only with a non-empty reason. It
+  // writes the override and its reason; the derived criticality is never
+  // touched, so the derivation is kept and can be restored.
+  const saveOverride = (id) => {
+    const reason = overrideReason.trim();
+    if (!reason) return;
+    setOverridingId(null);
+    setOverrideReason('');
+    applyUpdate(id, {
+      criticality_override: 'standard',
+      override_reason: reason,
     });
+  };
+
+  // Restore: clear the override, returning the action to its derived critical.
+  const restoreCriticality = (id) =>
+    applyUpdate(id, { criticality_override: null, override_reason: null });
 
   const startEdit = (a) => {
     setConfirmingId(null);
+    setOverridingId(null);
+    setOverrideReason('');
     setEditingId(a.id);
     setEditDraft({
       description: a.description,
@@ -358,6 +416,7 @@ export default function ActionLog({
   const requestDelete = (id) => {
     setEditingId(null);
     setEditDraft(null);
+    setOverridingId(null);
     setConfirmingId(id);
   };
 
@@ -470,12 +529,131 @@ export default function ActionLog({
     );
   };
 
+  // The criticality detail under an action: the derivation in plain language
+  // and the one allowed change. Shown only when there is something to say or
+  // do; a plain derived-standard action needs neither.
+  const renderCritDetail = (a, { overridden, critical, unlinked, linkedName }) => {
+    const overriding = overridingId === a.id;
+
+    // Unlinked: the link is the only lever, so point at it.
+    if (unlinked) {
+      return (
+        <div className={styles.critDetail}>
+          <p className={styles.critCaption}>
+            Link an objective to set this action's criticality.
+          </p>
+          <button
+            type="button"
+            className={styles.footBtn}
+            onClick={() => startEdit(a)}
+          >
+            Link an objective
+          </button>
+        </div>
+      );
+    }
+
+    // Overridden: show the derivation (never erased) and the recorded reason,
+    // with the way back.
+    if (overridden) {
+      return (
+        <div className={styles.critDetail}>
+          <p className={styles.critCaption}>
+            Reduced to standard. {linkedName} is non-negotiable, so this is
+            critical by default.
+          </p>
+          {a.override_reason && (
+            <p className={styles.critReason}>Reason: {a.override_reason}</p>
+          )}
+          <button
+            type="button"
+            className={styles.footBtn}
+            onClick={() => restoreCriticality(a.id)}
+          >
+            Restore to critical
+          </button>
+        </div>
+      );
+    }
+
+    // Derived critical: explain why, and offer the downward override. The
+    // reason form opens in place when reducing.
+    if (critical) {
+      return (
+        <div className={styles.critDetail}>
+          <p className={styles.critCaption}>
+            Critical because {linkedName} is non-negotiable.
+          </p>
+          {overriding ? (
+            <div className={styles.overrideForm}>
+              <input
+                type="text"
+                className={styles.input}
+                value={overrideReason}
+                onChange={(e) => setOverrideReason(e.target.value)}
+                placeholder={OVERRIDE_REASON_PLACEHOLDER}
+                aria-label={`Reason for reducing ${a.description} to standard`}
+                autoComplete="off"
+                maxLength={200}
+              />
+              <div className={styles.overrideActions}>
+                <button
+                  type="button"
+                  className={styles.primaryBtn}
+                  onClick={() => saveOverride(a.id)}
+                  disabled={overrideReason.trim() === ''}
+                >
+                  Reduce to standard
+                </button>
+                <button
+                  type="button"
+                  className={styles.ghostBtn}
+                  onClick={cancelOverride}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className={styles.footBtn}
+              onClick={() => startOverride(a)}
+            >
+              Reduce to standard
+            </button>
+          )}
+        </div>
+      );
+    }
+
+    // Derived standard from a flexible objective: the head chip says it, and
+    // there is nothing to change (standard is the floor; criticality is never
+    // raised here).
+    return null;
+  };
+
   const renderCard = (a) => {
-    const critical = isCritical(a);
+    const derived = derivedCriticality(a, byId);
+    const overridden = hasDownwardOverride(a, byId);
+    const critical = effectiveCriticality(a, byId) === CRITICALITY.CRITICAL;
+    const unlinked = derived === CRITICALITY.UNLINKED;
     const linkedName = objectiveName(a.linked_objective_id);
     const logged = formatLogged(a.created_at);
     const editing = editingId === a.id;
     const confirming = confirmingId === a.id;
+
+    // The head chip states the live criticality, or the needs-a-link gap.
+    // Static, not a control: criticality follows the objective now.
+    let critClass = styles.critStandard;
+    let critLabel = CRITICALITY_LABEL.standard;
+    if (unlinked) {
+      critClass = styles.critUnlinked;
+      critLabel = NEEDS_LINK_LABEL;
+    } else if (critical) {
+      critClass = styles.critCritical;
+      critLabel = CRITICALITY_LABEL.critical;
+    }
 
     return (
       <article
@@ -484,16 +662,7 @@ export default function ActionLog({
       >
         <div className={styles.cardHead}>
           <div className={styles.cardTags}>
-            <button
-              type="button"
-              className={`${styles.crit} ${critical ? styles.critCritical : styles.critStandard}`}
-              aria-pressed={critical}
-              aria-label={`Criticality for ${a.description}: ${CRITICALITY_LABEL[a.criticality] ?? 'Standard'}. Tap to change.`}
-              title="Tap to change criticality"
-              onClick={() => toggleCriticality(a)}
-            >
-              {CRITICALITY_LABEL[a.criticality] ?? 'Standard'}
-            </button>
+            <span className={`${styles.crit} ${critClass}`}>{critLabel}</span>
             {linkedName && (
               <span className={styles.objective}>for {linkedName}</span>
             )}
@@ -573,6 +742,7 @@ export default function ActionLog({
           <>
             <p className={styles.description}>{a.description}</p>
             {a.note && <p className={styles.noteText}>{a.note}</p>}
+            {renderCritDetail(a, { overridden, critical, unlinked, linkedName })}
           </>
         )}
 

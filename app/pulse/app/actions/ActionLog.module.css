@@ -521,8 +521,9 @@
   min-width: 0;
 }
 
-/* The criticality chip is a button: the one-tap toggle, the only way
-   criticality changes after creation. Chip look, button affordance. */
+/* The criticality chip states what the linked objective makes of the action:
+   Critical (amber), Standard, or Needs a link. Static, not a control:
+   criticality follows the objective now (A2), it is not toggled. */
 .crit {
   font-family: var(--font-body), sans-serif;
   font-size: 0.6rem;
@@ -532,17 +533,7 @@
   padding: 0.2rem 0.45rem;
   border-radius: 3px;
   border: 1px solid transparent;
-  cursor: pointer;
-  transition: border-color 0.15s ease, filter 0.15s ease;
-}
-
-.crit:hover {
-  filter: brightness(0.96);
-}
-
-.crit:focus-visible {
-  outline: 2px solid var(--app-focus);
-  outline-offset: 2px;
+  white-space: nowrap;
 }
 
 .critCritical {
@@ -550,17 +541,67 @@
   color: var(--ochre);
 }
 
-.critCritical:hover {
-  border-color: rgba(138, 106, 22, 0.4);
-}
-
 .critStandard {
   background: var(--app-surface-sunken);
   color: var(--app-ink-secondary);
 }
 
-.critStandard:hover {
-  border-color: var(--app-ink-muted);
+/* Needs a link: a governance gap, not a criticality. A hairline dashed frame
+   marks it as incomplete without borrowing amber, which means criticality
+   alone. */
+.critUnlinked {
+  background: transparent;
+  color: var(--app-ink-secondary);
+  border: 1px dashed var(--app-border-strong);
+}
+
+/* The criticality detail under an action: the derivation in plain words and
+   the one allowed change, reducing a derived-critical action to standard with
+   a recorded reason. The text buttons reuse the card-foot vocabulary. */
+.critDetail {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.critCaption {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--app-ink-secondary);
+  margin: 0;
+  max-width: 60ch;
+}
+
+.critReason {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--app-ink);
+  margin: 0;
+  max-width: 60ch;
+}
+
+/* The reason-tagged override form, inline when reducing to standard. Reason is
+   required: Reduce stays disabled until it is given. */
+.overrideForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.overrideForm .input {
+  width: 100%;
+}
+
+.overrideActions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
 }
 
 .objective {
