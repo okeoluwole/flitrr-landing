@@ -219,7 +219,7 @@ function normalizeFacts({ def, ctx, objectives, rankOrder, lists }) {
     strategicRationale: t(ctx?.strategic_rationale),
     exitStrategy: t(ctx?.exit_strategy),
     targetEndUser: t(ctx?.target_end_user),
-    strategicAlignment: t(ctx?.strategic_alignment),
+    completionHandover: t(ctx?.completion_handover),
     financials: {
       currency: validCurrency(def?.currency),
       budget: toNumber(def?.budget),

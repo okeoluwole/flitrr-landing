@@ -16,9 +16,9 @@ export default function StepStrategicContext({ values, onChange }) {
       <h2 className={styles.panelHeading}>Strategic Context</h2>
       <p className={styles.panelIntro}>
         Ground the project in its business rationale: why you are doing it,
-        who it is for, how you exit, and how it aligns with your wider
-        strategy. Every field here is optional and can be revisited before
-        the brief is locked.
+        who it is for, how you exit, and what completion and handover will
+        require. Every field here is optional and can be revisited before the
+        brief is locked.
       </p>
 
       <div className={styles.fieldGrid}>
@@ -66,15 +66,15 @@ export default function StepStrategicContext({ values, onChange }) {
         </div>
 
         <div className={`${styles.field} ${styles.fieldFull}`}>
-          <label className={styles.label} htmlFor="sc-alignment">
-            Strategic alignment
+          <label className={styles.label} htmlFor="sc-handover">
+            Completion and handover
           </label>
           <textarea
-            id="sc-alignment"
+            id="sc-handover"
             className={styles.textarea}
-            value={values.strategic_alignment}
-            onChange={set('strategic_alignment')}
-            placeholder="How this fits your wider portfolio or business strategy."
+            value={values.completion_handover}
+            onChange={set('completion_handover')}
+            placeholder="What completion and handover will require, and what done looks like at the far end."
           />
         </div>
       </div>

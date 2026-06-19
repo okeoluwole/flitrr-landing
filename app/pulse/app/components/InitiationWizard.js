@@ -107,7 +107,7 @@ const EMPTY_CTX = {
   strategic_rationale: '',
   target_end_user: '',
   exit_strategy: '',
-  strategic_alignment: '',
+  completion_handover: '',
 };
 
 // Step 4 Scope and Site, the scalar fields of the project_scope_site 1:1
@@ -310,7 +310,7 @@ function ctxFrom(p) {
     strategic_rationale: p.strategic_rationale ?? '',
     target_end_user: p.target_end_user ?? '',
     exit_strategy: p.exit_strategy ?? '',
-    strategic_alignment: p.strategic_alignment ?? '',
+    completion_handover: p.completion_handover ?? '',
   };
 }
 
@@ -1200,7 +1200,7 @@ export default function InitiationWizard({
       strategic_rationale: clean(ctx.strategic_rationale),
       target_end_user: clean(ctx.target_end_user),
       exit_strategy: clean(ctx.exit_strategy),
-      strategic_alignment: clean(ctx.strategic_alignment),
+      completion_handover: clean(ctx.completion_handover),
     };
     const { error: updErr } = await supabase
       .from('projects')

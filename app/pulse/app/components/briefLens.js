@@ -12,8 +12,9 @@
  * The summary is assembled from the developer's own data only. A generated
  * opening states the facts and a brief computed posture (the PULSE read
  * carries the interpretation); a funding line is added for Lender and JV
- * only; then the developer's Strategic Context (rationale, exit) is shown
- * verbatim. Every clause is conditional, so a sparsely filled project yields
+ * only; then the developer's Strategic Context (rationale, exit, and what
+ * completion and handover require) is shown verbatim. Every clause is
+ * conditional, so a sparsely filled project yields
  * a short, honest summary rather than invented prose. The generated opening
  * obeys the same figure gating, so the Consultant summary never carries GDV
  * or ROI.
@@ -132,9 +133,10 @@ function fundingLine(facts) {
   return `The brief sets out ${formatList(pieces)}.`;
 }
 
-// The developer's Strategic Context, verbatim, as trailing paragraphs.
+// The developer's Strategic Context, verbatim, as trailing paragraphs: why,
+// how they exit, and what completion and handover require (what done means).
 function contextParagraphs(facts) {
-  return [facts.strategicRationale, facts.exitStrategy]
+  return [facts.strategicRationale, facts.exitStrategy, facts.completionHandover]
     .map((s) => (s ? String(s).trim() : ''))
     .filter(Boolean);
 }
