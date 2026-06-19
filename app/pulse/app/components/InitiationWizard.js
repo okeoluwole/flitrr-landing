@@ -11,6 +11,7 @@ import StepProjectObjectives from './StepProjectObjectives';
 import StepConstraintRanking from './StepConstraintRanking';
 import StepItemList from './StepItemList';
 import StepFinancialBaseline from './StepFinancialBaseline';
+import StepProgramme from './StepProgramme';
 import StepGeneratedBrief from './StepGeneratedBrief';
 import { OBJECTIVE_ORDER } from './objectiveMeta';
 import {
@@ -341,6 +342,20 @@ function financialFrom(budgetRow, milestoneRows, makeKey) {
   };
 }
 
+// Map the eight seeded project_stage_gates rows onto Step 7 state, in stage
+// order. Only the stage, the row id, and the target_date are needed here; the
+// gate status the Gate module owns is read and written elsewhere, never touched
+// by this step.
+function gatesFrom(rows) {
+  return [...(rows ?? [])]
+    .sort((a, b) => a.stage - b.stage)
+    .map((r) => ({
+      id: r.id,
+      stage: r.stage,
+      target_date: r.target_date ?? '',
+    }));
+}
+
 // Map the fetched project_objectives rows onto Step 3 field state, in the
 // canonical objective order (Scope, Cost, Time, Quality, Funding). Nulls
 // from the database become empty strings for the controlled inputs.
@@ -534,6 +549,13 @@ export default function InitiationWizard({
   const financialLoadStartedRef = useRef(null);
   const persistedFmIdsRef = useRef(new Set());
 
+  // Step 7 Programme state. The eight stage-gate rows load once the project
+  // exists; gates holds their stage, id and target_date, and gatesStatus gates
+  // the step. The milestones reuse the shared list state (lists.milestones).
+  const [gates, setGates] = useState(null);
+  const [gatesStatus, setGatesStatus] = useState('idle'); // idle | loading | loaded | error
+  const gatesLoadStartedRef = useRef(null);
+
   // Step 5 to 7 state. The three lists load once the project exists and its
   // objectives are in hand (the link selector and the cascade need them).
   // `lists` holds { milestones, workstreams, risks } once loaded; listsStatus
@@ -687,6 +709,16 @@ export default function InitiationWizard({
     if (error) setError(null);
   };
 
+  // Step 7 Programme edit: set a stage gate's target date, located by its stage.
+  const onGateDateChange = (stage, value) => {
+    setGates((prev) =>
+      prev
+        ? prev.map((g) => (g.stage === stage ? { ...g, target_date: value } : g))
+        : prev
+    );
+    if (error) setError(null);
+  };
+
   // Fetch the five seeded objective rows for the current project. Used
   // both by the load effect and by the retry control if the fetch fails.
   const loadObjectives = async () => {
@@ -822,6 +854,33 @@ export default function InitiationWizard({
     if (financialLoadStartedRef.current === projectId) return;
     financialLoadStartedRef.current = projectId;
     loadFinancial();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]);
+
+  // Fetch the eight seeded stage-gate rows for Step 7. Like the objectives,
+  // these are seeded for every project, so fewer than eight means a load
+  // problem rather than an empty state.
+  const loadGates = async () => {
+    if (!projectId) return;
+    setGatesStatus('loading');
+    const { data, error: selErr } = await supabase
+      .from('project_stage_gates')
+      .select('id, stage, target_date')
+      .eq('project_id', projectId)
+      .order('stage', { ascending: true });
+    if (selErr || !data || data.length < 8) {
+      setGatesStatus('error');
+      return;
+    }
+    setGates(gatesFrom(data));
+    setGatesStatus('loaded');
+  };
+
+  useEffect(() => {
+    if (!projectId) return;
+    if (gatesLoadStartedRef.current === projectId) return;
+    gatesLoadStartedRef.current = projectId;
+    loadGates();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
@@ -997,6 +1056,10 @@ export default function InitiationWizard({
     if (stakeholdersStatus !== 'loaded') {
       stakeholderLoadStartedRef.current = null;
       loadStakeholders();
+    }
+    if (gatesStatus !== 'loaded') {
+      gatesLoadStartedRef.current = null;
+      loadGates();
     }
     if (listsStatus !== 'loaded') {
       loadLists(objectives);
@@ -1349,6 +1412,21 @@ export default function InitiationWizard({
     return await persistFundingMilestones();
   };
 
+  // Save Step 7's stage gate target dates: update target_date on each of the
+  // eight seeded rows by id. Only target_date is written, so the gate status,
+  // sign-off and re-baseline fields the Gate module owns are never touched.
+  const persistGates = async () => {
+    const results = await Promise.all(
+      gates.map((g) =>
+        supabase
+          .from('project_stage_gates')
+          .update({ target_date: clean(g.target_date) })
+          .eq('id', g.id)
+      )
+    );
+    return results.find((r) => r.error)?.error ?? null;
+  };
+
   // Save a Step 5 to 7 list: reconcile the screen against the database so the
   // two match exactly. Blank rows (empty required field) are not real items,
   // so they are never inserted and are dropped from the screen. Rows already
@@ -1518,17 +1596,31 @@ export default function InitiationWizard({
       return;
     }
 
-    // Steps 7 and 8: the editable list steps (milestones, risks).
-    if (step === 7 || step === 8) {
-      const cfg = CONFIG_BY_STEP[step];
+    // Step 7 Programme: the stage gate target dates (persistGates), then the
+    // critical milestones list.
+    if (step === 7) {
       setBusy(true);
-      const err = await persistList(cfg.key);
+      const gatesErr = await persistGates();
+      const msErr = gatesErr ? null : await persistList('milestones');
+      setBusy(false);
+      if (gatesErr || msErr) {
+        setError(SAVE_ERROR);
+        return;
+      }
+      advanceTo(8);
+      return;
+    }
+
+    // Step 8: the editable risk list.
+    if (step === 8) {
+      setBusy(true);
+      const err = await persistList('risks');
       setBusy(false);
       if (err) {
         setError(SAVE_ERROR);
         return;
       }
-      advanceTo(step + 1);
+      advanceTo(9);
       return;
     }
 
@@ -1675,7 +1767,8 @@ export default function InitiationWizard({
     const failed =
       objStatus === 'error' ||
       listsStatus === 'error' ||
-      (n === 5 && stakeholdersStatus === 'error');
+      (n === 5 && stakeholdersStatus === 'error') ||
+      (n === 7 && gatesStatus === 'error');
     return (
       <>
         <p className={styles.panelEyebrow}>Step {n} of 9</p>
@@ -1817,7 +1910,42 @@ export default function InitiationWizard({
       );
     }
 
-    if (step === 7 || step === 8) {
+    // Step 7 Programme: the eight stage gate target dates, then the critical
+    // milestones list as a continuation section.
+    if (step === 7) {
+      if (
+        objStatus !== 'loaded' ||
+        listsStatus !== 'loaded' ||
+        gatesStatus !== 'loaded'
+      ) {
+        return renderListNotReady(7, 'Programme');
+      }
+      return (
+        <>
+          <StepProgramme gates={gates} onGateDateChange={onGateDateChange} />
+          <StepItemList
+            key="milestones"
+            config={LIST_CONFIG.milestones}
+            items={lists.milestones}
+            objectives={objectives}
+            onField={(itemKey, field, value) =>
+              onListField('milestones', itemKey, field, value)
+            }
+            onLink={(itemKey, value) => onListLink('milestones', itemKey, value)}
+            onCriticality={(itemKey, value) =>
+              onListCriticality('milestones', itemKey, value)
+            }
+            onAdd={() => onListAdd('milestones')}
+            onRemove={(itemKey) => onListRemove('milestones', itemKey)}
+            asSection
+            sectionTitle="Critical milestones"
+            sectionIntro={LIST_CONFIG.milestones.intro}
+          />
+        </>
+      );
+    }
+
+    if (step === 8) {
       if (objStatus !== 'loaded' || listsStatus !== 'loaded') {
         return renderListNotReady(step);
       }
@@ -1876,8 +2004,11 @@ export default function InitiationWizard({
         listsStatus !== 'loaded' ||
         stakeholdersStatus !== 'loaded')) ||
     (step === 6 && financialStatus !== 'loaded') ||
-    ((step === 7 || step === 8) &&
-      (objStatus !== 'loaded' || listsStatus !== 'loaded'));
+    (step === 7 &&
+      (objStatus !== 'loaded' ||
+        listsStatus !== 'loaded' ||
+        gatesStatus !== 'loaded')) ||
+    (step === 8 && (objStatus !== 'loaded' || listsStatus !== 'loaded'));
 
   const headerTitle = def.name.trim() ? def.name.trim() : 'New project';
 
