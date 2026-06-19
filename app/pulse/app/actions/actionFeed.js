@@ -113,15 +113,17 @@ function parseTime(iso) {
  * Promote-to-track (M7.2 spec, A4): the project_actions row a pushed item
  * creates, pre-filled from its risk and editable after. Deterministic
  * template for the description; objective and criticality inherited from the
- * risk; source columns carry the link that makes the dedupe work. No
- * confirmation dialog, no extra fields.
+ * risk; source columns carry the link that makes the dedupe work; stamped with
+ * the stage the action is raised at (A3), the current stage, for the
+ * gate-readiness view. No confirmation dialog, no extra fields.
  */
-export function buildTrackedActionFromRisk(risk, projectId) {
+export function buildTrackedActionFromRisk(risk, projectId, stage) {
   return {
     project_id: projectId,
     description: `Mitigate: ${risk.description}`,
     linked_objective_id: risk.linked_objective_id ?? null,
     criticality: risk.criticality,
+    stage,
     source: 'risk',
     source_id: risk.id,
   };

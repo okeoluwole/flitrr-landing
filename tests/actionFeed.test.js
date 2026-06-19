@@ -216,30 +216,33 @@ describe('band ordering', () => {
 });
 
 describe('promote-to-track row construction', () => {
-  it('builds the pre-filled row: template, inheritance, source link', () => {
+  it('builds the pre-filled row: template, inheritance, source link, stage', () => {
     const r = risk({
       id: 'risk-9',
       description: 'Main contractor insolvency',
       linked_objective_id: 'obj-time',
       criticality: 'critical',
     });
-    expect(buildTrackedActionFromRisk(r, 'project-1')).toEqual({
+    expect(buildTrackedActionFromRisk(r, 'project-1', 2)).toEqual({
       project_id: 'project-1',
       description: 'Mitigate: Main contractor insolvency',
       linked_objective_id: 'obj-time',
       criticality: 'critical',
+      stage: 2,
       source: 'risk',
       source_id: 'risk-9',
     });
   });
 
-  it('inherits a standard criticality and a missing objective as null', () => {
+  it('inherits a standard criticality and a missing objective as null, and stamps the stage', () => {
     const row = buildTrackedActionFromRisk(
       risk({ linked_objective_id: null, criticality: 'standard' }),
-      'project-1'
+      'project-1',
+      3
     );
     expect(row.linked_objective_id).toBeNull();
     expect(row.criticality).toBe('standard');
+    expect(row.stage).toBe(3);
   });
 });
 

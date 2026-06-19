@@ -130,3 +130,30 @@ export function sortActions(actions, byId) {
     return a.created_at < b.created_at ? 1 : -1;
   });
 }
+
+/**
+ * The lifecycle stage an action bears on (A3). A null stage (rows created
+ * before A3 stamped it) reads as the current stage, so no action drops out of
+ * the gate-readiness view.
+ */
+export function actionStage(action, currentStage) {
+  return action?.stage == null ? currentStage : action.stage;
+}
+
+/**
+ * Gate readiness (A3): the open actions that bear on the current stage's gate,
+ * and how many of them are critical. Scoped to open actions on the current
+ * stage; a done action has left, and an action stamped to another stage bears
+ * on that stage's gate, not this one. Proportional monitoring foregrounds the
+ * critical count. This is the operational face of the stage checklist, not the
+ * full deliverables checklist, which is the Gate module's.
+ */
+export function gateReadiness(actions, byId, currentStage) {
+  const bearing = (actions ?? []).filter(
+    (a) => !isDone(a) && actionStage(a, currentStage) === currentStage
+  );
+  return {
+    open: bearing.length,
+    critical: bearing.filter((a) => isCritical(a, byId)).length,
+  };
+}

@@ -278,6 +278,33 @@
   border-color: var(--app-ink);
 }
 
+/* ── Gate readiness (A3) ─────────────────
+   The operational headline: the open actions bearing on the current stage's
+   gate. A calm paper panel, narrative rather than a stat clone; the critical
+   subset wears the one amber meaning. */
+
+.gateReady {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  padding: 1.1rem 1.4rem;
+  margin-bottom: 1.5rem;
+}
+
+.gateReadyLine {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--app-ink-secondary);
+  margin: 0;
+  max-width: 60ch;
+}
+
+.gateReadyCritical {
+  color: var(--ochre);
+  font-weight: 700;
+}
+
 /* ── Summary bar ───────────────────────── */
 
 .summary {

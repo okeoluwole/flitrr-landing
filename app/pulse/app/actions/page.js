@@ -136,7 +136,7 @@ export default async function ActionsPage({ searchParams }) {
     supabase
       .from('project_actions')
       .select(
-        'id, description, linked_objective_id, criticality, criticality_override, override_reason, status, note, source, source_id, created_at'
+        'id, description, linked_objective_id, criticality, criticality_override, override_reason, stage, status, note, source, source_id, created_at'
       )
       .eq('project_id', project.id)
       .order('created_at', { ascending: false }),
@@ -194,6 +194,7 @@ export default async function ActionsPage({ searchParams }) {
         projectName={project.name}
         workspaceHref={workspaceHref}
         registerHref={`/pulse/app/risk?project=${project.id}`}
+        currentStage={project.current_stage}
         initialActions={actions ?? []}
         objectives={objectiveOptions}
         risks={risks ?? []}

@@ -97,10 +97,11 @@ describe('proposal filtering', () => {
     expect(ids).not.toContain('p6');
   });
 
-  it('sorts derived-criticality first and maps the objective id', () => {
+  it('sorts derived-criticality first and maps the objective id and stage', () => {
     expect(proposals.map((s) => s.playId)).toEqual(['p2', 'p1']);
     expect(proposals[0].criticality).toBe('critical');
     expect(proposals[0].linkedObjectiveId).toBe('obj-cost');
+    expect(proposals[0].stage).toBe(2);
     expect(proposals[1].criticality).toBe('standard');
     expect(proposals[1].linkedObjectiveId).toBe('obj-quality');
   });
@@ -145,6 +146,7 @@ describe('accepted-play row construction', () => {
   const suggestion = {
     playId: 'play-9',
     slug: 'pi-insurance-check',
+    stage: 2,
     title: 'Confirm professional indemnity insurance for every consultant',
     why: 'The why line.',
     objective: 'quality',
@@ -152,13 +154,14 @@ describe('accepted-play row construction', () => {
     linkedObjectiveId: 'obj-quality',
   };
 
-  it('builds the tracked action: title, mapped objective, derived criticality, playbook source', () => {
+  it('builds the tracked action: title, mapped objective, derived criticality, stage, playbook source', () => {
     expect(buildActionFromPlay(suggestion, 'project-1')).toEqual({
       project_id: 'project-1',
       description:
         'Confirm professional indemnity insurance for every consultant',
       linked_objective_id: 'obj-quality',
       criticality: 'critical',
+      stage: 2,
       source: 'playbook',
       source_id: 'play-9',
     });

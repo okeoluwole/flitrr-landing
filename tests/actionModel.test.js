@@ -8,6 +8,8 @@ import {
   isCritical,
   isDone,
   sortActions,
+  actionStage,
+  gateReadiness,
 } from '../app/pulse/app/actions/actionModel.js';
 
 /**
@@ -182,5 +184,53 @@ describe('isDone is unchanged', () => {
   it('reads the status column', () => {
     expect(isDone(action({ status: 'done' }))).toBe(true);
     expect(isDone(action())).toBe(false);
+  });
+});
+
+describe('actionStage and gate readiness (A3)', () => {
+  it('reads a null or missing stage as the current stage', () => {
+    expect(actionStage(action({ stage: null }), 2)).toBe(2);
+    expect(actionStage(action(), 2)).toBe(2);
+    expect(actionStage(action({ stage: 3 }), 2)).toBe(3);
+  });
+
+  it('counts open actions bearing on the current gate, with the critical subset', () => {
+    const actions = [
+      action({ id: 'cur-crit', linked_objective_id: 'obj-cost', stage: 2 }),
+      action({ id: 'cur-std', linked_objective_id: 'obj-time', stage: 2 }),
+      action({ id: 'cur-null', linked_objective_id: 'obj-cost', stage: null }),
+      action({ id: 'off-stage', linked_objective_id: 'obj-cost', stage: 3 }),
+      action({
+        id: 'done-cur',
+        linked_objective_id: 'obj-cost',
+        stage: 2,
+        status: 'done',
+      }),
+    ];
+    const gr = gateReadiness(actions, byId, 2);
+    // cur-crit, cur-std and cur-null bear on the gate; off-stage and done out.
+    expect(gr.open).toBe(3);
+    // cur-crit and cur-null link to Cost (non-negotiable); cur-std is flexible.
+    expect(gr.critical).toBe(2);
+  });
+
+  it('does not count a demoted critical action toward gate-critical', () => {
+    const actions = [
+      action({
+        id: 'demoted',
+        linked_objective_id: 'obj-cost',
+        stage: 2,
+        criticality_override: 'standard',
+        override_reason: 'reason',
+      }),
+    ];
+    const gr = gateReadiness(actions, byId, 2);
+    expect(gr.open).toBe(1);
+    expect(gr.critical).toBe(0);
+  });
+
+  it('reads a legacy null-stage action into whatever the current stage is', () => {
+    const actions = [action({ linked_objective_id: 'obj-time', stage: null })];
+    expect(gateReadiness(actions, byId, 5).open).toBe(1);
   });
 });

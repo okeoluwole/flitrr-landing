@@ -15,6 +15,7 @@ import {
   isCritical,
   isDone,
   sortActions,
+  gateReadiness,
 } from './actionModel';
 import { deriveRiskItems, buildTrackedActionFromRisk } from './actionFeed';
 import {
@@ -29,7 +30,8 @@ import styles from './ActionLog.module.css';
  * from the register rows (actionFeed.js); below it, the tracked list: the
  * project's actions critical-first, with an inline add flow, one-tap status,
  * editing, and delete behind a confirm. Criticality is derived live from the
- * linked objective, with a constrained downward override.
+ * linked objective, with a constrained downward override. A gate-readiness
+ * panel (A3) surfaces the open actions bearing on the current stage's gate.
  *
  * The band's items are suggestions awaiting a response, never rows: Track
  * this promotes one into a real tracked action in the same interaction (the
@@ -77,8 +79,11 @@ const CRITICALITY_LABEL = { critical: 'Critical', standard: 'Standard' };
 const NEEDS_LINK_LABEL = 'Needs a link';
 const OVERRIDE_REASON_PLACEHOLDER = 'Why reduce this to standard?';
 
+// The final lifecycle stage; beyond it there is no onward gate.
+const LAST_STAGE = 7;
+
 const ACTION_COLUMNS =
-  'id, description, linked_objective_id, criticality, criticality_override, override_reason, status, note, source, source_id, created_at';
+  'id, description, linked_objective_id, criticality, criticality_override, override_reason, stage, status, note, source, source_id, created_at';
 
 function formatLogged(iso) {
   if (!iso) return null;
@@ -137,6 +142,7 @@ export default function ActionLog({
   projectName,
   workspaceHref,
   registerHref,
+  currentStage,
   initialActions,
   objectives,
   risks,
@@ -190,6 +196,16 @@ export default function ActionLog({
     (a) => !isDone(a) && isCritical(a, byId)
   ).length;
 
+  // Gate readiness (A3): the open actions bearing on the current stage's gate,
+  // and how many are critical. The operational headline that frames the log
+  // against the gate the developer is working toward.
+  const gate = gateReadiness(actions, byId, currentStage);
+  const nextStage = currentStage + 1;
+  const gateLabel =
+    nextStage <= LAST_STAGE
+      ? `the gate into Stage ${nextStage}`
+      : `the close of Stage ${currentStage}`;
+
   // The needs-your-response items, recomputed from the live register rows
   // and the current actions every render, so promotion (and deleting or
   // completing a tracked action) moves an item out of or back into the band
@@ -226,6 +242,7 @@ export default function ActionLog({
         description,
         linked_objective_id: draftObjectiveId || null,
         criticality: draftCriticality,
+        stage: currentStage,
         note: note === '' ? null : note,
       })
       .select(ACTION_COLUMNS)
@@ -253,7 +270,7 @@ export default function ActionLog({
 
     const { data, error: insErr } = await supabase
       .from('project_actions')
-      .insert(buildTrackedActionFromRisk(risk, projectId))
+      .insert(buildTrackedActionFromRisk(risk, projectId, currentStage))
       .select(ACTION_COLUMNS)
       .single();
 
@@ -866,6 +883,34 @@ export default function ActionLog({
           )}
         </section>
       )}
+
+      {/* Gate readiness (A3): the open actions bearing on the current stage's
+          gate, the operational face of the stage checklist. Scoped to open
+          actions; the full deliverables checklist is the Gate module's. */}
+      <section className={styles.gateReady} aria-labelledby="gate-readiness">
+        <h2 id="gate-readiness" className={styles.bandHeading}>
+          Gate readiness
+        </h2>
+        {gate.open === 0 ? (
+          <p className={styles.gateReadyLine}>
+            No open actions stand before {gateLabel}.
+          </p>
+        ) : (
+          <p className={styles.gateReadyLine}>
+            {gate.open} open{' '}
+            {gate.open === 1 ? 'action bears' : 'actions bear'} on {gateLabel}
+            {gate.critical > 0 ? (
+              <>
+                {', '}
+                <span className={styles.gateReadyCritical}>
+                  {gate.critical} critical
+                </span>
+              </>
+            ) : null}
+            .
+          </p>
+        )}
+      </section>
 
       <div className={styles.summary}>
         <div className={styles.stat}>
