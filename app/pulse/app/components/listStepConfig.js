@@ -113,7 +113,7 @@ export const LIST_CONFIG = {
     step: 5,
     title: 'Organisation and Governance',
     intro:
-      'Define the workstreams that deliver the project and who leads each, and link a workstream to the objective it serves. The parties, the named authority, and the reporting cadence join this step in a later build.',
+      'Define the workstreams that deliver the project and who leads each, and link a workstream to the objective it serves. A workstream serving a non-negotiable objective is treated as critical.',
     itemNoun: 'workstream',
     addLabel: 'Add workstream',
     requiredField: 'name',

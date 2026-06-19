@@ -40,6 +40,13 @@ export default function StepItemList({
   onCriticality,
   onAdd,
   onRemove,
+  // When true, render as a continuation section (a groupHead sub-heading)
+  // rather than a full step header, so the list can sit under another step's
+  // own header (Step 5 renders workstreams beneath Organisation and
+  // Governance). sectionTitle / sectionIntro supply the sub-heading copy.
+  asSection = false,
+  sectionTitle,
+  sectionIntro,
 }) {
   // First focusable field per item, keyed by the item's stable client key.
   const firstFieldRefs = useRef(new Map());
@@ -129,9 +136,20 @@ export default function StepItemList({
 
   return (
     <>
-      <p className={styles.panelEyebrow}>Step {config.step} of 9</p>
-      <h2 className={styles.panelHeading}>{config.title}</h2>
-      <p className={styles.panelIntro}>{config.intro}</p>
+      {asSection ? (
+        <div className={styles.groupHead}>
+          <h3 className={styles.groupTitle}>{sectionTitle ?? config.title}</h3>
+          {(sectionIntro ?? config.intro) && (
+            <p className={styles.groupHint}>{sectionIntro ?? config.intro}</p>
+          )}
+        </div>
+      ) : (
+        <>
+          <p className={styles.panelEyebrow}>Step {config.step} of 9</p>
+          <h2 className={styles.panelHeading}>{config.title}</h2>
+          <p className={styles.panelIntro}>{config.intro}</p>
+        </>
+      )}
 
       {items.length === 0 ? (
         <p className={styles.emptyHint}>

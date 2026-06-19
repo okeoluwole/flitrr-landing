@@ -6,6 +6,7 @@ import { createClient } from '../../../../lib/supabase/client';
 import StepProjectDefinition from './StepProjectDefinition';
 import StepStrategicContext from './StepStrategicContext';
 import StepScopeSite from './StepScopeSite';
+import StepOrganisation from './StepOrganisation';
 import StepProjectObjectives from './StepProjectObjectives';
 import StepConstraintRanking from './StepConstraintRanking';
 import StepItemList from './StepItemList';
@@ -124,6 +125,17 @@ const EMPTY_SCOPE = {
   planning_status: '',
   planning_constraints: '',
   physical_constraints: '',
+};
+
+// Step 5 Organisation and Governance, the scalar governance fields held on the
+// projects row. The named authority is held by the chosen party's client key
+// (authority_key) and resolved to projects.authority_stakeholder_id on save,
+// since a freshly added party has no database id yet. The parties themselves
+// are a separate list (see the stakeholders state).
+const EMPTY_ORG = {
+  reporting_cadence: '',
+  digest_recipient: '',
+  authority_key: '',
 };
 
 const SAVE_ERROR =
@@ -280,6 +292,18 @@ function scopeFrom(row, makeKey) {
           quantum: m?.quantum ?? '',
         }))
       : [],
+  };
+}
+
+// Map the projects row onto the Step 5 governance fields. The authority key is
+// left empty here and resolved once the parties load (it maps the stored
+// authority_stakeholder_id to that party's client key).
+function orgFrom(p) {
+  if (!p) return { ...EMPTY_ORG };
+  return {
+    reporting_cadence: p.reporting_cadence ?? '',
+    digest_recipient: p.digest_recipient ?? '',
+    authority_key: '',
   };
 }
 
@@ -455,6 +479,17 @@ export default function InitiationWizard({
   const [scopeStatus, setScopeStatus] = useState('idle'); // idle | loading | loaded | error
   const scopeLoadStartedRef = useRef(null);
 
+  // Step 5 Organisation and Governance state. org holds the scalar governance
+  // fields (initialised from the projects row); stakeholders is the editable
+  // parties list, loaded once the project exists. stakeholdersStatus gates the
+  // step, and persistedStakeholderIdsRef tracks which party ids are in the
+  // database so a save computes deletes precisely (as the lists do).
+  const [org, setOrg] = useState(() => orgFrom(initialProject));
+  const [stakeholders, setStakeholders] = useState([]);
+  const [stakeholdersStatus, setStakeholdersStatus] = useState('idle'); // idle | loading | loaded | error
+  const stakeholderLoadStartedRef = useRef(null);
+  const persistedStakeholderIdsRef = useRef(new Set());
+
   // Step 5 to 7 state. The three lists load once the project exists and its
   // objectives are in hand (the link selector and the cascade need them).
   // `lists` holds { milestones, workstreams, risks } once loaded; listsStatus
@@ -522,6 +557,37 @@ export default function InitiationWizard({
     if (error) setError(null);
   };
 
+  // Step 5 Organisation and Governance edits. The scalar governance fields go
+  // through onOrgChange; the parties have their own add / edit / remove. The
+  // authority is held by client key, so removing the chosen party clears it.
+  const onOrgChange = (field, value) => {
+    setOrg((prev) => ({ ...prev, [field]: value }));
+    if (error) setError(null);
+  };
+
+  const onPartyField = (key, field, value) => {
+    setStakeholders((prev) =>
+      prev.map((p) => (p._key === key ? { ...p, [field]: value } : p))
+    );
+    if (error) setError(null);
+  };
+
+  const onPartyAdd = () => {
+    setStakeholders((prev) => [
+      ...prev,
+      { _key: makeKey(), id: null, name: '', organisation: '', role: 'developer', contact: '' },
+    ]);
+    if (error) setError(null);
+  };
+
+  const onPartyRemove = (key) => {
+    setStakeholders((prev) => prev.filter((p) => p._key !== key));
+    setOrg((prev) =>
+      prev.authority_key === key ? { ...prev, authority_key: '' } : prev
+    );
+    if (error) setError(null);
+  };
+
   // Fetch the five seeded objective rows for the current project. Used
   // both by the load effect and by the retry control if the fetch fails.
   const loadObjectives = async () => {
@@ -581,6 +647,47 @@ export default function InitiationWizard({
     if (scopeLoadStartedRef.current === projectId) return;
     scopeLoadStartedRef.current = projectId;
     loadScopeSite();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]);
+
+  // Fetch the Step 5 parties. Independent of objectives and lists (nothing here
+  // reads them). After loading, resolve the project's stored named authority to
+  // that party's client key, so the authority select shows the saved choice.
+  const loadStakeholders = async () => {
+    if (!projectId) return;
+    setStakeholdersStatus('loading');
+    const { data, error: selErr } = await supabase
+      .from('project_stakeholders')
+      .select('id, name, organisation, role, contact')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: true });
+    if (selErr) {
+      setStakeholdersStatus('error');
+      return;
+    }
+    const items = (data ?? []).map((row) => ({
+      _key: makeKey(),
+      id: row.id,
+      name: row.name ?? '',
+      organisation: row.organisation ?? '',
+      role: row.role ?? 'developer',
+      contact: row.contact ?? '',
+    }));
+    setStakeholders(items);
+    persistedStakeholderIdsRef.current = new Set((data ?? []).map((x) => x.id));
+    const authId = initialProject?.authority_stakeholder_id ?? null;
+    if (authId) {
+      const match = items.find((it) => it.id === authId);
+      if (match) setOrg((prev) => ({ ...prev, authority_key: match._key }));
+    }
+    setStakeholdersStatus('loaded');
+  };
+
+  useEffect(() => {
+    if (!projectId) return;
+    if (stakeholderLoadStartedRef.current === projectId) return;
+    stakeholderLoadStartedRef.current = projectId;
+    loadStakeholders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
@@ -751,7 +858,13 @@ export default function InitiationWizard({
     if (objStatus !== 'loaded') {
       objLoadStartedRef.current = null;
       loadObjectives();
-    } else {
+      return;
+    }
+    if (stakeholdersStatus !== 'loaded') {
+      stakeholderLoadStartedRef.current = null;
+      loadStakeholders();
+    }
+    if (listsStatus !== 'loaded') {
       loadLists(objectives);
     }
   };
@@ -897,6 +1010,107 @@ export default function InitiationWizard({
       .from('project_scope_site')
       .upsert({ project_id: projectId, ...payload }, { onConflict: 'project_id' });
     return upErr ?? null;
+  };
+
+  // Reconcile the Step 5 parties against the database, the same way the lists
+  // do: blank rows (no name) are dropped, existing rows updated, new rows
+  // inserted, and removed rows deleted. Returns the save error (or null) plus a
+  // map from each kept party's client key to its database id, so the caller can
+  // resolve the named authority to a real id.
+  const persistStakeholders = async () => {
+    const keep = stakeholders.filter((it) => clean(it.name) != null);
+    const keepIdsInDb = new Set(keep.filter((it) => it.id).map((it) => it.id));
+    const prevIds = persistedStakeholderIdsRef.current;
+    const toDelete = [...prevIds].filter((id) => !keepIdsInDb.has(id));
+    const toUpdate = keep.filter((it) => it.id);
+    const toInsert = keep.filter((it) => !it.id);
+
+    const rowOf = (it) => ({
+      name: clean(it.name),
+      organisation: clean(it.organisation),
+      role: it.role,
+      contact: clean(it.contact),
+    });
+
+    let errored = false;
+    let deletedSet = new Set();
+
+    if (toDelete.length) {
+      const { error: delErr } = await supabase
+        .from('project_stakeholders')
+        .delete()
+        .in('id', toDelete);
+      if (delErr) errored = true;
+      else deletedSet = new Set(toDelete);
+    }
+
+    if (toUpdate.length) {
+      const updRes = await Promise.all(
+        toUpdate.map((it) =>
+          supabase.from('project_stakeholders').update(rowOf(it)).eq('id', it.id)
+        )
+      );
+      if (updRes.some((r) => r.error)) errored = true;
+    }
+
+    const newIdByKey = {};
+    if (toInsert.length) {
+      const insRes = await Promise.all(
+        toInsert.map((it) =>
+          supabase
+            .from('project_stakeholders')
+            .insert({ project_id: projectId, ...rowOf(it) })
+            .select('id')
+            .single()
+            .then((res) => ({ it, res }))
+        )
+      );
+      for (const { it, res } of insRes) {
+        if (res.error || !res.data) errored = true;
+        else newIdByKey[it._key] = res.data.id;
+      }
+    }
+
+    const nextItems = keep.map((it) =>
+      it.id || !newIdByKey[it._key] ? it : { ...it, id: newIdByKey[it._key] }
+    );
+    setStakeholders(nextItems);
+
+    const nextPersisted = new Set(
+      [...prevIds].filter((id) => !deletedSet.has(id))
+    );
+    for (const k in newIdByKey) nextPersisted.add(newIdByKey[k]);
+    persistedStakeholderIdsRef.current = nextPersisted;
+
+    const keyToId = {};
+    for (const it of nextItems) if (it.id) keyToId[it._key] = it.id;
+
+    return {
+      error: errored ? new Error('stakeholders_save_failed') : null,
+      keyToId,
+    };
+  };
+
+  // Save Step 5: persist the parties first (so a newly added authority has an
+  // id), then write the governance fields onto the projects row. The named
+  // authority resolves from its party's client key; if that party was blank or
+  // removed it stores null. The cadence and the digest recipient are recorded
+  // baseline facts and do not touch the live digest.
+  const persistOrganisation = async () => {
+    const { error: skErr, keyToId } = await persistStakeholders();
+    if (skErr) return skErr;
+    const authorityId = org.authority_key
+      ? keyToId[org.authority_key] ?? null
+      : null;
+    const { error: updErr } = await supabase
+      .from('projects')
+      .update({
+        reporting_cadence: clean(org.reporting_cadence),
+        digest_recipient: clean(org.digest_recipient),
+        authority_stakeholder_id: authorityId,
+      })
+      .eq('id', projectId);
+    return updErr ?? null;
   };
 
   // Save a Step 5 to 7 list: reconcile the screen against the database so the
@@ -1045,8 +1259,23 @@ export default function InitiationWizard({
       return;
     }
 
-    // Steps 5, 7 and 8: the editable list steps (workstreams, milestones, risks).
-    if (step === 5 || step === 7 || step === 8) {
+    // Step 5 Organisation and Governance: the parties, the named authority and
+    // the cadence (persistOrganisation), then the workstreams list.
+    if (step === 5) {
+      setBusy(true);
+      const orgErr = await persistOrganisation();
+      const wsErr = orgErr ? null : await persistList('workstreams');
+      setBusy(false);
+      if (orgErr || wsErr) {
+        setError(SAVE_ERROR);
+        return;
+      }
+      advanceTo(6);
+      return;
+    }
+
+    // Steps 7 and 8: the editable list steps (milestones, risks).
+    if (step === 7 || step === 8) {
       const cfg = CONFIG_BY_STEP[step];
       setBusy(true);
       const err = await persistList(cfg.key);
@@ -1163,7 +1392,10 @@ export default function InitiationWizard({
   // too, since the lists load depends on the objectives being loaded first.
   const renderListNotReady = (n, titleOverride) => {
     const title = titleOverride ?? CONFIG_BY_STEP[n].title;
-    const failed = objStatus === 'error' || listsStatus === 'error';
+    const failed =
+      objStatus === 'error' ||
+      listsStatus === 'error' ||
+      (n === 5 && stakeholdersStatus === 'error');
     return (
       <>
         <p className={styles.panelEyebrow}>Step {n} of 9</p>
@@ -1249,7 +1481,49 @@ export default function InitiationWizard({
     if (step === 6) {
       return <StepPlaceholder name="Financial Baseline" body={STEPS[5].body} />;
     }
-    if (step === 5 || step === 7 || step === 8) {
+    // Step 5 Organisation and Governance: the parties, the named authority and
+    // the cadence, then the workstreams list as a continuation section.
+    if (step === 5) {
+      if (
+        objStatus !== 'loaded' ||
+        listsStatus !== 'loaded' ||
+        stakeholdersStatus !== 'loaded'
+      ) {
+        return renderListNotReady(5, 'Organisation and Governance');
+      }
+      return (
+        <>
+          <StepOrganisation
+            parties={stakeholders}
+            onPartyField={onPartyField}
+            onPartyAdd={onPartyAdd}
+            onPartyRemove={onPartyRemove}
+            org={org}
+            onOrgChange={onOrgChange}
+          />
+          <StepItemList
+            key="workstreams"
+            config={LIST_CONFIG.workstreams}
+            items={lists.workstreams}
+            objectives={objectives}
+            onField={(itemKey, field, value) =>
+              onListField('workstreams', itemKey, field, value)
+            }
+            onLink={(itemKey, value) => onListLink('workstreams', itemKey, value)}
+            onCriticality={(itemKey, value) =>
+              onListCriticality('workstreams', itemKey, value)
+            }
+            onAdd={() => onListAdd('workstreams')}
+            onRemove={(itemKey) => onListRemove('workstreams', itemKey)}
+            asSection
+            sectionTitle="Workstreams"
+            sectionIntro={LIST_CONFIG.workstreams.intro}
+          />
+        </>
+      );
+    }
+
+    if (step === 7 || step === 8) {
       if (objStatus !== 'loaded' || listsStatus !== 'loaded') {
         return renderListNotReady(step);
       }
@@ -1303,7 +1577,11 @@ export default function InitiationWizard({
     (step === 1 && !nameValid) ||
     (step === 3 && objStatus !== 'loaded') ||
     (step === 4 && scopeStatus !== 'loaded') ||
-    ((step === 5 || step === 7 || step === 8) &&
+    (step === 5 &&
+      (objStatus !== 'loaded' ||
+        listsStatus !== 'loaded' ||
+        stakeholdersStatus !== 'loaded')) ||
+    ((step === 7 || step === 8) &&
       (objStatus !== 'loaded' || listsStatus !== 'loaded'));
 
   const headerTitle = def.name.trim() ? def.name.trim() : 'New project';
