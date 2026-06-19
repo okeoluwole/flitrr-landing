@@ -56,6 +56,11 @@ export function checkCompleteness({
   objectives,
   rankOrder,
   lists,
+  scope,
+  org,
+  stakeholders,
+  financial,
+  gates,
 } = {}) {
   const objs = objectives ?? [];
   const milestones = lists?.milestones ?? [];
@@ -82,6 +87,7 @@ export function checkCompleteness({
     { key: 'name', group: 'Project identity', label: 'Project name', ok: present(def?.name) },
     { key: 'type', group: 'Project identity', label: 'Project type', ok: present(def?.project_type) },
     { key: 'location', group: 'Project identity', label: 'Location', ok: present(def?.location) },
+    { key: 'country', group: 'Project identity', label: 'Country', ok: present(def?.country) },
     { key: 'size', group: 'Project identity', label: 'Size', ok: present(def?.size) },
     {
       key: 'completion',
@@ -132,6 +138,12 @@ export function checkCompleteness({
       label: 'At least one risk',
       ok: hasNamed(risks, 'description'),
     },
+    {
+      key: 'funding',
+      group: 'Financial baseline',
+      label: 'Funding structure',
+      ok: present(financial?.funding_structure_type),
+    },
   ];
 
   // ── Recommended (shown, never blocking) ──────────────────────────────────
@@ -149,6 +161,30 @@ export function checkCompleteness({
     present(def?.projected_gdv),
     present(def?.projected_roi),
   ].filter(Boolean).length;
+
+  // Widened baseline (S11). The named authority is the party the wizard marked
+  // by client key; the rest read the new step state.
+  const authoritySet =
+    present(org?.authority_key) &&
+    (stakeholders ?? []).some(
+      (p) => p._key === org.authority_key && present(p.name)
+    );
+  const scopeHasDetail =
+    present(scope?.development_summary) ||
+    present(scope?.site_area) ||
+    present(scope?.planning_status);
+  const breakdownSet =
+    present(financial?.hard_cost) ||
+    present(financial?.soft_cost) ||
+    present(financial?.contingency);
+  const gatesDated = (gates ?? []).some((g) => present(g.target_date));
+  const raidPresent =
+    hasNamed(lists?.assumptions, 'description') ||
+    hasNamed(lists?.constraints, 'description') ||
+    hasNamed(lists?.dependencies, 'description');
+  const overConstrained =
+    objs.length === OBJECTIVE_COUNT &&
+    objs.every((o) => o.classification === 'non_negotiable');
 
   const recommended = [
     {
@@ -189,6 +225,41 @@ export function checkCompleteness({
         flexible.length === 0
           ? null
           : `${tolerancesSet} of ${flexible.length} set`,
+    },
+    {
+      key: 'authority',
+      label: 'A named authority',
+      ok: authoritySet,
+      note: 'The single party that signs off a gate and approves a re-baseline.',
+    },
+    {
+      key: 'scope',
+      label: 'Scope and site detail',
+      ok: scopeHasDetail,
+    },
+    {
+      key: 'breakdown',
+      label: 'Budget breakdown',
+      ok: breakdownSet,
+      note: 'Hard cost, soft cost and contingency.',
+    },
+    {
+      key: 'gateDates',
+      label: 'Stage gate target dates',
+      ok: gatesDated,
+    },
+    {
+      key: 'raid',
+      label: 'Assumptions, constraints or dependencies',
+      ok: raidPresent,
+    },
+    {
+      key: 'overConstraint',
+      label: 'Room to flex (not over-constrained)',
+      ok: !overConstrained,
+      note: overConstrained
+        ? 'Every objective is non-negotiable, so nothing can absorb pressure. The Gate 1 to 2 will require this to be acknowledged.'
+        : null,
     },
   ];
 

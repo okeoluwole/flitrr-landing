@@ -240,6 +240,36 @@ function buildBreakdown(financial) {
   return Object.keys(filled).length > 0 ? filled : null;
 }
 
+// Readable labels for funding_structure_type, used to keep the legacy
+// projects.funding_structure column populated.
+const FUNDING_STRUCTURE_LABELS = {
+  senior_debt: 'Senior debt',
+  mezzanine: 'Mezzanine',
+  equity: 'Equity',
+  jv: 'Joint venture',
+  development_finance: 'Development finance',
+  bridging: 'Bridging',
+  off_plan_presales: 'Off-plan presales',
+  self_funded: 'Self-funded',
+  grant: 'Grant',
+  other: 'Other',
+};
+
+/**
+ * Derive the legacy projects.funding_structure summary from the Step 6 funding
+ * fields. The funding capture moved to Step 6 (project_budget) in S7, but the
+ * downstream Gate 1 to 2 funding check reads projects.funding_structure, so we
+ * keep that column populated here rather than change the Gate.
+ */
+function deriveFundingStructure(financial) {
+  const label = financial.funding_structure_type
+    ? FUNDING_STRUCTURE_LABELS[financial.funding_structure_type] ?? null
+    : null;
+  const notes = clean(financial.funding_notes);
+  const parts = [label, notes].filter(Boolean);
+  return parts.length > 0 ? parts.join('. ') : null;
+}
+
 // Map a stored projects row onto Step 1 / Step 2 field state. DATE
 // columns come back as 'YYYY-MM-DD' strings, which is exactly what
 // <input type="date"> expects.
@@ -1433,6 +1463,9 @@ export default function InitiationWizard({
         projected_gdv: cleanNumeric(def.projected_gdv),
         projected_roi: cleanNumeric(def.projected_roi),
         financial_detail_url: clean(def.financial_detail_url),
+        // Keep the legacy funding_structure column in step with the Step 6
+        // funding, so the downstream Gate 1 to 2 funding check keeps working.
+        funding_structure: deriveFundingStructure(financial),
       })
       .eq('id', projectId);
     if (projErr) return projErr;

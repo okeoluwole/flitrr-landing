@@ -88,8 +88,20 @@ export default function StepGeneratedBrief({
   // on the same live state the preview is built from, but it gates only the
   // lock action. Drafting and the live preview stay permissive.
   const completeness = useMemo(
-    () => checkCompleteness({ def, ctx, objectives, rankOrder, lists }),
-    [def, ctx, objectives, rankOrder, lists]
+    () =>
+      checkCompleteness({
+        def,
+        ctx,
+        objectives,
+        rankOrder,
+        lists,
+        scope,
+        org,
+        stakeholders,
+        financial,
+        gates,
+      }),
+    [def, ctx, objectives, rankOrder, lists, scope, org, stakeholders, financial, gates]
   );
   const canLock = completeness.canLock;
   const requiredMissing = completeness.required.filter((r) => !r.ok);
