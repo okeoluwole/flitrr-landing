@@ -570,6 +570,9 @@ export default function InitiationWizard({
     milestones: new Set(),
     workstreams: new Set(),
     risks: new Set(),
+    assumptions: new Set(),
+    constraints: new Set(),
+    dependencies: new Set(),
   });
   const makeKey = () => `k${keyCounterRef.current++}`;
 
@@ -891,7 +894,7 @@ export default function InitiationWizard({
   const loadLists = async (objs) => {
     if (!projectId) return;
     setListsStatus('loading');
-    const [m, w, r] = await Promise.all([
+    const [m, w, r, a, c, d] = await Promise.all([
       supabase
         .from('project_milestones')
         .select(
@@ -911,8 +914,23 @@ export default function InitiationWizard({
         )
         .eq('project_id', projectId)
         .order('created_at', { ascending: true }),
+      supabase
+        .from('project_assumptions')
+        .select('id, description, detail, linked_objective_id, criticality')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: true }),
+      supabase
+        .from('project_constraints')
+        .select('id, description, detail, linked_objective_id, criticality')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: true }),
+      supabase
+        .from('project_dependencies')
+        .select('id, description, detail, linked_objective_id, criticality')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: true }),
     ]);
-    if (m.error || w.error || r.error) {
+    if (m.error || w.error || r.error || a.error || c.error || d.error) {
       setListsStatus('error');
       return;
     }
@@ -925,11 +943,32 @@ export default function InitiationWizard({
         makeKey
       ),
       risks: buildList(LIST_CONFIG.risks, r.data ?? [], objs, makeKey),
+      assumptions: buildList(
+        LIST_CONFIG.assumptions,
+        a.data ?? [],
+        objs,
+        makeKey
+      ),
+      constraints: buildList(
+        LIST_CONFIG.constraints,
+        c.data ?? [],
+        objs,
+        makeKey
+      ),
+      dependencies: buildList(
+        LIST_CONFIG.dependencies,
+        d.data ?? [],
+        objs,
+        makeKey
+      ),
     });
     persistedIdsRef.current = {
       milestones: new Set((m.data ?? []).map((x) => x.id)),
       workstreams: new Set((w.data ?? []).map((x) => x.id)),
       risks: new Set((r.data ?? []).map((x) => x.id)),
+      assumptions: new Set((a.data ?? []).map((x) => x.id)),
+      constraints: new Set((c.data ?? []).map((x) => x.id)),
+      dependencies: new Set((d.data ?? []).map((x) => x.id)),
     };
     setListsStatus('loaded');
   };
@@ -1611,10 +1650,15 @@ export default function InitiationWizard({
       return;
     }
 
-    // Step 8: the editable risk list.
+    // Step 8 RAID: the risks and the three sibling lists (assumptions,
+    // constraints, dependencies). Persist each in turn; stop on the first error.
     if (step === 8) {
       setBusy(true);
-      const err = await persistList('risks');
+      let err = null;
+      for (const key of ['risks', 'assumptions', 'constraints', 'dependencies']) {
+        err = await persistList(key);
+        if (err) break;
+      }
       setBusy(false);
       if (err) {
         setError(SAVE_ERROR);
@@ -1945,29 +1989,50 @@ export default function InitiationWizard({
       );
     }
 
+    // Step 8 RAID: the full picture under one header, four criticality-cascade
+    // lists as continuation sections (risks, then the three siblings).
     if (step === 8) {
       if (objStatus !== 'loaded' || listsStatus !== 'loaded') {
         return renderListNotReady(step);
       }
-      const cfg = CONFIG_BY_STEP[step];
-      // key per step so StepItemList remounts (and resets its focus
-      // bookkeeping) when switching between the list steps.
-      return (
+      const raidSection = (key, sectionTitle) => (
         <StepItemList
-          key={cfg.key}
-          config={cfg}
-          items={lists[cfg.key]}
+          key={key}
+          config={LIST_CONFIG[key]}
+          items={lists[key]}
           objectives={objectives}
           onField={(itemKey, field, value) =>
-            onListField(cfg.key, itemKey, field, value)
+            onListField(key, itemKey, field, value)
           }
-          onLink={(itemKey, value) => onListLink(cfg.key, itemKey, value)}
+          onLink={(itemKey, value) => onListLink(key, itemKey, value)}
           onCriticality={(itemKey, value) =>
-            onListCriticality(cfg.key, itemKey, value)
+            onListCriticality(key, itemKey, value)
           }
-          onAdd={() => onListAdd(cfg.key)}
-          onRemove={(itemKey) => onListRemove(cfg.key, itemKey)}
+          onAdd={() => onListAdd(key)}
+          onRemove={(itemKey) => onListRemove(key, itemKey)}
+          asSection
+          sectionTitle={sectionTitle}
+          sectionIntro={LIST_CONFIG[key].intro}
         />
+      );
+      return (
+        <>
+          <p className={styles.panelEyebrow}>Step 8 of 9</p>
+          <h2 className={styles.panelHeading}>
+            Risks, Assumptions, Constraints and Dependencies
+          </h2>
+          <p className={styles.panelIntro}>
+            The full RAID picture at the outset: the risks you can see, the
+            assumptions the baseline rests on, the constraints it must respect,
+            and the dependencies it relies on. Link each to the objective it
+            bears on. Every field is optional and can be revised before the
+            brief is locked.
+          </p>
+          {raidSection('risks', 'Risks')}
+          {raidSection('assumptions', 'Assumptions')}
+          {raidSection('constraints', 'Constraints')}
+          {raidSection('dependencies', 'Dependencies')}
+        </>
       );
     }
     if (step === 9) {

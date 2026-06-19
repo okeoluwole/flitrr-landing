@@ -199,6 +199,100 @@ export const LIST_CONFIG = {
       { description: 'Sales slower than forecast' },
     ],
   },
+
+  // The three RAID siblings alongside risks (step 8). Same shape as risks for
+  // the cascade: a description (the identity field), an optional detail, the
+  // link to the objective they bear on, and a criticality that cascades from
+  // it. They reuse StepItemList and persistList unchanged. No suggested starter
+  // set: the placeholders prompt the developer, and the lists start empty.
+  assumptions: {
+    key: 'assumptions',
+    table: 'project_assumptions',
+    step: 8,
+    title: 'Assumptions',
+    intro:
+      'The assumptions the baseline rests on. Link each to the objective it bears on, so its weight follows from the objective it serves.',
+    itemNoun: 'assumption',
+    addLabel: 'Add assumption',
+    requiredField: 'description',
+    fields: [
+      {
+        name: 'description',
+        label: 'Assumption',
+        type: 'text',
+        full: true,
+        placeholder: 'e.g. Planning permission will be granted as designed',
+      },
+      {
+        name: 'detail',
+        label: 'Detail',
+        type: 'text',
+        full: true,
+        optional: true,
+        placeholder: 'Optional detail.',
+      },
+    ],
+    suggested: [],
+  },
+
+  constraints: {
+    key: 'constraints',
+    table: 'project_constraints',
+    step: 8,
+    title: 'Constraints',
+    intro: 'The fixed constraints the project must respect.',
+    itemNoun: 'constraint',
+    addLabel: 'Add constraint',
+    requiredField: 'description',
+    fields: [
+      {
+        name: 'description',
+        label: 'Constraint',
+        type: 'text',
+        full: true,
+        placeholder: 'e.g. Fixed completion date set by a funding condition',
+      },
+      {
+        name: 'detail',
+        label: 'Detail',
+        type: 'text',
+        full: true,
+        optional: true,
+        placeholder: 'Optional detail.',
+      },
+    ],
+    suggested: [],
+  },
+
+  dependencies: {
+    key: 'dependencies',
+    table: 'project_dependencies',
+    step: 8,
+    title: 'Dependencies',
+    intro: 'The external dependencies the project relies on to deliver.',
+    itemNoun: 'dependency',
+    nounPlural: 'dependencies',
+    addLabel: 'Add dependency',
+    requiredField: 'description',
+    fields: [
+      {
+        name: 'description',
+        label: 'Dependency',
+        type: 'text',
+        full: true,
+        placeholder: 'e.g. Utilities connection by the network operator',
+      },
+      {
+        name: 'detail',
+        label: 'Detail',
+        type: 'text',
+        full: true,
+        optional: true,
+        placeholder: 'Optional detail.',
+      },
+    ],
+    suggested: [],
+  },
 };
 
 // Step number -> config, for the shell's render and save switch.

@@ -153,8 +153,8 @@ export default function StepItemList({
 
       {items.length === 0 ? (
         <p className={styles.emptyHint}>
-          No {noun}s yet. Add one below, or continue with none. You can come
-          back to this step before the brief is locked.
+          No {config.nounPlural ?? `${noun}s`} yet. Add one below, or continue
+          with none. You can come back to this step before the brief is locked.
         </p>
       ) : (
         <ul className={styles.itemList}>
