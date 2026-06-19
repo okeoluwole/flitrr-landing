@@ -3,6 +3,7 @@ import {
   deriveRiskItems,
   trackedRiskIds,
   buildTrackedActionFromRisk,
+  riskRaiseReason,
   formatActionLogSummary,
 } from '../app/pulse/app/actions/actionFeed.js';
 import { deriveSeverity } from '../app/pulse/app/risk/riskModel.js';
@@ -216,7 +217,7 @@ describe('band ordering', () => {
 });
 
 describe('promote-to-track row construction', () => {
-  it('builds the pre-filled row: template, inheritance, source link, stage', () => {
+  it('builds the pre-filled row: template, inheritance, source link, stage, reason', () => {
     const r = risk({
       id: 'risk-9',
       description: 'Main contractor insolvency',
@@ -229,12 +230,13 @@ describe('promote-to-track row construction', () => {
       linked_objective_id: 'obj-time',
       criticality: 'critical',
       stage: 2,
+      reason: 'Raised from a critical risk.',
       source: 'risk',
       source_id: 'risk-9',
     });
   });
 
-  it('inherits a standard criticality and a missing objective as null, and stamps the stage', () => {
+  it('inherits a standard criticality and a missing objective as null, and stamps the stage and reason', () => {
     const row = buildTrackedActionFromRisk(
       risk({ linked_objective_id: null, criticality: 'standard' }),
       'project-1',
@@ -243,6 +245,33 @@ describe('promote-to-track row construction', () => {
     expect(row.linked_objective_id).toBeNull();
     expect(row.criticality).toBe('standard');
     expect(row.stage).toBe(3);
+    expect(row.reason).toBe('Raised from your risk register.');
+  });
+});
+
+describe('riskRaiseReason (A4): the citable why', () => {
+  it('names a critical risk', () => {
+    expect(riskRaiseReason(risk({ criticality: 'critical' }))).toBe(
+      'Raised from a critical risk.'
+    );
+  });
+
+  it('names a serious score', () => {
+    expect(riskRaiseReason(risk({ likelihood: 'high', impact: 'high' }))).toBe(
+      'Raised from a risk scored serious.'
+    );
+  });
+
+  it('names both when critical and serious', () => {
+    expect(
+      riskRaiseReason(
+        risk({ criticality: 'critical', likelihood: 'high', impact: 'high' })
+      )
+    ).toBe('Raised from a critical risk scored serious.');
+  });
+
+  it('falls back to the register when neither', () => {
+    expect(riskRaiseReason(risk())).toBe('Raised from your risk register.');
   });
 });
 

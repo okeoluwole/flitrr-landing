@@ -16,6 +16,7 @@ import {
   isDone,
   sortActions,
   gateReadiness,
+  provenanceLabel,
 } from './actionModel';
 import { deriveRiskItems, buildTrackedActionFromRisk } from './actionFeed';
 import {
@@ -83,7 +84,7 @@ const OVERRIDE_REASON_PLACEHOLDER = 'Why reduce this to standard?';
 const LAST_STAGE = 7;
 
 const ACTION_COLUMNS =
-  'id, description, linked_objective_id, criticality, criticality_override, override_reason, stage, status, note, source, source_id, created_at';
+  'id, description, linked_objective_id, criticality, criticality_override, override_reason, stage, reason, status, note, source, source_id, created_at';
 
 function formatLogged(iso) {
   if (!iso) return null;
@@ -480,6 +481,7 @@ export default function ActionLog({
           <span className={styles.objective}>
             {linkedName ? `vs ${linkedName}` : 'Unlinked'}
           </span>
+          <span className={styles.provenance}>{provenanceLabel('risk')}</span>
         </div>
         <p className={styles.pushName}>{risk.description}</p>
         <div className={styles.pushActions}>
@@ -513,13 +515,16 @@ export default function ActionLog({
 
     return (
       <article key={s.playId} className={styles.pushItem}>
-        {s.criticality === 'critical' && (
-          <div className={styles.pushTags}>
+        <div className={styles.pushTags}>
+          {s.criticality === 'critical' && (
             <span className={`${styles.chip} ${styles.chipCritical}`}>
               Critical
             </span>
-          </div>
-        )}
+          )}
+          <span className={styles.provenance}>
+            {provenanceLabel('playbook')}
+          </span>
+        </div>
         <p className={styles.playTitle}>{s.title}</p>
         <p className={styles.why}>{s.why}</p>
         <div className={styles.pushActions}>
@@ -691,12 +696,15 @@ export default function ActionLog({
                     : registerHref
                 }
                 className={styles.fromRisk}
+                title="Raised from a risk in your register"
               >
-                From risk
+                {provenanceLabel('risk')}
               </Link>
             )}
             {a.source === 'playbook' && (
-              <span className={styles.fromPlaybook}>From playbook</span>
+              <span className={styles.provenance}>
+                {provenanceLabel('playbook')}
+              </span>
             )}
           </div>
         </div>
@@ -759,6 +767,7 @@ export default function ActionLog({
           <>
             <p className={styles.description}>{a.description}</p>
             {a.note && <p className={styles.noteText}>{a.note}</p>}
+            {a.reason && <p className={styles.reasonLine}>{a.reason}</p>}
             {renderCritDetail(a, { overridden, critical, unlinked, linkedName })}
           </>
         )}

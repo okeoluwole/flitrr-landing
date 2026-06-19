@@ -157,3 +157,20 @@ export function gateReadiness(actions, byId, currentStage) {
     critical: bearing.filter((a) => isCritical(a, byId)).length,
   };
 }
+
+/**
+ * The engine knowledge source a surfaced or engine-raised item is labelled by
+ * (A4), derived from its source. Only the sources that exist today carry a
+ * label: a risk is an observation from this project, a playbook item is a draw
+ * from PULSE's curated knowledge. External reference and the network are not
+ * built, so nothing is ever labelled with a source PULSE cannot stand behind,
+ * and a hand-logged action (the developer's own) has no engine provenance.
+ */
+export const PROVENANCE = {
+  risk: 'This project',
+  playbook: 'Playbook library',
+};
+
+export function provenanceLabel(source) {
+  return PROVENANCE[source] ?? null;
+}

@@ -10,6 +10,7 @@ import {
   sortActions,
   actionStage,
   gateReadiness,
+  provenanceLabel,
 } from '../app/pulse/app/actions/actionModel.js';
 
 /**
@@ -232,5 +233,20 @@ describe('actionStage and gate readiness (A3)', () => {
   it('reads a legacy null-stage action into whatever the current stage is', () => {
     const actions = [action({ linked_objective_id: 'obj-time', stage: null })];
     expect(gateReadiness(actions, byId, 5).open).toBe(1);
+  });
+});
+
+describe('provenance label (A4)', () => {
+  it('labels the two knowledge sources that exist', () => {
+    expect(provenanceLabel('risk')).toBe('This project');
+    expect(provenanceLabel('playbook')).toBe('Playbook library');
+  });
+
+  it('gives a hand-logged or unbuilt source no engine provenance', () => {
+    // manual is the developer's own; programme/external/network are not
+    // labelled (the last two are not built), so PULSE never overclaims.
+    expect(provenanceLabel('manual')).toBeNull();
+    expect(provenanceLabel('programme')).toBeNull();
+    expect(provenanceLabel(undefined)).toBeNull();
   });
 });

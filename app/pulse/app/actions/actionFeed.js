@@ -110,12 +110,28 @@ function parseTime(iso) {
 }
 
 /**
+ * The citable reason a promoted risk action was raised (A4): why it surfaced,
+ * its criticality and whether its score is Serious, the same trigger the band
+ * reads. Stored on the tracked action so the engine's trace survives the
+ * promotion, even if the risk later changes or closes.
+ */
+export function riskRaiseReason(risk) {
+  const critical = isCritical(risk);
+  const serious = deriveSeverity(risk?.likelihood, risk?.impact).key === 'serious';
+  if (critical && serious) return 'Raised from a critical risk scored serious.';
+  if (critical) return 'Raised from a critical risk.';
+  if (serious) return 'Raised from a risk scored serious.';
+  return 'Raised from your risk register.';
+}
+
+/**
  * Promote-to-track (M7.2 spec, A4): the project_actions row a pushed item
  * creates, pre-filled from its risk and editable after. Deterministic
  * template for the description; objective and criticality inherited from the
  * risk; source columns carry the link that makes the dedupe work; stamped with
- * the stage the action is raised at (A3), the current stage, for the
- * gate-readiness view. No confirmation dialog, no extra fields.
+ * the stage the action is raised at (A3) for the gate-readiness view; and the
+ * citable reason it was raised (A4), so its provenance survives promotion. No
+ * confirmation dialog, no extra fields.
  */
 export function buildTrackedActionFromRisk(risk, projectId, stage) {
   return {
@@ -124,6 +140,7 @@ export function buildTrackedActionFromRisk(risk, projectId, stage) {
     linked_objective_id: risk.linked_objective_id ?? null,
     criticality: risk.criticality,
     stage,
+    reason: riskRaiseReason(risk),
     source: 'risk',
     source_id: risk.id,
   };

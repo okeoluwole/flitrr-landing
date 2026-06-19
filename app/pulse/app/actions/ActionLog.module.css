@@ -250,9 +250,11 @@
   margin-top: 0.75rem;
 }
 
-/* The quiet provenance marker on a tracked action accepted from the
-   playbook. Not a link: the knowledge already moved into the action. */
-.fromPlaybook {
+/* The quiet provenance label (A4): the knowledge source a surfaced or
+   engine-raised item is labelled by (This project, Playbook library). Muted
+   metadata, never amber. The risk variant is a link (.fromRisk) that cites the
+   source risk in the register; the rest are plain text. */
+.provenance {
   font-family: var(--font-body), sans-serif;
   font-size: 0.75rem;
   font-weight: 600;
@@ -654,6 +656,17 @@
   line-height: 1.5;
   color: var(--app-ink-secondary);
   margin: 0;
+}
+
+/* The citable reason an engine-raised action was raised (A4): the play's why,
+   or why a risk was promoted. Quiet metadata, the engine's trace within reach. */
+.reasonLine {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--app-ink-secondary);
+  margin: 0.35rem 0 0;
+  max-width: 60ch;
 }
 
 /* ── Status control ────────────────────── */

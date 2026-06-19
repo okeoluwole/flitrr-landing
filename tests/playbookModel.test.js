@@ -154,7 +154,7 @@ describe('accepted-play row construction', () => {
     linkedObjectiveId: 'obj-quality',
   };
 
-  it('builds the tracked action: title, mapped objective, derived criticality, stage, playbook source', () => {
+  it('builds the tracked action: title, mapped objective, derived criticality, stage, reason, playbook source', () => {
     expect(buildActionFromPlay(suggestion, 'project-1')).toEqual({
       project_id: 'project-1',
       description:
@@ -162,6 +162,7 @@ describe('accepted-play row construction', () => {
       linked_objective_id: 'obj-quality',
       criticality: 'critical',
       stage: 2,
+      reason: 'The why line.',
       source: 'playbook',
       source_id: 'play-9',
     });
