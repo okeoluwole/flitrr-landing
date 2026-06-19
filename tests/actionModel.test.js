@@ -11,6 +11,8 @@ import {
   actionStage,
   gateReadiness,
   provenanceLabel,
+  OUTCOME_OPTIONS,
+  isLessonCaptured,
 } from '../app/pulse/app/actions/actionModel.js';
 
 /**
@@ -254,5 +256,25 @@ describe('provenance label (A4)', () => {
     expect(provenanceLabel('manual')).toBeNull();
     expect(provenanceLabel('programme')).toBeNull();
     expect(provenanceLabel(undefined)).toBeNull();
+  });
+});
+
+describe('outcome capture on close (A7)', () => {
+  it('offers the action_outcome vocabulary', () => {
+    expect(OUTCOME_OPTIONS.map((o) => o.value)).toEqual([
+      'delivered',
+      'partial',
+      'not_delivered',
+    ]);
+  });
+
+  it('counts a lesson captured once an outcome is recorded', () => {
+    expect(isLessonCaptured(action())).toBe(false);
+    expect(isLessonCaptured(action({ outcome: 'delivered' }))).toBe(true);
+    expect(
+      isLessonCaptured(action({ outcome: 'not_delivered', variance: 'Closed late' }))
+    ).toBe(true);
+    // Variance alone, with no outcome, is not yet a captured lesson.
+    expect(isLessonCaptured(action({ variance: 'something' }))).toBe(false);
   });
 });

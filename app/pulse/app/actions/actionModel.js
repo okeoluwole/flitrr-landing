@@ -45,6 +45,15 @@ export const STATUS_OPTIONS = [
   { value: 'done', label: 'Done' },
 ];
 
+// Outcome (action_outcome enum, A7), captured when an action is closed: the
+// lessons-learnt input. delivered: done as planned. partial: done with a
+// compromise worth noting. not_delivered: closed without delivering.
+export const OUTCOME_OPTIONS = [
+  { value: 'delivered', label: 'Delivered' },
+  { value: 'partial', label: 'Partial' },
+  { value: 'not_delivered', label: 'Not delivered' },
+];
+
 /**
  * Index objectives by id so the derivation can read the linked objective's
  * current classification. Accepts anything carrying id and classification: the
@@ -104,6 +113,12 @@ export function isCritical(action, byId) {
 // Done actions leave the default list and sit under the done filter.
 export function isDone(action) {
   return action.status === 'done';
+}
+
+// A lesson is captured once an outcome is recorded on a closed action (A7).
+// variance is optional, so the outcome alone counts; capture stays permissive.
+export function isLessonCaptured(action) {
+  return action?.outcome != null;
 }
 
 // Attention order by live criticality: critical first, then unlinked (a

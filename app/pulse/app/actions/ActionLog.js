@@ -7,6 +7,7 @@ import { CLASSIFICATION_LABELS } from '../components/objectiveMeta';
 import { cascadeCriticality } from '../components/listStepConfig';
 import {
   STATUS_OPTIONS,
+  OUTCOME_OPTIONS,
   CRITICALITY,
   objectivesById,
   derivedCriticality,
@@ -14,6 +15,7 @@ import {
   effectiveCriticality,
   isCritical,
   isDone,
+  isLessonCaptured,
   sortActions,
   gateReadiness,
   provenanceLabel,
@@ -36,7 +38,9 @@ import styles from './ActionLog.module.css';
  * project's actions critical-first, with an inline add flow, one-tap status,
  * editing, and delete behind a confirm. Criticality is derived live from the
  * linked objective, with a constrained downward override. A gate-readiness
- * panel (A3) surfaces the open actions bearing on the current stage's gate.
+ * panel (A3) surfaces the open actions bearing on the current stage's gate, and
+ * a closed action captures its outcome and any variance (A7), the
+ * lessons-learnt input.
  *
  * The band's items are suggestions awaiting a response, never rows: Track
  * this promotes one into a real tracked action in the same interaction (the
@@ -65,6 +69,7 @@ import styles from './ActionLog.module.css';
 
 const DESCRIPTION_PLACEHOLDER = 'Describe the action.';
 const NOTE_PLACEHOLDER = 'Add a one-line note.';
+const VARIANCE_PLACEHOLDER = 'What varied from plan? (optional)';
 const NO_OBJECTIVE = 'No objective';
 
 const ADD_ERROR =
@@ -95,7 +100,7 @@ const KIND_LABEL = {
 const LAST_STAGE = 7;
 
 const ACTION_COLUMNS =
-  'id, description, linked_objective_id, criticality, criticality_override, override_reason, stage, reason, status, note, source, source_id, created_at';
+  'id, description, linked_objective_id, criticality, criticality_override, override_reason, stage, reason, outcome, variance, status, note, source, source_id, created_at';
 
 function formatLogged(iso) {
   if (!iso) return null;
@@ -395,7 +400,25 @@ export default function ActionLog({
     }
   };
 
-  const setStatus = (id, value) => applyUpdate(id, { status: value });
+  // Marking an action done reveals the Done section, so the outcome capture is
+  // offered right at close (A7); the close itself stays permissive.
+  const setStatus = (id, value) => {
+    if (value === 'done') setShowDone(true);
+    applyUpdate(id, { status: value });
+  };
+
+  // Outcome and variance capture on close (A7), the lessons-learnt input. The
+  // outcome is a one-tap on the done card; variance is an optional note saved
+  // on blur. Both write straight through applyUpdate; neither blocks the close.
+  const setOutcome = (id, value) => applyUpdate(id, { outcome: value });
+
+  const saveVariance = (id, value) => {
+    const prev = actions.find((a) => a.id === id);
+    if (!prev) return;
+    const next = value.trim() === '' ? null : value.trim();
+    if ((prev.variance ?? null) === next) return;
+    applyUpdate(id, { variance: next });
+  };
 
   // The downward override (A2): reduce a derived-critical action to standard
   // with a recorded reason. Opening it closes any edit or delete-confirm on the
@@ -829,6 +852,35 @@ export default function ActionLog({
             />
           </div>
         </div>
+
+        {/* Outcome capture on close (A7): how the action closed and what
+            varied, the lessons-learnt input. Offered on done cards only, and
+            never forced; the variance note appears once an outcome is set. */}
+        {isDone(a) && (
+          <div className={styles.outcome}>
+            <div className={styles.controlRow}>
+              <span className={styles.controlLabel}>Outcome</span>
+              <Segmented
+                options={OUTCOME_OPTIONS}
+                value={a.outcome ?? ''}
+                onSelect={(v) => setOutcome(a.id, v)}
+                ariaLabel={`Outcome for ${a.description}`}
+              />
+            </div>
+            {isLessonCaptured(a) && (
+              <input
+                type="text"
+                className={`${styles.input} ${styles.varianceInput}`}
+                defaultValue={a.variance ?? ''}
+                placeholder={VARIANCE_PLACEHOLDER}
+                aria-label={`Variance for ${a.description}`}
+                onBlur={(e) => saveVariance(a.id, e.target.value)}
+                autoComplete="off"
+                maxLength={240}
+              />
+            )}
+          </div>
+        )}
 
         <div className={styles.cardFoot}>
           <span className={styles.logged}>{logged ? `Logged ${logged}` : ''}</span>
