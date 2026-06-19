@@ -23,8 +23,12 @@ import { computeInsights } from './pulseRead';
 import { buildSummaries } from './briefLens';
 
 // Current snapshot schema. Bump if the model shape changes in a way a locked
-// brief's renderer must branch on.
-export const BRIEF_SCHEMA_VERSION = 1;
+// brief's renderer must branch on. Bumped to 2 in S10: the model now carries
+// the widened sections (scope and site, organisation, the fuller financials,
+// the stage gate dates, and the full RAID). Locked v1 snapshots predate these
+// keys; the renderer drops any section whose data is absent, so they keep
+// rendering unchanged.
+export const BRIEF_SCHEMA_VERSION = 2;
 
 const NAME_BY_TYPE = Object.fromEntries(
   OBJECTIVE_META.map((o) => [o.type, o.name])
@@ -42,6 +46,90 @@ function t(v) {
   if (v == null) return null;
   const s = String(v).trim();
   return s === '' ? null : s;
+}
+
+// ── Controlled-vocabulary labels (S10) ─────────────────────────────────────
+// The brief bakes display strings into the snapshot, so it resolves the enums
+// to labels at assembly time. These mirror the step components; the brief is
+// the delivered-document layer and renders self-contained.
+
+const COUNTRY_LABELS = {
+  united_kingdom: 'United Kingdom',
+  nigeria: 'Nigeria',
+  other: 'Other',
+};
+
+// Planning status reads in planning-permission terms for the UK, consent terms
+// elsewhere (framework Section 7), matching Step 4's tailoring.
+const PLANNING_LABELS = {
+  no_application: 'No application yet',
+  pre_application: 'Pre-application',
+  outline_consent: 'Outline consent',
+  full_consent: 'Full consent',
+  reserved_matters: 'Reserved matters',
+  approved: 'Approved',
+  refused: 'Refused',
+  other: 'Other',
+};
+const PLANNING_LABELS_UK = {
+  ...PLANNING_LABELS,
+  outline_consent: 'Outline planning permission',
+  full_consent: 'Full planning permission',
+};
+
+const ROLE_LABELS = {
+  developer: 'Developer',
+  funder: 'Funder',
+  project_manager: 'Project manager',
+  consultant: 'Consultant',
+  contractor: 'Contractor',
+  other: 'Other',
+};
+
+const FUNDING_STRUCTURE_LABELS = {
+  senior_debt: 'Senior debt',
+  mezzanine: 'Mezzanine',
+  equity: 'Equity',
+  jv: 'Joint venture',
+  development_finance: 'Development finance',
+  bridging: 'Bridging',
+  off_plan_presales: 'Off-plan presales',
+  self_funded: 'Self-funded',
+  grant: 'Grant',
+  other: 'Other',
+};
+
+const FM_STATUS_LABELS = { planned: 'Planned', secured: 'Secured', drawn: 'Drawn' };
+
+// Lifecycle stage names (framework Section 4), for the stage gate dates.
+const STAGE_NAMES = {
+  0: 'Land and Site Acquisition',
+  1: 'Project Objectives and Funding',
+  2: 'Consultant Appointment',
+  3: 'Design and Planning Approvals',
+  4: 'Contractor Procurement',
+  5: 'Construction',
+  6: 'Completion and Handover',
+  7: 'Sales and Disposal',
+};
+
+/**
+ * A compact size display from the structured measures (Step 1), falling back
+ * to the legacy free-text size for projects entered before the measures
+ * existed. Units and storeys are lightly pluralised; the area and plot values
+ * carry their own units as the developer typed them.
+ */
+function buildSizeDisplay(def) {
+  const uc = t(def?.size_unit_count);
+  const gia = t(def?.size_gross_internal_area);
+  const plot = t(def?.size_plot_size);
+  const storeys = t(def?.size_storeys);
+  const parts = [];
+  if (uc) parts.push(`${uc} ${uc === '1' ? 'unit' : 'units'}`);
+  if (gia) parts.push(`${gia} GIA`);
+  if (storeys) parts.push(`${storeys} ${storeys === '1' ? 'storey' : 'storeys'}`);
+  if (plot) parts.push(`${plot} plot`);
+  return parts.length > 0 ? parts.join(', ') : t(def?.size);
 }
 
 // Order milestones by target date ascending, undated last, stable within
@@ -123,8 +211,9 @@ function normalizeFacts({ def, ctx, objectives, rankOrder, lists }) {
     name: t(def?.name) ?? 'Untitled project',
     projectType: t(def?.project_type),
     category: t(def?.category),
-    size: t(def?.size),
+    size: buildSizeDisplay(def),
     location: t(def?.location),
+    countryLabel: def?.country ? COUNTRY_LABELS[def.country] ?? null : null,
     description: t(def?.description),
     targetCompletion: t(def?.target_completion_date),
     strategicRationale: t(ctx?.strategic_rationale),
@@ -173,11 +262,138 @@ function buildRiskMatrix(risks) {
 }
 
 /**
+ * Build the widened sections (S10) from the raw wizard state: scope and site,
+ * organisation and governance, the stage gate dates, the fuller financials,
+ * and the RAID siblings. Each carries display-ready strings plus a hasContent
+ * flag or an array the renderer uses to drop empty sections. Snapshotted with
+ * the rest of the model, so a locked brief renders these identically forever.
+ */
+function buildExtras({ def, scope, org, stakeholders, financial, lists, gates }, facts) {
+  const currency = facts.financials.currency;
+
+  // Scope and site.
+  const mix = (scope?.mix ?? [])
+    .map((m) => ({ label: t(m.label), quantum: t(m.quantum) }))
+    .filter((m) => m.label || m.quantum);
+  const planningLabels =
+    def?.country === 'united_kingdom' ? PLANNING_LABELS_UK : PLANNING_LABELS;
+  const scopeSite = {
+    developmentSummary: t(scope?.development_summary),
+    mix,
+    specStandard: t(scope?.spec_standard),
+    siteArea: t(scope?.site_area),
+    planningStatus: scope?.planning_status
+      ? planningLabels[scope.planning_status] ?? null
+      : null,
+    planningConstraints: t(scope?.planning_constraints),
+    physicalConstraints: t(scope?.physical_constraints),
+  };
+  scopeSite.hasContent = !!(
+    scopeSite.developmentSummary ||
+    mix.length ||
+    scopeSite.specStandard ||
+    scopeSite.siteArea ||
+    scopeSite.planningStatus ||
+    scopeSite.planningConstraints ||
+    scopeSite.physicalConstraints
+  );
+
+  // Organisation and governance. The named authority is the party the wizard
+  // marked by client key.
+  const parties = (stakeholders ?? [])
+    .filter((p) => t(p.name))
+    .map((p) => ({
+      name: t(p.name),
+      organisation: t(p.organisation),
+      role: ROLE_LABELS[p.role] ?? null,
+      isAuthority: org?.authority_key ? p._key === org.authority_key : false,
+    }));
+  const authority = parties.find((p) => p.isAuthority) ?? null;
+  const organisation = {
+    parties,
+    authorityName: authority
+      ? authority.organisation
+        ? `${authority.name}, ${authority.organisation}`
+        : authority.name
+      : null,
+    reportingCadence: t(org?.reporting_cadence),
+    digestRecipient: t(org?.digest_recipient),
+  };
+  organisation.hasContent = !!(
+    parties.length ||
+    organisation.reportingCadence ||
+    organisation.digestRecipient
+  );
+
+  // Stage gate dates (only the gates the developer dated), in stage order.
+  const gateDates = (gates ?? [])
+    .filter((g) => t(g.target_date))
+    .map((g) => ({
+      stage: g.stage,
+      stageName: STAGE_NAMES[g.stage] ?? `Stage ${g.stage}`,
+      dateDisplay: formatMonthYear(g.target_date),
+    }))
+    .sort((a, b) => a.stage - b.stage);
+
+  // The fuller financials: the breakdown, the funding structure, the milestones.
+  const breakdown = [
+    { k: 'Hard cost', v: formatCurrency(financial?.hard_cost, currency) },
+    { k: 'Soft cost', v: formatCurrency(financial?.soft_cost, currency) },
+    { k: 'Contingency', v: formatCurrency(financial?.contingency, currency) },
+  ].filter((x) => x.v != null);
+  const fundingMilestones = (financial?.milestones ?? [])
+    .filter((m) => t(m.label))
+    .map((m) => ({
+      label: t(m.label),
+      amount: formatCurrency(m.amount, currency),
+      dateDisplay: formatMonthYear(m.target_date),
+      status: m.status ? FM_STATUS_LABELS[m.status] ?? null : null,
+    }));
+  const financialDetail = {
+    breakdown,
+    fundingStructure: financial?.funding_structure_type
+      ? FUNDING_STRUCTURE_LABELS[financial.funding_structure_type] ?? null
+      : null,
+    fundingNotes: t(financial?.funding_notes),
+    milestones: fundingMilestones,
+  };
+  financialDetail.hasContent = !!(
+    breakdown.length ||
+    financialDetail.fundingStructure ||
+    financialDetail.fundingNotes ||
+    fundingMilestones.length
+  );
+
+  // RAID siblings (assumptions, constraints, dependencies). Same shape as the
+  // risk list: numbered, with a critical flag and the objective each serves.
+  const acdList = (items) =>
+    (items ?? [])
+      .filter((x) => t(x.description))
+      .map((x, i) => ({
+        num: i + 1,
+        description: t(x.description),
+        detail: t(x.detail),
+        critical: x.criticality === 'critical',
+        servesName: x.linked_objective_id
+          ? facts.objectiveById[x.linked_objective_id]?.name ?? null
+          : null,
+      }));
+  const raid = {
+    assumptions: acdList(lists?.assumptions),
+    constraints: acdList(lists?.constraints),
+    dependencies: acdList(lists?.dependencies),
+  };
+
+  return { scopeSite, organisation, gateDates, financialDetail, raid };
+}
+
+/**
  * Assemble the full, lens-independent brief model from the wizard state.
  */
 export function assembleBrief(state) {
   const facts = normalizeFacts(state);
   const { currency } = facts.financials;
+  const extras = buildExtras(state, facts);
 
   const nn = facts.protected.length;
   const criticalRiskCount = facts.risks.filter((r) => r.critical).length;
@@ -198,7 +414,11 @@ export function assembleBrief(state) {
     { key: 'risks', label: 'Critical risks', value: String(criticalRiskCount) },
   ];
 
-  const subtitle = [facts.size, facts.location].filter(Boolean).join(', ') || null;
+  const locationDisplay = [facts.location, facts.countryLabel]
+    .filter(Boolean)
+    .join(', ');
+  const subtitle =
+    [facts.size, locationDisplay].filter(Boolean).join(', ') || null;
 
   const milestones = byDate(facts.milestones).map((m) => ({
     name: m.name,
@@ -269,6 +489,14 @@ export function assembleBrief(state) {
       matrix: buildRiskMatrix(facts.risks),
       criticalCount: criticalRiskCount,
     },
+    // Widened sections (S10). The renderer drops any that have no content, so a
+    // sparse project and a locked v1 snapshot (which lack these keys) both read
+    // cleanly.
+    scopeSite: extras.scopeSite,
+    organisation: extras.organisation,
+    gateDates: extras.gateDates,
+    financialDetail: extras.financialDetail,
+    raid: extras.raid,
     insights: computeInsights(facts),
     summariesByLens: buildSummaries(facts),
   };

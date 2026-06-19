@@ -1135,6 +1135,118 @@
   font-style: italic;
 }
 
+/* ── Widened sections (S10) ────────────────────────
+   Scope and site, organisation, the fuller financials, the stage gates and the
+   RAID. Sub-sections inside a section are set off by a small label and even
+   spacing; the list, card and tile classes above are reused where they fit. */
+
+.subBlock {
+  margin-top: 1.6rem;
+}
+
+.subBlock:first-child {
+  margin-top: 0;
+}
+
+.subHead {
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--hair);
+}
+
+.prose {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--body);
+  max-width: 64ch;
+  margin: 0;
+}
+
+.factGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem 2.75rem;
+}
+
+.fact {
+  min-width: 0;
+}
+
+.factKey {
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.factVal {
+  font-size: 0.92rem;
+  color: var(--ink);
+  font-weight: 600;
+  margin-top: 0.3rem;
+  line-height: 1.4;
+}
+
+.lineList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.lineItem {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--hair);
+}
+
+.lineItem:first-child {
+  padding-top: 0;
+}
+
+.lineItem:last-child {
+  border-bottom: 0;
+}
+
+.lineMain {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.lineMeta {
+  font-size: 0.8rem;
+  color: var(--muted);
+  white-space: nowrap;
+  flex: 0 0 auto;
+  text-align: right;
+}
+
+/* The named authority marker. Navy, not amber: amber means criticality only,
+   and the authority is a governance role, not a criticality flag. */
+.authTag {
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--navy);
+  padding: 0.14rem 0.4rem;
+  border-radius: 2px;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
 /* ── Document footer ───────────────────────────── */
 
 .docFoot {
@@ -1459,6 +1571,37 @@
     font-size: 0.8rem;
   }
 
+  /* Widened sections (S10): tighter for print. */
+  .subBlock {
+    margin-top: 0.9rem;
+  }
+  .subHead {
+    margin-bottom: 0.45rem;
+    padding-bottom: 0.3rem;
+    font-size: 0.62rem;
+  }
+  .prose {
+    font-size: 0.78rem;
+    line-height: 1.45;
+    max-width: none;
+  }
+  .factGrid {
+    gap: 0.8rem 1.6rem;
+  }
+  .factVal {
+    font-size: 0.82rem;
+    margin-top: 0.2rem;
+  }
+  .lineItem {
+    padding: 0.32rem 0;
+  }
+  .lineMain {
+    font-size: 0.78rem;
+  }
+  .lineMeta {
+    font-size: 0.74rem;
+  }
+
   .docFoot {
     padding: 0.9rem 2.2rem;
     gap: 0.7rem;
@@ -1503,9 +1646,10 @@
   }
 
   /* Never strand a heading at the foot of a page: keep each section heading,
-     and each objectives column heading (Protected / Has flex), with the
-     content that follows. */
+     each sub-section label, and each objectives column heading (Protected /
+     Has flex), with the content that follows. */
   .secHead,
+  .subHead,
   .objColTitle {
     break-after: avoid;
     page-break-after: avoid;

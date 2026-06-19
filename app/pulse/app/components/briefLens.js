@@ -41,9 +41,9 @@ export function isLens(value) {
 // sections: summary, objectives, read, risk, programme (milestones), ws
 // (workstreams), funding (financials).
 export const SECTION_ORDER = {
-  lender: ['summary', 'funding', 'risk', 'objectives', 'read', 'programme', 'ws'],
-  jv: ['summary', 'objectives', 'read', 'funding', 'ws', 'risk', 'programme'],
-  consultant: ['summary', 'objectives', 'programme', 'ws', 'risk', 'funding', 'read'],
+  lender: ['summary', 'funding', 'risk', 'objectives', 'scope', 'org', 'read', 'programme', 'ws'],
+  jv: ['summary', 'objectives', 'read', 'scope', 'funding', 'org', 'ws', 'risk', 'programme'],
+  consultant: ['summary', 'objectives', 'scope', 'programme', 'ws', 'org', 'risk', 'funding', 'read'],
 };
 
 // Section heading and optional right-aligned subtitle.
@@ -57,10 +57,18 @@ export const SECTION_META = {
     title: 'The PULSE read',
     subtitle: 'Derived from this project, not boilerplate',
   },
-  risk: { title: 'Risk profile', subtitle: 'Critical risks flagged in amber' },
+  scope: { title: 'Scope and site', subtitle: 'What is built, and where' },
+  org: {
+    title: 'Organisation and governance',
+    subtitle: 'Parties, authority, and reporting',
+  },
+  risk: {
+    title: 'Risks, assumptions, constraints and dependencies',
+    subtitle: 'Critical items flagged in amber',
+  },
   programme: {
-    title: 'Critical milestones',
-    subtitle: 'Amber markers are critical',
+    title: 'Programme',
+    subtitle: 'Stage gates and critical milestones',
   },
   ws: { title: 'Workstreams and accountability' },
   funding: { title: 'Financials', subtitle: 'Headline figures, not a model' },
@@ -88,7 +96,8 @@ function factsSentence(facts) {
   const typeClause = facts.projectType
     ? ` a ${facts.projectType.toLowerCase()} development`
     : ' a development';
-  const locClause = facts.location ? ` in ${facts.location}` : '';
+  const place = [facts.location, facts.countryLabel].filter(Boolean).join(', ');
+  const locClause = place ? ` in ${place}` : '';
   return `${facts.name} is${typeClause}${locClause}.`;
 }
 

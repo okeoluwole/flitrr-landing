@@ -2038,7 +2038,15 @@ export default function InitiationWizard({
     if (step === 9) {
       // The brief assembles from the objectives and the lists, so it waits on
       // the same loads as the list steps.
-      if (!projectId || objStatus !== 'loaded' || listsStatus !== 'loaded') {
+      if (
+        !projectId ||
+        objStatus !== 'loaded' ||
+        listsStatus !== 'loaded' ||
+        scopeStatus !== 'loaded' ||
+        stakeholdersStatus !== 'loaded' ||
+        financialStatus !== 'loaded' ||
+        gatesStatus !== 'loaded'
+      ) {
         return renderListNotReady(9, 'Generated Brief');
       }
       return (
@@ -2050,6 +2058,11 @@ export default function InitiationWizard({
           objectives={objectives}
           rankOrder={rankOrder}
           lists={lists}
+          scope={scope}
+          org={org}
+          stakeholders={stakeholders}
+          financial={financial}
+          gates={gates}
           currentStage={currentStage}
         />
       );

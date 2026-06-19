@@ -51,6 +51,11 @@ export default function StepGeneratedBrief({
   objectives,
   rankOrder,
   lists,
+  scope,
+  org,
+  stakeholders,
+  financial,
+  gates,
   currentStage = 1,
 }) {
   const [lens, setLens] = useState(DEFAULT_LENS);
@@ -63,8 +68,20 @@ export default function StepGeneratedBrief({
   // The live brief, assembled from the wizard's current state. Recomputed
   // only when a source changes, so switching lenses is free.
   const liveModel = useMemo(
-    () => assembleBrief({ def, ctx, objectives, rankOrder, lists }),
-    [def, ctx, objectives, rankOrder, lists]
+    () =>
+      assembleBrief({
+        def,
+        ctx,
+        objectives,
+        rankOrder,
+        lists,
+        scope,
+        org,
+        stakeholders,
+        financial,
+        gates,
+      }),
+    [def, ctx, objectives, rankOrder, lists, scope, org, stakeholders, financial, gates]
   );
 
   // Completeness gate (M3.6): decides whether the brief may be locked. It runs

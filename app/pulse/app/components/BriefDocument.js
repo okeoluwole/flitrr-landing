@@ -213,37 +213,28 @@ function RiskMatrix({ matrix }) {
   );
 }
 
-function Risk({ model }) {
-  const { list, matrix } = model.risks;
-  const showMatrix = matrix.hasRated;
+// One RAID sibling list (assumptions, constraints or dependencies), rendered
+// like the risk list: numbered, with the critical flag and the objective each
+// serves. Absent on a v1 snapshot, so it renders nothing then.
+function AcdList({ title, items }) {
+  if (!items || items.length === 0) return null;
   return (
-    <div
-      className={`${styles.riskWrap} ${showMatrix ? '' : styles.riskWrapNoMatrix}`}
-    >
-      {showMatrix && <RiskMatrix matrix={matrix} />}
+    <div className={styles.subBlock}>
+      <div className={styles.subHead}>{title}</div>
       <div className={styles.riskList}>
-        {list.map((r) => (
-          <div key={r.num} className={styles.riskRow}>
-            <span
-              className={`${styles.rNum} ${r.critical ? styles.rNumCrit : ''}`}
-            >
-              {r.num}
+        {items.map((x) => (
+          <div key={x.num} className={styles.riskRow}>
+            <span className={`${styles.rNum} ${x.critical ? styles.rNumCrit : ''}`}>
+              {x.num}
             </span>
             <div className={styles.rText}>
-              <span className={styles.rt}>{r.description}</span>
-              {r.critical && (
+              <span className={styles.rt}>{x.description}</span>
+              {x.critical && (
                 <span className={styles.critFlag}>
-                  {r.servesName ? `Critical, vs ${r.servesName}` : 'Critical'}
+                  {x.servesName ? `Critical, vs ${x.servesName}` : 'Critical'}
                 </span>
               )}
-              {r.mitigation && (
-                <div className={styles.rMeta}>Mitigation: {r.mitigation}</div>
-              )}
-              {!r.rated && (
-                <div className={`${styles.rMeta} ${styles.rUnrated}`}>
-                  Likelihood or impact not yet rated.
-                </div>
-              )}
+              {x.detail && <div className={styles.rMeta}>{x.detail}</div>}
             </div>
           </div>
         ))}
@@ -252,25 +243,117 @@ function Risk({ model }) {
   );
 }
 
-function Programme({ model }) {
+function Risk({ model }) {
+  const { list, matrix } = model.risks;
+  const showMatrix = matrix.hasRated;
+  // raid is absent on a locked v1 snapshot; default to empty so only the risk
+  // list renders, exactly as before.
+  const raid = model.raid ?? {
+    assumptions: [],
+    constraints: [],
+    dependencies: [],
+  };
+  const hasAcd =
+    raid.assumptions.length > 0 ||
+    raid.constraints.length > 0 ||
+    raid.dependencies.length > 0;
   return (
-    <div className={styles.timeline}>
-      {model.milestones.map((m, i) => (
-        <div key={i} className={styles.ms}>
-          <span
-            className={`${styles.msMarker} ${m.critical ? styles.msMarkerCrit : ''}`}
-          />
-          <span
-            className={`${styles.msWhen} ${m.dateDisplay ? '' : styles.msWhenTbc}`}
+    <div>
+      {list.length > 0 && (
+        <div className={styles.subBlock}>
+          {hasAcd && <div className={styles.subHead}>Risks</div>}
+          <div
+            className={`${styles.riskWrap} ${showMatrix ? '' : styles.riskWrapNoMatrix}`}
           >
-            {m.dateDisplay ?? 'Date to set'}
-          </span>
-          <span className={styles.msWhat}>
-            {m.name}
-            {m.critical && <span className={styles.msFlag}>Critical</span>}
-          </span>
+            {showMatrix && <RiskMatrix matrix={matrix} />}
+            <div className={styles.riskList}>
+              {list.map((r) => (
+                <div key={r.num} className={styles.riskRow}>
+                  <span
+                    className={`${styles.rNum} ${r.critical ? styles.rNumCrit : ''}`}
+                  >
+                    {r.num}
+                  </span>
+                  <div className={styles.rText}>
+                    <span className={styles.rt}>{r.description}</span>
+                    {r.critical && (
+                      <span className={styles.critFlag}>
+                        {r.servesName ? `Critical, vs ${r.servesName}` : 'Critical'}
+                      </span>
+                    )}
+                    {r.mitigation && (
+                      <div className={styles.rMeta}>Mitigation: {r.mitigation}</div>
+                    )}
+                    {!r.rated && (
+                      <div className={`${styles.rMeta} ${styles.rUnrated}`}>
+                        Likelihood or impact not yet rated.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      ))}
+      )}
+      <AcdList title="Assumptions" items={raid.assumptions} />
+      <AcdList title="Constraints" items={raid.constraints} />
+      <AcdList title="Dependencies" items={raid.dependencies} />
+    </div>
+  );
+}
+
+function Programme({ model }) {
+  // gateDates is absent on a locked v1 snapshot; default to none so it renders
+  // milestones only, exactly as before.
+  const gates = model.gateDates ?? [];
+  const milestones = model.milestones;
+  const both = gates.length > 0 && milestones.length > 0;
+  return (
+    <div>
+      {gates.length > 0 && (
+        <div className={styles.subBlock}>
+          {both && <div className={styles.subHead}>Stage gate target dates</div>}
+          <div className={styles.timeline}>
+            {gates.map((g) => (
+              <div key={g.stage} className={styles.ms}>
+                <span className={styles.msMarker} />
+                <span
+                  className={`${styles.msWhen} ${g.dateDisplay ? '' : styles.msWhenTbc}`}
+                >
+                  {g.dateDisplay ?? 'Date to set'}
+                </span>
+                <span className={styles.msWhat}>
+                  Stage {g.stage}: {g.stageName}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {milestones.length > 0 && (
+        <div className={styles.subBlock}>
+          {both && <div className={styles.subHead}>Critical milestones</div>}
+          <div className={styles.timeline}>
+            {milestones.map((m, i) => (
+              <div key={i} className={styles.ms}>
+                <span
+                  className={`${styles.msMarker} ${m.critical ? styles.msMarkerCrit : ''}`}
+                />
+                <span
+                  className={`${styles.msWhen} ${m.dateDisplay ? '' : styles.msWhenTbc}`}
+                >
+                  {m.dateDisplay ?? 'Date to set'}
+                </span>
+                <span className={styles.msWhat}>
+                  {m.name}
+                  {m.critical && <span className={styles.msFlag}>Critical</span>}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -326,8 +409,17 @@ function Financials({ model, lens }) {
     proj && (f.projectedGdv.present || f.projectedRoi.present);
   const safe = proj ? safeUrl(f.detailUrl) : null;
 
+  // The fuller financials (S10), gated like the projected figures: the Design
+  // Consultant lens never sees the breakdown, the funding structure or the
+  // milestones. fd is absent on a locked v1 snapshot, so these all stay empty.
+  const fd = model.financialDetail;
+  const breakdown = proj ? fd?.breakdown ?? [] : [];
+  const fundingStructure = proj ? fd?.fundingStructure : null;
+  const fundingNotes = proj ? fd?.fundingNotes : null;
+  const fundingMilestones = proj ? fd?.milestones ?? [] : [];
+
   return (
-    <>
+    <div>
       {tiles.length > 0 && (
         <div className={styles.finGrid}>
           {tiles.map((t) => (
@@ -344,6 +436,55 @@ function Financials({ model, lens }) {
           values. PULSE presents them and does not model them.
         </p>
       )}
+
+      {breakdown.length > 0 && (
+        <div className={styles.subBlock}>
+          <div className={styles.subHead}>Budget breakdown</div>
+          <div className={styles.finGrid}>
+            {breakdown.map((b) => (
+              <div key={b.k} className={styles.finTile}>
+                <div className={styles.finKey}>{b.k}</div>
+                <div className={styles.finVal}>{b.v}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {(fundingStructure || fundingNotes) && (
+        <div className={styles.subBlock}>
+          <div className={styles.subHead}>Funding</div>
+          {fundingStructure && (
+            <div className={styles.factGrid}>
+              <div className={styles.fact}>
+                <div className={styles.factKey}>Structure</div>
+                <div className={styles.factVal}>{fundingStructure}</div>
+              </div>
+            </div>
+          )}
+          {fundingNotes && <p className={styles.prose}>{fundingNotes}</p>}
+        </div>
+      )}
+
+      {fundingMilestones.length > 0 && (
+        <div className={styles.subBlock}>
+          <div className={styles.subHead}>Funding milestones</div>
+          <ul className={styles.lineList}>
+            {fundingMilestones.map((m, i) => {
+              const meta = [m.amount, m.dateDisplay, m.status]
+                .filter(Boolean)
+                .join(', ');
+              return (
+                <li key={i} className={styles.lineItem}>
+                  <span className={styles.lineMain}>{m.label}</span>
+                  {meta && <span className={styles.lineMeta}>{meta}</span>}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
       {proj &&
         (safe ? (
           <a
@@ -367,7 +508,105 @@ function Financials({ model, lens }) {
         ) : (
           <p className={styles.finLinkMuted}>Full appraisal not yet linked.</p>
         ))}
-    </>
+    </div>
+  );
+}
+
+function ScopeSite({ model }) {
+  const s = model.scopeSite;
+  const facts = [
+    { k: 'Specification', v: s.specStandard },
+    { k: 'Site area', v: s.siteArea },
+    { k: 'Planning status', v: s.planningStatus },
+  ].filter((x) => x.v);
+  return (
+    <div>
+      {s.developmentSummary && <p className={styles.prose}>{s.developmentSummary}</p>}
+      {s.mix.length > 0 && (
+        <div className={styles.subBlock}>
+          <div className={styles.subHead}>Mix and quantum</div>
+          <ul className={styles.lineList}>
+            {s.mix.map((m, i) => (
+              <li key={i} className={styles.lineItem}>
+                <span className={styles.lineMain}>{m.label || 'Item'}</span>
+                {m.quantum && <span className={styles.lineMeta}>{m.quantum}</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {facts.length > 0 && (
+        <div className={styles.subBlock}>
+          <div className={styles.factGrid}>
+            {facts.map((x) => (
+              <div key={x.k} className={styles.fact}>
+                <div className={styles.factKey}>{x.k}</div>
+                <div className={styles.factVal}>{x.v}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {s.planningConstraints && (
+        <div className={styles.subBlock}>
+          <div className={styles.subHead}>Planning constraints</div>
+          <p className={styles.prose}>{s.planningConstraints}</p>
+        </div>
+      )}
+      {s.physicalConstraints && (
+        <div className={styles.subBlock}>
+          <div className={styles.subHead}>Physical constraints</div>
+          <p className={styles.prose}>{s.physicalConstraints}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Organisation({ model }) {
+  const o = model.organisation;
+  const facts = [
+    { k: 'Named authority', v: o.authorityName },
+    { k: 'Reporting cadence', v: o.reportingCadence },
+    { k: 'Weekly digest', v: o.digestRecipient },
+  ].filter((x) => x.v);
+  return (
+    <div>
+      {o.parties.length > 0 && (
+        <div className={styles.subBlock}>
+          <div className={styles.subHead}>Parties</div>
+          <div className={styles.wsGrid}>
+            {o.parties.map((p, i) => (
+              <div key={i} className={styles.wsCard}>
+                <div className={styles.wsName}>
+                  {p.name}
+                  {p.isAuthority && (
+                    <span className={styles.authTag}>Authority</span>
+                  )}
+                </div>
+                {(p.role || p.organisation) && (
+                  <div className={styles.wsLead}>
+                    {[p.role, p.organisation].filter(Boolean).join(', ')}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {facts.length > 0 && (
+        <div className={styles.subBlock}>
+          <div className={styles.factGrid}>
+            {facts.map((x) => (
+              <div key={x.k} className={styles.fact}>
+                <div className={styles.factKey}>{x.k}</div>
+                <div className={styles.factVal}>{x.v}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -375,6 +614,8 @@ const SECTION_RENDERERS = {
   summary: (model, lens) => <Summary model={model} lens={lens} />,
   objectives: (model) => <Objectives model={model} />,
   read: (model) => <Read model={model} />,
+  scope: (model) => <ScopeSite model={model} />,
+  org: (model) => <Organisation model={model} />,
   risk: (model) => <Risk model={model} />,
   programme: (model) => <Programme model={model} />,
   ws: (model) => <Workstreams model={model} />,
@@ -390,19 +631,40 @@ function sectionHasContent(key, model, lens) {
       return true;
     case 'read':
       return model.insights.length > 0;
-    case 'risk':
-      return model.risks.list.length > 0;
+    case 'scope':
+      return !!model.scopeSite?.hasContent;
+    case 'org':
+      return !!model.organisation?.hasContent;
+    case 'risk': {
+      // Risks, or any of the RAID siblings (absent on a v1 snapshot).
+      const raid = model.raid;
+      return (
+        model.risks.list.length > 0 ||
+        !!(
+          raid &&
+          (raid.assumptions.length ||
+            raid.constraints.length ||
+            raid.dependencies.length)
+        )
+      );
+    }
     case 'programme':
-      return model.milestones.length > 0;
+      // Milestones, or any dated stage gate (absent on a v1 snapshot).
+      return model.milestones.length > 0 || (model.gateDates?.length ?? 0) > 0;
     case 'ws':
       return model.workstreams.length > 0;
     case 'funding': {
       // Budget shows in the KPI strip, not here; this section is the gated
-      // projected figures and the link, so it is Lender/JV only.
+      // projected figures, the appraisal link, and the fuller financial detail
+      // (breakdown, funding structure, milestones), so it is Lender/JV only.
       const f = model.financials;
+      const fd = model.financialDetail;
       return (
         showsProjected(lens) &&
-        (f.projectedGdv.present || f.projectedRoi.present || !!f.detailUrl)
+        (f.projectedGdv.present ||
+          f.projectedRoi.present ||
+          !!f.detailUrl ||
+          !!fd?.hasContent)
       );
     }
     default:
