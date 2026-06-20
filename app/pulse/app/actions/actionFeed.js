@@ -4,11 +4,11 @@
  * input is passed in, so the same inputs always give the same items and the
  * whole module is unit-testable in isolation.
  *
- * It sits beside actionModel.js and REUSES the risk model's derivations
- * (deriveSeverity, isCritical) rather than duplicating them, so the log and
- * the register can never disagree about what is Serious or what is Critical.
- * The explicit .js on those imports keeps this module runnable under Node
- * (Vitest) as well as under the Next bundler.
+ * It sits beside actionModel.js and REUSES the shared derivations
+ * (deriveSeverity from the engine, isCritical from the risk model) rather than
+ * duplicating them, so the log and the register can never disagree about what
+ * is Serious or what is Critical. The explicit .js on those imports keeps this
+ * module runnable under Node (Vitest) as well as under the Next bundler.
  *
  * THE TRIGGER RULE (M7.2 spec, A2). A risk generates a pushed item while ALL
  * three hold:
@@ -32,7 +32,8 @@
  * change, or tracking the item, is all it takes to clear one.
  */
 
-import { deriveSeverity, isCritical, SEVERITY_RANK } from '../risk/riskModel.js';
+import { isCritical } from '../risk/riskModel.js';
+import { deriveSeverity, SEVERITY_RANK } from '../../../../lib/engine/severity.js';
 import {
   CRITICALITY,
   deriveCriticality,

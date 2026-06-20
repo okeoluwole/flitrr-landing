@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   deriveSeverity,
   SEVERITY_RANK,
-} from '../app/pulse/app/risk/riskModel.js';
+} from '../lib/engine/severity.js';
 
 /**
  * Characterization net (A1) for the risk severity derivation, captured at its

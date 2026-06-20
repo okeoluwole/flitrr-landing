@@ -7,10 +7,10 @@ import {
   LIKELIHOOD_OPTIONS,
   IMPACT_OPTIONS,
   STATUS_OPTIONS,
-  deriveSeverity,
   sortRisks,
   isCritical,
 } from './riskModel';
+import { deriveSeverity } from '../../../../lib/engine/severity';
 import {
   splitProposals,
   buildRiskFromPlay,

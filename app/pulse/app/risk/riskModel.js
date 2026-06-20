@@ -8,24 +8,20 @@
  * the same values, so there is one source of truth and the Brief snapshot, the
  * wizard, and the register all read the same column.
  *
- * Severity is DERIVED here, never stored. It is the product of the likelihood
- * level and the impact level (each 1 to 3), mapped to a plain word per the
- * M6.1 spec:
- *   score 1 to 2 -> Minor
- *   score 3 to 4 -> Worth watching
- *   score 6 to 9 -> Serious
- *   likelihood or impact unset -> Not yet scored
- * (Products of two values in 1..3 are 1, 2, 3, 4, 6, 9; 5, 7 and 8 cannot
- * occur, so the bands are complete. The wizard seeds medium/medium, so a risk
- * normally reads "Worth watching" rather than unscored; the "has the developer
- * engaged yet" signal is carried by last_reviewed_at being null, not by an
- * unscored severity.)
+ * Severity is DERIVED, never stored, and now lives in the engine
+ * (lib/engine/severity.js): deriveSeverity and SEVERITY_RANK are defined there
+ * and re-exported below, so Programme and Dashboard can read severity from the
+ * engine without importing from risk/, and existing importers of riskModel keep
+ * working unchanged. sortRisks below uses those re-exported symbols, so there is
+ * still one definition.
  *
  * Criticality is the Brief's definition reused verbatim: a risk is critical
  * when its `criticality` column is 'critical' (the cascade sets this from the
  * objective it threatens). The register never computes a second definition,
  * so its critical count always agrees with the Brief's Critical risks KPI.
  */
+
+import { deriveSeverity, SEVERITY_RANK } from '../../../../lib/engine/severity.js';
 
 // Likelihood scale: the stored risk_level value, the register's plain label,
 // and the level (1 to 3) that feeds the severity score.
@@ -50,29 +46,10 @@ export const STATUS_OPTIONS = [
   { value: 'closed', label: 'Closed' },
 ];
 
-// risk_level value -> level. Likelihood and impact share the scale, so one map
-// serves both.
-const LEVEL = { low: 1, medium: 2, high: 3 };
-
-// Severity ranking: lower is more urgent. Exported so the monitoring model
-// (riskMonitor.js) orders by the same scale rather than redefining it.
-export const SEVERITY_RANK = { serious: 0, moderate: 1, minor: 2, unscored: 3 };
-
-/**
- * Derive the plain-word severity from a stored likelihood and impact (each a
- * risk_level value). Returns { key, label }. key is serious | moderate | minor
- * | unscored (moderate is the "Worth watching" band; a stable key, separate
- * from the 'watching' status, keeps the two vocabularies from colliding).
- */
-export function deriveSeverity(likelihood, impact) {
-  const l = LEVEL[likelihood];
-  const i = LEVEL[impact];
-  if (!l || !i) return { key: 'unscored', label: 'Not yet scored' };
-  const score = l * i;
-  if (score <= 2) return { key: 'minor', label: 'Minor' };
-  if (score <= 4) return { key: 'moderate', label: 'Worth watching' };
-  return { key: 'serious', label: 'Serious' };
-}
+// Severity now lives in the engine (lib/engine/severity.js); re-exported here so
+// importers still pointing at riskModel keep working, and sortRisks below reads
+// the one definition.
+export { deriveSeverity, SEVERITY_RANK };
 
 // A risk is critical by the Brief's definition: its criticality column.
 export function isCritical(risk) {
