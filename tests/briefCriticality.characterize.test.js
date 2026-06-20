@@ -2,13 +2,18 @@ import { describe, it, expect } from 'vitest';
 import { assembleBrief } from '../app/pulse/app/components/briefModel.js';
 
 /**
- * Characterization net (A1) for the Brief's criticality reads, captured before
- * Step B3 moves them from the stored snapshot to the live derivation. Today the
- * Brief flags an item critical by its stored criticality column; these
- * assertions pin that. The items whose stored value disagrees with the
- * objective they serve (the drift cases below) are the ones B3 will change, so
- * they are called out: the net makes the intended B3 diff legible rather than
- * silent.
+ * The Brief's criticality reads, after Step B3 moved them from the stored
+ * criticality column to a live derivation from the linked objective (the kernel
+ * rule the risk register and the Action Log read on). This began life as the A1
+ * characterization net that pinned the old stored reading; B3 is the one step
+ * its assertions were always meant to move, and they now pin the live
+ * expectation. The drift cases (an item whose stored column disagrees with the
+ * objective it serves) are the proof the preview follows the classification,
+ * not the frozen column.
+ *
+ * This covers the live PREVIEW only. A locked Brief renders its frozen snapshot
+ * and never re-runs this assembler, so its values do not move; that guarantee
+ * is covered in briefLiveCriticality.test.js.
  */
 
 const OBJECTIVES = [
@@ -33,7 +38,7 @@ const state = {
       // Aligned: stored critical, linked to a non-negotiable objective.
       { description: 'Budget overrun', linked_objective_id: 'obj-cost', criticality: 'critical', likelihood: 'high', impact: 'high' },
       { description: 'Weather delay', linked_objective_id: 'obj-time', criticality: 'standard', likelihood: 'low', impact: 'low' },
-      // Drift down: stored critical on a flexible objective. B3 reads this standard.
+      // Drift down: stored critical on a flexible objective; the live read is standard.
       { description: 'Scope flagged critical', linked_objective_id: 'obj-scope', criticality: 'critical', likelihood: 'medium', impact: 'medium' },
     ],
     milestones: [
@@ -48,11 +53,11 @@ const state = {
       { description: 'Planning granted', linked_objective_id: 'obj-quality', criticality: 'critical' },
     ],
     constraints: [
-      // Drift down: stored critical on a flexible objective. B3 reads this standard.
+      // Drift down: stored critical on a flexible objective; the live read is standard.
       { description: 'Site access window', linked_objective_id: 'obj-scope', criticality: 'critical' },
     ],
     dependencies: [
-      // Drift up: stored standard on a non-negotiable objective. B3 reads this critical.
+      // Drift up: stored standard on a non-negotiable objective; the live read is critical.
       { description: 'Grid connection', linked_objective_id: 'obj-quality', criticality: 'standard' },
     ],
   },
@@ -64,39 +69,41 @@ const milestoneByName = (n) => brief.milestones.find((m) => m.name === n);
 const workstreamByName = (n) => brief.workstreams.find((w) => w.name === n);
 const kpi = (key) => brief.kpis.find((k) => k.key === key)?.value;
 
-describe('the Brief counts risks critical by the stored snapshot (pre-B3)', () => {
-  it('counts the two stored-critical risks, including the drift case', () => {
-    expect(brief.risks.criticalCount).toBe(2);
-    expect(kpi('risks')).toBe('2');
+describe('the Brief counts risks critical by the live objective link', () => {
+  it('counts only the risks whose linked objective is non-negotiable', () => {
+    // Budget overrun (cost, non-negotiable) is the only live-critical risk.
+    // Scope flagged critical drifts down: stored critical, but scope is flexible.
+    expect(brief.risks.criticalCount).toBe(1);
+    expect(kpi('risks')).toBe('1');
   });
 
-  it('flags each risk by its stored column', () => {
+  it('flags each risk by its linked objective, not its stored column', () => {
     expect(riskByDesc('Budget overrun').critical).toBe(true);
     expect(riskByDesc('Weather delay').critical).toBe(false);
-    // Drift: stored critical on a flexible objective. B3 will read this false.
-    expect(riskByDesc('Scope flagged critical').critical).toBe(true);
+    // Drift down: stored critical on a flexible objective now reads false.
+    expect(riskByDesc('Scope flagged critical').critical).toBe(false);
   });
 });
 
-describe('milestones and workstreams flag critical by the stored snapshot', () => {
-  it('reads the stored milestone criticality', () => {
+describe('milestones and workstreams flag critical by the live objective link', () => {
+  it('derives the milestone criticality from its objective', () => {
     expect(milestoneByName('Cost plan signed').critical).toBe(true);
     expect(milestoneByName('Funding close').critical).toBe(false);
   });
 
-  it('reads the stored workstream criticality', () => {
+  it('derives the workstream criticality from its objective', () => {
     expect(workstreamByName('Cost control').critical).toBe(true);
     expect(workstreamByName('Programme').critical).toBe(false);
   });
 });
 
-describe('RAID items flag critical by the stored snapshot', () => {
-  it('reads each RAID sibling by its stored column, including both drift cases', () => {
+describe('RAID items flag critical by the live objective link', () => {
+  it('derives each RAID sibling from its objective, including both drift cases', () => {
     expect(brief.raid.assumptions[0].critical).toBe(true);
-    // Drift down: stored critical on a flexible objective. B3 reads this false.
-    expect(brief.raid.constraints[0].critical).toBe(true);
-    // Drift up: stored standard on a non-negotiable objective. B3 reads this true.
-    expect(brief.raid.dependencies[0].critical).toBe(false);
+    // Drift down: stored critical on a flexible objective now reads false.
+    expect(brief.raid.constraints[0].critical).toBe(false);
+    // Drift up: stored standard on a non-negotiable objective now reads true.
+    expect(brief.raid.dependencies[0].critical).toBe(true);
   });
 });
 

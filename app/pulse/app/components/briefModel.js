@@ -21,6 +21,7 @@ import { OBJECTIVE_META, OBJECTIVE_ORDER } from './objectiveMeta';
 import { toNumber, formatCurrency, formatPercent, formatMonthYear } from './briefFormat';
 import { computeInsights } from './pulseRead';
 import { buildSummaries } from './briefLens';
+import { deriveCriticality, CRITICALITY } from '../../../../lib/engine/criticality.js';
 
 // Current snapshot schema. Bump if the model shape changes in a way a locked
 // brief's renderer must branch on. Bumped to 2 in S10: the model now carries
@@ -177,12 +178,21 @@ function normalizeFacts({ def, ctx, objectives, rankOrder, lists }) {
 
   const rawLists = lists ?? { milestones: [], workstreams: [], risks: [] };
 
+  // Criticality is derived live from the linked objective (the kernel rule the
+  // risk register and the Action Log read on), not from the stored criticality
+  // column. The live preview therefore tracks the current classification; the
+  // value frozen into a locked Brief's snapshot stays the agreed baseline,
+  // because a locked Brief renders that snapshot and never re-runs this
+  // assembler. An unlinked item derives not-critical, the standard the cascade
+  // stamped for it.
   const milestones = (rawLists.milestones ?? [])
     .filter((m) => t(m.name))
     .map((m) => ({
       name: t(m.name),
       date: t(m.target_date),
-      critical: m.criticality === 'critical',
+      critical:
+        deriveCriticality(m.linked_objective_id, objectiveById) ===
+        CRITICALITY.CRITICAL,
       linkedId: m.linked_objective_id || null,
     }));
 
@@ -191,7 +201,9 @@ function normalizeFacts({ def, ctx, objectives, rankOrder, lists }) {
     .map((w) => ({
       name: t(w.name),
       lead: t(w.lead),
-      critical: w.criticality === 'critical',
+      critical:
+        deriveCriticality(w.linked_objective_id, objectiveById) ===
+        CRITICALITY.CRITICAL,
       linkedId: w.linked_objective_id || null,
     }));
 
@@ -200,7 +212,9 @@ function normalizeFacts({ def, ctx, objectives, rankOrder, lists }) {
     .map((r, i) => ({
       num: i + 1,
       description: t(r.description),
-      critical: r.criticality === 'critical',
+      critical:
+        deriveCriticality(r.linked_objective_id, objectiveById) ===
+        CRITICALITY.CRITICAL,
       linkedId: r.linked_objective_id || null,
       likelihood: t(r.likelihood),
       impact: t(r.impact),
@@ -366,6 +380,8 @@ function buildExtras({ def, scope, org, stakeholders, financial, lists, gates },
 
   // RAID siblings (assumptions, constraints, dependencies). Same shape as the
   // risk list: numbered, with a critical flag and the objective each serves.
+  // The critical flag derives live from the linked objective, as in
+  // normalizeFacts; a locked Brief keeps the value frozen in its snapshot.
   const acdList = (items) =>
     (items ?? [])
       .filter((x) => t(x.description))
@@ -373,7 +389,9 @@ function buildExtras({ def, scope, org, stakeholders, financial, lists, gates },
         num: i + 1,
         description: t(x.description),
         detail: t(x.detail),
-        critical: x.criticality === 'critical',
+        critical:
+          deriveCriticality(x.linked_objective_id, facts.objectiveById) ===
+          CRITICALITY.CRITICAL,
         servesName: x.linked_objective_id
           ? facts.objectiveById[x.linked_objective_id]?.name ?? null
           : null,
