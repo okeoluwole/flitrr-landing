@@ -12,6 +12,11 @@ import {
 } from './riskModel';
 import { deriveSeverity } from '../../../../lib/engine/severity';
 import {
+  assessRisks,
+  TRIGGERS,
+  ESCALATION_CONFIG,
+} from '../../../../lib/engine/monitor';
+import {
   splitProposals,
   buildRiskFromPlay,
 } from '../../../../lib/playbook/playbookModel';
@@ -37,13 +42,27 @@ import styles from './RiskRegister.module.css';
  * the Action Log's needs-your-response band. The register's own behaviour is
  * otherwise untouched.
  *
- * Out of scope here (M6.2): the attention surface, the posture read, the
- * triggers, the all-quiet state, the starter proposal. This is the substrate.
+ * B2 wires the monitor in (lib/engine/monitor.js): the Needs attention panel
+ * at the top renders the risks the monitor flags, each with the plain-language
+ * reason mapped from the trigger it reports, its severity and its live
+ * criticality. The verdicts are computed by assessRisks (unchanged from A7)
+ * from the same live `risks` state that drives the list, ordered most urgent
+ * first by the engine, and collapse to one calm line when nothing is flagged.
+ * Proportional monitoring stays quiet when things are fine; it does not nag.
+ *
+ * Still out of scope (a later step): the posture read and the starter
+ * proposal. B2 only computes and renders the monitor's verdicts; it does not
+ * change the triggers, the windows, or ESCALATION_CONFIG.
  */
 
 const LIKELIHOOD_QUESTION = 'How likely is this, really?';
 const IMPACT_QUESTION = 'If it happened, how bad?';
 const NOTE_PLACEHOLDER = 'Add a one-line response.';
+
+// The Needs attention panel's collapsed state (B2): one calm line when the
+// monitor flags nothing. Proportional monitoring stays silent when things are
+// fine.
+const ATTENTION_QUIET = 'All risks are within their review cadence.';
 
 const SAVE_ERROR =
   'We could not save that change. Please check your connection and try again.';
@@ -73,6 +92,44 @@ function formatReviewed(iso) {
     month: 'short',
     year: 'numeric',
   });
+}
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+// The went-stale reason, parameterised by how many days past its review window
+// the risk has gone. The window comes from ESCALATION_CONFIG (read only, never
+// hardcoded here), keyed by the live criticality the monitor derived: 14 days
+// for critical, 30 for standard. now is the clock the server supplied.
+function overdueReason(assessment, risk, now) {
+  const cfg = ESCALATION_CONFIG.byCriticality[assessment.effectiveCriticality];
+  const reviewedAt = risk.last_reviewed_at
+    ? Date.parse(risk.last_reviewed_at)
+    : NaN;
+  if (!cfg || Number.isNaN(reviewedAt)) return 'Overdue for review.';
+  const ageDays = (now - reviewedAt) / MS_PER_DAY;
+  const overdueBy = Math.max(1, Math.round(ageDays - cfg.reviewWindowDays));
+  return `Overdue for review by ${overdueBy} day${overdueBy === 1 ? '' : 's'}.`;
+}
+
+// Plain-language reasons for one verdict, mapped from the triggers the monitor
+// reports (lib/engine/monitor.js). The wording matches the register's own
+// vocabulary: Response is the one-line response field, reviewed the review
+// stamp shown on each card. B2 renders these; it does not change the triggers.
+function attentionReasons(assessment, risk, now) {
+  const reasons = [];
+  if (assessment.needsLink) reasons.push('Needs a link to an objective.');
+  for (const trigger of assessment.firedTriggers) {
+    if (trigger === TRIGGERS.ESCALATED_SEVERITY) {
+      reasons.push('Severity has escalated.');
+    } else if (trigger === TRIGGERS.CRITICAL_UNMANAGED) {
+      reasons.push('Critical, with no response yet.');
+    } else if (trigger === TRIGGERS.WENT_STALE) {
+      reasons.push(overdueReason(assessment, risk, now));
+    } else if (trigger === TRIGGERS.NOT_YET_ENGAGED) {
+      reasons.push('Not yet reviewed.');
+    }
+  }
+  return reasons;
 }
 
 // A plain-language segmented control. One option active, single select.
@@ -109,6 +166,7 @@ export default function RiskRegister({
   initialRisks,
   objectivesById,
   playSuggestions,
+  now,
 }) {
   const supabase = createClient();
   const [risks, setRisks] = useState(initialRisks);
@@ -143,6 +201,17 @@ export default function RiskRegister({
   const closed = sortRisks(
     risks.filter((r) => r.status === 'closed'),
     objectivesById
+  );
+
+  // The needs-attention surface (B2): the monitor's verdicts over the live
+  // rows, with the clock the server supplied. Recomputed every render from the
+  // same `risks` state that drives the list and its chips, so the panel and the
+  // list never disagree and an edit that clears a trigger (a review, a
+  // response, closing it) drops the row at once. assessRisks already orders
+  // most urgent first (compareAssessments); the filter keeps that order and
+  // drops closed risks, which the monitor never flags.
+  const needsAttention = assessRisks(risks, objectivesById, now).filter(
+    (v) => v.assessment.needsAttention
   );
 
   // Optimistic write: apply locally, stamp last_reviewed_at, persist, revert
@@ -279,6 +348,47 @@ export default function RiskRegister({
     );
   };
 
+  // One row in the Needs attention panel (B2): the live criticality chip and
+  // severity (the same reads the card below shows, so the two surfaces agree),
+  // the objective it threatens, the risk itself as a jump link to its full
+  // card, and the plain-language reasons the monitor flagged it.
+  const renderAttnRow = ({ risk, assessment }) => {
+    const critical = isLiveCritical(risk, objectivesById);
+    const objective = risk.linked_objective_id
+      ? objectivesById[risk.linked_objective_id]?.name ?? 'Unlinked'
+      : 'Unlinked';
+    const reasons = attentionReasons(assessment, risk, now);
+
+    return (
+      <article
+        key={risk.id}
+        className={`${styles.attnItem} ${critical ? styles.attnItemCritical : ''}`}
+      >
+        <div className={styles.attnTags}>
+          <span
+            className={`${styles.crit} ${critical ? styles.critCritical : styles.critStandard}`}
+          >
+            {critical ? 'Critical' : 'Standard'}
+          </span>
+          <SeverityChip severity={assessment.severity} />
+          <span className={styles.objective}>
+            {objective === 'Unlinked' ? 'Unlinked' : `vs ${objective}`}
+          </span>
+        </div>
+        <a className={styles.attnName} href={`#risk-${risk.id}`}>
+          {risk.description}
+        </a>
+        <ul className={styles.attnReasons}>
+          {reasons.map((reason, i) => (
+            <li key={i} className={styles.attnReason}>
+              {reason}
+            </li>
+          ))}
+        </ul>
+      </article>
+    );
+  };
+
   const renderCard = (r) => {
     const critical = isLiveCritical(r, objectivesById);
     const severity = deriveSeverity(r.likelihood, r.impact);
@@ -402,6 +512,23 @@ export default function RiskRegister({
       <p className={styles.eyebrow}>Risk module</p>
       <h1 className={styles.title}>Risk register</h1>
       <p className={styles.projectName}>{projectName}</p>
+
+      {/* The Needs attention panel (B2): the risks the monitor flags, most
+          urgent first, each with the reason in plain words. When nothing is
+          flagged it collapses to one calm line: monitoring stays quiet when
+          things are fine. */}
+      {needsAttention.length > 0 ? (
+        <section className={styles.attnBand} aria-labelledby="needs-attention">
+          <h2 id="needs-attention" className={styles.bandHeading}>
+            Needs attention
+          </h2>
+          <div className={styles.attnList}>
+            {needsAttention.map(renderAttnRow)}
+          </div>
+        </section>
+      ) : (
+        <p className={styles.bandQuiet}>{ATTENTION_QUIET}</p>
+      )}
 
       <div className={styles.summary}>
         <div className={styles.stat}>

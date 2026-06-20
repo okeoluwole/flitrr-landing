@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '../../../../lib/supabase/server';
 import { buildObjectiveIndex } from '../../../../lib/engine/criticality';
+import { assessRisks } from '../../../../lib/engine/monitor';
 import DashboardShell from '../../../components/DashboardShell';
 import {
   deriveResponseFeed,
@@ -23,6 +24,11 @@ import styles from './Workspace.module.css';
  * and its footer is the live read of what needs the developer, counts of
  * items needing a response (actionFeed's trigger rule) and open critical
  * tracked actions, or the calm all-quiet line when there is nothing.
+ *
+ * The Risk register tile footer is the same kind of live read (B2): the count
+ * of risks the monitor flags (lib/engine/monitor.js, assessRisks), so the tile
+ * and the register's Needs attention panel agree, or a calm line when nothing
+ * is flagged.
  *
  * This is the launcher the modules are reached from, so each new module
  * becomes another tile rather than another scattered link.
@@ -232,6 +238,7 @@ export default async function WorkspacePage({ searchParams }) {
   // and critical in the tracked list. Only once the log is open; below
   // Stage 2 the tile stays locked and reads nothing.
   let actionLogFooter = 'Open';
+  let riskTileFooter = 'Open';
   if (stage2Reached) {
     const raidColumns = 'id, linked_objective_id, updated_at';
     const [
@@ -250,7 +257,9 @@ export default async function WorkspacePage({ searchParams }) {
         .eq('project_id', project.id),
       supabase
         .from('project_risks')
-        .select('id, criticality, likelihood, impact, status, updated_at')
+        .select(
+          'id, criticality, linked_objective_id, likelihood, impact, status, last_reviewed_at, response_note, updated_at'
+        )
         .eq('project_id', project.id),
       supabase
         .from('project_objectives')
@@ -279,6 +288,21 @@ export default async function WorkspacePage({ searchParams }) {
       needsResponseCount,
       openCriticalCount
     );
+
+    // The Risk tile footer (B2): the count of risks the monitor flags, the
+    // same verdict the register's Needs attention panel renders, so the tile
+    // and the register agree. assessRisks reads the clock from its caller; the
+    // server supplies it. Closed risks are never flagged, so the filter drops
+    // them.
+    const riskAttentionCount = assessRisks(
+      risks ?? [],
+      byId,
+      Date.now()
+    ).filter((v) => v.assessment.needsAttention).length;
+    riskTileFooter =
+      riskAttentionCount > 0
+        ? `${riskAttentionCount} ${riskAttentionCount === 1 ? 'risk needs' : 'risks need'} attention`
+        : 'All within their review cadence.';
   }
 
   return (
@@ -367,7 +391,7 @@ export default async function WorkspacePage({ searchParams }) {
             desc="Monitor, score and manage the risks to your objectives."
             footer={
               stage2Reached
-                ? 'Open'
+                ? riskTileFooter
                 : 'Risk monitoring opens once you pass the gate into Stage 2.'
             }
             state={stage2Reached ? 'open' : 'locked'}

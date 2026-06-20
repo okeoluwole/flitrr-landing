@@ -186,6 +186,106 @@
   margin-bottom: 1rem;
 }
 
+/* ── Needs attention panel (B2) ──────────
+   The monitor's verdicts, rendered. A filled
+   surface marks required attention, the inverse
+   of the hairline suggests band below. Each row
+   reuses the register's own criticality and
+   severity chips, so the panel and the card it
+   points to read identically. Collapses to one
+   calm line when nothing is flagged. */
+
+.attnBand {
+  background: var(--app-surface-sunken);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  padding: 1.1rem 1.4rem 1.4rem;
+  margin-bottom: 1.5rem;
+}
+
+.attnList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.attnItem {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+}
+
+/* Critical (protected-objective) risks carry the amber accent here too, the
+   same wash as their card in the list, so the one functional colour means the
+   same thing on both surfaces. */
+.attnItemCritical {
+  border-color: var(--app-critical-border);
+  background: var(--app-critical-bg);
+}
+
+.attnTags {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+/* The risk itself, a jump link to its full card below. */
+.attnName {
+  display: inline-block;
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--app-ink);
+  text-decoration: none;
+  margin-bottom: 0.5rem;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.attnName:hover {
+  text-decoration: underline;
+}
+
+.attnName:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Why the monitor flagged it, in plain words: one line per fired trigger. */
+.attnReasons {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.attnReason {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--app-ink-secondary);
+}
+
+/* The collapsed state: one calm line. Quiet is a feature. */
+.bandQuiet {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--app-ink-secondary);
+  background: var(--app-surface-sunken);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  padding: 0.85rem 1.4rem;
+  margin-bottom: 1.5rem;
+}
+
 /* ── Empty states ──────────────────────── */
 
 .empty {

@@ -172,6 +172,12 @@ export default async function RiskPage({ searchParams }) {
     objectivesByType: byType,
   });
 
+  // The monitor (lib/engine/monitor.js) reads the clock from its caller, never
+  // itself, so the server supplies it once (B2). The register derives each
+  // risk's verdict from this and the live rows, so the needs-attention surface
+  // and the list judge time the same way and cannot drift on hydration.
+  const now = Date.now();
+
   return (
     <DashboardShell user={navUser}>
       <RiskRegister
@@ -181,6 +187,7 @@ export default async function RiskPage({ searchParams }) {
         initialRisks={risks ?? []}
         objectivesById={objectivesById}
         playSuggestions={playSuggestions}
+        now={now}
       />
     </DashboardShell>
   );
