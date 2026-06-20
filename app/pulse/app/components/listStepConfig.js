@@ -15,6 +15,11 @@
  * Punctuation discipline: no em dashes or en dashes.
  */
 
+import {
+  buildObjectiveIndex,
+  toStoredCriticality,
+} from '../../../../lib/engine/criticality.js';
+
 // Risk likelihood / impact scale (risk_level enum). Shared by the two risk
 // rating selects. Both default to medium so an inserted risk always carries a
 // value (the columns are nullable, but the spec wants inserts to be rated).
@@ -34,17 +39,18 @@ export const CRITICALITY_OPTIONS = [
 /**
  * The cascade rule (framework Section 6, M3.4 spec): an item linked to a
  * Non-negotiable objective defaults to Critical, anything else (a Flexible
- * objective, or no link) defaults to Standard. Pure and shared so the default
- * is computed the same way wherever the cascade fires.
+ * objective, or no link) defaults to Standard. A thin wrapper over the engine
+ * kernel (A4): it indexes the objective rows and defers to toStoredCriticality,
+ * so the one write-time stamping rule lives in lib/engine. The name and
+ * signature are unchanged for its callers (the wizard and the Action Log).
  *
  * `objectives` is the wizard's live objective state (id, objective_type,
  * classification, ...), so this reflects the classification set in Step 3,
  * including unsaved edits made earlier in the same session.
  */
 export function cascadeCriticality(linkedObjectiveId, objectives) {
-  if (!linkedObjectiveId) return 'standard';
-  const obj = (objectives ?? []).find((o) => o.id === linkedObjectiveId);
-  return obj && obj.classification === 'non_negotiable' ? 'critical' : 'standard';
+  const { byId } = buildObjectiveIndex(objectives);
+  return toStoredCriticality(linkedObjectiveId, byId);
 }
 
 /**
