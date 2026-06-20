@@ -8,7 +8,7 @@ import {
   IMPACT_OPTIONS,
   STATUS_OPTIONS,
   sortRisks,
-  isCritical,
+  isLiveCritical,
 } from './riskModel';
 import { deriveSeverity } from '../../../../lib/engine/severity';
 import {
@@ -25,8 +25,9 @@ import styles from './RiskRegister.module.css';
  * Every developer action (scoring, status, note) writes to project_risks and
  * stamps last_reviewed_at to now (M6.2 reads that timestamp). Writes are
  * optimistic: the change shows immediately and reverts on a failure. Severity
- * is derived, never stored. The critical count reuses the Brief's definition
- * (the criticality column) so it agrees with the Brief's Critical risks KPI.
+ * is derived, never stored. Criticality is derived live from each risk's linked
+ * objective (B1), so the chip, the critical count, and the order all follow the
+ * current classification rather than the snapshot stamped at the wizard.
  *
  * M7.4 adds the suggestions area: curated risk plays for the current stage,
  * each derived critical or standard by this project's own classification,
@@ -50,8 +51,6 @@ const ACCEPT_PLAY_ERROR =
   'We could not add that suggestion. Please check your connection and try again.';
 const DISMISS_PLAY_ERROR =
   'We could not dismiss that suggestion. Please check your connection and try again.';
-
-const CRITICALITY_LABEL = { critical: 'Critical', standard: 'Standard' };
 
 // The columns the page select returns; an accepted suggestion's returning
 // row carries the same shape so it renders as any other risk card.
@@ -131,12 +130,20 @@ export default function RiskRegister({
   const { top: topPlays, rest: restPlays } = splitProposals(livePlays);
   const visiblePlays = showAllPlays ? livePlays : topPlays;
 
-  // Critical count is over the whole set (including closed), by the Brief's
-  // definition, so it equals the Brief's Critical risks KPI.
-  const criticalCount = risks.filter(isCritical).length;
+  // Critical count is over the whole set (including closed), derived live from
+  // each risk's linked objective (B1), so it tracks the current classification.
+  const criticalCount = risks.filter((r) =>
+    isLiveCritical(r, objectivesById)
+  ).length;
 
-  const active = sortRisks(risks.filter((r) => r.status !== 'closed'));
-  const closed = sortRisks(risks.filter((r) => r.status === 'closed'));
+  const active = sortRisks(
+    risks.filter((r) => r.status !== 'closed'),
+    objectivesById
+  );
+  const closed = sortRisks(
+    risks.filter((r) => r.status === 'closed'),
+    objectivesById
+  );
 
   // Optimistic write: apply locally, stamp last_reviewed_at, persist, revert
   // on failure. Every action routes through here so the review stamp is never
@@ -273,7 +280,7 @@ export default function RiskRegister({
   };
 
   const renderCard = (r) => {
-    const critical = isCritical(r);
+    const critical = isLiveCritical(r, objectivesById);
     const severity = deriveSeverity(r.likelihood, r.impact);
     const objective = r.linked_objective_id
       ? objectivesById[r.linked_objective_id]?.name ?? 'Unlinked'
@@ -292,7 +299,7 @@ export default function RiskRegister({
             <span
               className={`${styles.crit} ${critical ? styles.critCritical : styles.critStandard}`}
             >
-              {CRITICALITY_LABEL[r.criticality] ?? 'Standard'}
+              {critical ? 'Critical' : 'Standard'}
             </span>
             <span className={styles.objective}>
               {objective === 'Unlinked' ? 'Unlinked' : `vs ${objective}`}

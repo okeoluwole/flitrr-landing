@@ -299,7 +299,7 @@ export default function ActionLog({
 
     const insert =
       entry.kind === 'risk'
-        ? buildTrackedActionFromRisk(entry.row, projectId, currentStage)
+        ? buildTrackedActionFromRisk(entry.row, projectId, currentStage, byId)
         : buildTrackedActionFromRaid(
             entry.row,
             projectId,

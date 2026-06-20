@@ -4,16 +4,17 @@
  * input is passed in, so the same inputs always give the same items and the
  * whole module is unit-testable in isolation.
  *
- * It sits beside actionModel.js and REUSES the shared derivations
- * (deriveSeverity from the engine, isCritical from the risk model) rather than
- * duplicating them, so the log and the register can never disagree about what
- * is Serious or what is Critical. The explicit .js on those imports keeps this
- * module runnable under Node (Vitest) as well as under the Next bundler.
+ * It sits beside actionModel.js and REUSES the shared derivations (deriveSeverity
+ * from the engine, and the criticality kernel's deriveCriticality for live
+ * criticality) rather than duplicating them, so the log and the register can
+ * never disagree about what is Serious or what is Critical. The explicit .js on
+ * those imports keeps this module runnable under Node (Vitest) as well as under
+ * the Next bundler.
  *
  * THE TRIGGER RULE (M7.2 spec, A2). A risk generates a pushed item while ALL
  * three hold:
- *   1. the risk is critical (its criticality column, the register's own chip
- *      and the Brief's definition) OR its derived severity is Serious, and
+ *   1. the risk is critical (derived live from the objective it threatens, the
+ *      register's own chip) OR its derived severity is Serious, and
  *   2. its status is watching or acting, and
  *   3. it has no open tracked action linked to it (source = risk, source_id =
  *      the risk id, status not done).
@@ -32,7 +33,6 @@
  * change, or tracking the item, is all it takes to clear one.
  */
 
-import { isCritical } from '../risk/riskModel.js';
 import { deriveSeverity, SEVERITY_RANK } from '../../../../lib/engine/severity.js';
 import {
   CRITICALITY,
@@ -74,13 +74,18 @@ export function trackedRiskIds(actions) {
  * tracked actions. Returns items sorted for the band: critical first, then
  * Serious, then most recently flagged (updated_at, newest first).
  *
+ * Criticality is derived live from each risk's linked objective (B1) via the
+ * kernel, the same read the register's chip now uses, so the band judges risks
+ * and RAID alike against the current classification. objectivesById is the
+ * project's objective index (id -> { classification }).
+ *
  * Each item carries what the band shows and what promotion needs:
  *   risk        the source row, untouched
  *   reasons     { critical, serious }, the plain chips explaining why it
  *               surfaced (one or both are true by the trigger rule)
  *   severity    { key, label } from deriveSeverity, the register's own read
  */
-export function deriveRiskItems(risks, actions) {
+export function deriveRiskItems(risks, actions, objectivesById) {
   const tracked = trackedRiskIds(actions);
 
   const items = [];
@@ -89,7 +94,9 @@ export function deriveRiskItems(risks, actions) {
     if (tracked.has(risk.id)) continue;
 
     const severity = deriveSeverity(risk.likelihood, risk.impact);
-    const critical = isCritical(risk);
+    const critical =
+      deriveCriticality(risk.linked_objective_id, objectivesById) ===
+      CRITICALITY.CRITICAL;
     const serious = severity.key === 'serious';
     if (!critical && !serious) continue;
 
@@ -188,7 +195,11 @@ export function deriveResponseFeed({
   objectivesById,
 }) {
   const entries = [];
-  for (const { risk, reasons, severity } of deriveRiskItems(risks, actions)) {
+  for (const { risk, reasons, severity } of deriveRiskItems(
+    risks,
+    actions,
+    objectivesById
+  )) {
     entries.push({
       kind: 'risk',
       row: risk,
@@ -212,12 +223,16 @@ export function deriveResponseFeed({
 
 /**
  * The citable reason a promoted risk action was raised (A4): why it surfaced,
- * its criticality and whether its score is Serious, the same trigger the band
- * reads. Stored on the tracked action so the engine's trace survives the
- * promotion, even if the risk later changes or closes.
+ * its criticality (derived live from the linked objective via the kernel, B1)
+ * and whether its score is Serious, the same trigger the band reads. Captured
+ * onto the tracked action at promotion so the engine's trace survives, even if
+ * the risk later changes or closes. objectivesById is the project's objective
+ * index (id -> { classification }).
  */
-export function riskRaiseReason(risk) {
-  const critical = isCritical(risk);
+export function riskRaiseReason(risk, objectivesById) {
+  const critical =
+    deriveCriticality(risk?.linked_objective_id, objectivesById) ===
+    CRITICALITY.CRITICAL;
   const serious = deriveSeverity(risk?.likelihood, risk?.impact).key === 'serious';
   if (critical && serious) return 'Raised from a critical risk scored serious.';
   if (critical) return 'Raised from a critical risk.';
@@ -228,20 +243,22 @@ export function riskRaiseReason(risk) {
 /**
  * Promote-to-track (M7.2 spec, A4): the project_actions row a pushed item
  * creates, pre-filled from its risk and editable after. Deterministic
- * template for the description; objective and criticality inherited from the
- * risk; source columns carry the link that makes the dedupe work; stamped with
- * the stage the action is raised at (A3) for the gate-readiness view; and the
- * citable reason it was raised (A4), so its provenance survives promotion. No
+ * template for the description; the objective link and the stored criticality
+ * baseline inherited from the risk (the Action Log derives its own live value
+ * from the link); source columns carry the link that makes the dedupe work;
+ * stamped with the stage the action is raised at (A3) for the gate-readiness
+ * view; and the citable reason it was raised (A4, its criticality read live
+ * from objectivesById, B1), so its provenance survives promotion. No
  * confirmation dialog, no extra fields.
  */
-export function buildTrackedActionFromRisk(risk, projectId, stage) {
+export function buildTrackedActionFromRisk(risk, projectId, stage, objectivesById) {
   return {
     project_id: projectId,
     description: `Mitigate: ${risk.description}`,
     linked_objective_id: risk.linked_objective_id ?? null,
     criticality: risk.criticality,
     stage,
-    reason: riskRaiseReason(risk),
+    reason: riskRaiseReason(risk, objectivesById),
     source: 'risk',
     source_id: risk.id,
   };

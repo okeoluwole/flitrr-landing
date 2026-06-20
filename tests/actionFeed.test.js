@@ -19,12 +19,23 @@ import { deriveSeverity } from '../app/pulse/app/risk/riskModel.js';
  * summary line.
  */
 
-// A register row with sensible defaults, overridable per case.
+// The objective index the live derivations read (B1, A5). A risk and a RAID
+// item both inherit their linked objective's current classification, so
+// criticality is expressed through the link and this index, never a stored
+// column.
+const OBJECTIVES = {
+  'obj-critical': { id: 'obj-critical', classification: 'non_negotiable' },
+  'obj-flexible': { id: 'obj-flexible', classification: 'flexible' },
+};
+
+// A register row with sensible defaults, overridable per case. Links to a
+// flexible objective by default, so the default risk is standard (live); a case
+// that needs a critical risk links to obj-critical, not a stored column.
 function risk(overrides = {}) {
   return {
     id: 'risk-1',
     description: 'Planning approval is refused',
-    linked_objective_id: 'obj-cost',
+    linked_objective_id: 'obj-flexible',
     criticality: 'standard',
     likelihood: 'medium',
     impact: 'medium',
@@ -46,18 +57,13 @@ function trackedAction(overrides = {}) {
   };
 }
 
-// A small objectives map for the RAID must-hold test, and a RAID row (the
-// assumption/constraint/dependency tables share this shape).
-const RAID_OBJECTIVES = {
-  'obj-cost': { id: 'obj-cost', classification: 'non_negotiable' },
-  'obj-time': { id: 'obj-time', classification: 'flexible' },
-};
-
+// A RAID row (the assumption/constraint/dependency tables share this shape),
+// linked to a non-negotiable objective by default so it surfaces.
 function raid(overrides = {}) {
   return {
     id: 'raid-1',
     description: 'Planning approval lands by Q3',
-    linked_objective_id: 'obj-cost',
+    linked_objective_id: 'obj-critical',
     criticality: 'standard',
     updated_at: '2026-06-05T10:00:00+00:00',
     ...overrides,
@@ -66,7 +72,11 @@ function raid(overrides = {}) {
 
 describe('the trigger rule', () => {
   it('surfaces a critical watching risk, with the Critical chip', () => {
-    const items = deriveRiskItems([risk({ criticality: 'critical' })], []);
+    const items = deriveRiskItems(
+      [risk({ linked_objective_id: 'obj-critical' })],
+      [],
+      OBJECTIVES
+    );
     expect(items).toHaveLength(1);
     expect(items[0].reasons).toEqual({ critical: true, serious: false });
   });
@@ -74,7 +84,8 @@ describe('the trigger rule', () => {
   it('surfaces a standard risk whose derived severity is Serious', () => {
     const items = deriveRiskItems(
       [risk({ likelihood: 'high', impact: 'high' })],
-      []
+      [],
+      OBJECTIVES
     );
     expect(items).toHaveLength(1);
     expect(items[0].reasons).toEqual({ critical: false, serious: true });
@@ -82,8 +93,15 @@ describe('the trigger rule', () => {
 
   it('shows both chips when a risk is critical and Serious', () => {
     const items = deriveRiskItems(
-      [risk({ criticality: 'critical', likelihood: 'high', impact: 'high' })],
-      []
+      [
+        risk({
+          linked_objective_id: 'obj-critical',
+          likelihood: 'high',
+          impact: 'high',
+        }),
+      ],
+      [],
+      OBJECTIVES
     );
     expect(items[0].reasons).toEqual({ critical: true, serious: true });
   });
@@ -91,72 +109,91 @@ describe('the trigger rule', () => {
   it('does not surface a standard Minor risk', () => {
     const items = deriveRiskItems(
       [risk({ likelihood: 'low', impact: 'low' })],
-      []
+      [],
+      OBJECTIVES
     );
     expect(items).toHaveLength(0);
   });
 
   it('does not surface a standard Worth watching risk', () => {
     // medium x medium scores 4: Worth watching, below the Serious bar.
-    const items = deriveRiskItems([risk()], []);
+    const items = deriveRiskItems([risk()], [], OBJECTIVES);
     expect(items).toHaveLength(0);
   });
 
   it('keeps the item for a risk set to acting with nothing tracked', () => {
     const items = deriveRiskItems(
-      [risk({ criticality: 'critical', status: 'acting' })],
-      []
+      [risk({ linked_objective_id: 'obj-critical', status: 'acting' })],
+      [],
+      OBJECTIVES
     );
     expect(items).toHaveLength(1);
   });
 
   it('clears the item when the risk is accepted', () => {
     const items = deriveRiskItems(
-      [risk({ criticality: 'critical', status: 'accepted' })],
-      []
+      [risk({ linked_objective_id: 'obj-critical', status: 'accepted' })],
+      [],
+      OBJECTIVES
     );
     expect(items).toHaveLength(0);
   });
 
   it('clears the item when the risk is closed', () => {
     const items = deriveRiskItems(
-      [risk({ criticality: 'critical', status: 'closed' })],
-      []
+      [risk({ linked_objective_id: 'obj-critical', status: 'closed' })],
+      [],
+      OBJECTIVES
     );
     expect(items).toHaveLength(0);
   });
 });
 
 describe('the dedupe, both directions', () => {
-  const qualifying = risk({ criticality: 'critical' });
+  const qualifying = risk({ linked_objective_id: 'obj-critical' });
 
   it('suppresses the item while an open tracked action exists', () => {
-    expect(deriveRiskItems([qualifying], [trackedAction()])).toHaveLength(0);
     expect(
-      deriveRiskItems([qualifying], [trackedAction({ status: 'doing' })])
+      deriveRiskItems([qualifying], [trackedAction()], OBJECTIVES)
+    ).toHaveLength(0);
+    expect(
+      deriveRiskItems(
+        [qualifying],
+        [trackedAction({ status: 'doing' })],
+        OBJECTIVES
+      )
     ).toHaveLength(0);
   });
 
   it('returns the item when the tracked action is marked done', () => {
     const items = deriveRiskItems(
       [qualifying],
-      [trackedAction({ status: 'done' })]
+      [trackedAction({ status: 'done' })],
+      OBJECTIVES
     );
     expect(items).toHaveLength(1);
   });
 
   it('returns the item when the tracked action is deleted', () => {
-    expect(deriveRiskItems([qualifying], [])).toHaveLength(1);
+    expect(deriveRiskItems([qualifying], [], OBJECTIVES)).toHaveLength(1);
   });
 
   it('only a source = risk action with the matching id suppresses', () => {
     // A manual action that happens to carry the id does not count, and
     // neither does a risk action tracking a different risk.
     expect(
-      deriveRiskItems([qualifying], [trackedAction({ source: 'manual' })])
+      deriveRiskItems(
+        [qualifying],
+        [trackedAction({ source: 'manual' })],
+        OBJECTIVES
+      )
     ).toHaveLength(1);
     expect(
-      deriveRiskItems([qualifying], [trackedAction({ source_id: 'risk-2' })])
+      deriveRiskItems(
+        [qualifying],
+        [trackedAction({ source_id: 'risk-2' })],
+        OBJECTIVES
+      )
     ).toHaveLength(1);
   });
 
@@ -174,7 +211,7 @@ describe('the dedupe, both directions', () => {
 describe('severity comes from the risk model, not a parallel mapping', () => {
   it('carries deriveSeverity output verbatim on each item', () => {
     const r = risk({ likelihood: 'medium', impact: 'high' });
-    const [item] = deriveRiskItems([r], []);
+    const [item] = deriveRiskItems([r], [], OBJECTIVES);
     expect(item.severity).toEqual(deriveSeverity('medium', 'high'));
     expect(item.severity.key).toBe('serious');
   });
@@ -189,7 +226,7 @@ describe('severity comes from the risk model, not a parallel mapping', () => {
     ];
     for (const band of bands) {
       const surfaced =
-        deriveRiskItems([risk(band)], []).length === 1;
+        deriveRiskItems([risk(band)], [], OBJECTIVES).length === 1;
       expect(surfaced).toBe(band.surfaced);
       expect(surfaced).toBe(
         deriveSeverity(band.likelihood, band.impact).key === 'serious'
@@ -215,20 +252,20 @@ describe('band ordering', () => {
       }),
       risk({
         id: 'critical-plain',
-        criticality: 'critical',
+        linked_objective_id: 'obj-critical',
         likelihood: 'low',
         impact: 'low',
         updated_at: '2026-06-02T10:00:00+00:00',
       }),
       risk({
         id: 'critical-serious',
-        criticality: 'critical',
+        linked_objective_id: 'obj-critical',
         likelihood: 'high',
         impact: 'high',
         updated_at: '2026-06-03T10:00:00+00:00',
       }),
     ];
-    const order = deriveRiskItems(risks, []).map((i) => i.risk.id);
+    const order = deriveRiskItems(risks, [], OBJECTIVES).map((i) => i.risk.id);
     expect(order).toEqual([
       'critical-serious',
       'critical-plain',
@@ -243,13 +280,13 @@ describe('promote-to-track row construction', () => {
     const r = risk({
       id: 'risk-9',
       description: 'Main contractor insolvency',
-      linked_objective_id: 'obj-time',
+      linked_objective_id: 'obj-critical',
       criticality: 'critical',
     });
-    expect(buildTrackedActionFromRisk(r, 'project-1', 2)).toEqual({
+    expect(buildTrackedActionFromRisk(r, 'project-1', 2, OBJECTIVES)).toEqual({
       project_id: 'project-1',
       description: 'Mitigate: Main contractor insolvency',
-      linked_objective_id: 'obj-time',
+      linked_objective_id: 'obj-critical',
       criticality: 'critical',
       stage: 2,
       reason: 'Raised from a critical risk.',
@@ -262,7 +299,8 @@ describe('promote-to-track row construction', () => {
     const row = buildTrackedActionFromRisk(
       risk({ linked_objective_id: null, criticality: 'standard' }),
       'project-1',
-      3
+      3,
+      OBJECTIVES
     );
     expect(row.linked_objective_id).toBeNull();
     expect(row.criticality).toBe('standard');
@@ -273,33 +311,40 @@ describe('promote-to-track row construction', () => {
 
 describe('riskRaiseReason (A4): the citable why', () => {
   it('names a critical risk', () => {
-    expect(riskRaiseReason(risk({ criticality: 'critical' }))).toBe(
-      'Raised from a critical risk.'
-    );
+    expect(
+      riskRaiseReason(risk({ linked_objective_id: 'obj-critical' }), OBJECTIVES)
+    ).toBe('Raised from a critical risk.');
   });
 
   it('names a serious score', () => {
-    expect(riskRaiseReason(risk({ likelihood: 'high', impact: 'high' }))).toBe(
-      'Raised from a risk scored serious.'
-    );
+    expect(
+      riskRaiseReason(risk({ likelihood: 'high', impact: 'high' }), OBJECTIVES)
+    ).toBe('Raised from a risk scored serious.');
   });
 
   it('names both when critical and serious', () => {
     expect(
       riskRaiseReason(
-        risk({ criticality: 'critical', likelihood: 'high', impact: 'high' })
+        risk({
+          linked_objective_id: 'obj-critical',
+          likelihood: 'high',
+          impact: 'high',
+        }),
+        OBJECTIVES
       )
     ).toBe('Raised from a critical risk scored serious.');
   });
 
   it('falls back to the register when neither', () => {
-    expect(riskRaiseReason(risk())).toBe('Raised from your risk register.');
+    expect(riskRaiseReason(risk(), OBJECTIVES)).toBe(
+      'Raised from your risk register.'
+    );
   });
 });
 
 describe('the RAID feed (A5)', () => {
   it('surfaces an item linked to a non-negotiable objective', () => {
-    const items = deriveRaidItems([raid()], [], RAID_OBJECTIVES, 'assumption');
+    const items = deriveRaidItems([raid()], [], OBJECTIVES, 'assumption');
     expect(items).toHaveLength(1);
     expect(items[0]).toMatchObject({
       kind: 'assumption',
@@ -311,9 +356,9 @@ describe('the RAID feed (A5)', () => {
 
   it('does not surface an item on a flexible objective', () => {
     const items = deriveRaidItems(
-      [raid({ linked_objective_id: 'obj-time' })],
+      [raid({ linked_objective_id: 'obj-flexible' })],
       [],
-      RAID_OBJECTIVES,
+      OBJECTIVES,
       'constraint'
     );
     expect(items).toHaveLength(0);
@@ -323,7 +368,7 @@ describe('the RAID feed (A5)', () => {
     const items = deriveRaidItems(
       [raid({ linked_objective_id: null })],
       [],
-      RAID_OBJECTIVES,
+      OBJECTIVES,
       'dependency'
     );
     expect(items).toHaveLength(0);
@@ -331,14 +376,14 @@ describe('the RAID feed (A5)', () => {
 
   it('suppresses an item with an open tracked action of its kind, returns when done', () => {
     const open = [{ id: 'a1', status: 'to_do', source: 'assumption', source_id: 'raid-1' }];
-    expect(deriveRaidItems([raid()], open, RAID_OBJECTIVES, 'assumption')).toHaveLength(0);
+    expect(deriveRaidItems([raid()], open, OBJECTIVES, 'assumption')).toHaveLength(0);
     const done = [{ id: 'a1', status: 'done', source: 'assumption', source_id: 'raid-1' }];
-    expect(deriveRaidItems([raid()], done, RAID_OBJECTIVES, 'assumption')).toHaveLength(1);
+    expect(deriveRaidItems([raid()], done, OBJECTIVES, 'assumption')).toHaveLength(1);
   });
 
   it('keys the dedupe by kind: a risk action does not suppress an assumption', () => {
     const tracked = [{ id: 'a1', status: 'to_do', source: 'risk', source_id: 'raid-1' }];
-    expect(deriveRaidItems([raid()], tracked, RAID_OBJECTIVES, 'assumption')).toHaveLength(1);
+    expect(deriveRaidItems([raid()], tracked, OBJECTIVES, 'assumption')).toHaveLength(1);
   });
 });
 
@@ -350,7 +395,7 @@ describe('the unified response feed (A5)', () => {
       constraints: [],
       dependencies: [],
       actions: [],
-      objectivesById: RAID_OBJECTIVES,
+      objectivesById: OBJECTIVES,
     });
     expect(feed.map((e) => [e.kind, e.row.id])).toEqual([
       ['assumption', 'a-crit'],
@@ -361,13 +406,18 @@ describe('the unified response feed (A5)', () => {
   it('within the critical band a serious risk outranks a RAID item (no severity)', () => {
     const feed = deriveResponseFeed({
       risks: [
-        risk({ id: 'r-crit-serious', criticality: 'critical', likelihood: 'high', impact: 'high' }),
+        risk({
+          id: 'r-crit-serious',
+          linked_objective_id: 'obj-critical',
+          likelihood: 'high',
+          impact: 'high',
+        }),
       ],
       assumptions: [raid({ id: 'a-crit' })],
       constraints: [],
       dependencies: [],
       actions: [],
-      objectivesById: RAID_OBJECTIVES,
+      objectivesById: OBJECTIVES,
     });
     expect(feed[0].kind).toBe('risk');
     expect(feed[1].kind).toBe('assumption');
@@ -380,7 +430,7 @@ describe('the unified response feed (A5)', () => {
       constraints: [raid({ id: 'c1' })],
       dependencies: [raid({ id: 'd1' })],
       actions: [],
-      objectivesById: RAID_OBJECTIVES,
+      objectivesById: OBJECTIVES,
     });
     expect(feed.map((e) => e.kind).sort()).toEqual([
       'assumption',
