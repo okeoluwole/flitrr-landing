@@ -46,6 +46,19 @@ import {
 // CRITICALITY_RANK stays internal to the sort below.
 export { CRITICALITY };
 
+// isDone, actionStage, isCritical, and gateReadiness moved down into the engine
+// (A8, lib/engine/readiness.js) so lib/digest depends only on lib/engine and no
+// longer reaches up into app/. They are re-exported here so ActionLog and the
+// workspace keep importing them from this model unchanged; isCritical and
+// gateReadiness defer to the criticality kernel exactly as the inline versions
+// did, so behaviour is unchanged.
+export {
+  isDone,
+  actionStage,
+  isCritical,
+  gateReadiness,
+} from '../../../../lib/engine/readiness.js';
+
 // Status (action_status enum), in lifecycle order for the one-tap control.
 export const STATUS_OPTIONS = [
   { value: 'to_do', label: 'To do' },
@@ -109,17 +122,6 @@ export function effectiveCriticality(action, byId) {
   );
 }
 
-// An action is critical when its effective criticality is critical. The log
-// orders, counts, and styles by this, not by the stored snapshot.
-export function isCritical(action, byId) {
-  return effectiveCriticality(action, byId) === CRITICALITY.CRITICAL;
-}
-
-// Done actions leave the default list and sit under the done filter.
-export function isDone(action) {
-  return action.status === 'done';
-}
-
 // A lesson is captured once an outcome is recorded on a closed action (A7).
 // variance is optional, so the outcome alone counts; capture stays permissive.
 export function isLessonCaptured(action) {
@@ -142,33 +144,6 @@ export function sortActions(actions, byId) {
     if (a.created_at === b.created_at) return 0;
     return a.created_at < b.created_at ? 1 : -1;
   });
-}
-
-/**
- * The lifecycle stage an action bears on (A3). A null stage (rows created
- * before A3 stamped it) reads as the current stage, so no action drops out of
- * the gate-readiness view.
- */
-export function actionStage(action, currentStage) {
-  return action?.stage == null ? currentStage : action.stage;
-}
-
-/**
- * Gate readiness (A3): the open actions that bear on the current stage's gate,
- * and how many of them are critical. Scoped to open actions on the current
- * stage; a done action has left, and an action stamped to another stage bears
- * on that stage's gate, not this one. Proportional monitoring foregrounds the
- * critical count. This is the operational face of the stage checklist, not the
- * full deliverables checklist, which is the Gate module's.
- */
-export function gateReadiness(actions, byId, currentStage) {
-  const bearing = (actions ?? []).filter(
-    (a) => !isDone(a) && actionStage(a, currentStage) === currentStage
-  );
-  return {
-    open: bearing.length,
-    critical: bearing.filter((a) => isCritical(a, byId)).length,
-  };
 }
 
 /**
