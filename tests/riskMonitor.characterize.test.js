@@ -4,7 +4,7 @@ import {
   assessRisks,
   TRIGGERS,
   EFFECTIVE_CRITICALITY,
-} from '../app/pulse/app/risk/riskMonitor.js';
+} from '../lib/engine/monitor.js';
 
 /**
  * Characterization net (A1) for the risk monitoring engine, captured at its
