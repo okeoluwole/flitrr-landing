@@ -1,12 +1,13 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '../../../../lib/supabase/server';
+import { buildObjectiveIndex } from '../../../../lib/engine/criticality';
 import DashboardShell from '../../../components/DashboardShell';
 import {
   deriveResponseFeed,
   formatActionLogSummary,
 } from '../actions/actionFeed';
-import { isCritical, isDone, objectivesById } from '../actions/actionModel';
+import { isCritical, isDone } from '../actions/actionModel';
 import styles from './Workspace.module.css';
 
 /**
@@ -262,7 +263,7 @@ export default async function WorkspacePage({ searchParams }) {
     // Criticality is derived live from the linked objective (A2), so the tile
     // counts critical the same way the log does, override included. The
     // needs-a-response count is the full feed (risks plus RAID, A5).
-    const byId = objectivesById(objectives ?? []);
+    const { byId } = buildObjectiveIndex(objectives ?? []);
     const needsResponseCount = deriveResponseFeed({
       risks: risks ?? [],
       assumptions: assumptions ?? [],

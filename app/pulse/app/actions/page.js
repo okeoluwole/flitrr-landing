@@ -4,6 +4,7 @@ import { createClient } from '../../../../lib/supabase/server';
 import DashboardShell from '../../../components/DashboardShell';
 import { OBJECTIVE_META } from '../components/objectiveMeta';
 import { deriveProposals } from '../../../../lib/playbook/playbookModel';
+import { buildObjectiveIndex } from '../../../../lib/engine/criticality';
 import ActionLog from './ActionLog';
 import styles from './ActionLog.module.css';
 
@@ -183,12 +184,11 @@ export default async function ActionsPage({ searchParams }) {
       .order('created_at', { ascending: true }),
   ]);
 
-  // The five objectives in canonical order (Scope, Cost, Time, Quality,
-  // Funding), shaped for the link select and the cascade: id, display name,
-  // classification.
-  const byType = Object.fromEntries(
-    (objectives ?? []).map((o) => [o.objective_type, o])
-  );
+  // The project's objectives indexed by type, from the engine kernel (A3), for
+  // the playbook proposals and the link options below. The five objectives in
+  // canonical order (Scope, Cost, Time, Quality, Funding) are then shaped for
+  // the link select and the cascade: id, display name, classification.
+  const { byType } = buildObjectiveIndex(objectives ?? [], NAME_BY_TYPE);
   const objectiveOptions = OBJECTIVE_META.map((m) => {
     const row = byType[m.type];
     return row

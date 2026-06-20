@@ -30,13 +30,21 @@
  * mistakes, done is for completed work.
  */
 
-// Live criticality values. 'critical' and 'standard' are the binary scheme;
-// 'unlinked' is the derived-only governance gap, never stored.
-export const CRITICALITY = {
-  CRITICAL: 'critical',
-  STANDARD: 'standard',
-  UNLINKED: 'unlinked',
-};
+import {
+  CRITICALITY,
+  CRITICALITY_RANK,
+  buildObjectiveIndex,
+  deriveCriticality,
+  applyDownwardOverride,
+  effectiveCriticality as kernelEffectiveCriticality,
+} from '../../../../lib/engine/criticality.js';
+
+// The criticality vocabulary, the attention ranking, the live derivation and
+// the downward-only override all live in the engine kernel now (A3); this model
+// is the Action Log's thin, action-shaped face over them. CRITICALITY is
+// re-exported because ActionLog and the tests import it from here;
+// CRITICALITY_RANK stays internal to the sort below.
+export { CRITICALITY };
 
 // Status (action_status enum), in lifecycle order for the one-tap control.
 export const STATUS_OPTIONS = [
@@ -56,52 +64,49 @@ export const OUTCOME_OPTIONS = [
 
 /**
  * Index objectives by id so the derivation can read the linked objective's
- * current classification. Accepts anything carrying id and classification: the
- * page's objectiveOptions and the workspace's project_objectives rows both
- * qualify.
+ * current classification. A thin wrapper over the kernel's buildObjectiveIndex,
+ * returning just the by-id map the Action Log's consumers expect. Accepts
+ * anything carrying id and classification: the page's objectiveOptions and the
+ * workspace's project_objectives rows both qualify.
  */
 export function objectivesById(objectives) {
-  const byId = {};
-  for (const o of objectives ?? []) {
-    if (o && o.id) byId[o.id] = o;
-  }
-  return byId;
+  return buildObjectiveIndex(objectives).byId;
 }
 
 /**
  * The action's criticality as its linked objective classifies it, before any
- * override. 'unlinked' when there is no link or the link does not resolve: a
- * governance gap surfaced as "needs a link", never a silent standard.
+ * override. Delegates to the kernel by the action's linked_objective_id;
+ * 'unlinked' when there is no link or the link does not resolve: a governance
+ * gap surfaced as "needs a link", never a silent standard.
  */
 export function derivedCriticality(action, byId) {
-  const id = action?.linked_objective_id;
-  const objective = id ? byId?.[id] : null;
-  if (!objective) return CRITICALITY.UNLINKED;
-  return objective.classification === 'non_negotiable'
-    ? CRITICALITY.CRITICAL
-    : CRITICALITY.STANDARD;
+  return deriveCriticality(action?.linked_objective_id, byId);
 }
 
 /**
- * Whether a downward override is in force. True only for a derived-critical
- * action carrying criticality_override = 'standard'. Every other case ignores
- * the override column, which is what keeps the override strictly downward and
- * makes a stale override inert once the link is no longer critical.
+ * Whether a downward override is in force: true only when the kernel's
+ * downward-only rule actually lowers the derived value (a derived-critical
+ * action carrying criticality_override = 'standard'). Asking the kernel keeps
+ * the override rule in one place and inert once the link is no longer critical.
  */
 export function hasDownwardOverride(action, byId) {
+  const derived = derivedCriticality(action, byId);
   return (
-    derivedCriticality(action, byId) === CRITICALITY.CRITICAL &&
-    action?.criticality_override === CRITICALITY.STANDARD
+    applyDownwardOverride(derived, action?.criticality_override) !== derived
   );
 }
 
 /**
  * The criticality every live decision reads: the derived value, lowered to
- * standard only by an active downward override. Never raised.
+ * standard only by an active downward override. Never raised. Delegates to the
+ * kernel with the action's link and override.
  */
 export function effectiveCriticality(action, byId) {
-  const derived = derivedCriticality(action, byId);
-  return hasDownwardOverride(action, byId) ? CRITICALITY.STANDARD : derived;
+  return kernelEffectiveCriticality(
+    action?.linked_objective_id,
+    byId,
+    action?.criticality_override
+  );
 }
 
 // An action is critical when its effective criticality is critical. The log
@@ -121,20 +126,13 @@ export function isLessonCaptured(action) {
   return action?.outcome != null;
 }
 
-// Attention order by live criticality: critical first, then unlinked (a
-// governance gap that can hide a critical action, so it sits above standard),
-// then standard. Mirrors riskMonitor's ranking so the modules order alike.
-const CRITICALITY_RANK = {
-  [CRITICALITY.CRITICAL]: 0,
-  [CRITICALITY.UNLINKED]: 1,
-  [CRITICALITY.STANDARD]: 2,
-};
-
 /**
  * Sort for the log: by live criticality band (critical, then unlinked, then
- * standard), and within each band most recent first. created_at is an ISO
- * timestamp in one consistent format, so string comparison orders it correctly
- * without Date parsing.
+ * standard), and within each band most recent first. CRITICALITY_RANK is the
+ * kernel's shared attention order (critical, then the unlinked governance gap,
+ * then standard, mirroring the risk monitor). created_at is an ISO timestamp in
+ * one consistent format, so string comparison orders it correctly without Date
+ * parsing.
  */
 export function sortActions(actions, byId) {
   return [...actions].sort((a, b) => {

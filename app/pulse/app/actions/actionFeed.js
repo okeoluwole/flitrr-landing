@@ -33,6 +33,10 @@
  */
 
 import { deriveSeverity, isCritical, SEVERITY_RANK } from '../risk/riskModel.js';
+import {
+  CRITICALITY,
+  deriveCriticality,
+} from '../../../../lib/engine/criticality.js';
 
 // Register statuses that keep a risk live in the feed. accepted and closed
 // are the developer's formal answers, so they clear the item.
@@ -128,10 +132,14 @@ export function deriveRaidItems(items, actions, objectivesById, kind) {
   const out = [];
   for (const item of items ?? []) {
     if (tracked.has(item.id)) continue;
-    const objective = item.linked_objective_id
-      ? objectivesById?.[item.linked_objective_id]
-      : null;
-    if (objective?.classification !== 'non_negotiable') continue;
+    // Surfaces only when the item bears on a must-hold objective, classified
+    // live by the kernel from the linked objective's current classification.
+    if (
+      deriveCriticality(item.linked_objective_id, objectivesById) !==
+      CRITICALITY.CRITICAL
+    ) {
+      continue;
+    }
     out.push({
       kind,
       row: item,
