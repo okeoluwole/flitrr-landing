@@ -348,6 +348,7 @@ function Programme({ model }) {
                 <span className={styles.msWhat}>
                   {m.name}
                   {m.critical && <span className={styles.msFlag}>Critical</span>}
+                  {m.note && <span className={styles.msNote}>{m.note}</span>}
                 </span>
               </div>
             ))}

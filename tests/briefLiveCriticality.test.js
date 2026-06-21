@@ -15,9 +15,13 @@ import { assembleBrief } from '../app/pulse/app/components/briefModel.js';
  * round-trip of the assembled model is the faithful stand-in for it here.
  */
 
-// One objective that everything links to, so a single reclassification
-// exercises every item type at once. The stored criticality columns are left
-// 'standard' deliberately: the live derivation drives the flag, not the column.
+// One objective that the risks, workstreams and RAID link to, and that the
+// template's quality milestones serve, so a single reclassification exercises
+// every item type at once. Milestones come from the curated programme template
+// now (sub-step 1e), keyed to the objective by the type it serves, not a free
+// link; "Lead consultant appointed" serves Quality. The stored criticality
+// columns are left 'standard' deliberately: the live derivation drives the flag,
+// not the column.
 function stateWith(classification) {
   return {
     def: {
@@ -40,14 +44,6 @@ function stateWith(classification) {
           impact: 'high',
         },
       ],
-      milestones: [
-        {
-          name: 'Quality plan signed',
-          target_date: '2026-08-01',
-          linked_objective_id: 'obj-quality',
-          criticality: 'standard',
-        },
-      ],
       workstreams: [
         {
           name: 'Quality assurance',
@@ -64,8 +60,18 @@ function stateWith(classification) {
         },
       ],
     },
+    // No gate choices: the template milestones still render (undated), with their
+    // criticality derived from the objective each serves.
+    gates: [],
   };
 }
+
+// The template milestone that serves Quality, the objective this suite
+// reclassifies. Its criticality must move with the preview and freeze in the
+// snapshot, exactly as the linked risks, workstreams and RAID items do.
+const QUALITY_MILESTONE = 'Lead consultant appointed';
+const milestoneByName = (model, name) =>
+  model.milestones.find((m) => m.name === name);
 
 const kpiOf = (model, key) => model.kpis.find((k) => k.key === key)?.value;
 
@@ -84,7 +90,7 @@ const preview = assembleBrief(stateWith('flexible'));
 describe('a fresh preview follows the current objective classification', () => {
   it('marks every linked item critical while the objective is non-negotiable', () => {
     expect(atLock.risks.list[0].critical).toBe(true);
-    expect(atLock.milestones[0].critical).toBe(true);
+    expect(milestoneByName(atLock, QUALITY_MILESTONE).critical).toBe(true);
     expect(atLock.workstreams[0].critical).toBe(true);
     expect(atLock.raid.assumptions[0].critical).toBe(true);
     expect(atLock.risks.criticalCount).toBe(1);
@@ -93,7 +99,7 @@ describe('a fresh preview follows the current objective classification', () => {
 
   it('marks every linked item standard once the objective is flexible', () => {
     expect(preview.risks.list[0].critical).toBe(false);
-    expect(preview.milestones[0].critical).toBe(false);
+    expect(milestoneByName(preview, QUALITY_MILESTONE).critical).toBe(false);
     expect(preview.workstreams[0].critical).toBe(false);
     expect(preview.raid.assumptions[0].critical).toBe(false);
     expect(preview.risks.criticalCount).toBe(0);
@@ -106,7 +112,7 @@ describe('a locked Brief keeps the values frozen at lock (Principle 4)', () => {
     // The world has moved (see `preview` above), but the locked snapshot is the
     // agreed record at the moment it was locked, and must not move with it.
     expect(lockedSnapshot.risks.list[0].critical).toBe(true);
-    expect(lockedSnapshot.milestones[0].critical).toBe(true);
+    expect(milestoneByName(lockedSnapshot, QUALITY_MILESTONE).critical).toBe(true);
     expect(lockedSnapshot.workstreams[0].critical).toBe(true);
     expect(lockedSnapshot.raid.assumptions[0].critical).toBe(true);
     expect(lockedSnapshot.risks.criticalCount).toBe(1);

@@ -22,6 +22,8 @@ import { toNumber, formatCurrency, formatPercent, formatMonthYear } from './brie
 import { computeInsights } from './pulseRead';
 import { buildSummaries } from './briefLens';
 import { deriveCriticality, CRITICALITY } from '../../../../lib/engine/criticality.js';
+import { PROGRAMME_TEMPLATE } from '../../../../lib/engine/programmeTemplate.js';
+import { deriveMilestoneView } from '../../../../lib/engine/programmeMilestones.js';
 
 // Current snapshot schema. Bump if the model shape changes in a way a locked
 // brief's renderer must branch on. Bumped to 2 in S10: the model now carries
@@ -133,28 +135,12 @@ function buildSizeDisplay(def) {
   return parts.length > 0 ? parts.join(', ') : t(def?.size);
 }
 
-// Order milestones by target date ascending, undated last, stable within
-// ties (preserves entry order).
-function byDate(items) {
-  return items
-    .map((m, i) => ({ m, i }))
-    .sort((a, b) => {
-      const da = a.m.date;
-      const db = b.m.date;
-      if (da && db) return da < db ? -1 : da > db ? 1 : a.i - b.i;
-      if (da && !db) return -1;
-      if (!da && db) return 1;
-      return a.i - b.i;
-    })
-    .map((x) => x.m);
-}
-
 /**
  * Normalise the raw wizard state into the `facts` object the read ruleset
  * and the summaries consume. Objectives are ranked by the live Step 4 order;
  * list items are filtered to the real (non-blank) ones.
  */
-function normalizeFacts({ def, ctx, objectives, rankOrder, lists }) {
+function normalizeFacts({ def, ctx, objectives, rankOrder, lists, gates }) {
   const order = rankOrder && rankOrder.length ? rankOrder : [...OBJECTIVE_ORDER];
   const rankOf = (type) => {
     const i = order.indexOf(type);
@@ -178,23 +164,35 @@ function normalizeFacts({ def, ctx, objectives, rankOrder, lists }) {
 
   const rawLists = lists ?? { milestones: [], workstreams: [], risks: [] };
 
-  // Criticality is derived live from the linked objective (the kernel rule the
-  // risk register and the Action Log read on), not from the stored criticality
-  // column. The live preview therefore tracks the current classification; the
-  // value frozen into a locked Brief's snapshot stays the agreed baseline,
-  // because a locked Brief renders that snapshot and never re-runs this
-  // assembler. An unlinked item derives not-critical, the standard the cascade
-  // stamped for it.
-  const milestones = (rawLists.milestones ?? [])
-    .filter((m) => t(m.name))
-    .map((m) => ({
-      name: t(m.name),
-      date: t(m.target_date),
-      critical:
-        deriveCriticality(m.linked_objective_id, objectiveById) ===
-        CRITICALITY.CRITICAL,
-      linkedId: m.linked_objective_id || null,
-    }));
+  // Milestones are the curated programme template (Step 7, sub-step 1d), not the
+  // legacy project_milestones list: the Brief renders the same milestones Step 7
+  // shows. deriveMilestoneView reads the developer's per-milestone choices (date
+  // and note) from the gate rows and derives each milestone's criticality LIVE
+  // from the objective it serves, via the engine kernel (the same rule the risk
+  // register and the Action Log read on). The lifecycle (stage) order is kept,
+  // so an undated milestone holds its place rather than being sorted away.
+  // linkedId resolves the served objective_type to that objective's row id, so
+  // the read ruleset's coverage and funding checks key on it exactly as before.
+  // A not-applicable stage contributes none, matching Step 7. As for every other
+  // item, a locked Brief renders its frozen snapshot and never re-runs this, so
+  // the value frozen at lock stays the agreed baseline (Principle 4).
+  const idByType = Object.fromEntries(objs.map((o) => [o.type, o.id]));
+  const milestones = deriveMilestoneView(
+    PROGRAMME_TEMPLATE,
+    gates,
+    objectives,
+    def?.start_date
+  ).stages
+    .filter((s) => s.applicable)
+    .flatMap((s) =>
+      s.milestones.map((m) => ({
+        name: m.name,
+        date: t(m.date),
+        note: t(m.note),
+        critical: m.criticality === CRITICALITY.CRITICAL,
+        linkedId: idByType[m.serves] ?? null,
+      }))
+    );
 
   const workstreams = (rawLists.workstreams ?? [])
     .filter((w) => t(w.name))
@@ -438,10 +436,14 @@ export function assembleBrief(state) {
   const subtitle =
     [facts.size, locationDisplay].filter(Boolean).join(', ') || null;
 
-  const milestones = byDate(facts.milestones).map((m) => ({
+  // Lifecycle (stage) order, as normalizeFacts built them: an undated milestone
+  // keeps its place rather than being reordered by date. The developer's note
+  // (from the milestone choices) rides along, so the Brief shows what Step 7 does.
+  const milestones = facts.milestones.map((m) => ({
     name: m.name,
     dateDisplay: formatMonthYear(m.date),
     critical: m.critical,
+    note: m.note,
   }));
 
   const workstreams = facts.workstreams.map((w) => ({

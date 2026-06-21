@@ -1034,6 +1034,17 @@
   white-space: nowrap;
 }
 
+/* The developer's optional milestone note (sub-step 1e): a quiet secondary line
+   under the milestone name, matching the timeline's muted detail treatment. */
+.msNote {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--faint);
+}
+
 /* ── Workstreams ───────────────────────────────── */
 
 .wsGrid {

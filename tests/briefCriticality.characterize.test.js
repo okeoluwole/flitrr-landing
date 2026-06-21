@@ -41,10 +41,9 @@ const state = {
       // Drift down: stored critical on a flexible objective; the live read is standard.
       { description: 'Scope flagged critical', linked_objective_id: 'obj-scope', criticality: 'critical', likelihood: 'medium', impact: 'medium' },
     ],
-    milestones: [
-      { name: 'Cost plan signed', target_date: '2026-08-01', linked_objective_id: 'obj-cost', criticality: 'critical' },
-      { name: 'Funding close', target_date: '2026-09-01', linked_objective_id: 'obj-funding', criticality: 'standard' },
-    ],
+    // Milestones now come from the curated programme template (sub-step 1e),
+    // keyed to an objective by the type each serves, so they are not listed here.
+    // Their live criticality is asserted below by template milestone name.
     workstreams: [
       { name: 'Cost control', lead: 'A. Developer', linked_objective_id: 'obj-cost', criticality: 'critical' },
       { name: 'Programme', lead: 'B. Manager', linked_objective_id: 'obj-time', criticality: 'standard' },
@@ -86,9 +85,11 @@ describe('the Brief counts risks critical by the live objective link', () => {
 });
 
 describe('milestones and workstreams flag critical by the live objective link', () => {
-  it('derives the milestone criticality from its objective', () => {
-    expect(milestoneByName('Cost plan signed').critical).toBe(true);
-    expect(milestoneByName('Funding close').critical).toBe(false);
+  it('derives the milestone criticality from its served objective (template)', () => {
+    // Heads of terms agreed serves Cost (non-negotiable here); Development
+    // finance committed serves Funding (flexible here).
+    expect(milestoneByName('Heads of terms agreed').critical).toBe(true);
+    expect(milestoneByName('Development finance committed').critical).toBe(false);
   });
 
   it('derives the workstream criticality from its objective', () => {
