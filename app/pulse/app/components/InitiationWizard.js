@@ -22,6 +22,8 @@ import {
 import {
   loadProgrammeChoices,
   saveProgrammeChoices,
+  getMilestoneChoice,
+  setMilestoneChoice,
 } from './programmeChoices';
 import styles from './InitiationWizard.module.css';
 
@@ -572,8 +574,9 @@ export default function InitiationWizard({
   // Step 7 Programme state. The eight stage-gate rows load once the project
   // exists; gates holds each stage's programme choice (id, stage, the chosen
   // target_date, the N/A flag, and the keyed milestone choices) read through the
-  // 1b persistence layer, and gatesStatus gates the step. The milestones reuse
-  // the shared list state (lists.milestones); 1c touches the gate choices only.
+  // 1b persistence layer, and gatesStatus gates the step. The Step 7 milestones
+  // are the curated template ones, with their date and note held in each stage's
+  // keyed milestone choices here (1d); they no longer use the shared list state.
   const [gates, setGates] = useState(null);
   const [gatesStatus, setGatesStatus] = useState('idle'); // idle | loading | loaded | error
   const gatesLoadStartedRef = useRef(null);
@@ -758,6 +761,44 @@ export default function InitiationWizard({
                   target_na: checked,
                   target_date: checked ? '' : g.target_date,
                 }
+              : g
+          )
+        : prev
+    );
+    if (error) setError(null);
+  };
+
+  // Step 7 Programme edit: set a template milestone's chosen date (1d). Located
+  // by stage and the stable milestone key, it rides on the same per-stage gate
+  // row as the gate choices (milestone_choices), so persistGates saves it. The
+  // milestone's name and criticality are template-derived and never edited here.
+  const onMilestoneDateChange = (stage, key, value) => {
+    setGates((prev) =>
+      prev
+        ? prev.map((g) =>
+            g.stage === stage
+              ? setMilestoneChoice(g, key, {
+                  ...getMilestoneChoice(g, key),
+                  target_date: value,
+                })
+              : g
+          )
+        : prev
+    );
+    if (error) setError(null);
+  };
+
+  // Step 7 Programme edit: set a template milestone's optional note (1d). Keyed
+  // by the stable milestone key, like the date above.
+  const onMilestoneNoteChange = (stage, key, value) => {
+    setGates((prev) =>
+      prev
+        ? prev.map((g) =>
+            g.stage === stage
+              ? setMilestoneChoice(g, key, {
+                  ...getMilestoneChoice(g, key),
+                  note: value,
+                })
               : g
           )
         : prev
@@ -1677,14 +1718,16 @@ export default function InitiationWizard({
       return;
     }
 
-    // Step 7 Programme: the stage gate target dates (persistGates), then the
-    // critical milestones list.
+    // Step 7 Programme: the stage gate target dates and the per-milestone choices
+    // (date and note), all persisted by persistGates through the programme
+    // choices layer (saveProgrammeChoices writes milestone_choices onto each gate
+    // row, keyed by the stable milestone key). The milestones are template-fixed,
+    // so there is no separate list to save here.
     if (step === 7) {
       setBusy(true);
       const gatesErr = await persistGates();
-      const msErr = gatesErr ? null : await persistList('milestones');
       setBusy(false);
-      if (gatesErr || msErr) {
+      if (gatesErr) {
         setError(SAVE_ERROR);
         return;
       }
@@ -1996,43 +2039,25 @@ export default function InitiationWizard({
       );
     }
 
-    // Step 7 Programme: the eight stage gate target dates, then the critical
-    // milestones list as a continuation section.
+    // Step 7 Programme: the eight stage gate target dates, then the curated
+    // milestones for each stage (StepProgramme owns both, sub-step 1d). The
+    // milestone choices ride on the gate rows (milestone_choices), so this no
+    // longer uses the shared list; objectives feed the live milestone
+    // criticality. Still gated on objStatus and gatesStatus.
     if (step === 7) {
-      if (
-        objStatus !== 'loaded' ||
-        listsStatus !== 'loaded' ||
-        gatesStatus !== 'loaded'
-      ) {
+      if (objStatus !== 'loaded' || gatesStatus !== 'loaded') {
         return renderListNotReady(7, 'Programme');
       }
       return (
-        <>
-          <StepProgramme
-            gates={gates}
-            projectStart={def.start_date}
-            onGateDateChange={onGateDateChange}
-            onGateNaToggle={onGateNaToggle}
-          />
-          <StepItemList
-            key="milestones"
-            config={LIST_CONFIG.milestones}
-            items={lists.milestones}
-            objectives={objectives}
-            onField={(itemKey, field, value) =>
-              onListField('milestones', itemKey, field, value)
-            }
-            onLink={(itemKey, value) => onListLink('milestones', itemKey, value)}
-            onCriticality={(itemKey, value) =>
-              onListCriticality('milestones', itemKey, value)
-            }
-            onAdd={() => onListAdd('milestones')}
-            onRemove={(itemKey) => onListRemove('milestones', itemKey)}
-            asSection
-            sectionTitle="Critical milestones"
-            sectionIntro={LIST_CONFIG.milestones.intro}
-          />
-        </>
+        <StepProgramme
+          gates={gates}
+          projectStart={def.start_date}
+          objectives={objectives}
+          onGateDateChange={onGateDateChange}
+          onGateNaToggle={onGateNaToggle}
+          onMilestoneDateChange={onMilestoneDateChange}
+          onMilestoneNoteChange={onMilestoneNoteChange}
+        />
       );
     }
 
@@ -2129,10 +2154,7 @@ export default function InitiationWizard({
         listsStatus !== 'loaded' ||
         stakeholdersStatus !== 'loaded')) ||
     (step === 6 && financialStatus !== 'loaded') ||
-    (step === 7 &&
-      (objStatus !== 'loaded' ||
-        listsStatus !== 'loaded' ||
-        gatesStatus !== 'loaded')) ||
+    (step === 7 && (objStatus !== 'loaded' || gatesStatus !== 'loaded')) ||
     (step === 8 && (objStatus !== 'loaded' || listsStatus !== 'loaded'));
 
   const headerTitle = def.name.trim() ? def.name.trim() : 'New project';

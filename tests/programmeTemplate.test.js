@@ -56,24 +56,24 @@ describe('milestones serve the framework objectives', () => {
     }
   });
 
-  it('encodes each named milestone against the objective it serves', () => {
-    expect(milestoneOf(stageOf(0), 'Heads of terms agreed').serves).toBe('Cost');
+  it('encodes each named milestone against the objective it serves, by the kernel identifier', () => {
+    expect(milestoneOf(stageOf(0), 'Heads of terms agreed').serves).toBe('cost');
     expect(
       milestoneOf(stageOf(1), 'Development finance committed').serves
-    ).toBe('Funding');
+    ).toBe('funding');
     expect(milestoneOf(stageOf(2), 'Lead consultant appointed').serves).toBe(
-      'Quality'
+      'quality'
     );
     expect(
       milestoneOf(stageOf(3), 'Planning application validated').serves
-    ).toBe('Time');
-    expect(milestoneOf(stageOf(4), 'Tenders returned').serves).toBe('Cost');
+    ).toBe('time');
+    expect(milestoneOf(stageOf(4), 'Tenders returned').serves).toBe('cost');
     expect(
       milestoneOf(stageOf(6), 'Building Regulations completion certificate issued')
         .serves
-    ).toBe('Quality');
+    ).toBe('quality');
     expect(milestoneOf(stageOf(7), 'First unit exchanged').serves).toBe(
-      'Funding'
+      'funding'
     );
   });
 
@@ -84,10 +84,10 @@ describe('milestones serve the framework objectives', () => {
       'Finishing complete',
     ]);
     expect(milestoneOf(construction, 'Superstructure complete').serves).toBe(
-      'Time'
+      'time'
     );
     expect(milestoneOf(construction, 'Finishing complete').serves).toBe(
-      'Quality'
+      'quality'
     );
   });
 });

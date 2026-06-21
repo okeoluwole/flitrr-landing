@@ -102,13 +102,13 @@ describe('the two Construction milestones (stage 5)', () => {
 
   it('places Superstructure complete at the stage start plus 26 weeks, serving Time', () => {
     const milestone = milestoneOf(stage5, 'Superstructure complete');
-    expect(milestone.serves).toBe('Time');
+    expect(milestone.serves).toBe('time');
     expect(weeksFromStart(milestone.advisedDate)).toBe(94);
   });
 
   it('places Finishing complete at the stage start plus 44 weeks, serving Quality', () => {
     const milestone = milestoneOf(stage5, 'Finishing complete');
-    expect(milestone.serves).toBe('Quality');
+    expect(milestone.serves).toBe('quality');
     expect(weeksFromStart(milestone.advisedDate)).toBe(112);
   });
 });

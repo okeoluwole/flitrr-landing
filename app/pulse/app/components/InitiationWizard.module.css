@@ -1181,6 +1181,125 @@
   color: var(--app-ink-secondary);
 }
 
+/* ── Step 7: template milestones (1d) ──
+   The curated milestones for each stage: read-only by name with a derived
+   criticality badge, an optional bounded date and an optional note, plus the
+   stage's location-sensitive prompts. The milestone cards reuse the item-card
+   and item-grid styles from the list steps, so the section sits flush with the
+   gate sequence above. Nothing here is free-text or addable. */
+.milestoneStage {
+  margin-top: 1.5rem;
+}
+
+.milestoneStage:first-child {
+  margin-top: 0;
+}
+
+.milestoneStageLabel {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--app-ink-secondary);
+  margin-bottom: 0.6rem;
+}
+
+.milestoneList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0;
+  margin: 0;
+}
+
+.milestoneHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.milestoneName {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--app-ink);
+  min-width: 0;
+}
+
+/* Read-only criticality badge: derived from the served objective, never set
+   here. Critical wears the amber signal; standard stays neutral. Mirrors the
+   Step 4 ranking badges so criticality reads the same across the flow. */
+.critBadge {
+  flex: 0 0 auto;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.critBadgeCritical {
+  background-color: var(--app-signal-wash);
+  color: var(--app-signal-ink);
+  border-color: var(--app-signal-border);
+}
+
+.critBadgeStandard {
+  background-color: rgba(119, 147, 168, 0.12);
+  color: var(--app-ink-secondary);
+  border-color: var(--app-border);
+}
+
+.milestoneServes {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--app-ink-secondary);
+  margin: 0 0 0.9rem;
+}
+
+/* Location-sensitive flag: an informational prompt to confirm a local
+   requirement. Read-only, asserts no value. A calm neutral note, distinct from
+   the amber over-constraint warning. */
+.locationNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  background-color: rgba(55, 97, 131, 0.05);
+  border: 1px solid rgba(55, 97, 131, 0.18);
+  border-radius: 10px;
+  padding: 0.7rem 0.85rem;
+  margin-top: 0.6rem;
+}
+
+.locationNoteIcon {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--app-ink-secondary);
+}
+
+.locationNoteText {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--app-ink);
+  margin: 0;
+}
+
+.locationNoteText strong {
+  font-weight: 600;
+}
+
 /* ── Accessibility ─────────────────────── */
 
 .srOnly {

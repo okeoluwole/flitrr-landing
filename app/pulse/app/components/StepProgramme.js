@@ -1,16 +1,22 @@
 import styles from './InitiationWizard.module.css';
+import { OBJECTIVE_META } from './objectiveMeta';
 import { PROGRAMME_TEMPLATE } from '../../../../lib/engine/programmeTemplate.js';
 import { deriveRollingGateDates } from '../../../../lib/engine/programmeSchedule.js';
+import { deriveMilestoneView } from '../../../../lib/engine/programmeMilestones.js';
+import { CRITICALITY } from '../../../../lib/engine/criticality.js';
 
 /**
  * Step 7, Programme (live step 7). The lifecycle baseline the Programme
  * Tracker measures against: a target date for each of the eight stage gates,
  * then the critical milestones beyond the gates (framework Section 7, step 7).
  *
- * This component renders the step header and the eight gate target dates. The
- * milestones follow in their own sub-section, rendered by the shared
- * StepItemList beneath this component (1d revisits those); this sub-step (1c)
- * touches the gates only.
+ * This component renders the step header, the eight gate target dates, and then
+ * the curated milestones for each stage (sub-step 1d): each template milestone
+ * read-only by name, with a criticality derived from the objective it serves, an
+ * optional target date bounded to the stage window, an optional note, and the
+ * stage's location-sensitive prompts. The milestones are fixed by the template,
+ * so there is no free-text milestone and no add control. A stage marked not
+ * applicable at the gate step contributes no milestones.
  *
  * Gate entry is sequential. Stage 0's gate is open first; each later gate stays
  * disabled until the previous gate is given a date or marked not applicable. The
@@ -22,11 +28,18 @@ import { deriveRollingGateDates } from '../../../../lib/engine/programmeSchedule
  * flag are persisted.
  *
  * Controlled and presentational. `gates` is the eight stage-gate choice rows in
- * stage order (each { stage, target_date, target_na, ... }); `projectStart` is
- * the project start date held in the Brief, the anchor of the rolling chain;
- * onGateDateChange(stage, value) and onGateNaToggle(stage, checked) report edits
- * up to the wizard, which saves the choices onto project_stage_gates. The gate
- * status the Gate module owns is never altered here.
+ * stage order (each { stage, target_date, target_na, milestones }); `projectStart`
+ * is the project start date held in the Brief, the anchor of the rolling chain;
+ * onGateDateChange(stage, value) and onGateNaToggle(stage, checked) report gate
+ * edits up to the wizard, which saves the choices onto project_stage_gates. The
+ * gate status the Gate module owns is never altered here.
+ *
+ * `objectives` is the project's objective rows, read live for the derived
+ * milestone criticality (the same kernel join risks use). onMilestoneDateChange(
+ * stage, key, value) and onMilestoneNoteChange(stage, key, value) report the
+ * per-milestone choice edits, keyed by the stable milestone key; they save
+ * through the same programme choices layer as the gates (milestone_choices).
+ * Criticality is derived and shown, never stored.
  */
 
 // Lifecycle stage names (framework Section 4), keyed by stage number. Each gate
@@ -68,11 +81,28 @@ function advisedDisplay(date) {
   });
 }
 
+// Objective display name lookup, keyed by objective_type. The template's `serves`
+// is the objective_type identifier; this resolves the human label for display
+// (the single source of names is objectiveMeta.js).
+const NAME_BY_TYPE = Object.fromEntries(
+  OBJECTIVE_META.map((o) => [o.type, o.name])
+);
+
+// The read-only criticality badge: critical wears the amber signal, standard
+// stays neutral. classifyByType never returns 'unlinked' (a template milestone
+// always serves a named objective), so the two cases cover it.
+function criticalityLabel(criticality) {
+  return criticality === CRITICALITY.CRITICAL ? 'Critical' : 'Standard';
+}
+
 export default function StepProgramme({
   gates,
   projectStart,
+  objectives,
   onGateDateChange,
   onGateNaToggle,
+  onMilestoneDateChange,
+  onMilestoneNoteChange,
 }) {
   // Roll the advised dates from the project start and the choices so far. Pure
   // and derived: nothing here is persisted.
@@ -80,6 +110,18 @@ export default function StepProgramme({
     stages: gates,
   });
   const metaByStage = new Map(rolling.stages.map((s) => [s.stage, s]));
+
+  // The milestone view: per stage, the template milestones with their derived
+  // criticality, the developer's chosen date and note, and the stage date
+  // window. Pure and derived, like the gates above; criticality is shown, never
+  // stored. A not-applicable stage yields no milestones and is filtered out.
+  const milestoneView = deriveMilestoneView(
+    PROGRAMME_TEMPLATE,
+    { stages: gates },
+    objectives,
+    projectStart
+  );
+  const milestoneStages = milestoneView.stages.filter((s) => s.applicable);
 
   return (
     <>
@@ -165,6 +207,138 @@ export default function StepProgramme({
             </div>
           );
         })}
+      </div>
+
+      <div className={styles.fieldGrid}>
+        <div className={`${styles.fieldFull} ${styles.groupHead}`}>
+          <h3 className={styles.groupTitle}>Milestones</h3>
+          <p className={styles.groupHint}>
+            The critical milestones for each stage, set by the template. Give each
+            a target date within the stage window and a note if it helps. A
+            milestone's criticality follows the objective it serves, so it is
+            shown, not chosen. A stage marked not applicable above has none.
+          </p>
+        </div>
+
+        <div className={styles.fieldFull}>
+          {milestoneStages.length === 0 ? (
+            <p className={styles.emptyHint}>
+              Every stage is marked not applicable, so there are no milestones to
+              set.
+            </p>
+          ) : (
+            milestoneStages.map((stage) => (
+              <div key={stage.stage} className={styles.milestoneStage}>
+                <p className={styles.milestoneStageLabel}>
+                  Stage {stage.stage}: {stage.name}
+                </p>
+
+                <ul className={styles.milestoneList}>
+                  {stage.milestones.map((m) => {
+                    const dateId = `ms-date-${stage.stage}-${m.key}`;
+                    const noteId = `ms-note-${stage.stage}-${m.key}`;
+                    const isCritical = m.criticality === CRITICALITY.CRITICAL;
+                    return (
+                      <li key={m.key} className={styles.itemCard}>
+                        <div className={styles.milestoneHead}>
+                          <span className={styles.milestoneName}>{m.name}</span>
+                          <span
+                            className={`${styles.critBadge} ${
+                              isCritical
+                                ? styles.critBadgeCritical
+                                : styles.critBadgeStandard
+                            }`}
+                          >
+                            {criticalityLabel(m.criticality)}
+                          </span>
+                        </div>
+                        <p className={styles.milestoneServes}>
+                          Serves {NAME_BY_TYPE[m.serves] ?? m.serves}
+                        </p>
+
+                        <div className={styles.itemGrid}>
+                          <div className={styles.field}>
+                            <label className={styles.label} htmlFor={dateId}>
+                              Target date
+                              <span className={styles.optional}>(optional)</span>
+                            </label>
+                            <input
+                              id={dateId}
+                              type="date"
+                              className={styles.input}
+                              value={m.date}
+                              min={m.minDate ?? undefined}
+                              max={m.maxDate ?? undefined}
+                              onChange={(e) =>
+                                onMilestoneDateChange(
+                                  stage.stage,
+                                  m.key,
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </div>
+
+                          <div className={styles.field}>
+                            <label className={styles.label} htmlFor={noteId}>
+                              Note
+                              <span className={styles.optional}>(optional)</span>
+                            </label>
+                            <input
+                              id={noteId}
+                              type="text"
+                              className={styles.input}
+                              value={m.note}
+                              placeholder="Optional detail."
+                              autoComplete="off"
+                              onChange={(e) =>
+                                onMilestoneNoteChange(
+                                  stage.stage,
+                                  m.key,
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                {stage.locationSensitive.map((point, i) => (
+                  <p key={i} className={styles.locationNote}>
+                    <svg
+                      className={styles.locationNoteIcon}
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <circle
+                        cx="8"
+                        cy="8"
+                        r="6.5"
+                        stroke="currentColor"
+                        strokeWidth="1.4"
+                      />
+                      <path
+                        d="M8 7.2v3.3M8 5.1h.01"
+                        stroke="currentColor"
+                        strokeWidth="1.4"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <span className={styles.locationNoteText}>
+                      <strong>{point.label}</strong>: {point.prompt}.
+                    </span>
+                  </p>
+                ))}
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </>
   );
