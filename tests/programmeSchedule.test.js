@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { PROGRAMME_TEMPLATE, PROGRAMME_TEMPLATE_VERSION } from '../lib/engine/programmeTemplate.js';
-import { deriveAdvisedDates } from '../lib/engine/programmeSchedule.js';
+import {
+  deriveAdvisedDates,
+  deriveRollingGateDates,
+} from '../lib/engine/programmeSchedule.js';
 
 /**
  * Programme schedule derivation (Step 7, sub-step 1a). Proves the cumulative
@@ -182,5 +185,219 @@ describe('pure and deterministic', () => {
     expect(result.stages[0].stageStart.toISOString()).toBe(
       '2026-01-05T00:00:00.000Z'
     );
+  });
+});
+
+/**
+ * Rolling advised gate dates (Step 7, sub-step 1c). Proves the gate-by-gate
+ * rule: gate 0 anchors on the project start, each later gate anchors on the
+ * previous applicable gate's effective date (its chosen date if set, otherwise
+ * its own advised date), an override shifts only the gates after it, an N/A gate
+ * is skipped with the anchor carried forward, and with no overrides the result
+ * equals deriveAdvisedDates gate for gate. Plus the no-start-date case, where an
+ * undated gate advises nothing until a chosen date seeds the chain.
+ */
+
+// An ISO date input value (YYYY-MM-DD) for a UTC date, as the date input gives.
+const iso = (date) => date.toISOString().slice(0, 10);
+
+// A date a whole number of weeks after the fixed anchor, in UTC.
+const weeksAfterStart = (weeks) => new Date(START.getTime() + weeks * MS_PER_WEEK);
+
+// The empty per-gate choices: one entry per template stage, nothing chosen.
+const emptyGates = () =>
+  PROGRAMME_TEMPLATE.stages.map((s) => ({
+    stage: s.stage,
+    target_date: '',
+    target_na: false,
+  }));
+
+describe('rolling advised gate dates: anchoring', () => {
+  it('advises gate 0 at the project start plus its gate duration', () => {
+    const result = deriveRollingGateDates(START, PROGRAMME_TEMPLATE, emptyGates());
+    expect(weeksFromStart(stageOf(result, 0).advisedDate)).toBe(12);
+    expect(result.projectStart.getTime()).toBe(START.getTime());
+  });
+
+  it('anchors a later gate on the previous gate chosen date, not its advised date', () => {
+    const gates = emptyGates();
+    // Choose gate 0 at week 20 from the start, later than its advised week 12.
+    const chosen0 = weeksAfterStart(20);
+    gates[0].target_date = iso(chosen0);
+
+    const result = deriveRollingGateDates(START, PROGRAMME_TEMPLATE, gates);
+    const gate0 = stageOf(result, 0);
+
+    // Gate 0's own advised date still anchors on the project start (week 12),
+    // independent of the date the developer chose for it.
+    expect(weeksFromStart(gate0.advisedDate)).toBe(12);
+    expect(gate0.chosenDate.getTime()).toBe(chosen0.getTime());
+    // The effective date carried forward is the chosen date, not the advised.
+    expect(gate0.effectiveDate.getTime()).toBe(chosen0.getTime());
+    // Gate 1 rolls from the chosen gate 0 date plus stage 1's 8 weeks: week 28.
+    expect(weeksFromStart(stageOf(result, 1).advisedDate)).toBe(28);
+  });
+
+  it('returns midnight UTC instants for every advised date', () => {
+    const result = deriveRollingGateDates(START, PROGRAMME_TEMPLATE, emptyGates());
+    for (const stage of result.stages) {
+      expect(stage.advisedDate.toISOString()).toMatch(/T00:00:00\.000Z$/);
+    }
+  });
+
+  it('echoes the template version', () => {
+    const result = deriveRollingGateDates(START, PROGRAMME_TEMPLATE, emptyGates());
+    expect(result.version).toBe(PROGRAMME_TEMPLATE_VERSION);
+  });
+});
+
+describe('rolling advised gate dates: an override shifts only later gates', () => {
+  const base = deriveRollingGateDates(START, PROGRAMME_TEMPLATE, emptyGates());
+
+  it('leaves the overridden gate and the gates before it on their advised dates', () => {
+    const gates = emptyGates();
+    // Push gate 2 four weeks past its advised date.
+    const advised2 = stageOf(base, 2).advisedDate;
+    gates[2].target_date = iso(new Date(advised2.getTime() + 4 * MS_PER_WEEK));
+
+    const result = deriveRollingGateDates(START, PROGRAMME_TEMPLATE, gates);
+    // Gate 2's own advised date is unchanged: it still anchors on gate 1's
+    // effective date, which the override does not touch.
+    for (const n of [0, 1, 2]) {
+      expect(stageOf(result, n).advisedDate.getTime()).toBe(
+        stageOf(base, n).advisedDate.getTime()
+      );
+    }
+  });
+
+  it('shifts every gate after the override by the same amount', () => {
+    const gates = emptyGates();
+    const advised2 = stageOf(base, 2).advisedDate;
+    gates[2].target_date = iso(new Date(advised2.getTime() + 4 * MS_PER_WEEK));
+
+    const result = deriveRollingGateDates(START, PROGRAMME_TEMPLATE, gates);
+    for (const n of [3, 4, 5, 6, 7]) {
+      const deltaWeeks =
+        (stageOf(result, n).advisedDate.getTime() -
+          stageOf(base, n).advisedDate.getTime()) /
+        MS_PER_WEEK;
+      expect(deltaWeeks).toBe(4);
+    }
+  });
+});
+
+describe('rolling advised gate dates: an N/A gate is skipped', () => {
+  const gates = emptyGates();
+  gates[1].target_na = true; // stage 1 not applicable
+  const result = deriveRollingGateDates(START, PROGRAMME_TEMPLATE, gates);
+
+  it('marks the skipped gate not applicable with no advised date', () => {
+    const stage1 = stageOf(result, 1);
+    expect(stage1.applicable).toBe(false);
+    expect(stage1.advisedDate).toBeNull();
+    expect(stage1.chosenDate).toBeNull();
+    expect(stage1.effectiveDate).toBeNull();
+  });
+
+  it('carries the anchor forward, not adding the skipped gate duration', () => {
+    // Stage 0 stays at week 12; stage 2 rolls from there plus stage 2's 6
+    // weeks, stage 1's 8 weeks not added: week 18.
+    expect(weeksFromStart(stageOf(result, 0).advisedDate)).toBe(12);
+    expect(weeksFromStart(stageOf(result, 2).advisedDate)).toBe(18);
+  });
+});
+
+describe('rolling advised gate dates: equals deriveAdvisedDates with no overrides', () => {
+  it('matches gate for gate when the choices are empty', () => {
+    const rolling = deriveRollingGateDates(
+      START,
+      PROGRAMME_TEMPLATE,
+      emptyGates()
+    );
+    const derived = deriveAdvisedDates(START, PROGRAMME_TEMPLATE);
+    for (let n = 0; n <= 7; n += 1) {
+      expect(stageOf(rolling, n).advisedDate.getTime()).toBe(
+        stageOf(derived, n).gateAdvisedDate.getTime()
+      );
+    }
+  });
+
+  it('matches gate for gate when no choices are supplied at all', () => {
+    const rolling = deriveRollingGateDates(START, PROGRAMME_TEMPLATE);
+    const derived = deriveAdvisedDates(START, PROGRAMME_TEMPLATE);
+    for (let n = 0; n <= 7; n += 1) {
+      expect(stageOf(rolling, n).advisedDate.getTime()).toBe(
+        stageOf(derived, n).gateAdvisedDate.getTime()
+      );
+    }
+  });
+
+  it('still matches across an N/A stage, with both sides skipping it', () => {
+    const gates = emptyGates();
+    gates[4].target_na = true;
+    const rolling = deriveRollingGateDates(START, PROGRAMME_TEMPLATE, gates);
+    const derived = deriveAdvisedDates(START, PROGRAMME_TEMPLATE, [4]);
+    for (const n of [0, 1, 2, 3, 5, 6, 7]) {
+      expect(stageOf(rolling, n).advisedDate.getTime()).toBe(
+        stageOf(derived, n).gateAdvisedDate.getTime()
+      );
+    }
+    expect(stageOf(rolling, 4).advisedDate).toBeNull();
+    expect(stageOf(derived, 4).gateAdvisedDate).toBeNull();
+  });
+});
+
+describe('rolling advised gate dates: without a project start date', () => {
+  it('advises nothing for undated gates while no anchor is held', () => {
+    const result = deriveRollingGateDates('', PROGRAMME_TEMPLATE, emptyGates());
+    expect(result.projectStart).toBeNull();
+    expect(stageOf(result, 0).advisedDate).toBeNull();
+    expect(stageOf(result, 1).advisedDate).toBeNull();
+  });
+
+  it('rolls later gates from a manually entered gate 0 date', () => {
+    const gates = emptyGates();
+    const chosen0 = new Date(Date.UTC(2026, 2, 2)); // 2026-03-02
+    gates[0].target_date = iso(chosen0);
+
+    const result = deriveRollingGateDates('', PROGRAMME_TEMPLATE, gates);
+    // Gate 0 still has no advised date (no anchor), but its chosen date seeds
+    // the chain: gate 1 advises that date plus stage 1's 8 weeks.
+    expect(stageOf(result, 0).advisedDate).toBeNull();
+    const weeksFromChosen0 =
+      (stageOf(result, 1).advisedDate.getTime() - chosen0.getTime()) /
+      MS_PER_WEEK;
+    expect(weeksFromChosen0).toBe(8);
+  });
+});
+
+describe('rolling advised gate dates: pure and forgiving of input shape', () => {
+  it('accepts the choices as a plain array as well as the { stages } object', () => {
+    const arr = emptyGates();
+    const viaArray = deriveRollingGateDates(START, PROGRAMME_TEMPLATE, arr);
+    const viaObject = deriveRollingGateDates(START, PROGRAMME_TEMPLATE, {
+      stages: arr,
+    });
+    for (let n = 0; n <= 7; n += 1) {
+      expect(stageOf(viaArray, n).advisedDate.getTime()).toBe(
+        stageOf(viaObject, n).advisedDate.getTime()
+      );
+    }
+  });
+
+  it('does not mutate the template', () => {
+    deriveRollingGateDates(START, PROGRAMME_TEMPLATE, emptyGates());
+    expect(PROGRAMME_TEMPLATE.stages[0].advisedDate).toBeUndefined();
+    expect(PROGRAMME_TEMPLATE.stages[0].milestones[0].advisedDate).toBeUndefined();
+  });
+
+  it('gives identical dates on repeated calls', () => {
+    const a = deriveRollingGateDates(START, PROGRAMME_TEMPLATE, emptyGates());
+    const b = deriveRollingGateDates(START, PROGRAMME_TEMPLATE, emptyGates());
+    for (let n = 0; n <= 7; n += 1) {
+      expect(stageOf(a, n).advisedDate.getTime()).toBe(
+        stageOf(b, n).advisedDate.getTime()
+      );
+    }
   });
 });

@@ -19,6 +19,10 @@ import {
   CONFIG_BY_STEP,
   cascadeCriticality,
 } from './listStepConfig';
+import {
+  loadProgrammeChoices,
+  saveProgrammeChoices,
+} from './programmeChoices';
 import styles from './InitiationWizard.module.css';
 
 /**
@@ -372,20 +376,6 @@ function financialFrom(budgetRow, milestoneRows, makeKey) {
   };
 }
 
-// Map the eight seeded project_stage_gates rows onto Step 7 state, in stage
-// order. Only the stage, the row id, and the target_date are needed here; the
-// gate status the Gate module owns is read and written elsewhere, never touched
-// by this step.
-function gatesFrom(rows) {
-  return [...(rows ?? [])]
-    .sort((a, b) => a.stage - b.stage)
-    .map((r) => ({
-      id: r.id,
-      stage: r.stage,
-      target_date: r.target_date ?? '',
-    }));
-}
-
 // Map the fetched project_objectives rows onto Step 3 field state, in the
 // canonical objective order (Scope, Cost, Time, Quality, Funding). Nulls
 // from the database become empty strings for the controlled inputs.
@@ -580,8 +570,10 @@ export default function InitiationWizard({
   const persistedFmIdsRef = useRef(new Set());
 
   // Step 7 Programme state. The eight stage-gate rows load once the project
-  // exists; gates holds their stage, id and target_date, and gatesStatus gates
-  // the step. The milestones reuse the shared list state (lists.milestones).
+  // exists; gates holds each stage's programme choice (id, stage, the chosen
+  // target_date, the N/A flag, and the keyed milestone choices) read through the
+  // 1b persistence layer, and gatesStatus gates the step. The milestones reuse
+  // the shared list state (lists.milestones); 1c touches the gate choices only.
   const [gates, setGates] = useState(null);
   const [gatesStatus, setGatesStatus] = useState('idle'); // idle | loading | loaded | error
   const gatesLoadStartedRef = useRef(null);
@@ -752,6 +744,27 @@ export default function InitiationWizard({
     if (error) setError(null);
   };
 
+  // Step 7 Programme edit: mark a stage gate not applicable, or clear the flag.
+  // Marking N/A clears any chosen date (an N/A gate carries none, see 1b) and
+  // carries the chain's anchor forward, so the next gate opens. Located by
+  // stage, like the date edit.
+  const onGateNaToggle = (stage, checked) => {
+    setGates((prev) =>
+      prev
+        ? prev.map((g) =>
+            g.stage === stage
+              ? {
+                  ...g,
+                  target_na: checked,
+                  target_date: checked ? '' : g.target_date,
+                }
+              : g
+          )
+        : prev
+    );
+    if (error) setError(null);
+  };
+
   // Fetch the five seeded objective rows for the current project. Used
   // both by the load effect and by the retry control if the fetch fails.
   const loadObjectives = async () => {
@@ -890,22 +903,23 @@ export default function InitiationWizard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
-  // Fetch the eight seeded stage-gate rows for Step 7. Like the objectives,
-  // these are seeded for every project, so fewer than eight means a load
-  // problem rather than an empty state.
+  // Fetch the eight seeded stage-gate rows for Step 7 as programme choices,
+  // through the 1b persistence layer (loadProgrammeChoices), so the chosen date,
+  // the N/A flag and the keyed milestone choices all come back in one read. Like
+  // the objectives, these rows are seeded for every project, so fewer than eight
+  // means a load problem rather than an empty state.
   const loadGates = async () => {
     if (!projectId) return;
     setGatesStatus('loading');
-    const { data, error: selErr } = await supabase
-      .from('project_stage_gates')
-      .select('id, stage, target_date')
-      .eq('project_id', projectId)
-      .order('stage', { ascending: true });
-    if (selErr || !data || data.length < 8) {
+    const { choices, error: selErr } = await loadProgrammeChoices(
+      supabase,
+      projectId
+    );
+    if (selErr || !choices || choices.stages.length < 8) {
       setGatesStatus('error');
       return;
     }
-    setGates(gatesFrom(data));
+    setGates(choices.stages);
     setGatesStatus('loaded');
   };
 
@@ -1484,19 +1498,14 @@ export default function InitiationWizard({
     return await persistFundingMilestones();
   };
 
-  // Save Step 7's stage gate target dates: update target_date on each of the
-  // eight seeded rows by id. Only target_date is written, so the gate status,
-  // sign-off and re-baseline fields the Gate module owns are never touched.
+  // Save Step 7's programme choices through the 1b persistence layer
+  // (saveProgrammeChoices): per stage the chosen gate date and the N/A flag,
+  // plus the keyed milestone choices, written onto the seeded rows by id. Only
+  // those choice fields are written, so the gate status, sign-off and
+  // re-baseline fields the Gate module owns are never touched. Advised dates are
+  // derived in the step and are never part of the payload.
   const persistGates = async () => {
-    const results = await Promise.all(
-      gates.map((g) =>
-        supabase
-          .from('project_stage_gates')
-          .update({ target_date: clean(g.target_date) })
-          .eq('id', g.id)
-      )
-    );
-    return results.find((r) => r.error)?.error ?? null;
+    return await saveProgrammeChoices(supabase, projectId, { stages: gates });
   };
 
   // Save a Step 5 to 7 list: reconcile the screen against the database so the
@@ -1999,7 +2008,12 @@ export default function InitiationWizard({
       }
       return (
         <>
-          <StepProgramme gates={gates} onGateDateChange={onGateDateChange} />
+          <StepProgramme
+            gates={gates}
+            projectStart={def.start_date}
+            onGateDateChange={onGateDateChange}
+            onGateNaToggle={onGateNaToggle}
+          />
           <StepItemList
             key="milestones"
             config={LIST_CONFIG.milestones}

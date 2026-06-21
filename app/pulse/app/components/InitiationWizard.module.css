@@ -1087,6 +1087,100 @@
   flex: 0 0 6.5rem;
 }
 
+/* ── Step 7: gate sequence (1c) ──
+   Each gate's date input sits beside its not-applicable toggle; the open gate
+   shows a rolling advised-date suggestion below. Gates reveal in sequence, so a
+   disabled input reads as not-yet-reached, not broken. */
+.gateRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.85rem;
+}
+
+.gateRow .input {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.gateRow .input:disabled {
+  background-color: rgba(55, 97, 131, 0.04);
+  color: var(--app-ink-secondary);
+  cursor: not-allowed;
+}
+
+.naToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 0 0 auto;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--app-ink-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.naToggle input {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  accent-color: var(--app-ink);
+  cursor: pointer;
+}
+
+/* Disabled toggle on a not-yet-reached gate: dimmed, not interactive. */
+.naToggleOff,
+.naToggleOff input {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* The advised-date suggestion for the open gate: a light amber pill to accept
+   the rolling date, beside an honest basis hint (a typical span, not statute). */
+.gateSuggest {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.suggestBtn {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--app-signal-ink);
+  background-color: var(--app-signal-wash);
+  border: 1px solid var(--app-signal-border);
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.suggestBtn:hover {
+  background-color: rgba(244, 192, 49, 0.24);
+  border-color: var(--app-signal);
+}
+
+.suggestBtn:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+}
+
+.suggestHint {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--app-ink-secondary);
+}
+
 /* ── Accessibility ─────────────────────── */
 
 .srOnly {
