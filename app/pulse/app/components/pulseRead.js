@@ -3,24 +3,26 @@
  *
  * Deterministic, computed from the project's own data. No AI, no external
  * data. Each insight names the actual objectives and counts involved, so it
- * is specific to the project and never generic. The ruleset is the M3.5
- * spec, Rules 1 to 5, verbatim in intent.
+ * is specific to the project and never generic. The ruleset began as the M3.5
+ * spec, Rules 1 to 5; Rules 3 (coverage) and 5 (funding governance) were retired
+ * in sub-step 1f, since milestones are now the curated template and the gaps they
+ * detected can no longer occur. The live rules are 1 (posture), 2 (risk
+ * concentration) and 4 (tolerance gaps).
  *
  * Input is the normalised `facts` object assembled in briefModel:
  *   facts.objectives  [{ id, type, name, classification, rank, definition,
  *                        tolerance }]  (rank order)
  *   facts.protected   objectives classified non_negotiable (rank order)
  *   facts.flexible    objectives classified flexible        (rank order)
- *   facts.milestones  [{ name, critical, linkedId }]   (real, non-blank)
  *   facts.workstreams [{ name, lead, critical, linkedId }]
  *   facts.risks       [{ num, description, critical, linkedId, ... }]
  *
  * Output is an ordered array of insights:
  *   { n, tone: 'standard' | 'warn', title, body }
- * Rule 1 (posture) is always first; Rules 2 to 5 follow in order, each only
- * if it fires. `tone: 'warn'` marks the amber advisory treatment (the
- * over-constraint case and the gap flags); positive and neutral reads use
- * the standard treatment.
+ * Rule 1 (posture) is always first; the remaining rules follow in order, each
+ * only if it fires. `tone: 'warn'` marks the amber advisory treatment (the
+ * over-constraint case and the gap flags); positive and neutral reads use the
+ * standard treatment.
  */
 
 import { formatList } from './briefFormat';
@@ -131,110 +133,6 @@ function ruleRiskConcentration(facts) {
   };
 }
 
-// Build the body of the consolidated coverage card. Groups the milestone
-// gaps and the lead gaps and names the objectives in each. Reads as one
-// clause when the two groups share the same objectives, otherwise as two.
-function buildCoverageBody(missingMilestone, missingLead) {
-  const closer =
-    'Protected objectives with no owner or tracking milestone are the first thing a reviewer challenges.';
-
-  // Same objectives lack both a milestone and a lead: collapse to one clause.
-  const sameSet =
-    missingMilestone.length > 0 &&
-    missingLead.length > 0 &&
-    missingMilestone.length === missingLead.length &&
-    missingMilestone.every((name) => missingLead.includes(name));
-
-  if (sameSet) {
-    const names = formatList(missingMilestone);
-    const lead =
-      missingMilestone.length === 1
-        ? `${names} is protected but has no milestone tied to it and no accountable workstream lead.`
-        : `${names} are protected but have no milestone tied to them, and none has an accountable workstream lead.`;
-    return `${lead} ${closer}`;
-  }
-
-  const parts = [];
-  if (missingMilestone.length) {
-    const v = missingMilestone.length === 1 ? 'has' : 'have';
-    const it = missingMilestone.length === 1 ? 'it' : 'them';
-    parts.push(`${formatList(missingMilestone)} ${v} no milestone tied to ${it}`);
-  }
-  if (missingLead.length) {
-    const v = missingLead.length === 1 ? 'has' : 'have';
-    parts.push(`${formatList(missingLead)} ${v} no accountable workstream lead`);
-  }
-  return `${parts.join(', and ')}. ${closer}`;
-}
-
-// Rule 3, Coverage (skipped when nn is 0). Each non-negotiable objective
-// should have at least one linked milestone and at least one linked
-// workstream with a named lead. Emits a SINGLE consolidated card naming the
-// objectives that lack a milestone and those that lack an accountable lead,
-// or a single positive card when every protected objective is covered, so a
-// project with nothing linked produces one clear insight rather than a wall
-// of near-identical cards.
-//
-// `suppressFundingMilestoneGap`: when Rule 5 fires (Funding non-negotiable
-// with no linked milestone) it gives that case a specific card, so Funding
-// is dropped from the milestone-gap list here to avoid saying the same thing
-// twice. Funding can still appear in the lead-gap list. A suppressed gap
-// still counts as a real gap, so the positive read cannot fire while Rule 5
-// reports a funding milestone gap.
-function ruleCoverage(facts, { suppressFundingMilestoneGap = false } = {}) {
-  const nn = facts.protected.length;
-  if (nn === 0) return [];
-
-  const missingMilestone = [];
-  const missingLead = [];
-  let anyGap = false;
-
-  for (const obj of facts.protected) {
-    const hasMilestone = facts.milestones.some((m) => m.linkedId === obj.id);
-    const hasLed = facts.workstreams.some(
-      (w) => w.linkedId === obj.id && w.lead
-    );
-    const isFunding = obj.type === 'funding';
-
-    if (!hasMilestone) {
-      anyGap = true;
-      if (!(isFunding && suppressFundingMilestoneGap)) {
-        missingMilestone.push(obj.name);
-      }
-    }
-    if (!hasLed) {
-      anyGap = true;
-      missingLead.push(obj.name);
-    }
-  }
-
-  // No gap anywhere: the positive read.
-  if (!anyGap) {
-    return [
-      {
-        tone: STANDARD,
-        title: 'Every protected objective is owned',
-        body:
-          'Every protected objective is backed by at least one milestone and an accountable workstream lead. Nothing marked critical is left unowned.',
-      },
-    ];
-  }
-
-  // Gaps existed but all were suppressed (only Funding's milestone, which
-  // Rule 5 reports instead): no coverage card here.
-  if (missingMilestone.length === 0 && missingLead.length === 0) {
-    return [];
-  }
-
-  return [
-    {
-      tone: WARN,
-      title: 'Coverage gaps in the protected set',
-      body: buildCoverageBody(missingMilestone, missingLead),
-    },
-  ];
-}
-
 // Rule 4, Tolerance gaps. Flexible objectives with no stated tolerance are
 // ambiguous; name them in a single insight.
 function ruleToleranceGaps(facts) {
@@ -250,25 +148,15 @@ function ruleToleranceGaps(facts) {
   };
 }
 
-// Rule 5, Funding governance. If Funding is non-negotiable but no milestone
-// is tied to it, the commitment is not trackable.
-function ruleFundingGovernance(facts) {
-  const funding = facts.objectives.find((o) => o.type === 'funding');
-  if (!funding || funding.classification !== 'non_negotiable') return null;
-  const hasMilestone = facts.milestones.some((m) => m.linkedId === funding.id);
-  if (hasMilestone) return null;
-  return {
-    tone: WARN,
-    title: 'Funding is not yet trackable',
-    body:
-      'Funding is non-negotiable, but no milestone is tied to it. A funding close or drawdown milestone makes that commitment trackable.',
-  };
-}
-
 /**
- * Compute the ordered insight list for a project. Rule 1 first, then Rules 2
- * to 5 in order, each only if it fires. Insights are numbered 1..n for the
- * badge in display order.
+ * Compute the ordered insight list for a project. Rule 1 (posture) first, then
+ * the remaining rules in order, each only if it fires. Insights are numbered
+ * 1..n for the badge in display order.
+ *
+ * Rules 3 (coverage) and 5 (funding governance) were retired in sub-step 1f:
+ * with milestones now the curated template, every protected objective except
+ * Scope is served by a template milestone and Funding always is, so the gaps
+ * those rules detected can no longer occur.
  */
 export function computeInsights(facts) {
   const out = [rulePosture(facts)];
@@ -276,15 +164,8 @@ export function computeInsights(facts) {
   const concentration = ruleRiskConcentration(facts);
   if (concentration) out.push(concentration);
 
-  // Resolve Rule 5 up front so Rule 3 can suppress its funding milestone gap
-  // when Rule 5 will report it. Rule 5 still renders in order, after Rule 4.
-  const funding = ruleFundingGovernance(facts);
-  out.push(...ruleCoverage(facts, { suppressFundingMilestoneGap: !!funding }));
-
   const tolerance = ruleToleranceGaps(facts);
   if (tolerance) out.push(tolerance);
-
-  if (funding) out.push(funding);
 
   return out.map((insight, i) => ({ n: i + 1, ...insight }));
 }

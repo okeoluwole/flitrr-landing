@@ -22,19 +22,28 @@
  *   - ranking              -> the live rankOrder (always the source of truth
  *                             for order; the persisted rank column can lag a
  *                             same-session reorder, so it is not used here)
- *   - lists                -> lists.milestones / workstreams / risks, keyed on
- *                             the same identity field the brief uses to drop
- *                             blank rows (name, name, description)
+ *   - workstreams, risks   -> lists.workstreams / lists.risks, keyed on the same
+ *                             identity field the brief uses to drop blank rows
+ *                             (name, description)
+ *   - milestones           -> the curated programme template plus the gate
+ *                             choices (deriveMilestoneView), not project_milestones
  *
- * Notes on two required checks that are structurally always satisfied by the
+ * Notes on the required checks that are structurally always satisfied by the
  * time the brief renders, kept as real (defensive) checks rather than dropped:
  *   - "all five classified": classification is never null (it defaults to
  *     flexible), so this passes whenever the five objective rows are present.
  *   - "ranking complete": rankOrder always holds all five once Step 4 is
  *     reached, which is required to reach the brief.
+ *   - "at least one milestone": milestones are the curated template now, so one
+ *     always exists unless every stage is marked not applicable.
  * The meaningful objective gate is therefore the definitions, and the
- * meaningful list gate is at least one named milestone, workstream and risk.
+ * meaningful list gate is at least one named workstream and risk. Milestones are
+ * the curated template now (sub-steps 1d to 1f), so at least one always exists
+ * unless every stage is marked not applicable.
  */
+
+import { PROGRAMME_TEMPLATE } from '../../../../lib/engine/programmeTemplate.js';
+import { deriveMilestoneView } from '../../../../lib/engine/programmeMilestones.js';
 
 const OBJECTIVE_COUNT = 5;
 
@@ -63,9 +72,23 @@ export function checkCompleteness({
   gates,
 } = {}) {
   const objs = objectives ?? [];
-  const milestones = lists?.milestones ?? [];
   const workstreams = lists?.workstreams ?? [];
   const risks = lists?.risks ?? [];
+
+  // Milestones are the curated programme template (Step 7, sub-steps 1d to 1f),
+  // not the legacy project_milestones list. deriveMilestoneView is the one source
+  // the Brief and Step 7 also read: the template supplies the milestones and the
+  // gate choices supply each one's chosen date. A not-applicable stage
+  // contributes none, so a fresh project (no legacy rows) is assessed on exactly
+  // what Step 7 shows.
+  const templateMilestones = deriveMilestoneView(
+    PROGRAMME_TEMPLATE,
+    gates,
+    objectives,
+    def?.start_date
+  ).stages
+    .filter((s) => s.applicable)
+    .flatMap((s) => s.milestones);
 
   // ── Required (these block the lock) ──────────────────────────────────────
 
@@ -124,7 +147,7 @@ export function checkCompleteness({
       key: 'milestone',
       group: 'Milestones, workstreams and risks',
       label: 'At least one milestone',
-      ok: hasNamed(milestones, 'name'),
+      ok: templateMilestones.length > 0,
     },
     {
       key: 'workstream',
@@ -148,12 +171,13 @@ export function checkCompleteness({
 
   // ── Recommended (shown, never blocking) ──────────────────────────────────
 
-  const realMilestones = milestones.filter((m) => present(m.name));
   const realWorkstreams = workstreams.filter((w) => present(w.name));
   const flexible = objs.filter((o) => o.classification === 'flexible');
 
   const leadsAssigned = realWorkstreams.filter((w) => present(w.lead)).length;
-  const datesSet = realMilestones.filter((m) => present(m.target_date)).length;
+  // The developer's chosen dates come from the gate choices (milestone_choices),
+  // surfaced on each template milestone by deriveMilestoneView as `date`.
+  const datesSet = templateMilestones.filter((m) => present(m.date)).length;
   const tolerancesSet = flexible.filter((o) => present(o.tolerance)).length;
 
   const financialsEntered = [
@@ -200,11 +224,11 @@ export function checkCompleteness({
     {
       key: 'milestoneDates',
       label: 'Milestone target dates',
-      ok: realMilestones.length === 0 || datesSet === realMilestones.length,
+      ok: templateMilestones.length === 0 || datesSet === templateMilestones.length,
       detail:
-        realMilestones.length === 0
+        templateMilestones.length === 0
           ? null
-          : `${datesSet} of ${realMilestones.length} set`,
+          : `${datesSet} of ${templateMilestones.length} set`,
     },
     {
       key: 'financials',
