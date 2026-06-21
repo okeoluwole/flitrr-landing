@@ -90,43 +90,12 @@ const STAGES = [
 ];
 
 const PRINCIPLES = [
-  {
-    name: 'Objective criticality',
-    body: 'Decide which objectives must hold firm and which can move. Every deliverable project keeps some give; the framework makes you choose where, on purpose.',
-  },
-  {
-    name: 'Cascading classification',
-    body: 'That weighting flows down to the milestones, risks, and workstreams that serve each objective, so nothing carries more protection than the objective it serves.',
-  },
-  {
-    name: 'Staged delivery with gates',
-    body: 'Each stage ends in a deliberate go or no-go, and the gate records what was agreed against what actually happened.',
-  },
-  {
-    name: 'Locked baseline',
-    body: 'Once defined, the project is the single agreed truth, changing only by deliberate re-approval, never by drift.',
-  },
-  {
-    name: 'Proportional monitoring and escalation',
-    body: 'Attention follows criticality. What must hold is watched closely and raised early, on thresholds agreed when the project is defined.',
-  },
-  {
-    name: 'Tailoring within discipline',
-    body: 'The method adapts to the type, size, and geography of the scheme. The principles stay fixed.',
-  },
-];
-
-const MANDATE = [
-  { name: 'Purpose', body: 'What the stage is for.' },
-  {
-    name: 'Establish or achieve',
-    body: 'The decisions to lock and the objectives to set or advance.',
-  },
-  { name: 'Produce', body: 'The outputs the stage must deliver.' },
-  {
-    name: 'Success Factors',
-    body: 'What decides whether the stage succeeds, and where developers most often come unstuck.',
-  },
+  'Objective criticality',
+  'Cascading classification',
+  'Staged delivery with gates',
+  'Locked baseline',
+  'Proportional monitoring and escalation',
+  'Tailoring within discipline',
 ];
 
 function Arrow() {
@@ -312,44 +281,31 @@ export default async function FrameworkPage() {
                 <p className={styles.sectionIntro}>They apply at every stage.</p>
               </div>
               <ol className={styles.principles}>
-                {PRINCIPLES.map((p, i) => (
-                  <li key={p.name} className={styles.principle} data-reveal>
+                {PRINCIPLES.map((name, i) => (
+                  <li key={name} className={styles.principle} data-reveal>
                     <span className={`${styles.principleNum} tnum`} aria-hidden="true">
                       {i + 1}
                     </span>
-                    <div>
-                      <h3 className={styles.principleName}>{p.name}</h3>
-                      <p className={styles.principleBody}>{p.body}</p>
-                    </div>
+                    <h3 className={styles.principleName}>{name}</h3>
                   </li>
                 ))}
               </ol>
             </div>
           </section>
 
-          {/* The four mandates: the anatomy of every stage. */}
+          {/* The four-part mandate: a centered capstone statement. The detail
+              of the four parts belongs to the method, not the marketing page. */}
           <section className={styles.section} aria-labelledby="mandate-heading">
             <div className="container">
-              <div className={styles.sectionHead} data-reveal>
+              <div className={styles.statement} data-reveal>
                 <h2 id="mandate-heading" className={styles.sectionHeading}>
                   Every stage meets a four-part mandate.
                 </h2>
-                <p className={styles.sectionIntro}>
+                <p className={styles.statementIntro}>
                   Within the structure, every stage is defined the same way. It is
                   how the framework holds eight different phases to one standard.
                 </p>
               </div>
-              <ol className={styles.mandates}>
-                {MANDATE.map((m, i) => (
-                  <li key={m.name} className={styles.mandate} data-reveal>
-                    <span className={`${styles.mandateNum} tnum`} aria-hidden="true">
-                      {i + 1}
-                    </span>
-                    <h3 className={styles.mandateName}>{m.name}</h3>
-                    <p className={styles.mandateBody}>{m.body}</p>
-                  </li>
-                ))}
-              </ol>
             </div>
           </section>
 
