@@ -38,7 +38,6 @@ export default function HomeNav({ user }) {
           className={`${styles.navLinks} ${menuOpen ? styles.navLinksOpen : ''}`}
           aria-label="Primary navigation"
         >
-          <a href="/#lifecycle" onClick={close}>Lifecycle</a>
           <a href="/#framework" onClick={close}>Flitrr Framework</a>
           <a href="/#pulse" onClick={close}>Product</a>
           {isSignedIn ? (
