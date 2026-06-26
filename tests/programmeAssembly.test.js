@@ -371,14 +371,13 @@ describe('an activity with zero milestones assembles cleanly', () => {
   const choices = makeChoices(T, ADVISED_SPEC);
   const prog = assembleProgramme(START, T, choices, [], OBJECTIVES);
 
-  it('contributes its duration and raises no milestone events for the eight empty activities', () => {
+  it('contributes its duration and raises no milestone events for the four closing activities', () => {
+    // Only the four closing activities are bare now: 1a, 2a, 3a and 5a each carry
+    // a drill-down completion milestone the engine places (see the drill-down
+    // describe below).
     const emptyKeys = [
       '0b_legal_completion',
-      '1a_brief_feasibility',
-      '2a_scope_selection',
-      '3a_design_development',
       '4b_evaluation_award',
-      '5a_substructure',
       '6b_handover_defects',
       '7b_completions_disposal',
     ];
@@ -404,8 +403,9 @@ describe('an activity with zero milestones assembles cleanly', () => {
     const total = prog.stages
       .flatMap((s) => s.activities)
       .reduce((n, a) => n + a.milestones.length, 0);
-    // The real template carries nine headline milestones and no drill-downs yet.
-    expect(total).toBe(9);
+    // Nine headline milestones plus the four drill-down completion milestones on
+    // activities 1a, 2a, 3a and 5a: thirteen, no more invented.
+    expect(total).toBe(13);
   });
 });
 
@@ -442,6 +442,62 @@ describe('criticality is baked from the served objective', () => {
   it('defaults a milestone with no matching objective to standard', () => {
     const prog2 = assembleProgramme(START, T, choices, [], []);
     expect(milestoneOf(prog2, 0, 'heads_of_terms').criticality).toBe('standard');
+  });
+});
+
+describe('the four real drill-down milestones are placed as added on the agreed skeleton', () => {
+  // The developer dated every gate and headline milestone at its advised position
+  // (ADVISED_SPEC) and dated no drill-down, so each of the four template drill-down
+  // milestones is placed by its absolute offset from its agreed stage start and
+  // tagged added, with no change to the assembly logic. Stage starts on the
+  // accepted advised gates: stage 1 at week 12, stage 2 at 20, stage 3 at 26,
+  // stage 5 at 68. Objectives here make cost and time non-negotiable, so the only
+  // critical drill-down is substructure_complete (serves time).
+  //   [stage, key, weeksFromStart, criticality]
+  const CASES = [
+    [1, 'feasibility_confirmed', 15, 'standard'],
+    [2, 'consultant_scope_agreed', 24, 'standard'],
+    [3, 'developed_design_complete', 34, 'standard'],
+    [5, 'substructure_complete', 80, 'critical'],
+  ];
+  const choices = makeChoices(T, ADVISED_SPEC);
+  const prog = assembleProgramme(START, T, choices, [], OBJECTIVES);
+
+  it('places each drill-down at its agreed stage start plus its offset, tagged added', () => {
+    for (const [stage, key, weeks] of CASES) {
+      const m = milestoneOf(prog, stage, key);
+      expect(m).toBeDefined();
+      expect(weeksFromStart(m.baselineDate)).toBe(weeks);
+      expect(m.origin).toBe(ITEM_ORIGIN.ADDED);
+    }
+  });
+
+  it('sits each drill-down exactly its curated offset from its agreed stage start', () => {
+    for (const [stage, key] of CASES) {
+      const m = milestoneOf(prog, stage, key);
+      const start = weeksFromStart(stageOf(prog, stage).stageStart);
+      expect(weeksFromStart(m.baselineDate) - start).toBe(m.offsetWeeks);
+    }
+  });
+
+  it('bakes each drill-down criticality from the objective it serves', () => {
+    for (const [stage, key, , criticality] of CASES) {
+      expect(milestoneOf(prog, stage, key).criticality).toBe(criticality);
+    }
+  });
+
+  it('homes each drill-down on its first mid-stage activity (1a, 2a, 3a, 5a)', () => {
+    const homes = [
+      [1, '1a_brief_feasibility', 'feasibility_confirmed'],
+      [2, '2a_scope_selection', 'consultant_scope_agreed'],
+      [3, '3a_design_development', 'developed_design_complete'],
+      [5, '5a_substructure', 'substructure_complete'],
+    ];
+    for (const [stage, activityKey, key] of homes) {
+      expect(activityOf(prog, stage, activityKey).milestones.map((m) => m.key)).toContain(
+        key
+      );
+    }
   });
 });
 

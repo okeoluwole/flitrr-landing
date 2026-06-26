@@ -104,6 +104,35 @@ describe('the locked milestone set matches the template, with no free milestones
       'Finishing complete',
     ]);
   });
+
+  it('surfaces only headline milestones: the four drill-down milestones never appear', () => {
+    // The drill-down milestones are template-derived completion points the
+    // developer never sets, so deriveMilestoneView must not surface them.
+    const drilldownKeys = [
+      'feasibility_confirmed',
+      'consultant_scope_agreed',
+      'developed_design_complete',
+      'substructure_complete',
+    ];
+    const drilldownNames = [
+      'Brief and feasibility confirmed',
+      'Consultant scope agreed',
+      'Developed design complete',
+      'Substructure complete',
+    ];
+    const all = allViewMilestones(view);
+    for (const key of drilldownKeys) {
+      expect(all.find((m) => m.key === key)).toBeUndefined();
+    }
+    for (const name of drilldownNames) {
+      expect(all.find((m) => m.name === name)).toBeUndefined();
+    }
+    // Stage 5 carries the drill-down substructure_complete on activity 5a in the
+    // template, yet the view shows only its two headline milestones.
+    expect(viewStage(view, 5).milestones).toHaveLength(2);
+    // Exactly the nine headline milestones across the whole view.
+    expect(all).toHaveLength(9);
+  });
 });
 
 describe('criticality is derived live from the served objective via the kernel', () => {

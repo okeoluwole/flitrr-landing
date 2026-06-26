@@ -3,6 +3,7 @@ import {
   PROGRAMME_TEMPLATE,
   PROGRAMME_TEMPLATE_VERSION,
   SERVED_OBJECTIVES,
+  MILESTONE_TIER,
   stageMilestones,
   stageActivityWeeks,
   withinNormBand,
@@ -72,7 +73,7 @@ const GATE_WEEKS = { 0: 12, 1: 8, 2: 6, 3: 30, 4: 12, 5: 52, 6: 6, 7: 20 };
 describe('PROGRAMME_TEMPLATE shape', () => {
   it('is versioned and marks its durations as curated estimates in weeks', () => {
     expect(PROGRAMME_TEMPLATE.version).toBe(PROGRAMME_TEMPLATE_VERSION);
-    expect(PROGRAMME_TEMPLATE.version).toBe('1.1.0');
+    expect(PROGRAMME_TEMPLATE.version).toBe('1.2.0');
     expect(PROGRAMME_TEMPLATE.basis).toBe('curated estimate');
     expect(PROGRAMME_TEMPLATE.unit).toBe('weeks');
     expect(PROGRAMME_TEMPLATE.region).toBe('neutral');
@@ -215,14 +216,14 @@ describe('the existing milestones are re-homed onto activities, unedited', () =>
     home(7, '7a_marketing_sales', 'First unit exchanged');
   });
 
-  it('leaves the activities Section 6 gives no milestone with an empty list', () => {
+  it('leaves only the four closing activities bare (they are tracked by their gate)', () => {
+    // The four mid-stage activities 1a, 2a, 3a and 5a now carry a drill-down
+    // completion milestone (see the drill-down describe below); only the four
+    // closing activities stay bare, each closed by its stage gate under the
+    // percent-complete rule, so they register progress without a milestone.
     const empty = [
       [0, '0b_legal_completion'],
-      [1, '1a_brief_feasibility'],
-      [2, '2a_scope_selection'],
-      [3, '3a_design_development'],
       [4, '4b_evaluation_award'],
-      [5, '5a_substructure'],
       [6, '6b_handover_defects'],
       [7, '7b_completions_disposal'],
     ];
@@ -252,6 +253,96 @@ describe('the existing milestones are re-homed onto activities, unedited', () =>
       serves: 'quality',
       offsetWeeks: 44,
     });
+  });
+});
+
+describe('the four drill-down milestones (Programme module drill-down step)', () => {
+  // One completion milestone on each of the four mid-stage activities that could
+  // not otherwise register progress under the percent-complete rule. Each sits at
+  // its activity end: the stage-relative offset equals the activity's own typical
+  // duration, because each is the first activity in its stage. They serve,
+  // respectively, Scope, Scope, Quality and Time.
+  //   [stage, activityKey, key, name, serves, offsetWeeks]
+  const DRILLDOWNS = [
+    [1, '1a_brief_feasibility', 'feasibility_confirmed', 'Brief and feasibility confirmed', 'scope', 3],
+    [2, '2a_scope_selection', 'consultant_scope_agreed', 'Consultant scope agreed', 'scope', 4],
+    [3, '3a_design_development', 'developed_design_complete', 'Developed design complete', 'quality', 8],
+    [5, '5a_substructure', 'substructure_complete', 'Substructure complete', 'time', 12],
+  ];
+
+  // The raw activity milestones, including the drill-downs stageMilestones filters
+  // out, so the four can be inspected directly on the template.
+  const rawMilestonesOf = (stage, activityKey) =>
+    activityOf(stageOf(stage), activityKey).milestones;
+
+  it('places one drill-down on each of 1a, 2a, 3a and 5a, with the right key, name, served objective and offset', () => {
+    for (const [stage, activityKey, key, name, serves, offsetWeeks] of DRILLDOWNS) {
+      const ms = rawMilestonesOf(stage, activityKey);
+      expect(ms).toHaveLength(1);
+      expect(ms[0]).toMatchObject({ key, name, serves, offsetWeeks });
+    }
+  });
+
+  it('serves Scope, Scope, Quality and Time respectively, by the kernel identifier', () => {
+    expect(DRILLDOWNS.map(([, , , , serves]) => serves)).toEqual([
+      'scope',
+      'scope',
+      'quality',
+      'time',
+    ]);
+  });
+
+  it('tags the four as drill-down and the nine the one-level template held as headline', () => {
+    const drilldownKeys = new Set(DRILLDOWNS.map(([, , key]) => key));
+    for (const stage of PROGRAMME_TEMPLATE.stages) {
+      for (const a of stage.activities) {
+        for (const m of a.milestones) {
+          const expected = drilldownKeys.has(m.key)
+            ? MILESTONE_TIER.DRILLDOWN
+            : MILESTONE_TIER.HEADLINE;
+          expect(m.tier).toBe(expected);
+        }
+      }
+    }
+  });
+
+  it("sets each offset to its activity's own typical duration, so it sits at the activity end", () => {
+    for (const [stage, activityKey, , , , offsetWeeks] of DRILLDOWNS) {
+      expect(offsetWeeks).toBe(activityOf(stageOf(stage), activityKey).typicalWeeks);
+    }
+  });
+
+  it('keeps all thirteen milestone keys unique and distinct from every activity key', () => {
+    const allMilestoneKeys = PROGRAMME_TEMPLATE.stages.flatMap((s) =>
+      s.activities.flatMap((a) => a.milestones.map((m) => m.key))
+    );
+    expect(allMilestoneKeys).toHaveLength(13);
+    expect(new Set(allMilestoneKeys).size).toBe(13);
+    const activityKeys = new Set(
+      PROGRAMME_TEMPLATE.stages.flatMap((s) => s.activities.map((a) => a.key))
+    );
+    for (const key of allMilestoneKeys) expect(activityKeys.has(key)).toBe(false);
+  });
+
+  it('excludes the drill-downs from stageMilestones (the developer-facing headline list)', () => {
+    const headlineKeys = PROGRAMME_TEMPLATE.stages.flatMap((s) =>
+      stageMilestones(s).map((m) => m.key)
+    );
+    expect(headlineKeys).toHaveLength(9);
+    for (const [, , key] of DRILLDOWNS) {
+      expect(headlineKeys).not.toContain(key);
+    }
+    // Everything stageMilestones returns is a headline milestone.
+    for (const stage of PROGRAMME_TEMPLATE.stages) {
+      for (const m of stageMilestones(stage)) {
+        expect(m.tier).not.toBe(MILESTONE_TIER.DRILLDOWN);
+      }
+    }
+  });
+
+  it('exports the MILESTONE_TIER vocabulary, frozen', () => {
+    expect(MILESTONE_TIER).toEqual({ HEADLINE: 'headline', DRILLDOWN: 'drilldown' });
+    expect(Object.isFrozen(MILESTONE_TIER)).toBe(true);
   });
 });
 

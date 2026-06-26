@@ -114,6 +114,23 @@ describe('the Brief milestone list is the curated template, not project_mileston
     expect(byName(preview, 'Heads of terms agreed').critical).toBe(false);
     expect(byName(preview, 'Tenders returned').critical).toBe(false);
   });
+
+  it('never renders the four drill-down milestones (only headline milestones surface)', () => {
+    // The drill-down milestones are not developer-facing, so no Brief render shows
+    // them: the Brief lists exactly the nine headline template milestones.
+    const brief = assembleBrief(stateWith(emptyGates()));
+    const names = brief.milestones.map((m) => m.name);
+    for (const name of [
+      'Brief and feasibility confirmed',
+      'Consultant scope agreed',
+      'Developed design complete',
+      'Substructure complete',
+    ]) {
+      expect(names).not.toContain(name);
+    }
+    expect(names).toEqual(templateMilestones.map((m) => m.name));
+    expect(names).toHaveLength(9);
+  });
 });
 
 describe("a milestone's chosen date and note flow through to the Brief, by stable key", () => {
