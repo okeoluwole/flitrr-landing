@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { PROGRAMME_TEMPLATE } from '../lib/engine/programmeTemplate.js';
+import {
+  PROGRAMME_TEMPLATE,
+  stageMilestones,
+} from '../lib/engine/programmeTemplate.js';
 import { deriveMilestoneView } from '../lib/engine/programmeMilestones.js';
 import {
   buildObjectiveIndex,
@@ -38,9 +41,11 @@ const objectivesWith = (overrides = {}) =>
   }));
 
 // Every template milestone, flattened to { stage, key, name, serves }, the
-// canonical set the view must reproduce exactly.
+// canonical set the view must reproduce exactly. Milestones now sit under each
+// stage's activities, so read them through stageMilestones (the same flatten the
+// view uses), which preserves the one-level order.
 const templateMilestones = PROGRAMME_TEMPLATE.stages.flatMap((s) =>
-  s.milestones.map((m) => ({
+  stageMilestones(s).map((m) => ({
     stage: s.stage,
     key: m.key,
     name: m.name,
@@ -87,7 +92,7 @@ describe('the locked milestone set matches the template, with no free milestones
     for (const stage of PROGRAMME_TEMPLATE.stages) {
       const vs = viewStage(view, stage.stage);
       expect(vs.milestones.map((m) => m.key)).toEqual(
-        stage.milestones.map((m) => m.key)
+        stageMilestones(stage).map((m) => m.key)
       );
     }
     expect(allViewMilestones(view)).toHaveLength(templateMilestones.length);

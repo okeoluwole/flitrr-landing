@@ -176,7 +176,11 @@ describe('pure and deterministic', () => {
   it('does not mutate the template', () => {
     deriveAdvisedDates(START, PROGRAMME_TEMPLATE);
     // The derivation writes advisedDate onto its own output, never the template.
-    expect(PROGRAMME_TEMPLATE.stages[0].milestones[0].advisedDate).toBeUndefined();
+    // Milestones now sit under activities (two-level shape), so reach the first
+    // milestone through stage 0's first activity.
+    expect(
+      PROGRAMME_TEMPLATE.stages[0].activities[0].milestones[0].advisedDate
+    ).toBeUndefined();
     expect(PROGRAMME_TEMPLATE.stages[0].stageStart).toBeUndefined();
   });
 
@@ -388,7 +392,9 @@ describe('rolling advised gate dates: pure and forgiving of input shape', () => 
   it('does not mutate the template', () => {
     deriveRollingGateDates(START, PROGRAMME_TEMPLATE, emptyGates());
     expect(PROGRAMME_TEMPLATE.stages[0].advisedDate).toBeUndefined();
-    expect(PROGRAMME_TEMPLATE.stages[0].milestones[0].advisedDate).toBeUndefined();
+    expect(
+      PROGRAMME_TEMPLATE.stages[0].activities[0].milestones[0].advisedDate
+    ).toBeUndefined();
   });
 
   it('gives identical dates on repeated calls', () => {

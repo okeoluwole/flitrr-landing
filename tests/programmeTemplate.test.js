@@ -3,24 +3,76 @@ import {
   PROGRAMME_TEMPLATE,
   PROGRAMME_TEMPLATE_VERSION,
   SERVED_OBJECTIVES,
+  stageMilestones,
+  stageActivityWeeks,
+  withinNormBand,
 } from '../lib/engine/programmeTemplate.js';
 
 /**
- * The curated programme template (Step 7, sub-step 1a). Proves the template is
- * versioned, marked as curated estimates, covers the eight lifecycle stages,
- * serves only the five framework objectives, and that its location-sensitive
- * checkpoints are flags only: a label and a prompt, never a numeric value.
+ * The curated programme template (Step 7, sub-step 1a; extended to two levels by
+ * Programme module Phase 1 Foundation). Proves the template is versioned, marked
+ * as curated estimates, covers the eight lifecycle stages, and that its
+ * location-sensitive checkpoints are flags only. The Foundation step adds the
+ * two-level shape: an ordered activities array per stage (two as the norm, three
+ * for Construction), each with a typical duration and a generous within-norm
+ * band, the milestones re-homed onto the activity each sits under, and the gate
+ * still placed by gateWeeks. It also proves the gate-timing divergence the step
+ * deliberately holds for later reconciliation, rather than papering over it.
  */
 
 const SERVED_VALUES = Object.values(SERVED_OBJECTIVES);
 const stageOf = (n) => PROGRAMME_TEMPLATE.stages.find((s) => s.stage === n);
+const activityOf = (stage, key) => stage.activities.find((a) => a.key === key);
 const milestoneOf = (stage, name) =>
-  stage.milestones.find((m) => m.name === name);
+  stageMilestones(stage).find((m) => m.name === name);
+
+// The first-draft activity breakdown (specification Section 6), as the canonical
+// set the template must reproduce: per stage, the ordered activities by key,
+// name, and typical weeks, with the milestone keys re-homed onto each.
+const ACTIVITY_SPEC = {
+  0: [
+    ['0a_site_search', 'Site search and appraisal', 12, ['heads_of_terms']],
+    ['0b_legal_completion', 'Acquisition and legal completion', 8, []],
+  ],
+  1: [
+    ['1a_brief_feasibility', 'Brief and feasibility', 3, []],
+    ['1b_funding_secured', 'Funding secured', 6, ['finance_committed']],
+  ],
+  2: [
+    ['2a_scope_selection', 'Scope and selection', 4, []],
+    ['2b_appointment_mobilisation', 'Appointment and mobilisation', 4, ['lead_consultant']],
+  ],
+  3: [
+    ['3a_design_development', 'Design development', 8, []],
+    ['3b_planning_approvals', 'Planning and statutory approvals', 12, ['planning_validated']],
+  ],
+  4: [
+    ['4a_tender', 'Tender', 6, ['tenders_returned']],
+    ['4b_evaluation_award', 'Evaluation and award', 6, []],
+  ],
+  5: [
+    ['5a_substructure', 'Substructure', 12, []],
+    ['5b_superstructure', 'Superstructure', 24, ['superstructure']],
+    ['5c_fitout_finishing', 'Fit-out and finishing', 18, ['finishing']],
+  ],
+  6: [
+    ['6a_completion_certification', 'Completion and certification', 4, ['completion_certificate']],
+    ['6b_handover_defects', 'Handover and defects', 6, []],
+  ],
+  7: [
+    ['7a_marketing_sales', 'Marketing and sales', 20, ['first_exchange']],
+    ['7b_completions_disposal', 'Completions and disposal', 12, []],
+  ],
+};
+
+// The gate durations the live Brief derives its advised dates from, retained
+// unchanged at this step so the locked Brief stays byte-stable.
+const GATE_WEEKS = { 0: 12, 1: 8, 2: 6, 3: 30, 4: 12, 5: 52, 6: 6, 7: 20 };
 
 describe('PROGRAMME_TEMPLATE shape', () => {
   it('is versioned and marks its durations as curated estimates in weeks', () => {
     expect(PROGRAMME_TEMPLATE.version).toBe(PROGRAMME_TEMPLATE_VERSION);
-    expect(PROGRAMME_TEMPLATE.version).toBeTruthy();
+    expect(PROGRAMME_TEMPLATE.version).toBe('1.1.0');
     expect(PROGRAMME_TEMPLATE.basis).toBe('curated estimate');
     expect(PROGRAMME_TEMPLATE.unit).toBe('weeks');
     expect(PROGRAMME_TEMPLATE.region).toBe('neutral');
@@ -35,21 +87,211 @@ describe('PROGRAMME_TEMPLATE shape', () => {
   it('gives every stage a positive gate duration and at least one milestone', () => {
     for (const stage of PROGRAMME_TEMPLATE.stages) {
       expect(stage.gateWeeks).toBeGreaterThan(0);
-      expect(stage.milestones.length).toBeGreaterThanOrEqual(1);
+      expect(stageMilestones(stage).length).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  it('retains the shipped gate durations unchanged (the Brief stays byte-stable)', () => {
+    for (const [stage, weeks] of Object.entries(GATE_WEEKS)) {
+      expect(stageOf(Number(stage)).gateWeeks).toBe(weeks);
     }
   });
 
   it('is read-only (deep frozen) so the derivation cannot mutate it', () => {
     expect(Object.isFrozen(PROGRAMME_TEMPLATE)).toBe(true);
     expect(Object.isFrozen(PROGRAMME_TEMPLATE.stages)).toBe(true);
-    expect(Object.isFrozen(PROGRAMME_TEMPLATE.stages[0].milestones[0])).toBe(true);
+    expect(Object.isFrozen(PROGRAMME_TEMPLATE.stages[0].activities)).toBe(true);
+    expect(Object.isFrozen(PROGRAMME_TEMPLATE.stages[0].activities[0])).toBe(true);
+    expect(
+      Object.isFrozen(PROGRAMME_TEMPLATE.stages[0].activities[0].withinNormWeeks)
+    ).toBe(true);
+    expect(
+      Object.isFrozen(PROGRAMME_TEMPLATE.stages[0].activities[0].milestones[0])
+    ).toBe(true);
+  });
+});
+
+describe('the two-level activities shape', () => {
+  it('gives every stage an ordered activities array, two per stage and three for Construction', () => {
+    for (const stage of PROGRAMME_TEMPLATE.stages) {
+      expect(Array.isArray(stage.activities)).toBe(true);
+      const expected = stage.stage === 5 ? 3 : 2;
+      expect(stage.activities).toHaveLength(expected);
+    }
+  });
+
+  it('gives every activity a key, name, typical duration, within-norm band, and milestones array', () => {
+    for (const stage of PROGRAMME_TEMPLATE.stages) {
+      for (const a of stage.activities) {
+        expect(typeof a.key).toBe('string');
+        expect(a.key.length).toBeGreaterThan(0);
+        expect(typeof a.name).toBe('string');
+        expect(a.name.length).toBeGreaterThan(0);
+        expect(typeof a.typicalWeeks).toBe('number');
+        expect(a.typicalWeeks).toBeGreaterThan(0);
+        expect(typeof a.withinNormWeeks.min).toBe('number');
+        expect(typeof a.withinNormWeeks.max).toBe('number');
+        expect(Array.isArray(a.milestones)).toBe(true);
+      }
+    }
+  });
+
+  it('encodes the Section 6 activities in order, by key, name and typical weeks', () => {
+    for (const [stage, specs] of Object.entries(ACTIVITY_SPEC)) {
+      const got = stageOf(Number(stage)).activities.map((a) => [
+        a.key,
+        a.name,
+        a.typicalWeeks,
+      ]);
+      expect(got).toEqual(specs.map(([key, name, weeks]) => [key, name, weeks]));
+    }
+  });
+
+  it('gives every activity a unique key, distinct from every milestone key', () => {
+    const activityKeys = PROGRAMME_TEMPLATE.stages.flatMap((s) =>
+      s.activities.map((a) => a.key)
+    );
+    const milestoneKeys = PROGRAMME_TEMPLATE.stages.flatMap((s) =>
+      stageMilestones(s).map((m) => m.key)
+    );
+    // Activity keys are unique among themselves.
+    expect(new Set(activityKeys).size).toBe(activityKeys.length);
+    // And no activity key collides with any milestone key.
+    const milestoneSet = new Set(milestoneKeys);
+    for (const key of activityKeys) expect(milestoneSet.has(key)).toBe(false);
+  });
+});
+
+describe('the within-norm band is generous (typical plus or minus fifty percent, minimum two weeks)', () => {
+  // The rule recomputed independently of the implementation, so this is a real
+  // check, not a mirror: half is fifty percent of the typical rounded to whole
+  // weeks, floored at two weeks; the band is the typical plus or minus that.
+  const expectedBand = (t) => {
+    const half = Math.max(Math.round(t * 0.5), 2);
+    return { min: t - half, max: t + half };
+  };
+
+  it('matches the rule for every activity', () => {
+    for (const stage of PROGRAMME_TEMPLATE.stages) {
+      for (const a of stage.activities) {
+        expect(a.withinNormWeeks).toEqual(expectedBand(a.typicalWeeks));
+        // The exported helper agrees with the stored value.
+        expect(a.withinNormWeeks).toEqual(withinNormBand(a.typicalWeeks));
+      }
+    }
+  });
+
+  it('floors the band at plus or minus two weeks for a short activity', () => {
+    // 1a, three weeks: fifty percent is 1.5, but the band floors at two.
+    expect(activityOf(stageOf(1), '1a_brief_feasibility').withinNormWeeks).toEqual({
+      min: 1,
+      max: 5,
+    });
+  });
+
+  it('scales the band with the typical for a long activity', () => {
+    // 5b, twenty-four weeks: fifty percent is twelve.
+    expect(activityOf(stageOf(5), '5b_superstructure').withinNormWeeks).toEqual({
+      min: 12,
+      max: 36,
+    });
+  });
+});
+
+describe('the existing milestones are re-homed onto activities, unedited', () => {
+  it('places each named milestone under the activity Section 6 assigns it', () => {
+    const home = (stage, activityKey, milestoneName) => {
+      const a = activityOf(stageOf(stage), activityKey);
+      expect(a.milestones.map((m) => m.name)).toContain(milestoneName);
+    };
+    home(0, '0a_site_search', 'Heads of terms agreed');
+    home(1, '1b_funding_secured', 'Development finance committed');
+    home(2, '2b_appointment_mobilisation', 'Lead consultant appointed');
+    home(3, '3b_planning_approvals', 'Planning application validated');
+    home(4, '4a_tender', 'Tenders returned');
+    home(5, '5b_superstructure', 'Superstructure complete');
+    home(5, '5c_fitout_finishing', 'Finishing complete');
+    home(6, '6a_completion_certification', 'Building Regulations completion certificate issued');
+    home(7, '7a_marketing_sales', 'First unit exchanged');
+  });
+
+  it('leaves the activities Section 6 gives no milestone with an empty list', () => {
+    const empty = [
+      [0, '0b_legal_completion'],
+      [1, '1a_brief_feasibility'],
+      [2, '2a_scope_selection'],
+      [3, '3a_design_development'],
+      [4, '4b_evaluation_award'],
+      [5, '5a_substructure'],
+      [6, '6b_handover_defects'],
+      [7, '7b_completions_disposal'],
+    ];
+    for (const [stage, key] of empty) {
+      expect(activityOf(stageOf(stage), key).milestones).toEqual([]);
+    }
+  });
+
+  it('keeps each milestone key, name, served objective and offset intact', () => {
+    expect(milestoneOf(stageOf(0), 'Heads of terms agreed')).toMatchObject({
+      key: 'heads_of_terms',
+      serves: 'cost',
+      offsetWeeks: 6,
+    });
+    expect(milestoneOf(stageOf(3), 'Planning application validated')).toMatchObject({
+      key: 'planning_validated',
+      serves: 'time',
+      offsetWeeks: 14,
+    });
+    expect(milestoneOf(stageOf(5), 'Superstructure complete')).toMatchObject({
+      key: 'superstructure',
+      serves: 'time',
+      offsetWeeks: 26,
+    });
+    expect(milestoneOf(stageOf(5), 'Finishing complete')).toMatchObject({
+      key: 'finishing',
+      serves: 'quality',
+      offsetWeeks: 44,
+    });
+  });
+});
+
+describe('stageMilestones flattens the activities into one ordered list', () => {
+  it('walks activity order then milestone order, preserving the one-level order', () => {
+    // Construction is the telling case: 5a has none, 5b then 5c each one.
+    expect(stageMilestones(stageOf(5)).map((m) => m.name)).toEqual([
+      'Superstructure complete',
+      'Finishing complete',
+    ]);
+  });
+
+  it('holds the same nine milestones the one-level template held, in stage order', () => {
+    const all = PROGRAMME_TEMPLATE.stages.flatMap((s) =>
+      stageMilestones(s).map((m) => m.key)
+    );
+    expect(all).toEqual([
+      'heads_of_terms',
+      'finance_committed',
+      'lead_consultant',
+      'planning_validated',
+      'tenders_returned',
+      'superstructure',
+      'finishing',
+      'completion_certificate',
+      'first_exchange',
+    ]);
+  });
+
+  it('reads a legacy one-level stage shape too (flat milestones, no activities)', () => {
+    const legacy = { stage: 9, milestones: [{ key: 'x', name: 'X' }] };
+    expect(stageMilestones(legacy)).toEqual([{ key: 'x', name: 'X' }]);
+    expect(stageMilestones({ stage: 9 })).toEqual([]);
   });
 });
 
 describe('milestones serve the framework objectives', () => {
   it('every milestone serves one of the five objectives, with a numeric offset', () => {
     for (const stage of PROGRAMME_TEMPLATE.stages) {
-      for (const milestone of stage.milestones) {
+      for (const milestone of stageMilestones(stage)) {
         expect(SERVED_VALUES).toContain(milestone.serves);
         expect(typeof milestone.offsetWeeks).toBe('number');
       }
@@ -58,37 +300,35 @@ describe('milestones serve the framework objectives', () => {
 
   it('encodes each named milestone against the objective it serves, by the kernel identifier', () => {
     expect(milestoneOf(stageOf(0), 'Heads of terms agreed').serves).toBe('cost');
-    expect(
-      milestoneOf(stageOf(1), 'Development finance committed').serves
-    ).toBe('funding');
+    expect(milestoneOf(stageOf(1), 'Development finance committed').serves).toBe(
+      'funding'
+    );
     expect(milestoneOf(stageOf(2), 'Lead consultant appointed').serves).toBe(
       'quality'
     );
-    expect(
-      milestoneOf(stageOf(3), 'Planning application validated').serves
-    ).toBe('time');
+    expect(milestoneOf(stageOf(3), 'Planning application validated').serves).toBe(
+      'time'
+    );
     expect(milestoneOf(stageOf(4), 'Tenders returned').serves).toBe('cost');
     expect(
-      milestoneOf(stageOf(6), 'Building Regulations completion certificate issued')
-        .serves
+      milestoneOf(
+        stageOf(6),
+        'Building Regulations completion certificate issued'
+      ).serves
     ).toBe('quality');
-    expect(milestoneOf(stageOf(7), 'First unit exchanged').serves).toBe(
-      'funding'
-    );
+    expect(milestoneOf(stageOf(7), 'First unit exchanged').serves).toBe('funding');
   });
 
   it('gives Construction (stage 5) its two milestones', () => {
     const construction = stageOf(5);
-    expect(construction.milestones.map((m) => m.name)).toEqual([
+    expect(stageMilestones(construction).map((m) => m.name)).toEqual([
       'Superstructure complete',
       'Finishing complete',
     ]);
     expect(milestoneOf(construction, 'Superstructure complete').serves).toBe(
       'time'
     );
-    expect(milestoneOf(construction, 'Finishing complete').serves).toBe(
-      'quality'
-    );
+    expect(milestoneOf(construction, 'Finishing complete').serves).toBe('quality');
   });
 });
 
@@ -118,5 +358,28 @@ describe('location-sensitive checkpoints are flags only', () => {
     for (const n of [0, 1, 2, 7]) {
       expect(stageOf(n).locationSensitive).toEqual([]);
     }
+  });
+});
+
+describe('the gate-timing divergence is held for later reconciliation, not papered over', () => {
+  // The summed activity span per stage on the first-draft durations. The target
+  // model puts the gate at the end of the final activity, so this is what the
+  // gate would reconcile to. It is held as a derived figure here, not wired into
+  // the gate position, so the locked Brief stays byte-stable.
+  const EXPECTED_ACTIVITY_WEEKS = { 0: 20, 1: 9, 2: 8, 3: 20, 4: 12, 5: 54, 6: 10, 7: 32 };
+
+  it('sums each stage activity span from its activities', () => {
+    for (const [stage, weeks] of Object.entries(EXPECTED_ACTIVITY_WEEKS)) {
+      expect(stageActivityWeeks(stageOf(Number(stage)))).toBe(weeks);
+    }
+  });
+
+  it('diverges from the shipped gateWeeks for every stage but stage 4', () => {
+    const diverging = PROGRAMME_TEMPLATE.stages
+      .filter((s) => stageActivityWeeks(s) !== s.gateWeeks)
+      .map((s) => s.stage);
+    expect(diverging).toEqual([0, 1, 2, 3, 5, 6, 7]);
+    // Stage 4 is the one that already agrees (12 weeks either way).
+    expect(stageActivityWeeks(stageOf(4))).toBe(stageOf(4).gateWeeks);
   });
 });

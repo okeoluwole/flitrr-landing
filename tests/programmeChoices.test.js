@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { PROGRAMME_TEMPLATE } from '../lib/engine/programmeTemplate.js';
+import {
+  PROGRAMME_TEMPLATE,
+  stageMilestones,
+} from '../lib/engine/programmeTemplate.js';
 import { deriveAdvisedDates } from '../lib/engine/programmeSchedule.js';
 import {
   emptyProgrammeChoices,
@@ -124,7 +127,7 @@ describe('a note persisted on a milestone', () => {
 describe('milestone choices are keyed by the stable key', () => {
   it('gives every template milestone a non-empty key, unique within its stage', () => {
     for (const stage of PROGRAMME_TEMPLATE.stages) {
-      const keys = stage.milestones.map((m) => m.key);
+      const keys = stageMilestones(stage).map((m) => m.key);
       for (const k of keys) {
         expect(typeof k).toBe('string');
         expect(k.length).toBeGreaterThan(0);
@@ -149,8 +152,9 @@ describe('milestone choices are keyed by the stable key', () => {
 
     const templateStage5 = PROGRAMME_TEMPLATE.stages.find((s) => s.stage === 5);
     // Reverse a copy of the template milestones, as a later template edit might.
-    // The position changes; the stable keys do not.
-    const reordered = [...templateStage5.milestones].reverse();
+    // The position changes; the stable keys do not. Milestones sit under the
+    // stage's activities now, read through stageMilestones.
+    const reordered = [...stageMilestones(templateStage5)].reverse();
     expect(reordered[0].key).toBe('finishing'); // was last, now first
 
     // Look every milestone up by its key, never by index.

@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { checkCompleteness } from '../app/pulse/app/components/briefCompleteness.js';
-import { PROGRAMME_TEMPLATE } from '../lib/engine/programmeTemplate.js';
+import {
+  PROGRAMME_TEMPLATE,
+  stageMilestones,
+} from '../lib/engine/programmeTemplate.js';
 import {
   emptyProgrammeChoices,
   setMilestoneChoice,
@@ -31,8 +34,9 @@ const OBJECTIVES = [
 ];
 
 // Total template milestones across the eight stages (stage 5 has two): 9.
-const TEMPLATE_MILESTONE_COUNT = PROGRAMME_TEMPLATE.stages.flatMap(
-  (s) => s.milestones
+// Milestones sit under each stage's activities now, read through stageMilestones.
+const TEMPLATE_MILESTONE_COUNT = PROGRAMME_TEMPLATE.stages.flatMap((s) =>
+  stageMilestones(s)
 ).length;
 
 const emptyGates = () => emptyProgrammeChoices().stages;
@@ -42,7 +46,7 @@ const allDatedGates = () =>
   emptyProgrammeChoices().stages.map((g) => {
     const tmpl = PROGRAMME_TEMPLATE.stages.find((s) => s.stage === g.stage);
     let next = g;
-    for (const m of tmpl.milestones) {
+    for (const m of stageMilestones(tmpl)) {
       next = setMilestoneChoice(next, m.key, {
         target_date: '2026-06-01',
         note: '',

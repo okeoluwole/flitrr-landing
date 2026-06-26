@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { assembleBrief } from '../app/pulse/app/components/briefModel.js';
-import { PROGRAMME_TEMPLATE } from '../lib/engine/programmeTemplate.js';
+import {
+  PROGRAMME_TEMPLATE,
+  stageMilestones,
+} from '../lib/engine/programmeTemplate.js';
 import {
   buildObjectiveIndex,
   classifyByType,
@@ -41,9 +44,15 @@ const OBJECTIVES = [
 ];
 
 // Every template milestone, flattened in stage (lifecycle) order: the exact set,
-// in the exact order, the Brief must reproduce.
+// in the exact order, the Brief must reproduce. Milestones sit under each stage's
+// activities now, so read them through stageMilestones.
 const templateMilestones = PROGRAMME_TEMPLATE.stages.flatMap((s) =>
-  s.milestones.map((m) => ({ stage: s.stage, key: m.key, name: m.name, serves: m.serves }))
+  stageMilestones(s).map((m) => ({
+    stage: s.stage,
+    key: m.key,
+    name: m.name,
+    serves: m.serves,
+  }))
 );
 
 const emptyGates = () => emptyProgrammeChoices().stages;
