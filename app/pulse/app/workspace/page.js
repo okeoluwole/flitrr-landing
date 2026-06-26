@@ -17,8 +17,9 @@ import styles from './Workspace.module.css';
  * A project's home: a header with its current stage, then the PULSE modules
  * as tiles. The Brief (initiation) is always available; the monitoring
  * modules unlock as the project advances. The Risk register and the Action
- * Log open at Stage 2 (once the gate has committed the baseline); Programme
- * and the project Dashboard are placeholders here, built in later milestones.
+ * Log open at Stage 2 (once the gate has committed the baseline). Programme
+ * set-up opens once the Brief is locked (it is the on-ramp run at lock); the
+ * project Dashboard is a placeholder here, built in a later milestone.
  *
  * The Action Log tile sits first (M7.2): it is the central attention home,
  * and its footer is the live read of what needs the developer, counts of
@@ -400,9 +401,14 @@ export default async function WorkspacePage({ searchParams }) {
           <Tile
             icon={<ProgrammeIcon />}
             title="Programme"
-            desc="Track the critical milestones against the baseline."
-            footer="Coming soon"
-            state="soon"
+            desc="Set a credible delivery programme, then track it against the baseline."
+            footer={
+              briefLocked
+                ? 'Set up the operational baseline.'
+                : 'Programme set-up opens once you lock the Brief.'
+            }
+            state={briefLocked ? 'open' : 'locked'}
+            href={`/pulse/app/programme/setup?project=${project.id}`}
           />
           <Tile
             icon={<DashboardIcon />}

@@ -1,0 +1,170 @@
+import { redirect } from 'next/navigation';
+import Link from 'next/link';
+import { createClient } from '../../../../../lib/supabase/server';
+import DashboardShell from '../../../../components/DashboardShell';
+import { loadProgrammeChoices } from '../../components/programmeChoices';
+import ProgrammeSetup from './ProgrammeSetup';
+import styles from './ProgrammeSetup.module.css';
+
+/**
+ * /pulse/app/programme/setup - the Programme set-up flow's entry (Phase 1.2).
+ *
+ * Set-up runs once, at the moment the Brief locks. This server component loads
+ * the locked programme and hands plain inputs to the client flow, which runs
+ * the reality-check engine and either renders the reconcile-dates screen or, if
+ * nothing is flagged, skips it.
+ *
+ * What it loads:
+ *   - the project start date (projects.start_date), the anchor the Brief's
+ *     advised dates already derive from, and the anchor the reality check needs;
+ *   - the developer's hand-set programme choices (loadProgrammeChoices, the
+ *     gates and headline milestones the developer dated during initiation).
+ *
+ * It reads only. Nothing here writes to the database: no resolutions, no agreed
+ * dates, no v1. v1 is produced at lock, in Phase 2. Reachability mirrors the
+ * gate: the set-up is only available once a baseline is locked, and a direct
+ * visit before lock, or to a missing or non-owned project, falls back
+ * gracefully rather than erroring.
+ */
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function present(v) {
+  return v != null && String(v).trim() !== '';
+}
+
+// A small not-ready surface, mirroring the gate's: the header, a plain reason,
+// and a link back to the Brief.
+function NotReady({ navUser, projectName, briefHref, message }) {
+  return (
+    <DashboardShell user={navUser}>
+      <main className={`container ${styles.page}`} id="main-content">
+        <Link href={briefHref} className={styles.backLink}>
+          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+            <path
+              d="M9 11L5 7l4-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          Back to the brief
+        </Link>
+        <p className={styles.eyebrow}>Programme / Set up</p>
+        <h1 className={styles.title}>Reconcile dates</h1>
+        {projectName && <p className={styles.projectName}>{projectName}</p>}
+        <div className={`${styles.placeholder} riseIn`}>
+          <p className={styles.placeholderLead}>{message}</p>
+          <Link href={briefHref} className={styles.cta}>
+            Go to the Brief
+          </Link>
+        </div>
+      </main>
+    </DashboardShell>
+  );
+}
+
+export default async function ProgrammeSetupPage({ searchParams }) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Belt-and-braces. Middleware should have caught this already.
+  if (!user) {
+    redirect('/login');
+  }
+
+  const projectParam =
+    typeof searchParams?.project === 'string' ? searchParams.project : null;
+
+  // Set-up is always opened for a specific project. No id, or a malformed one,
+  // goes back to the list rather than rendering a broken screen.
+  if (!projectParam || !UUID_RE.test(projectParam)) {
+    redirect('/pulse/app');
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', user.id)
+    .single();
+
+  const navUser = {
+    id: user.id,
+    email: user.email,
+    full_name: profile?.full_name ?? null,
+  };
+
+  // The project (its start date) and the latest brief row (for the lock state).
+  // RLS scopes both to the owner.
+  const [{ data: project }, { data: brief }] = await Promise.all([
+    supabase
+      .from('projects')
+      .select('id, name, start_date')
+      .eq('id', projectParam)
+      .maybeSingle(),
+    supabase
+      .from('project_briefs')
+      .select('is_locked')
+      .eq('project_id', projectParam)
+      .order('version', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+
+  // Not found, or not owned (RLS filtered it out).
+  if (!project) {
+    redirect('/pulse/app');
+  }
+
+  const briefHref = `/pulse/app/initiate?project=${project.id}`;
+  const locked = brief?.is_locked === true;
+
+  // Set-up runs once the Brief has locked. Before that it is not yet reachable;
+  // point back to the Brief to lock it.
+  if (!locked) {
+    return (
+      <NotReady
+        navUser={navUser}
+        projectName={project.name}
+        briefHref={briefHref}
+        message="Lock the Brief to begin Programme set-up."
+      />
+    );
+  }
+
+  // The reality check needs the project start as its anchor. A locked Brief
+  // should carry one, but guard so a missing start points back rather than
+  // throwing.
+  if (!present(project.start_date)) {
+    return (
+      <NotReady
+        navUser={navUser}
+        projectName={project.name}
+        briefHref={briefHref}
+        message="Set a project start date in the Brief to run Programme set-up."
+      />
+    );
+  }
+
+  // The developer's hand-set programme choices, read from the existing store.
+  // A read only: reconcile never writes back.
+  const { choices } = await loadProgrammeChoices(supabase, project.id);
+
+  const workspaceHref = `/pulse/app/workspace?project=${project.id}`;
+
+  return (
+    <DashboardShell user={navUser}>
+      <ProgrammeSetup
+        projectName={project.name}
+        workspaceHref={workspaceHref}
+        projectStart={project.start_date}
+        choices={choices ?? { stages: [] }}
+      />
+    </DashboardShell>
+  );
+}
