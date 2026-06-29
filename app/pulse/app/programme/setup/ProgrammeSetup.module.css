@@ -578,6 +578,307 @@
   outline-offset: 2px;
 }
 
+/* ── Review and lock (Phase 2.3) ── */
+
+/* The legend: shape distinguishes a gate from a milestone; criticality is carried
+   by the amber badge, the one signal use, never by the markers. */
+.key {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.1rem;
+  margin-top: 1.5rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  color: var(--app-ink-secondary);
+}
+
+.kk {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.sw {
+  width: 0.7rem;
+  height: 0.7rem;
+  display: inline-block;
+}
+
+.sw.swMs,
+.mk.mkMs {
+  border-radius: 50%;
+  background: var(--app-ink-secondary);
+}
+
+.sw.swGate,
+.mk.mkGate {
+  transform: rotate(45deg);
+  background: var(--app-ink);
+}
+
+/* ── Stage cards ── */
+
+.stages {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.stageCard {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  box-shadow: var(--app-elev-1);
+  overflow: hidden;
+}
+
+.stageNa {
+  box-shadow: none;
+  background: var(--app-surface-sunken);
+}
+
+.stageHead {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1.1rem;
+  border-bottom: 1px solid var(--app-hairline);
+  background: var(--app-surface-sunken);
+}
+
+.stageNa .stageHead {
+  border-bottom: none;
+}
+
+.stageTitle {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--app-ink);
+}
+
+.stageTitle b {
+  margin-right: 0.55rem;
+  font-family: var(--font-heading), sans-serif;
+  font-weight: 800;
+  color: var(--app-ink-secondary);
+  letter-spacing: 0.01em;
+}
+
+.stageDur {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--app-ink-secondary);
+}
+
+.stageNaTag {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
+}
+
+/* ── Item rows ── */
+
+.items {
+  padding: 0.25rem 0;
+}
+
+.item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 1.1rem;
+  border-bottom: 1px solid var(--app-hairline);
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.itemGate {
+  background: var(--app-surface-sunken);
+}
+
+.mk {
+  width: 0.7rem;
+  height: 0.7rem;
+  flex-shrink: 0;
+}
+
+.iname {
+  flex: 1 1 10rem;
+  min-width: 9rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--app-ink);
+}
+
+.itemGate .iname {
+  font-weight: 700;
+}
+
+.imeta {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.6875rem;
+  letter-spacing: 0.02em;
+  color: var(--app-ink-secondary);
+  white-space: nowrap;
+}
+
+.idate {
+  min-width: 5.5rem;
+  text-align: right;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--app-ink);
+  white-space: nowrap;
+}
+
+/* ── Criticality badges (the one signal use of amber) ── */
+
+.badgeCrit,
+.badgeStd {
+  flex-shrink: 0;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.45rem;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.badgeCrit {
+  background: var(--app-signal-wash);
+  color: var(--app-signal-ink);
+}
+
+/* The Standard label is essential classification, the counterpart to Critical,
+   so it holds AA on the white row surface (ink-secondary, not the metadata-only
+   ink-muted). */
+.badgeStd {
+  color: var(--app-ink-secondary);
+}
+
+/* The review footer stacks: the summary, then a right-aligned action row or the
+   confirm panel. It does not take the reconcile footer's desktop row layout, so
+   the confirm panel is never squeezed beside the summary. */
+.lockBar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--app-hairline);
+}
+
+/* ── The lock confirmation (the deliberate second step) ── */
+
+.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--app-border-strong);
+  border-radius: var(--app-radius-sm);
+  background: var(--app-surface-sunken);
+}
+
+.confirmText {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--app-ink);
+}
+
+.confirmActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.error {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--app-danger);
+}
+
+.lockNote {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--app-ink-muted);
+  margin-top: 1.1rem;
+  max-width: 62ch;
+}
+
+/* ── The locked record (post-lock confirmation and already-locked re-entry) ── */
+
+.lockedPanel {
+  margin-top: 1.75rem;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  padding: 1.5rem 1.4rem;
+  box-shadow: var(--app-elev-1);
+}
+
+.lockedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--app-success);
+}
+
+.lockedTick {
+  color: var(--app-success);
+}
+
+.lockedLead {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--app-ink);
+  line-height: 1.35;
+  margin-top: 0.7rem;
+}
+
+.lockedMeta {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  color: var(--app-ink-secondary);
+  margin-top: 0.4rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.lockedNote {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--app-ink-muted);
+  margin-top: 0.9rem;
+  max-width: 60ch;
+}
+
 /* ── Enhance at 768px ── */
 
 @media (min-width: 768px) {
@@ -597,5 +898,16 @@
 
   .footerActions {
     justify-content: flex-end;
+  }
+
+  .confirm {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .confirmActions {
+    justify-content: flex-end;
+    flex-shrink: 0;
   }
 }

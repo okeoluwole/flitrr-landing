@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { createClient } from '../../../../../lib/supabase/server';
 import DashboardShell from '../../../../components/DashboardShell';
 import { loadProgrammeChoices } from '../../components/programmeChoices';
+import { loadCurrentProgrammeBaseline } from '../../components/programmeBaselineStore';
 import ProgrammeSetup from './ProgrammeSetup';
 import styles from './ProgrammeSetup.module.css';
 
@@ -109,7 +110,7 @@ export default async function ProgrammeSetupPage({ searchParams }) {
       .maybeSingle(),
     supabase
       .from('project_briefs')
-      .select('is_locked')
+      .select('id, version, is_locked')
       .eq('project_id', projectParam)
       .order('version', { ascending: false })
       .limit(1)
@@ -151,9 +152,43 @@ export default async function ProgrammeSetupPage({ searchParams }) {
     );
   }
 
-  // The developer's hand-set programme choices, read from the existing store.
-  // A read only: reconcile never writes back.
-  const { choices } = await loadProgrammeChoices(supabase, project.id);
+  // The inputs the review and lock need, read alongside the programme choices:
+  //   - the developer's hand-set programme choices (reconcile reads these);
+  //   - the project's objective rows for the criticality join the assembly bakes;
+  //   - the current baseline, if the project already has one, which makes this an
+  //     already-locked re-entry rather than a fresh lock.
+  // Reads only: this server component never writes. The lock is a confirmed
+  // action in the client, written through the store.
+  const [{ choices }, { data: objectives }, { baseline: currentBaseline }] =
+    await Promise.all([
+      loadProgrammeChoices(supabase, project.id),
+      supabase
+        .from('project_objectives')
+        .select('id, objective_type, classification')
+        .eq('project_id', project.id),
+      loadCurrentProgrammeBaseline(supabase, project.id),
+    ]);
+
+  // The already-locked record, if a current baseline exists, with the locker's
+  // name resolved for the read-only state. lockerName for a fresh lock is the
+  // current user, who is the one locking.
+  let existingBaseline = null;
+  if (currentBaseline) {
+    let lockedByName = null;
+    if (currentBaseline.locked_by) {
+      const { data: lockerProfile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', currentBaseline.locked_by)
+        .maybeSingle();
+      lockedByName = lockerProfile?.full_name ?? null;
+    }
+    existingBaseline = {
+      version: currentBaseline.version,
+      lockedAt: currentBaseline.locked_at,
+      lockerName: lockedByName,
+    };
+  }
 
   const workspaceHref = `/pulse/app/workspace?project=${project.id}`;
 
@@ -164,6 +199,12 @@ export default async function ProgrammeSetupPage({ searchParams }) {
         workspaceHref={workspaceHref}
         projectStart={project.start_date}
         choices={choices ?? { stages: [] }}
+        projectId={project.id}
+        objectives={objectives ?? []}
+        sourceBriefId={brief?.id ?? null}
+        userId={user.id}
+        lockerName={navUser.full_name ?? null}
+        existingBaseline={existingBaseline}
       />
     </DashboardShell>
   );
