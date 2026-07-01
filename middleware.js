@@ -22,6 +22,9 @@ const LOGIN_BANNER_PARAMS = ['reset', 'error'];
  *   2. Gate access:
  *      - Protected paths require a user. Without one, redirect to
  *        /login?next=<original path + query>.
+ *      - A signed-in but deactivated member is sent to a plain
+ *        /access-deactivated notice and cannot proceed. Row level
+ *        security denies their data underneath regardless.
  *      - /login, when authenticated, redirects to /dashboard
  *        (except when carrying a banner query param).
  */
@@ -71,6 +74,30 @@ export async function middleware(request) {
     loginUrl.search = '';
     loginUrl.searchParams.set('next', `${pathname}${search}`);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Gate 1b: only an active member may reach the app. A user can always read
+  // their own membership row (the organisation_members policy allows it), so we
+  // check it on protected paths. Anyone without an active membership, whether
+  // deactivated or never joined to an organisation, is sent to a plain notice.
+  // This is only the boundary; row level security denies their data underneath
+  // regardless. A transient read error is the one case left to pass (data is
+  // null and undistinguishable from no-row), which row level security still
+  // covers; a genuine no-membership row is blocked.
+  if (isProtected && user) {
+    const { data: membership, error: membershipError } = await supabase
+      .from('organisation_members')
+      .select('deactivated_at')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    const noActiveAccess =
+      !membershipError && (!membership || membership.deactivated_at !== null);
+    if (noActiveAccess) {
+      const deactivatedUrl = request.nextUrl.clone();
+      deactivatedUrl.pathname = '/access-deactivated';
+      deactivatedUrl.search = '';
+      return NextResponse.redirect(deactivatedUrl);
+    }
   }
 
   // Gate 2: authenticated users skip /login (unless a banner param

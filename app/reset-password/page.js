@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '../../lib/supabase/client';
@@ -13,6 +13,17 @@ export default function ResetPasswordPage() {
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
+
+  // An invited member arrives here with ?welcome=1 (the invite redirect). They
+  // already have a session from the callback, so on success we send them
+  // straight into the app rather than back to sign in. A password-reset user
+  // (no welcome flag) keeps the existing sign-in-again behaviour.
+  const [welcome, setWelcome] = useState(false);
+  useEffect(() => {
+    setWelcome(
+      new URLSearchParams(window.location.search).get('welcome') === '1'
+    );
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,7 +47,16 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    router.push('/login?reset=success');
+    if (welcome) {
+      // Belt-and-braces: make sure the invited member is joined to their
+      // organisation before they land in the app. The database normally joins
+      // them when the invite is confirmed; this covers any case where it did
+      // not. Idempotent, so a no-op when they are already joined.
+      await supabase.rpc('claim_pending_invitation');
+      router.push('/dashboard');
+    } else {
+      router.push('/login?reset=success');
+    }
     router.refresh();
   };
 
@@ -47,9 +67,13 @@ export default function ResetPasswordPage() {
       </Link>
 
       <div className={`${styles.card} riseIn`} style={{ '--rise-delay': '70ms' }}>
-        <h1 className={styles.cardHeading}>Set a new password.</h1>
+        <h1 className={styles.cardHeading}>
+          {welcome ? 'Set your password.' : 'Set a new password.'}
+        </h1>
         <p className={styles.cardSub}>
-          Choose a strong password you have not used before.
+          {welcome
+            ? 'Choose a password to finish joining your team.'
+            : 'Choose a strong password you have not used before.'}
         </p>
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <div className={styles.inputWrap}>

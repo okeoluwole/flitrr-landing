@@ -1,0 +1,411 @@
+/* ─────────────────────────────────────────
+   /dashboard/team: admin-only team and access
+   management. Sits in the dashboard portal under
+   DashboardShell, so it matches the portal's
+   brand tokens (deep-blue headings, cream cards),
+   not the Instrument app tokens.
+───────────────────────────────────────── */
+
+.page {
+  padding-block: 4rem 6rem;
+}
+
+.wrap {
+  max-width: 820px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ── Header ─────────────────────────────── */
+
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.heading {
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(2rem, 4.5vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  color: var(--color-accent-1-deep-blue);
+  margin: 0 0 0.4rem;
+}
+
+.sub {
+  font-family: var(--font-body), sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--color-accent-2-grey-blue);
+  margin: 0;
+}
+
+.seatBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.seatCount {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--color-accent-1-deep-blue);
+  line-height: 1.1;
+}
+
+.seatLabel {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-accent-2-grey-blue);
+}
+
+/* ── Cards ──────────────────────────────── */
+
+.card {
+  background-color: var(--color-foreground-cream);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-card);
+}
+
+@media (min-width: 768px) {
+  .card {
+    padding: 1.75rem;
+  }
+}
+
+.cardTitle {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--color-accent-1-deep-blue);
+  margin: 0 0 0.4rem;
+}
+
+.cardLead {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--color-accent-2-grey-blue);
+  margin: 0 0 1.1rem;
+}
+
+/* ── Invite form ────────────────────────── */
+
+.inviteForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.inviteField {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.input {
+  flex: 1;
+  min-width: 220px;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  color: var(--color-accent-1-deep-blue);
+  background-color: var(--color-input-bg);
+  border: 1.5px solid var(--color-input-border);
+  border-radius: 8px;
+  padding: 11px 14px;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+.input::placeholder {
+  color: var(--color-input-placeholder);
+}
+
+.input:focus-visible {
+  outline: none;
+  border-color: var(--color-input-focus);
+  box-shadow: 0 0 0 3px rgba(55, 97, 131, 0.14);
+}
+
+.input:disabled {
+  opacity: 0.6;
+}
+
+/* ── Buttons ────────────────────────────── */
+
+.primaryBtn,
+.primaryBtnSm {
+  font-family: var(--font-body), sans-serif;
+  font-weight: 600;
+  background-color: var(--color-button-primary-bg);
+  color: var(--color-button-primary-text);
+  border: 1.5px solid var(--color-button-primary-bg);
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: filter var(--dur-fast) var(--ease-out),
+    transform var(--dur-press) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
+}
+
+.primaryBtn {
+  font-size: 0.9375rem;
+  padding: 11px 20px;
+}
+
+.primaryBtnSm {
+  font-size: 0.875rem;
+  padding: 8px 15px;
+}
+
+.primaryBtn:hover:not(:disabled),
+.primaryBtnSm:hover:not(:disabled) {
+  filter: brightness(0.94);
+}
+
+.primaryBtn:active:not(:disabled),
+.primaryBtnSm:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.ghostBtn {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-button-ghost-text);
+  background-color: transparent;
+  border: 1.5px solid var(--color-button-ghost-border);
+  border-radius: 8px;
+  padding: 8px 15px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-press) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
+}
+
+.ghostBtn:hover:not(:disabled) {
+  background-color: var(--color-button-ghost-hover-bg);
+}
+
+.ghostBtn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.dangerBtn {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-error);
+  background-color: transparent;
+  border: 1.5px solid var(--color-error);
+  border-radius: 8px;
+  padding: 8px 15px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-press) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
+}
+
+.dangerBtn:hover:not(:disabled) {
+  background-color: rgba(176, 42, 55, 0.08);
+}
+
+.dangerBtn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.primaryBtn:disabled,
+.primaryBtnSm:disabled,
+.ghostBtn:disabled,
+.dangerBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.primaryBtn:focus-visible,
+.primaryBtnSm:focus-visible,
+.ghostBtn:focus-visible,
+.dangerBtn:focus-visible {
+  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline-offset: 2px;
+}
+
+/* ── Lists and rows ─────────────────────── */
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.row:first-child {
+  border-top: none;
+}
+
+.rowMuted .rowName,
+.rowMuted .rowMeta {
+  color: var(--color-accent-3-light-grey-blue);
+}
+
+.rowMain {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rowName {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-accent-1-deep-blue);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rowMeta {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  color: var(--color-accent-2-grey-blue);
+}
+
+.youTag {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-accent-2-grey-blue);
+  background-color: rgba(119, 147, 168, 0.16);
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+.rowTags {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.rowActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+/* ── Pills ──────────────────────────────── */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.pillAdmin {
+  background-color: var(--color-pill-in-build-bg);
+  color: var(--color-pill-in-build-text);
+}
+
+.pillMember {
+  background-color: var(--color-pill-designed-bg);
+  color: var(--color-pill-designed-text);
+}
+
+.pillPending {
+  background-color: var(--color-foreground-cream);
+  color: var(--color-accent-2-grey-blue);
+  border: 1px solid var(--color-border);
+}
+
+.pillDeactivated {
+  background-color: rgba(119, 147, 168, 0.16);
+  color: var(--color-accent-2-grey-blue);
+}
+
+/* ── Messages ───────────────────────────── */
+
+.error {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--color-error);
+  margin: 0;
+}
+
+.notice {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--color-accent-1-deep-blue);
+  margin: 0;
+}
+
+.inlineNote {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--color-accent-2-grey-blue);
+  margin: 0.6rem 0 0;
+}
+
+/* ── Utility ────────────────────────────── */
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 560px) {
+  .row {
+    align-items: flex-start;
+  }
+  .rowActions {
+    width: 100%;
+  }
+}

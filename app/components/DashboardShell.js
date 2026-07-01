@@ -8,9 +8,12 @@ import styles from './DashboardShell.module.css';
 
 /**
  * Authenticated shell. Renders the Flitrr top bar with a user menu
- * (Account settings + Sign out) and yields {children} below it.
+ * (Team for admins, Account settings + Sign out) and yields {children}
+ * below it.
  *
  * `user` shape: { id, email, full_name }. full_name is optional.
+ * `isAdmin` adds the Team entry; it defaults to false, so callers that
+ * do not pass it show no Team link.
  * The first-name derivation matches the dashboard greeting:
  *   1. Take the first whitespace-separated token of full_name.
  *   2. Otherwise, fall back to the local-part of email.
@@ -26,7 +29,7 @@ function deriveFirstName(user) {
   return 'there';
 }
 
-export default function DashboardShell({ user, children }) {
+export default function DashboardShell({ user, isAdmin = false, children }) {
   const router = useRouter();
   const supabase = createClient();
   const [open, setOpen] = useState(false);
@@ -97,6 +100,16 @@ export default function DashboardShell({ user, children }) {
 
             {open && (
               <div className={styles.menuPanel} role="menu">
+                {isAdmin && (
+                  <Link
+                    href="/dashboard/team"
+                    className={styles.menuItem}
+                    role="menuitem"
+                    onClick={() => setOpen(false)}
+                  >
+                    Team
+                  </Link>
+                )}
                 {/* /account isn't built yet, so this reads as a planned item
                     rather than a link that goes nowhere on click. */}
                 <span

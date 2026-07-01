@@ -82,20 +82,23 @@ export default async function DashboardPage() {
     redirect('/login');
   }
 
-  // Parallel fetches: profile + product access.
-  const [{ data: profile }, { data: accessRows }] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select('full_name, email')
-      .eq('id', user.id)
-      .single(),
-    supabase
-      .from('product_access')
-      .select(
-        'granted_at, granted_by, products(slug, name, description, status)'
-      )
-      .eq('user_id', user.id),
-  ]);
+  // Parallel fetches: profile + product access + whether the caller is an org
+  // admin (which surfaces the Team entry in the shell menu).
+  const [{ data: profile }, { data: accessRows }, { data: isAdmin }] =
+    await Promise.all([
+      supabase
+        .from('profiles')
+        .select('full_name, email')
+        .eq('id', user.id)
+        .single(),
+      supabase
+        .from('product_access')
+        .select(
+          'granted_at, granted_by, products(slug, name, description, status)'
+        )
+        .eq('user_id', user.id),
+      supabase.rpc('is_organisation_admin'),
+    ]);
 
   const firstName = deriveFirstName({
     full_name: profile?.full_name,
@@ -113,7 +116,7 @@ export default async function DashboardPage() {
   };
 
   return (
-    <DashboardShell user={navUser}>
+    <DashboardShell user={navUser} isAdmin={!!isAdmin}>
       <main className={`container ${styles.page}`} id="main-content">
         <h1 className={styles.heading}>
           Hi {firstName}. Welcome to Flitrr.
