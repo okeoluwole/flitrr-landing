@@ -9,7 +9,7 @@ import styles from './page.module.css';
 /**
  * /pulse/app: the PULSE project dashboard. The signed-in user's launch
  * point for the Project Initiation flow: a "New project" action and a
- * minimal list of their existing projects (name, status, current stage),
+ * minimal list of the organisation's projects (name, status, current stage),
  * each opening its project workspace when clicked.
  *
  * Deliberately minimal in M3.2. The rich portfolio view is a separate
@@ -27,15 +27,15 @@ export default async function PulseAppPage() {
     redirect('/login');
   }
 
-  // Parallel fetches: profile (for the shell greeting) + the user's
-  // projects. RLS already scopes projects to the owner; the explicit
-  // user_id filter makes that intent clear and uses idx_projects_user_id.
+  // Parallel fetches: profile (for the shell greeting) + the organisation's
+  // projects. The Step 2 SELECT policy (024) scopes rows to the caller's
+  // organisation, so no creator filter: every member sees every project in
+  // their organisation, and the wall keeps other organisations' rows out.
   const [{ data: profile }, { data: projects }] = await Promise.all([
     supabase.from('profiles').select('full_name').eq('id', user.id).single(),
     supabase
       .from('projects')
       .select('id, name, status, current_stage, updated_at')
-      .eq('user_id', user.id)
       .order('updated_at', { ascending: false }),
   ]);
 

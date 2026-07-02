@@ -7,15 +7,16 @@ import { createClient } from '../../../lib/supabase/client';
 import styles from './page.module.css';
 
 /**
- * ProjectList, the signed-in user's projects with a two-step delete for
+ * ProjectList, the organisation's projects with a two-step delete for
  * drafts. The server page fetches the rows and hands them here; this owns the
  * delete interaction (a draft can be removed before it is committed). A locked,
  * active project has a baseline and is not deletable from here.
  *
  * Delete is two-step: the draft's delete control flips the row into a confirm
  * prompt, and only the explicit Delete draft action removes it. The row is
- * dropped from the list on success; RLS scopes the delete to the owner and the
- * project's child rows cascade with it.
+ * dropped from the list on success; RLS scopes the delete to an organisation
+ * admin and the project's child rows cascade with it. A member never sees the
+ * control (canEdit) and the database would refuse the delete anyway.
  */
 
 const STAGE_NAMES = {
