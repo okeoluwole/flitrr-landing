@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '../../../../lib/supabase/server';
+import { resolveProjectAccess } from '../../../../lib/team/access';
 import DashboardShell from '../../../components/DashboardShell';
 import { OBJECTIVE_META } from '../components/objectiveMeta';
 import { deriveProposals } from '../../../../lib/playbook/playbookModel';
@@ -207,6 +208,11 @@ export default async function ActionsPage({ searchParams }) {
     objectivesByType: byType,
   });
 
+  // Resolve the viewer's edit access once (Step 3a helpers). An admin logs and
+  // tracks actions as before; a member sees the log read-only with the View
+  // only badge.
+  const { canEdit, adminContact } = await resolveProjectAccess(supabase);
+
   return (
     <DashboardShell user={navUser}>
       <ActionLog
@@ -222,6 +228,8 @@ export default async function ActionsPage({ searchParams }) {
         constraints={constraints ?? []}
         dependencies={dependencies ?? []}
         playSuggestions={playSuggestions}
+        canEdit={canEdit}
+        adminContact={adminContact}
       />
     </DashboardShell>
   );

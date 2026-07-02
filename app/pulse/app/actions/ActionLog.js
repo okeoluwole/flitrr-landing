@@ -29,6 +29,7 @@ import {
   splitProposals,
   buildActionFromPlay,
 } from '../../../../lib/playbook/playbookModel';
+import ViewOnlyBadge from '../components/ViewOnlyBadge';
 import styles from './ActionLog.module.css';
 
 /**
@@ -88,6 +89,16 @@ const DISMISS_PLAY_ERROR =
 const CRITICALITY_LABEL = { critical: 'Critical', standard: 'Standard' };
 const NEEDS_LINK_LABEL = 'Needs a link';
 const OVERRIDE_REASON_PLACEHOLDER = 'Why reduce this to standard?';
+
+// The read-only line shown to a member where the inline add flow sits for an
+// admin. One sparse line at the genuine action point, never greyed controls.
+const MEMBER_NO_ADD = 'Only an admin can log actions here.';
+
+// The display label for a segmented value, for a member's read-only card where
+// the segmented control is replaced by the settled value.
+function labelFor(options, value) {
+  return options.find((o) => o.value === value)?.label ?? null;
+}
 
 // The RAID kinds the feed surfaces (A5), for the band's kind label.
 const KIND_LABEL = {
@@ -167,6 +178,8 @@ export default function ActionLog({
   constraints,
   dependencies,
   playSuggestions,
+  canEdit = true,
+  adminContact = null,
 }) {
   const supabase = createClient();
   const [actions, setActions] = useState(initialActions);
@@ -544,26 +557,34 @@ export default function ActionLog({
           <span className={styles.provenance}>{provenanceLabel(kind)}</span>
         </div>
         <p className={styles.pushName}>{row.description}</p>
-        <div className={styles.pushActions}>
-          <button
-            type="button"
-            className={styles.primaryBtn}
-            onClick={() => trackItem(entry)}
-            disabled={promotingId !== null}
-            aria-label={`Track this: ${row.description}`}
-          >
-            {promoting ? 'Tracking' : 'Track this'}
-          </button>
-          {isRisk && (
-            <Link
-              href={`${registerHref}#risk-${row.id}`}
-              className={styles.ghostBtn}
-              aria-label={`Review ${row.description} in the register`}
-            >
-              Review in register
-            </Link>
-          )}
-        </div>
+        {/* Track this promotes a feed item into a tracked action (a write), so
+            it is admin only. Review in register is read-only navigation and
+            stays for everyone. The row shows no action bar when neither
+            applies. */}
+        {(canEdit || isRisk) && (
+          <div className={styles.pushActions}>
+            {canEdit && (
+              <button
+                type="button"
+                className={styles.primaryBtn}
+                onClick={() => trackItem(entry)}
+                disabled={promotingId !== null}
+                aria-label={`Track this: ${row.description}`}
+              >
+                {promoting ? 'Tracking' : 'Track this'}
+              </button>
+            )}
+            {isRisk && (
+              <Link
+                href={`${registerHref}#risk-${row.id}`}
+                className={styles.ghostBtn}
+                aria-label={`Review ${row.description} in the register`}
+              >
+                Review in register
+              </Link>
+            )}
+          </div>
+        )}
       </article>
     );
   };
@@ -927,6 +948,126 @@ export default function ActionLog({
     );
   };
 
+  // The read-only card a member sees: the same record, with the criticality
+  // controls, the status control, the outcome capture, and the edit and delete
+  // actions replaced by their settled values. No control that would write.
+  const renderReadOnlyCard = (a) => {
+    const derived = derivedCriticality(a, byId);
+    const overridden = hasDownwardOverride(a, byId);
+    const critical = effectiveCriticality(a, byId) === CRITICALITY.CRITICAL;
+    const unlinked = derived === CRITICALITY.UNLINKED;
+    const linkedName = objectiveName(a.linked_objective_id);
+    const logged = formatLogged(a.created_at);
+    const statusLabel = labelFor(STATUS_OPTIONS, a.status);
+    const outcomeLabel = labelFor(OUTCOME_OPTIONS, a.outcome);
+    const variance = (a.variance ?? '').trim();
+
+    let critClass = styles.critStandard;
+    let critLabel = CRITICALITY_LABEL.standard;
+    if (unlinked) {
+      critClass = styles.critUnlinked;
+      critLabel = NEEDS_LINK_LABEL;
+    } else if (critical) {
+      critClass = styles.critCritical;
+      critLabel = CRITICALITY_LABEL.critical;
+    }
+
+    return (
+      <article
+        key={a.id}
+        className={`${styles.card} ${critical ? styles.cardCritical : ''}`}
+      >
+        <div className={styles.cardHead}>
+          <div className={styles.cardTags}>
+            <span className={`${styles.crit} ${critClass}`}>{critLabel}</span>
+            {linkedName && (
+              <span className={styles.objective}>for {linkedName}</span>
+            )}
+            {a.source === 'risk' && (
+              <Link
+                href={
+                  a.source_id
+                    ? `${registerHref}#risk-${a.source_id}`
+                    : registerHref
+                }
+                className={styles.fromRisk}
+                title="Raised from a risk in your register"
+              >
+                {provenanceLabel('risk')}
+              </Link>
+            )}
+            {a.source === 'playbook' && (
+              <span className={styles.provenance}>
+                {provenanceLabel('playbook')}
+              </span>
+            )}
+            {(a.source === 'assumption' ||
+              a.source === 'constraint' ||
+              a.source === 'dependency') && (
+              <span className={styles.provenance}>
+                {provenanceLabel(a.source)}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <p className={styles.description}>{a.description}</p>
+        {a.note && <p className={styles.noteText}>{a.note}</p>}
+        {a.reason && <p className={styles.reasonLine}>{a.reason}</p>}
+
+        {overridden ? (
+          <div className={styles.critDetail}>
+            <p className={styles.critCaption}>
+              Reduced to standard. {linkedName} is non-negotiable, so this is
+              critical by default.
+            </p>
+            {a.override_reason && (
+              <p className={styles.critReason}>Reason: {a.override_reason}</p>
+            )}
+          </div>
+        ) : critical ? (
+          <div className={styles.critDetail}>
+            <p className={styles.critCaption}>
+              Critical because {linkedName} is non-negotiable.
+            </p>
+          </div>
+        ) : null}
+
+        <div className={styles.controls}>
+          <div className={styles.controlRow}>
+            <span className={styles.controlLabel}>Status</span>
+            <span className={styles.roValue}>{statusLabel ?? 'Not set'}</span>
+          </div>
+        </div>
+
+        {isDone(a) && (
+          <div className={styles.outcome}>
+            <div className={styles.controlRow}>
+              <span className={styles.controlLabel}>Outcome</span>
+              <span className={styles.roValue}>
+                {outcomeLabel ?? 'Not recorded'}
+              </span>
+            </div>
+            {variance && (
+              <div className={styles.controlRow}>
+                <span className={styles.controlLabel}>What varied</span>
+                <span className={styles.roValue}>{variance}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className={styles.cardFoot}>
+          <span className={styles.logged}>{logged ? `Logged ${logged}` : ''}</span>
+        </div>
+      </article>
+    );
+  };
+
+  // One card renderer, chosen by access: the interactive card for an admin, the
+  // read-only record for a member.
+  const cardRenderer = canEdit ? renderCard : renderReadOnlyCard;
+
   return (
     <main className={`container ${styles.page}`} id="main-content">
       <Link href={workspaceHref} className={styles.backLink}>
@@ -945,6 +1086,11 @@ export default function ActionLog({
       <p className={styles.eyebrow}>Action Log module</p>
       <h1 className={styles.title}>Action Log</h1>
       <p className={styles.projectName}>{projectName}</p>
+      {!canEdit && (
+        <div className={styles.viewOnly}>
+          <ViewOnlyBadge adminContact={adminContact} />
+        </div>
+      )}
 
       {/* The needs-your-response band (M7.2): pushed items derived live
           from the register. When nothing qualifies it collapses to one calm
@@ -967,8 +1113,9 @@ export default function ActionLog({
       {/* The PULSE suggests band (M7.4), below needs-your-response:
           stage-keyed curated action plays, top five up front. When none
           remain it is simply gone: suggestions are offered knowledge, not
-          a status. */}
-      {livePlays.length > 0 && (
+          a status. Adding or dismissing a play writes, so the whole band is
+          hidden from a member. */}
+      {canEdit && livePlays.length > 0 && (
         <section
           className={`${styles.band} ${styles.suggestBand}`}
           aria-labelledby="pulse-suggests"
@@ -1050,7 +1197,10 @@ export default function ActionLog({
         </p>
       )}
 
-      {/* The inline add flow: a quick log entry, not a long form. */}
+      {/* The inline add flow: a quick log entry, not a long form. It writes, so
+          a member sees one sparse line at this action point instead of the
+          panel. */}
+      {canEdit ? (
       <div className={styles.addPanel}>
         <input
           type="text"
@@ -1106,12 +1256,16 @@ export default function ActionLog({
           </button>
         </div>
       </div>
+      ) : (
+        <p className={styles.memberNote}>{MEMBER_NO_ADD}</p>
+      )}
 
       {actions.length === 0 ? (
         <div className={styles.empty}>
           <p className={styles.emptyText}>
-            No actions logged yet. Log the first critical action you are
-            working on.
+            {canEdit
+              ? 'No actions logged yet. Log the first critical action you are working on.'
+              : 'No actions have been logged yet.'}
           </p>
         </div>
       ) : open.length === 0 ? (
@@ -1121,13 +1275,13 @@ export default function ActionLog({
           </p>
         </div>
       ) : (
-        <div className={styles.list}>{open.map(renderCard)}</div>
+        <div className={styles.list}>{open.map(cardRenderer)}</div>
       )}
 
       {showDone && done.length > 0 && (
         <section className={styles.doneSection}>
           <h2 className={styles.doneHeading}>Done</h2>
-          <div className={styles.list}>{done.map(renderCard)}</div>
+          <div className={styles.list}>{done.map(cardRenderer)}</div>
         </section>
       )}
     </main>

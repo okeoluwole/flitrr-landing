@@ -77,6 +77,11 @@
   margin-bottom: 2.25rem;
 }
 
+/* The View only badge sits between the project head and the intro line. */
+.viewOnly {
+  margin: 0 0 1rem;
+}
+
 /* ── The Brief: the keystone, featured ───── */
 
 .featured {

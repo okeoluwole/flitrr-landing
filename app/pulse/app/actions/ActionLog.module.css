@@ -943,4 +943,34 @@
   .addBtn {
     margin-left: 0;
   }
+  .roValue {
+    width: 100%;
+  }
+}
+
+/* ── View only (member) ────────────────── */
+
+/* The badge tucks just under the project name (which carries a 1.75rem
+   bottom margin) and keeps the same spacing to the content below. */
+.viewOnly {
+  margin: -1rem 0 1.75rem;
+}
+
+/* The settled value that replaces a segmented control on a member's card. */
+.roValue {
+  flex: 1 1 200px;
+  min-width: 0;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--app-ink-secondary);
+}
+
+/* The one sparse line a member sees where the add flow sits for an admin. */
+.memberNote {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--app-ink-secondary);
+  margin: 0 0 1.75rem;
 }

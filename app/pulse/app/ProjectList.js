@@ -62,7 +62,7 @@ function StatusPill({ status }) {
   return <span className={`${styles.pill} ${variant}`}>{label}</span>;
 }
 
-export default function ProjectList({ projects }) {
+export default function ProjectList({ projects, canEdit = true }) {
   const supabase = createClient();
   const router = useRouter();
   const [items, setItems] = useState(projects);
@@ -171,7 +171,7 @@ export default function ProjectList({ projects }) {
                   </svg>
                 </div>
               </Link>
-              {isDraft && (
+              {canEdit && isDraft && (
                 <button
                   type="button"
                   className={styles.cardDelete}

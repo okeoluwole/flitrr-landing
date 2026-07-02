@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '../../../../lib/supabase/client';
+import ViewOnlyBadge from '../components/ViewOnlyBadge';
 import styles from './GateReview.module.css';
 
 /**
@@ -115,6 +116,8 @@ export default function GateReview({
   overConstrained,
   decision,
   deciderName,
+  canEdit = true,
+  adminContact = null,
 }) {
   const supabase = createClient();
   const [acknowledged, setAcknowledged] = useState(false);
@@ -195,6 +198,11 @@ export default function GateReview({
         Gate 1 to 2: Objectives and Funding to Consultant Appointment
       </h1>
       <p className={styles.projectName}>{projectName}</p>
+      {!canEdit && (
+        <div className={styles.viewOnly}>
+          <ViewOnlyBadge adminContact={adminContact} />
+        </div>
+      )}
     </>
   );
 
@@ -269,15 +277,27 @@ export default function GateReview({
                   <span className={styles.itemLabel}>
                     Project not over-constrained
                   </span>
-                  <label className={styles.ack}>
-                    <input
-                      type="checkbox"
-                      className={styles.ackBox}
-                      checked={acknowledged}
-                      onChange={(e) => setAcknowledged(e.target.checked)}
-                    />
-                    <span className={styles.ackLabel}>{OVER_CONSTRAINT_ACK}</span>
-                  </label>
+                  {canEdit ? (
+                    <label className={styles.ack}>
+                      <input
+                        type="checkbox"
+                        className={styles.ackBox}
+                        checked={acknowledged}
+                        onChange={(e) => setAcknowledged(e.target.checked)}
+                      />
+                      <span className={styles.ackLabel}>
+                        {OVER_CONSTRAINT_ACK}
+                      </span>
+                    </label>
+                  ) : (
+                    // Read-only for a member: the caution without the tick to
+                    // acknowledge, which only an admin can do.
+                    <span className={styles.itemDetail}>
+                      This project has no flexible objective. With nothing able
+                      to flex, the project is at structural risk of being
+                      undeliverable.
+                    </span>
+                  )}
                 </div>
               </li>
             ) : (
@@ -293,26 +313,32 @@ export default function GateReview({
         </p>
       )}
 
-      <div className={styles.confirmBar}>
-        {!fundingPresent && (
-          <span className={styles.confirmHint}>
-            Funding structure must be confirmed before this gate can pass.
-          </span>
-        )}
-        {fundingPresent && overConstrained && !acknowledged && (
-          <span className={styles.confirmHint}>
-            Acknowledge the over-constraint caution to proceed.
-          </span>
-        )}
-        <button
-          type="button"
-          className={styles.confirmBtn}
-          onClick={handleConfirm}
-          disabled={!canConfirm || busy}
-        >
-          {busy ? 'Confirming…' : 'Confirm gate and advance to Stage 2'}
-        </button>
-      </div>
+      {canEdit ? (
+        <div className={styles.confirmBar}>
+          {!fundingPresent && (
+            <span className={styles.confirmHint}>
+              Funding structure must be confirmed before this gate can pass.
+            </span>
+          )}
+          {fundingPresent && overConstrained && !acknowledged && (
+            <span className={styles.confirmHint}>
+              Acknowledge the over-constraint caution to proceed.
+            </span>
+          )}
+          <button
+            type="button"
+            className={styles.confirmBtn}
+            onClick={handleConfirm}
+            disabled={!canConfirm || busy}
+          >
+            {busy ? 'Confirming…' : 'Confirm gate and advance to Stage 2'}
+          </button>
+        </div>
+      ) : (
+        // The gate decision is an admin action. A member sees the checklist
+        // read-only with one sparse line in place of the confirm bar.
+        <p className={styles.memberNote}>Only an admin can confirm this gate.</p>
+      )}
     </main>
   );
 }

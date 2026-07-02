@@ -1,7 +1,9 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../../lib/supabase/server';
+import { resolveProjectAccess } from '../../../../lib/team/access';
 import DashboardShell from '../../../components/DashboardShell';
 import InitiationWizard from '../components/InitiationWizard';
+import MemberBriefView from '../components/MemberBriefView';
 
 /**
  * /pulse/app/initiate: host for the PULSE Project Initiation wizard.
@@ -43,6 +45,60 @@ export default async function InitiatePage({ searchParams }) {
 
   const projectParam =
     typeof searchParams?.project === 'string' ? searchParams.project : null;
+
+  // Resolve the viewer's edit access once (Step 3a helpers). The initiation
+  // wizard is an authoring flow, so a member does not get it: they get the
+  // read-only Project Brief document instead, with the View only badge. The
+  // admin path below is unchanged.
+  const { canEdit, adminContact } = await resolveProjectAccess(supabase);
+  if (!canEdit) {
+    // The Brief is always opened for a specific project. Without one (a member
+    // cannot start a project), fall back to the list.
+    if (!projectParam || !UUID_RE.test(projectParam)) {
+      redirect('/pulse/app');
+    }
+
+    const [{ data: project }, { data: briefRow }] = await Promise.all([
+      supabase
+        .from('projects')
+        .select('id, name')
+        .eq('id', projectParam)
+        .maybeSingle(),
+      supabase
+        .from('project_briefs')
+        .select('version, content, is_locked, generated_at')
+        .eq('project_id', projectParam)
+        .order('version', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
+
+    // Not found, or not owned (RLS filtered it out).
+    if (!project) {
+      redirect('/pulse/app');
+    }
+
+    // Only a locked baseline is shown; an in-progress draft is not a member's
+    // to see mid-authoring, so it reads as the not-yet-locked sparse state.
+    const latestBrief = briefRow?.is_locked
+      ? {
+          version: briefRow.version,
+          content: briefRow.content,
+          generatedAt: briefRow.generated_at,
+        }
+      : null;
+
+    return (
+      <DashboardShell user={navUser}>
+        <MemberBriefView
+          projectName={project.name}
+          workspaceHref={`/pulse/app/workspace?project=${project.id}`}
+          latestBrief={latestBrief}
+          adminContact={adminContact}
+        />
+      </DashboardShell>
+    );
+  }
 
   let initialProject = null;
   let initialGate = null;

@@ -416,3 +416,20 @@
     justify-content: center;
   }
 }
+
+/* ── View only (member) ────────────────── */
+
+/* The badge tucks just under the project name (which carries a 1.75rem
+   bottom margin) and keeps the same spacing to the content below. */
+.viewOnly {
+  margin: -1rem 0 1.75rem;
+}
+
+/* The one sparse line a member sees in place of the confirm bar. */
+.memberNote {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--app-ink-secondary);
+  margin: 0;
+}

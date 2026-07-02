@@ -1,0 +1,93 @@
+/*
+ * ViewOnlyBadge - a quiet, muted "View only" pill with a click-open contact
+ * popover. Product (Instrument) surface tokens only. Neutral, never a warning
+ * colour: read only is a normal state. The badge carries no external margin,
+ * so each surface places it in its own header wrapper.
+ */
+
+.wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: var(--app-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--app-ink-secondary);
+  background: var(--app-surface-sunken);
+  border: 1px solid var(--app-border);
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .badge {
+    transition:
+      background var(--dur-fast) var(--ease-out),
+      border-color var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+}
+
+.badge:hover {
+  background: var(--app-surface);
+  border-color: var(--app-border-strong);
+  color: var(--app-ink);
+}
+
+.badge:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+}
+
+.eye {
+  color: var(--app-ink-muted);
+}
+
+.caret {
+  margin-left: 0.05rem;
+  color: var(--app-ink-muted);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .caret {
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+}
+
+.caretOpen {
+  transform: rotate(180deg);
+}
+
+.panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  z-index: 30;
+  display: block;
+  width: max-content;
+  max-width: min(280px, calc(100vw - 3rem));
+  font-family: var(--font-body), sans-serif;
+  font-size: var(--app-text-sm);
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--app-ink);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  box-shadow: var(--app-elev-2);
+  padding: 0.7rem 0.8rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .panel {
+    transform-origin: top left;
+    animation: flitrr-pop var(--dur-fast) var(--ease-out);
+  }
+}

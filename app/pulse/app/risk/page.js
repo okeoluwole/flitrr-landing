@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '../../../../lib/supabase/server';
+import { resolveProjectAccess } from '../../../../lib/team/access';
 import DashboardShell from '../../../components/DashboardShell';
 import { OBJECTIVE_META } from '../components/objectiveMeta';
 import { deriveProposals } from '../../../../lib/playbook/playbookModel';
@@ -178,6 +179,10 @@ export default async function RiskPage({ searchParams }) {
   // and the list judge time the same way and cannot drift on hydration.
   const now = Date.now();
 
+  // Resolve the viewer's edit access once (Step 3a helpers). An admin edits as
+  // before; a member sees the register read-only with the View only badge.
+  const { canEdit, adminContact } = await resolveProjectAccess(supabase);
+
   return (
     <DashboardShell user={navUser}>
       <RiskRegister
@@ -188,6 +193,8 @@ export default async function RiskPage({ searchParams }) {
         objectivesById={objectivesById}
         playSuggestions={playSuggestions}
         now={now}
+        canEdit={canEdit}
+        adminContact={adminContact}
       />
     </DashboardShell>
   );

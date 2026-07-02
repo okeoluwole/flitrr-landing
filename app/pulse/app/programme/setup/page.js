@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '../../../../../lib/supabase/server';
+import { resolveProjectAccess } from '../../../../../lib/team/access';
 import DashboardShell from '../../../../components/DashboardShell';
 import { loadProgrammeChoices } from '../../components/programmeChoices';
 import { loadCurrentProgrammeBaseline } from '../../components/programmeBaselineStore';
@@ -192,6 +193,11 @@ export default async function ProgrammeSetupPage({ searchParams }) {
 
   const workspaceHref = `/pulse/app/workspace?project=${project.id}`;
 
+  // Resolve the viewer's edit access once (Step 3a helpers). Set-up is an admin
+  // authoring action (it locks v1). A member sees the already-locked baseline
+  // read-only, or a sparse line when no baseline exists yet.
+  const { canEdit, adminContact } = await resolveProjectAccess(supabase);
+
   return (
     <DashboardShell user={navUser}>
       <ProgrammeSetup
@@ -205,6 +211,8 @@ export default async function ProgrammeSetupPage({ searchParams }) {
         userId={user.id}
         lockerName={navUser.full_name ?? null}
         existingBaseline={existingBaseline}
+        canEdit={canEdit}
+        adminContact={adminContact}
       />
     </DashboardShell>
   );

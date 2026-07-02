@@ -1,9 +1,11 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '../../../../lib/supabase/server';
+import { resolveProjectAccess } from '../../../../lib/team/access';
 import { buildObjectiveIndex } from '../../../../lib/engine/criticality';
 import { assessRisks } from '../../../../lib/engine/monitor';
 import DashboardShell from '../../../components/DashboardShell';
+import ViewOnlyBadge from '../components/ViewOnlyBadge';
 import {
   deriveResponseFeed,
   formatActionLogSummary,
@@ -227,6 +229,11 @@ export default async function WorkspacePage({ searchParams }) {
     redirect('/pulse/app');
   }
 
+  // Resolve the viewer's edit access once (Step 3a helpers), so the workspace
+  // header carries the View only badge for a member. The tiles are navigation;
+  // the edit controls live on the surfaces the tiles open.
+  const { canEdit, adminContact } = await resolveProjectAccess(supabase);
+
   const stageName =
     STAGE_NAMES[project.current_stage] ?? `Stage ${project.current_stage}`;
   // The Risk register and the Action Log both open at Stage 2, once the gate
@@ -329,6 +336,11 @@ export default async function WorkspacePage({ searchParams }) {
             Stage {project.current_stage}: {stageName}
           </span>
         </div>
+        {!canEdit && (
+          <div className={styles.viewOnly}>
+            <ViewOnlyBadge adminContact={adminContact} />
+          </div>
+        )}
         <p className={styles.sub}>
           Your project workspace. Set up the baseline in the Brief, then open
           each monitoring module as the project advances through its stages.

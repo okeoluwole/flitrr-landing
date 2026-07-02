@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '../../../../lib/supabase/server';
+import { resolveProjectAccess } from '../../../../lib/team/access';
 import DashboardShell from '../../../components/DashboardShell';
 import GateReview from './GateReview';
 import styles from './GateReview.module.css';
@@ -156,14 +157,20 @@ export default async function GatePage({ searchParams }) {
   const overConstrained = readOverConstrained(brief?.content);
   const fundingPresent = present(project.funding_structure);
 
-  // The recorded decision, for the already-passed read-only view. The decider
-  // is the project owner (RLS lets only the owner reach and pass the gate), so
-  // the current user's name resolves it; email is the name fallback the rest
-  // of the app uses.
+  // Resolve the viewer's edit access once (Step 3a helpers). Confirming the gate
+  // is an admin action; a member sees the checklist read-only with the View
+  // only badge, or the recorded decision if it has already passed.
+  const { canEdit, adminContact } = await resolveProjectAccess(supabase);
+
+  // The recorded decision, for the already-passed read-only view. An admin who
+  // confirms the gate is named as the decider; a member cannot read another
+  // person's profile name (own-row-only) and is not the decider, so their view
+  // names no one rather than mislabelling the decision with their own name.
+  const deciderName = canEdit ? navUser.full_name ?? navUser.email : null;
   const decision = alreadyPassed
     ? {
         passedAt: gateRow?.passed_at ?? null,
-        deciderName: navUser.full_name ?? navUser.email,
+        deciderName,
         overConstraintAcknowledged:
           gateRow?.over_constraint_acknowledged === true,
       }
@@ -179,7 +186,9 @@ export default async function GatePage({ searchParams }) {
         fundingPresent={fundingPresent}
         overConstrained={overConstrained}
         decision={decision}
-        deciderName={navUser.full_name ?? navUser.email}
+        deciderName={deciderName}
+        canEdit={canEdit}
+        adminContact={adminContact}
       />
     </DashboardShell>
   );

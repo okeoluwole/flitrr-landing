@@ -1,0 +1,103 @@
+/*
+ * MemberBriefView - the read-only Project Brief frame a member sees. The header
+ * mirrors the monitoring surfaces (back link, eyebrow, title); the document,
+ * lens selector and download reuse Brief.module.css. Product (Instrument)
+ * tokens only.
+ */
+
+.page {
+  padding-block: 3rem 6rem;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--app-ink-secondary);
+  text-decoration: none;
+  margin-bottom: 1.5rem;
+}
+
+.backLink:hover,
+.backLink:focus-visible {
+  color: var(--app-ink);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .backLink svg {
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+  .backLink:hover svg,
+  .backLink:focus-visible svg {
+    transform: translateX(-3px);
+  }
+}
+
+.eyebrow {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--app-ink-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.title {
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(1.9rem, 4vw, 2.5rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  color: var(--app-ink);
+  margin-bottom: 0;
+}
+
+/* The badge tucks just under the title, then the control bar follows. */
+.viewOnly {
+  margin: 0.85rem 0 1.75rem;
+}
+
+/* No locked baseline yet: a sparse read-only state. */
+.placeholder {
+  margin-top: 0.5rem;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  padding: 1.5rem 1.4rem;
+}
+
+.placeholderLead {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--app-ink);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.cta {
+  margin-top: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-button-primary-text);
+  background: var(--color-button-primary-bg);
+  border: 1.5px solid var(--color-button-primary-bg);
+  border-radius: var(--app-radius-sm);
+  padding: 0.6rem 1.1rem;
+  text-decoration: none;
+  transition: filter var(--dur-fast) var(--ease-out);
+}
+
+.cta:hover {
+  filter: brightness(0.94);
+}
+
+.cta:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+}

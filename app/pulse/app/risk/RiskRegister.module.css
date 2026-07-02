@@ -729,3 +729,53 @@
     gap: 1.25rem;
   }
 }
+
+/* ── View only (member) ────────────────── */
+
+/* The badge tucks just under the project name (which carries a 1.75rem
+   bottom margin) and keeps the same spacing to the content below. */
+.viewOnly {
+  margin: -1rem 0 1.75rem;
+}
+
+/* The read-only detail that replaces the scoring, status and response controls
+   on a member's card: the settled values as a plain description list. */
+.roDetail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+}
+
+.roRow {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.roLabel {
+  flex: 0 0 auto;
+  width: 168px;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--app-ink);
+  margin: 0;
+}
+
+.roValue {
+  flex: 1 1 200px;
+  min-width: 0;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--app-ink-secondary);
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .roLabel {
+    width: 100%;
+  }
+}

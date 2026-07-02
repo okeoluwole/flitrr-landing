@@ -20,6 +20,7 @@ import {
   splitProposals,
   buildRiskFromPlay,
 } from '../../../../lib/playbook/playbookModel';
+import ViewOnlyBadge from '../components/ViewOnlyBadge';
 import styles from './RiskRegister.module.css';
 
 /**
@@ -82,6 +83,12 @@ const SEVERITY_CLASS = {
   minor: 'sevMinor',
   unscored: 'sevUnscored',
 };
+
+// The display label for a segmented value, for the read-only member card where
+// the segmented control is replaced by the settled value.
+function labelFor(options, value) {
+  return options.find((o) => o.value === value)?.label ?? null;
+}
 
 function formatReviewed(iso) {
   if (!iso) return null;
@@ -167,6 +174,8 @@ export default function RiskRegister({
   objectivesById,
   playSuggestions,
   now,
+  canEdit = true,
+  adminContact = null,
 }) {
   const supabase = createClient();
   const [risks, setRisks] = useState(initialRisks);
@@ -494,6 +503,77 @@ export default function RiskRegister({
     );
   };
 
+  // The read-only card a member sees: the same record, with the scoring, status
+  // and response controls replaced by their settled values. No control that
+  // would write, so nothing reads as broken.
+  const renderReadOnlyCard = (r) => {
+    const critical = isLiveCritical(r, objectivesById);
+    const severity = deriveSeverity(r.likelihood, r.impact);
+    const objective = r.linked_objective_id
+      ? objectivesById[r.linked_objective_id]?.name ?? 'Unlinked'
+      : 'Unlinked';
+    const reviewed = formatReviewed(r.last_reviewed_at);
+    const likelihoodLabel = labelFor(LIKELIHOOD_OPTIONS, r.likelihood);
+    const impactLabel = labelFor(IMPACT_OPTIONS, r.impact);
+    const statusLabel = labelFor(STATUS_OPTIONS, r.status);
+    const response = (r.response_note ?? '').trim();
+
+    return (
+      <article
+        key={r.id}
+        id={`risk-${r.id}`}
+        className={`${styles.card} ${critical ? styles.cardCritical : ''}`}
+      >
+        <div className={styles.cardHead}>
+          <div className={styles.cardTags}>
+            <span
+              className={`${styles.crit} ${critical ? styles.critCritical : styles.critStandard}`}
+            >
+              {critical ? 'Critical' : 'Standard'}
+            </span>
+            <span className={styles.objective}>
+              {objective === 'Unlinked' ? 'Unlinked' : `vs ${objective}`}
+            </span>
+          </div>
+          <SeverityChip severity={severity} />
+        </div>
+
+        <p className={styles.riskName}>{r.description}</p>
+
+        <dl className={styles.roDetail}>
+          <div className={styles.roRow}>
+            <dt className={styles.roLabel}>Likelihood</dt>
+            <dd className={styles.roValue}>{likelihoodLabel ?? 'Not rated'}</dd>
+          </div>
+          <div className={styles.roRow}>
+            <dt className={styles.roLabel}>Impact</dt>
+            <dd className={styles.roValue}>{impactLabel ?? 'Not rated'}</dd>
+          </div>
+          <div className={styles.roRow}>
+            <dt className={styles.roLabel}>Status</dt>
+            <dd className={styles.roValue}>{statusLabel ?? 'Not set'}</dd>
+          </div>
+          <div className={styles.roRow}>
+            <dt className={styles.roLabel}>Response</dt>
+            <dd className={styles.roValue}>
+              {response || 'No response recorded.'}
+            </dd>
+          </div>
+        </dl>
+
+        <div className={styles.cardFoot}>
+          <span className={styles.reviewed}>
+            {reviewed ? `Last reviewed ${reviewed}` : 'Not yet reviewed'}
+          </span>
+        </div>
+      </article>
+    );
+  };
+
+  // One card renderer, chosen by access: the interactive card for an admin, the
+  // read-only record for a member.
+  const cardRenderer = canEdit ? renderCard : renderReadOnlyCard;
+
   return (
     <main className={`container ${styles.page}`} id="main-content">
       <Link href={workspaceHref} className={styles.backLink}>
@@ -512,6 +592,11 @@ export default function RiskRegister({
       <p className={styles.eyebrow}>Risk module</p>
       <h1 className={styles.title}>Risk register</h1>
       <p className={styles.projectName}>{projectName}</p>
+      {!canEdit && (
+        <div className={styles.viewOnly}>
+          <ViewOnlyBadge adminContact={adminContact} />
+        </div>
+      )}
 
       {/* The Needs attention panel (B2): the risks the monitor flags, most
           urgent first, each with the reason in plain words. When nothing is
@@ -563,8 +648,9 @@ export default function RiskRegister({
 
       {/* The suggestions area (M7.4): stage-keyed curated risk plays, top
           five up front. When none remain it is simply gone: suggestions are
-          offered knowledge, not a status. */}
-      {livePlays.length > 0 && (
+          offered knowledge, not a status. Adding or dismissing a play writes,
+          so the whole area is hidden from a member. */}
+      {canEdit && livePlays.length > 0 && (
         <section
           className={styles.suggestBand}
           aria-labelledby="pulse-suggests"
@@ -601,13 +687,13 @@ export default function RiskRegister({
           </p>
         </div>
       ) : (
-        <div className={styles.list}>{active.map(renderCard)}</div>
+        <div className={styles.list}>{active.map(cardRenderer)}</div>
       )}
 
       {showClosed && closed.length > 0 && (
         <section className={styles.closedSection}>
           <h2 className={styles.closedHeading}>Closed</h2>
-          <div className={styles.list}>{closed.map(renderCard)}</div>
+          <div className={styles.list}>{closed.map(cardRenderer)}</div>
         </section>
       )}
     </main>

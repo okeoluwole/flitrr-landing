@@ -28,6 +28,7 @@ import {
   buildBaselineLockArgs,
   lockSucceeded,
 } from './reviewLockModel';
+import ViewOnlyBadge from '../../components/ViewOnlyBadge';
 import styles from './ProgrammeSetup.module.css';
 
 /**
@@ -464,6 +465,8 @@ export default function ProgrammeSetup({
   userId,
   lockerName,
   existingBaseline,
+  canEdit = true,
+  adminContact = null,
 }) {
   // The reality check, run once over the loaded inputs. Pure and deterministic.
   const realityCheck = useMemo(
@@ -577,6 +580,11 @@ export default function ProgrammeSetup({
       <p className={styles.eyebrow}>Programme / Set up</p>
       <h1 className={styles.title}>{titleText}</h1>
       <p className={styles.projectName}>{projectName}</p>
+      {!canEdit && (
+        <div className={styles.viewOnly}>
+          <ViewOnlyBadge adminContact={adminContact} />
+        </div>
+      )}
       <div className={styles.steps} aria-hidden="true">
         <span className={onReconcile ? styles.stepOn : styles.stepDone}>
           1 Reconcile dates
@@ -602,6 +610,27 @@ export default function ProgrammeSetup({
           justLocked={false}
           workspaceHref={workspaceHref}
         />
+      </main>
+    );
+  }
+
+  // ── Member, no baseline yet: set-up locks v1, which is an admin action, so a
+  //    member sees a sparse read-only state rather than the reconcile and lock
+  //    flow. (An already-locked programme is the read-only LockedPanel above,
+  //    which a member sees too.) ──
+  if (!canEdit) {
+    return (
+      <main className={`container ${styles.page}`} id="main-content">
+        {Header}
+        <div className={`${styles.placeholder} riseIn`}>
+          <p className={styles.placeholderLead}>
+            The programme has not been set up yet. Only an admin can set up the
+            programme.
+          </p>
+          <Link href={workspaceHref} className={styles.cta}>
+            Back to the workspace
+          </Link>
+        </div>
       </main>
     );
   }

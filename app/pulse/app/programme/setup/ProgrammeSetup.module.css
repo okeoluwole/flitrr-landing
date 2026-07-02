@@ -911,3 +911,11 @@
     flex-shrink: 0;
   }
 }
+
+/* ── View only (member) ────────────────── */
+
+/* The badge sits under the project name; the step row below keeps its own
+   1rem top gap. */
+.viewOnly {
+  margin-top: 0.75rem;
+}
