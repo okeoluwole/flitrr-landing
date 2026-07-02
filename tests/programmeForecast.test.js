@@ -13,8 +13,9 @@ import { assembleProgramme } from '../lib/engine/programmeAssembly.js';
  * read the met date), an unmet point rolls from its predecessor's completion
  * plus its baseline span, a late actual pushes what follows and an early actual
  * pulls it (the symmetric roll, never floored at the baseline), an unmet point
- * whose predecessor is in the past forecasts from today plus its span (the
- * overdue floor), a slipped early gate cascades through the spine, stage 7
+ * holds its baseline-derived forecast until today passes it and only then floors
+ * to today, the points after it cascading at their full spans from it (the
+ * completion floor), a slipped early gate cascades through the spine, stage 7
  * rolls concurrent with construction and is never serialised onto the end, the
  * programme forecast completion is the latest across the programme respecting
  * the concurrency, a not-applicable stage is excluded, and the whole engine is
@@ -27,9 +28,13 @@ import { assembleProgramme } from '../lib/engine/programmeAssembly.js';
 
 const ANCHOR = Date.UTC(2026, 0, 5); // 2026-01-05, a Monday
 const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 // A Date a whole number of weeks after the anchor, in UTC.
 const w = (weeks) => new Date(ANCHOR + weeks * MS_PER_WEEK);
+// A Date a whole number of weeks plus whole days after the anchor, for a today
+// that sits just off a baseline date.
+const wd = (weeks, days) => new Date(ANCHOR + weeks * MS_PER_WEEK + days * MS_PER_DAY);
 
 // A milestone in the assembled-baseline shape. The forecast engine reads the
 // key and the baseline date; serves and criticality are carried for shape
@@ -183,21 +188,24 @@ describe('the symmetric roll: late pushes, early pulls, no baseline floor', () =
   });
 });
 
-describe('the overdue floor: unmet work forecasts from today, never the past', () => {
-  it('forecasts an overdue unmet point from today plus its span', () => {
-    // Nothing met, today at week 20: every baseline date has passed.
+describe('the completion floor: an unmet forecast never lands in the past', () => {
+  it('holds the baseline-derived forecast until today passes it, then floors to today', () => {
+    // Nothing met, today at week 20: every baseline date has passed, so every
+    // point floors and the chain cascades at full spans from the current one.
+    // m1 floors to today; the gate rolls six weeks from m1; stage 1 follows.
     const r = deriveForecast(twoStages(), {}, w(20));
-    expect(milestoneOf(r, 'm1').forecastDate.getTime()).toBe(w(26).getTime());
-    expect(gateOf(r, 0).forecastDate.getTime()).toBe(w(32).getTime());
-    expect(milestoneOf(r, 'm2').forecastDate.getTime()).toBe(w(36).getTime());
-    expect(gateOf(r, 1).forecastDate.getTime()).toBe(w(40).getTime());
+    expect(milestoneOf(r, 'm1').forecastDate.getTime()).toBe(w(20).getTime());
+    expect(gateOf(r, 0).forecastDate.getTime()).toBe(w(26).getTime());
+    expect(milestoneOf(r, 'm2').forecastDate.getTime()).toBe(w(30).getTime());
+    expect(gateOf(r, 1).forecastDate.getTime()).toBe(w(34).getTime());
   });
 
-  it('floors an unmet point whose predecessor completed in the past at today', () => {
-    // m1 met on its baseline, but the gate was never met and today is week 20:
-    // the gate forecasts today plus its six week span, not w(6) plus six.
+  it('forecasts a badly overdue current point at today, the accepted understatement', () => {
+    // m1 met on its baseline, but the gate was never met and today is week 20,
+    // eight weeks past the gate's rolled position: the gate forecasts today
+    // itself, not today plus a re-run of its whole span.
     const r = deriveForecast(oneStage(), { m1: { met: true, metDate: w(6) } }, w(20));
-    expect(gateOf(r, 0).forecastDate.getTime()).toBe(w(26).getTime());
+    expect(gateOf(r, 0).forecastDate.getTime()).toBe(w(20).getTime());
   });
 
   it('never lands an unmet forecast before today', () => {
@@ -209,6 +217,30 @@ describe('the overdue floor: unmet work forecasts from today, never the past', (
     }
     expect(gateOf(r, 0).forecastDate.getTime()).toBeGreaterThanOrEqual(w(30).getTime());
     expect(gateOf(r, 1).forecastDate.getTime()).toBeGreaterThanOrEqual(w(30).getTime());
+  });
+
+  it('holds a fresh programme at its baseline until a date actually passes', () => {
+    // The invariant the floor move buys: mid span with nothing marked, the
+    // forecast does not creep. Three weeks in, every forecast is the baseline.
+    const early = deriveForecast(twoStages(), {}, w(3));
+    expect(milestoneOf(early, 'm1').forecastDate.getTime()).toBe(w(6).getTime());
+    expect(gateOf(early, 0).forecastDate.getTime()).toBe(w(12).getTime());
+    expect(milestoneOf(early, 'm2').forecastDate.getTime()).toBe(w(16).getTime());
+    expect(gateOf(early, 1).forecastDate.getTime()).toBe(w(20).getTime());
+
+    // On the baseline date itself, still no slip: the forecast agrees with the
+    // RAG engine, which reads a point behind only once today has passed it.
+    const onDate = deriveForecast(twoStages(), {}, w(6));
+    expect(milestoneOf(onDate, 'm1').forecastDate.getTime()).toBe(w(6).getTime());
+    expect(gateOf(onDate, 0).forecastDate.getTime()).toBe(w(12).getTime());
+
+    // One day past, the point slips to today and what follows cascades at full
+    // spans from it, exactly the moment the RAG engine turns it amber.
+    const dayAfter = deriveForecast(twoStages(), {}, wd(6, 1));
+    expect(milestoneOf(dayAfter, 'm1').forecastDate.getTime()).toBe(wd(6, 1).getTime());
+    expect(gateOf(dayAfter, 0).forecastDate.getTime()).toBe(wd(12, 1).getTime());
+    expect(milestoneOf(dayAfter, 'm2').forecastDate.getTime()).toBe(wd(16, 1).getTime());
+    expect(gateOf(dayAfter, 1).forecastDate.getTime()).toBe(wd(20, 1).getTime());
   });
 });
 
@@ -228,12 +260,12 @@ describe('the spine cascades: a slipped early gate moves the stages after it', (
   });
 
   it('starts the next stage from the gate forecast when the gate is unmet', () => {
-    // Gate 0 unmet and overdue at week 20: it forecasts w(26), and stage 1
-    // rolls from that forecast, not from its baseline start.
+    // Gate 0 unmet and overdue at week 20: it floors to today, w(20), and
+    // stage 1 rolls from that forecast, not from its baseline start.
     const r = deriveForecast(twoStages(), { m1: { met: true, metDate: w(6) } }, w(20));
-    expect(gateOf(r, 0).forecastDate.getTime()).toBe(w(26).getTime());
-    expect(stageOf(r, 1).forecastStart.getTime()).toBe(w(26).getTime());
-    expect(milestoneOf(r, 'm2').forecastDate.getTime()).toBe(w(30).getTime());
+    expect(gateOf(r, 0).forecastDate.getTime()).toBe(w(20).getTime());
+    expect(stageOf(r, 1).forecastStart.getTime()).toBe(w(20).getTime());
+    expect(milestoneOf(r, 'm2').forecastDate.getTime()).toBe(w(24).getTime());
   });
 });
 
@@ -286,14 +318,14 @@ describe('stage 7 rolls concurrent with construction, never serialised onto the 
       { gate_4: { met: true, metDate: w(33) } },
       w(34)
     );
-    // The spine lands last here: m5 floors at today and cascades to gate 6.
-    // m5: max(w33, w34) + 15 = w49; gate 5: w49 + 15 = w64; gate 6: w64 + 6 = w70.
-    expect(gateOf(r, 6).forecastDate.getTime()).toBe(w(70).getTime());
-    expect(r.forecastCompletion.getTime()).toBe(w(70).getTime());
-    // Serialising sales onto the end would push the finish past week 82
+    // The spine lands last here, carrying gate 4's three week slip through.
+    // m5: w33 + 15 = w48; gate 5: w48 + 15 = w63; gate 6: w63 + 6 = w69.
+    expect(gateOf(r, 6).forecastDate.getTime()).toBe(w(69).getTime());
+    expect(r.forecastCompletion.getTime()).toBe(w(69).getTime());
+    // Serialising sales onto the end would push the finish past week 81
     // (handover plus the twelve week sales tail). The concurrency keeps the
     // sales branch at week 55 and the finish at handover.
-    expect(r.forecastCompletion.getTime()).toBeLessThan(w(82).getTime());
+    expect(r.forecastCompletion.getTime()).toBeLessThan(w(81).getTime());
   });
 
   it('lets the sales branch set the finish when it lands last', () => {
@@ -371,17 +403,18 @@ describe('the programme forecast completion is the latest across the programme',
 
   it('can be dragged past a met gate by an unmet milestone under it, honestly', () => {
     // The gate was passed on time but m1 was never marked met: unmet is unmet,
-    // exactly as the RAG engine still flags it. The met gate re-anchors the
-    // chain so the phantom never leaks into the next stage.
+    // exactly as the RAG engine still flags it, and it floors to today. The
+    // met gate re-anchors the chain so the phantom never leaks into the next
+    // stage.
     const r = deriveForecast(
       twoStages(),
       { gate_0: { met: true, metDate: w(12) }, m2: { met: true, metDate: w(16) }, gate_1: { met: true, metDate: w(20) } },
       w(22)
     );
-    expect(milestoneOf(r, 'm1').forecastDate.getTime()).toBe(w(28).getTime());
+    expect(milestoneOf(r, 'm1').forecastDate.getTime()).toBe(w(22).getTime());
     expect(gateOf(r, 0).forecastDate.getTime()).toBe(w(12).getTime());
     expect(stageOf(r, 1).forecastStart.getTime()).toBe(w(12).getTime());
-    expect(r.forecastCompletion.getTime()).toBe(w(28).getTime());
+    expect(r.forecastCompletion.getTime()).toBe(w(22).getTime());
   });
 });
 
@@ -555,6 +588,21 @@ describe('input shapes and honest edges', () => {
     expect(gateOf(r, 1).forecastDate.getTime()).toBe(w(30).getTime());
   });
 
+  it('applies the completion floor, not the start floor, after a dateless carry', () => {
+    // The same carry with today already past the carried position: the carried
+    // position itself is never floored (it is the chain's spacing, not a
+    // projection of its own), so m2 floors to today at its completion, w(30),
+    // not to today plus its span, and gate 1 rolls its four week span from it.
+    const r = deriveForecast(
+      twoStages(),
+      { m1: { met: true, metDate: w(16) }, gate_0: { met: true } },
+      w(30)
+    );
+    expect(stageOf(r, 1).forecastStart.getTime()).toBe(w(22).getTime());
+    expect(milestoneOf(r, 'm2').forecastDate.getTime()).toBe(w(30).getTime());
+    expect(gateOf(r, 1).forecastDate.getTime()).toBe(w(34).getTime());
+  });
+
   it('skips a milestone with no key, folding its spacing into the next point', () => {
     const baseline = mkBaseline(
       mkStage(0, {
@@ -610,11 +658,10 @@ describe('input shapes and honest edges', () => {
       })
     );
     const r = deriveForecast(baseline, {}, w(20));
-    // m1 floors to today plus its ten week span; the gate keeps the baseline's
-    // backwards spacing but never lands before today.
-    expect(milestoneOf(r, 'm1').forecastDate.getTime()).toBe(w(30).getTime());
-    expect(gateOf(r, 0).forecastDate.getTime()).toBe(w(28).getTime());
-    expect(gateOf(r, 0).forecastDate.getTime()).toBeGreaterThanOrEqual(w(20).getTime());
+    // Both points are past their baselines, so both floor to today: the
+    // backwards spacing never drags an unmet forecast into the past.
+    expect(milestoneOf(r, 'm1').forecastDate.getTime()).toBe(w(20).getTime());
+    expect(gateOf(r, 0).forecastDate.getTime()).toBe(w(20).getTime());
   });
 });
 
@@ -647,7 +694,9 @@ describe('determinism and purity (reproducible from today, no clock, no side eff
     const early = deriveForecast(twoStages(), {}, w(0));
     const late = deriveForecast(twoStages(), {}, w(30));
     expect(early.forecastCompletion.getTime()).toBe(w(20).getTime());
-    expect(late.forecastCompletion.getTime()).toBe(w(50).getTime());
+    // At week 30 everything is overdue: m1 floors to w30 and the chain rolls
+    // its remaining spans from there, six to the gate, four and four beyond.
+    expect(late.forecastCompletion.getTime()).toBe(w(44).getTime());
     expect(deriveForecast(twoStages(), {}, w(0))).toEqual(early);
   });
 
@@ -852,15 +901,15 @@ describe('it consumes a real assembled v1 baseline', () => {
     expect(firstExchange.forecastDate.getTime()).toBe(fromStart(102).getTime());
     expect(s7.gate.forecastDate.getTime()).toBe(fromStart(134).getTime());
 
-    // Handover forecasts week 130, four weeks late: two from the actuals, and
-    // two more because at today, week 84, the unmet superstructure span cannot
-    // finish before week 98 (the overdue floor at work mid chain).
+    // Handover forecasts week 128: the two week substructure slip carried
+    // cleanly through the spine, with nothing else added, because no unmet
+    // baseline date has passed at today, week 84.
     const gate6 = r.stages.find((s) => s.stage === 6).gate;
-    expect(gate6.forecastDate.getTime()).toBe(fromStart(130).getTime());
+    expect(gate6.forecastDate.getTime()).toBe(fromStart(128).getTime());
 
     // The finish is the later of handover and disposal, week 134, NOT handover
-    // plus the thirty two week sales run (week 162): sales stays concurrent.
+    // plus the thirty two week sales run (week 160): sales stays concurrent.
     expect(r.forecastCompletion.getTime()).toBe(fromStart(134).getTime());
-    expect(r.forecastCompletion.getTime()).toBeLessThan(fromStart(162).getTime());
+    expect(r.forecastCompletion.getTime()).toBeLessThan(fromStart(160).getTime());
   });
 });
