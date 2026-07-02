@@ -25,6 +25,47 @@ export default function ResetPasswordPage() {
     );
   }, []);
 
+  // Invite links (and any admin-sent recovery link) arrive with the session
+  // in the URL fragment: the implicit flow, because an email sent server-side
+  // has no browser to hold a PKCE code verifier. The auth callback forwards
+  // that fragment here untouched (a fragment never reaches the server), and
+  // the browser client will not adopt it by itself because @supabase/ssr pins
+  // the client to the PKCE flow. So read the fragment and establish the
+  // session explicitly. A PKCE password reset arrives with no fragment (the
+  // callback already set the session cookie) and this effect does nothing.
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash || hash.length < 2) return;
+    const params = new URLSearchParams(hash.slice(1));
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+
+    if (accessToken && refreshToken) {
+      supabase.auth
+        .setSession({ access_token: accessToken, refresh_token: refreshToken })
+        .then(({ error: err }) => {
+          if (err) {
+            setError(err.message);
+            return;
+          }
+          // Keep the tokens out of the address bar and browser history.
+          window.history.replaceState(
+            null,
+            '',
+            window.location.pathname + window.location.search
+          );
+        });
+      return;
+    }
+
+    // A consumed or expired link comes back as an error fragment
+    // (#error=access_denied&error_code=otp_expired&...). Say so plainly
+    // instead of letting the form fail with a cryptic message on submit.
+    if (params.get('error') || params.get('error_description')) {
+      setError('This link is invalid or has expired. Please request a new one.');
+    }
+  }, [supabase]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
