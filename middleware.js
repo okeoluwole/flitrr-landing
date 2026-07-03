@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { PASSWORD_RESET_PENDING_COOKIE } from './lib/auth/resetPending';
 
 /**
  * Path prefixes that require an authenticated session. Anything
@@ -22,6 +23,9 @@ const LOGIN_BANNER_PARAMS = ['reset', 'error'];
  *   2. Gate access:
  *      - Protected paths require a user. Without one, redirect to
  *        /login?next=<original path + query>.
+ *      - A session still carrying the must-set-password cookie (set by
+ *        the auth callback for recovery and invite arrivals) is held on
+ *        the set-password screen until the password update succeeds.
  *      - A signed-in but deactivated member is sent to a plain
  *        /access-deactivated notice and cannot proceed. Row level
  *        security denies their data underneath regardless.
@@ -74,6 +78,23 @@ export async function middleware(request) {
     loginUrl.search = '';
     loginUrl.searchParams.set('next', `${pathname}${search}`);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Gate 1a: a session created by a recovery or invite link is a full
+  // session, so Gate 1 alone would let it straight in without a password
+  // ever being set. The auth callback marks such a session with the
+  // must-set-password cookie; while it is present, protected paths bounce
+  // back to the set-password screen. The screen clears the cookie only
+  // after supabase.auth.updateUser succeeds (and a successful password
+  // sign-in clears any stale marker, so normal sign-ins are unaffected).
+  if (isProtected && user) {
+    const pending = request.cookies.get(PASSWORD_RESET_PENDING_COOKIE);
+    if (pending) {
+      const resetUrl = request.nextUrl.clone();
+      resetUrl.pathname = '/reset-password';
+      resetUrl.search = pending.value === 'welcome' ? '?welcome=1' : '';
+      return NextResponse.redirect(resetUrl);
+    }
   }
 
   // Gate 1b: only an active member may reach the app. A user can always read

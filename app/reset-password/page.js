@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '../../lib/supabase/client';
+import { clearPasswordResetPending } from '../../lib/auth/resetPending';
 import styles from '../login/page.module.css';
 
 export default function ResetPasswordPage() {
@@ -62,6 +63,11 @@ export default function ResetPasswordPage() {
     // (#error=access_denied&error_code=otp_expired&...). Say so plainly
     // instead of letting the form fail with a cryptic message on submit.
     if (params.get('error') || params.get('error_description')) {
+      // The link created no session, so no must-set-password hold is
+      // warranted. Clear the marker the callback set on the way here,
+      // otherwise a signed-in user who clicked a stale link would be
+      // held at this screen by their existing session.
+      clearPasswordResetPending();
       setError('This link is invalid or has expired. Please request a new one.');
     }
   }, [supabase]);
@@ -87,6 +93,10 @@ export default function ResetPasswordPage() {
       setError(err.message);
       return;
     }
+
+    // The password is set, so the session may now enter the app: release
+    // the must-set-password hold the middleware enforces.
+    clearPasswordResetPending();
 
     if (welcome) {
       // Belt-and-braces: make sure the invited member is joined to their

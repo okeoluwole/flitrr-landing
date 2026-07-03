@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '../../../lib/supabase/server';
+import { PASSWORD_RESET_PENDING_COOKIE } from '../../../lib/auth/resetPending';
 
 /**
  * Auth callback. The user lands here after clicking the email
@@ -40,11 +41,30 @@ export async function GET(request) {
     !nextParam.startsWith('//');
   const safeNext = hasSafeNext ? nextParam : '/dashboard';
 
+  // A forward to the set-password screen means this arrival came from a
+  // recovery or invite email. The session it establishes must not enter
+  // the app until a password has been set, so the redirect carries the
+  // must-set-password cookie the middleware checks. The set-password
+  // screen clears it once supabase.auth.updateUser succeeds.
+  const mustSetPassword =
+    safeNext === '/reset-password' || safeNext.startsWith('/reset-password?');
+  const forwardTo = (to) => {
+    const response = NextResponse.redirect(to);
+    if (mustSetPassword) {
+      response.cookies.set(
+        PASSWORD_RESET_PENDING_COOKIE,
+        safeNext.includes('welcome=1') ? 'welcome' : '1',
+        { path: '/', maxAge: 60 * 60 * 24 * 7, sameSite: 'lax' }
+      );
+    }
+    return response;
+  };
+
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      return NextResponse.redirect(`${origin}${safeNext}`);
+      return forwardTo(`${origin}${safeNext}`);
     }
     return NextResponse.redirect(`${origin}/login?error=callback_failed`);
   }
@@ -55,7 +75,7 @@ export async function GET(request) {
   // the fragment. Only our own email flows set `next`, so an arrival
   // without one keeps the old failure bounce.
   if (hasSafeNext) {
-    return NextResponse.redirect(`${origin}${safeNext}`);
+    return forwardTo(`${origin}${safeNext}`);
   }
 
   return NextResponse.redirect(`${origin}/login?error=callback_failed`);

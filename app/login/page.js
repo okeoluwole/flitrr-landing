@@ -4,6 +4,7 @@ import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '../../lib/supabase/client';
+import { clearPasswordResetPending } from '../../lib/auth/resetPending';
 import styles from './page.module.css';
 
 export default function LoginPage() {
@@ -54,6 +55,10 @@ function LoginPageInner() {
       setSiError(error.message);
       return;
     }
+    // A password sign-in proves the password works, so any stale
+    // must-set-password marker (an abandoned or expired recovery or
+    // invite link) must not gate this user.
+    clearPasswordResetPending();
     router.push(safeNext);
     router.refresh();
   };
