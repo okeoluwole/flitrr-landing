@@ -11,6 +11,7 @@ import {
   formatActionLogSummary,
 } from '../actions/actionFeed';
 import { isCritical, isDone } from '../actions/actionModel';
+import { programmeTileTarget } from '../programme/trackingModel';
 import styles from './Workspace.module.css';
 
 /**
@@ -209,21 +210,30 @@ export default async function WorkspacePage({ searchParams }) {
     full_name: profile?.full_name ?? null,
   };
 
-  // The project and its latest brief lock state (to label the Brief tile).
-  const [{ data: project }, { data: brief }] = await Promise.all([
-    supabase
-      .from('projects')
-      .select('id, name, current_stage')
-      .eq('id', projectParam)
-      .maybeSingle(),
-    supabase
-      .from('project_briefs')
-      .select('is_locked')
-      .eq('project_id', projectParam)
-      .order('version', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-  ]);
+  // The project, its latest brief lock state (to label the Brief tile), and
+  // whether a current programme baseline exists (to route the Programme tile
+  // to tracking once v1 is locked). The baseline read is the row's id only.
+  const [{ data: project }, { data: brief }, { data: baselineRow }] =
+    await Promise.all([
+      supabase
+        .from('projects')
+        .select('id, name, current_stage')
+        .eq('id', projectParam)
+        .maybeSingle(),
+      supabase
+        .from('project_briefs')
+        .select('is_locked')
+        .eq('project_id', projectParam)
+        .order('version', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from('programme_baselines')
+        .select('id')
+        .eq('project_id', projectParam)
+        .is('superseded_at', null)
+        .maybeSingle(),
+    ]);
 
   if (!project) {
     redirect('/pulse/app');
@@ -240,6 +250,13 @@ export default async function WorkspacePage({ searchParams }) {
   // has committed the baseline.
   const stage2Reached = project.current_stage >= STAGE_2;
   const briefLocked = brief?.is_locked === true;
+
+  // The Programme tile routes by state: no locked Brief, locked; Brief locked
+  // but no baseline, to set-up; baseline locked, to the tracking home.
+  const programmeTile = programmeTileTarget(project.id, {
+    briefLocked,
+    hasBaseline: baselineRow != null,
+  });
 
   // The Action Log tile's live summary (M7.2): what needs a response
   // (derived from the register by the feed's trigger rule) and what is open
@@ -414,13 +431,9 @@ export default async function WorkspacePage({ searchParams }) {
             icon={<ProgrammeIcon />}
             title="Programme"
             desc="Set a credible delivery programme, then track it against the baseline."
-            footer={
-              briefLocked
-                ? 'Set up the operational baseline.'
-                : 'Programme set-up opens once you lock the Brief.'
-            }
-            state={briefLocked ? 'open' : 'locked'}
-            href={`/pulse/app/programme/setup?project=${project.id}`}
+            footer={programmeTile.footer}
+            state={programmeTile.state}
+            href={programmeTile.href}
           />
           <Tile
             icon={<DashboardIcon />}

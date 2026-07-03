@@ -1,0 +1,482 @@
+/*
+ * Programme tracking shell and hero band (Phase 3.5). Instrument product
+ * surface: the summary band is the deep-blue console masthead, the same
+ * treatment as the Brief's header band, pinned under the app top bar, with
+ * the five co-equal tiles as paper cells set into it. Amber is reserved for
+ * signal: the band's bottom hairline and the critical call-outs; amber as
+ * text is always its ochre sibling. Mobile-first, enhanced at 768px.
+ */
+
+.page {
+  max-width: 1000px;
+  padding-block: 2.5rem 5rem;
+}
+
+/* ── Header ── */
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--app-ink-secondary);
+  text-decoration: none;
+  margin-bottom: 1.5rem;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.backLink:hover,
+.backLink:focus-visible {
+  color: var(--app-ink);
+}
+
+.backLink svg {
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.backLink:hover svg,
+.backLink:focus-visible svg {
+  transform: translateX(-3px);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem 1.25rem;
+}
+
+.eyebrow {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--app-ink-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.title {
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(1.75rem, 4vw, 2.4rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--app-ink);
+}
+
+.projectName {
+  font-family: var(--font-body), sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--app-ink-secondary);
+  margin-top: 0.35rem;
+}
+
+.baselineChip {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--app-ink-secondary);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-sm);
+  padding: 0.4rem 0.65rem;
+  white-space: nowrap;
+}
+
+.viewOnly {
+  margin-top: 0.75rem;
+}
+
+/* ── The summary band: pinned under the app top bar (64px), persistent
+      while the tabs scroll beneath it. ── */
+
+.band {
+  position: sticky;
+  top: 64px;
+  z-index: 40;
+  margin-top: 1.5rem;
+  background: var(--app-console-raised);
+  border-radius: var(--app-radius-lg);
+  border-bottom: 3px solid var(--app-signal);
+  box-shadow: var(--app-elev-console);
+  /* Compact at phone width: the pinned band must leave the viewport mostly
+     to the content scrolling beneath it. */
+  padding: 0.65rem 0.65rem 0.7rem;
+}
+
+.bandEyebrow {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--app-on-console-secondary);
+  margin: 0 0.15rem 0.6rem;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  border-radius: var(--app-radius);
+  overflow: hidden;
+}
+
+.tile {
+  background: var(--app-surface);
+  padding: 0.5rem 0.65rem 0.55rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.tileLabel {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--app-ink-secondary);
+}
+
+.tileValue {
+  font-family: var(--font-body), sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--app-ink);
+  display: flex;
+  align-items: center;
+  min-height: 1.5rem;
+}
+
+.tileSub {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--app-ink-secondary);
+}
+
+.tileSubSignal {
+  color: var(--app-signal-ink);
+  font-weight: 600;
+}
+
+/* ── The RAG dots. On paper, green and red hold their own contrast; the
+      amber fill takes an ochre ring so the dot never washes out. Each colour
+      also carries its own shape, never hue alone: green is solid, amber is
+      ringed, red holds a paper core, so the three read apart without a
+      verdict word. ── */
+
+.ragDot {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.ragDotLarge {
+  width: 22px;
+  height: 22px;
+}
+
+.ragGreen {
+  background: var(--app-success);
+}
+
+.ragAmber {
+  background: var(--app-signal);
+  border: 2px solid var(--app-signal-ink);
+}
+
+.ragRed {
+  background: radial-gradient(
+    circle at center,
+    var(--app-surface) 0 20%,
+    var(--app-danger) 26% 100%
+  );
+}
+
+.ragUnknown {
+  background: var(--app-ink-muted);
+}
+
+/* ── The colour key and the tolerance dial: a quiet strip below the band,
+      outside the pinned mass. ── */
+
+.keyStrip {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.key {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.keyItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--app-ink-secondary);
+  max-width: 62ch;
+}
+
+.keyItem .ragDot {
+  margin-top: 3px;
+}
+
+.keyText b {
+  color: var(--app-ink);
+  font-weight: 700;
+}
+
+.tolerance {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.toleranceLabel {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--app-ink-secondary);
+}
+
+.toleranceChoices {
+  display: inline-flex;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-sm);
+  overflow: hidden;
+}
+
+.toleranceBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--app-ink-secondary);
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--app-hairline);
+  padding: 0.4rem 0.8rem 0.45rem;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+
+.toleranceBtn:last-child {
+  border-right: none;
+}
+
+.toleranceBtn:hover {
+  color: var(--app-ink);
+}
+
+.toleranceBtn:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: -2px;
+}
+
+.toleranceBtnOn {
+  background: var(--app-console-raised);
+  color: var(--app-on-console);
+}
+
+.toleranceBtnOn:hover {
+  color: var(--app-on-console);
+}
+
+/* On the selected chip the ground is the dark console, so the focus ring
+   takes the on-console focus token, never the deep blue that vanishes on it. */
+.toleranceBtnOn:focus-visible {
+  outline-color: var(--app-focus-on-console);
+}
+
+.toleranceWeeks {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--app-ink-secondary);
+}
+
+.toleranceBtnOn .toleranceWeeks {
+  color: var(--app-on-console-secondary);
+}
+
+/* ── The tabs: the real, final mechanism; the panels are shells. ── */
+
+.tabs {
+  margin-top: 1.75rem;
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--app-border);
+}
+
+.tabBtn {
+  appearance: none;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding: 0.65rem 1rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--app-ink-secondary);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out);
+  /* Keep a focused tab clear of the pinned band when the browser scrolls it
+     into view: the app bar plus the band's tallest (phone) form. */
+  scroll-margin-top: 21rem;
+}
+
+.tabBtn:hover {
+  color: var(--app-ink);
+}
+
+.tabBtn:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: -2px;
+}
+
+.tabBtnOn {
+  color: var(--app-ink);
+  border-bottom-color: var(--app-ink);
+}
+
+.panel {
+  padding-top: 1.25rem;
+  scroll-margin-top: 21rem;
+}
+
+.panelShell {
+  background: var(--app-surface);
+  border: 1.5px dashed var(--app-border);
+  border-radius: var(--app-radius);
+  padding: 1.75rem 1.4rem;
+}
+
+.panelShellLead {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--app-ink);
+}
+
+.panelShellNote {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--app-ink-secondary);
+  margin-top: 0.35rem;
+  max-width: 60ch;
+}
+
+/* ── The no-baseline pointer (server-rendered): set-up first. ── */
+
+.placeholder {
+  margin-top: 1.75rem;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  padding: 1.5rem 1.4rem;
+}
+
+.placeholderLead {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--app-ink);
+  max-width: 60ch;
+}
+
+.cta {
+  margin-top: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-button-primary-text);
+  background: var(--color-button-primary-bg);
+  border: 1.5px solid var(--color-button-primary-bg);
+  border-radius: var(--app-radius-sm);
+  padding: 0.6rem 1.1rem;
+  text-decoration: none;
+  transition: filter var(--dur-fast) var(--ease-out);
+}
+
+.cta:hover {
+  filter: brightness(0.94);
+}
+
+.cta:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+}
+
+/* ── 768px and up: the five tiles sit in one row, the key strip splits. ── */
+
+@media (min-width: 768px) {
+  .band {
+    padding: 1.05rem 1.1rem 1.1rem;
+  }
+
+  .tiles {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .tile {
+    padding: 0.75rem 0.9rem 0.8rem;
+    gap: 0.25rem;
+  }
+
+  .tileValue {
+    font-size: 1.1875rem;
+    min-height: 1.6rem;
+  }
+
+  .keyStrip {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+
+  .tolerance {
+    align-items: flex-end;
+    flex-shrink: 0;
+  }
+
+  .tabBtn,
+  .panel {
+    scroll-margin-top: 14rem;
+  }
+}
