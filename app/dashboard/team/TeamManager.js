@@ -27,6 +27,9 @@ function memberName(m) {
   return 'Member';
 }
 
+// The invitation created_at timestamp shown at day granularity. Pinned to UTC
+// so the invited day reads the same for every viewer and the server-rendered
+// HTML matches the client.
 function formatDate(iso) {
   if (!iso) return '';
   const d = new Date(iso);
@@ -35,6 +38,7 @@ function formatDate(iso) {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
+    timeZone: 'UTC',
   });
 }
 

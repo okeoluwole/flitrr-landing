@@ -80,12 +80,16 @@ const SERVES_BY_KEY = (() => {
   return map;
 })();
 
+// The engine dates are UTC-midnight instants, so format in UTC to keep the
+// displayed day stable regardless of the viewer's timezone and identical to
+// the tracking surface, which renders the same assembled dates.
 function formatDate(date) {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) return null;
   return date.toLocaleDateString('en-GB', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
+    timeZone: 'UTC',
   });
 }
 
@@ -298,6 +302,8 @@ function ReconcileCard({ item, state, onDecide, onNote }) {
 
 // A longer date stamp for the locked record (a DB timestamp, an ISO string or a
 // Date). Distinct from formatDate, which reads the assembled Date baseline dates.
+// Pinned to UTC so the recorded day reads the same for every viewer and matches
+// the tracking surface's stamp of the same lock.
 function formatStamp(value) {
   if (value == null) return null;
   const d = value instanceof Date ? value : new Date(value);
@@ -306,16 +312,19 @@ function formatStamp(value) {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
+    timeZone: 'UTC',
   });
 }
 
-// A compact date for a stage span, two-digit year to read at a glance.
+// A compact date for a stage span, two-digit year to read at a glance. UTC for
+// the same reason as formatDate.
 function formatShort(date) {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) return null;
   return date.toLocaleDateString('en-GB', {
     day: 'numeric',
     month: 'short',
     year: '2-digit',
+    timeZone: 'UTC',
   });
 }
 

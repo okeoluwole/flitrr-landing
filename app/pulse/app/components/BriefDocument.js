@@ -41,7 +41,8 @@ function safeUrl(url) {
   return /^https?:\/\//i.test(url) ? url : null;
 }
 
-// Full date for the "Generated" chip, e.g. "31 May 2026". Runs client-side.
+// Full date for the "Generated" chip, e.g. "31 May 2026". Pinned to UTC so the
+// generated day of the locked record reads the same for every viewer.
 function formatLongDate(iso) {
   if (!iso) return null;
   const d = new Date(iso);
@@ -50,6 +51,7 @@ function formatLongDate(iso) {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
+    timeZone: 'UTC',
   });
 }
 

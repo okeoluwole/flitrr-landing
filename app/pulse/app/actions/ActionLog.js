@@ -113,6 +113,9 @@ const LAST_STAGE = 7;
 const ACTION_COLUMNS =
   'id, description, linked_objective_id, criticality, criticality_override, override_reason, stage, reason, outcome, variance, status, note, source, source_id, created_at';
 
+// The created_at timestamp shown at day granularity. Pinned to UTC so the
+// logged day reads the same for every viewer and the server-rendered HTML
+// matches the client.
 function formatLogged(iso) {
   if (!iso) return null;
   const d = new Date(iso);
@@ -121,6 +124,7 @@ function formatLogged(iso) {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
+    timeZone: 'UTC',
   });
 }
 

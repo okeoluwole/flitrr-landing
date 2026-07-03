@@ -41,6 +41,9 @@ const STATUS_LABELS = {
 const DELETE_ERROR =
   'We could not delete this draft. Please check your connection and try again.';
 
+// The updated_at timestamp shown at day granularity. Pinned to UTC so the
+// displayed day reads the same for every viewer and the server-rendered HTML
+// matches the client.
 function formatUpdated(iso) {
   if (!iso) return null;
   const d = new Date(iso);
@@ -49,6 +52,7 @@ function formatUpdated(iso) {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
+    timeZone: 'UTC',
   });
 }
 

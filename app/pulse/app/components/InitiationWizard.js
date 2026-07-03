@@ -154,7 +154,8 @@ const STAGE_NAMES = {
   7: 'Sales and Disposal',
 };
 
-// Short date for the gate decision note, e.g. "5 Jun 2026".
+// Short date for the gate decision note, e.g. "5 Jun 2026". Pinned to UTC so
+// the recorded day reads the same for every viewer and matches the gate screen.
 function formatGateDate(iso) {
   if (!iso) return null;
   const d = new Date(iso);
@@ -163,6 +164,7 @@ function formatGateDate(iso) {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
+    timeZone: 'UTC',
   });
 }
 

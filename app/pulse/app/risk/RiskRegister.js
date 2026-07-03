@@ -90,6 +90,9 @@ function labelFor(options, value) {
   return options.find((o) => o.value === value)?.label ?? null;
 }
 
+// The last_reviewed_at timestamp shown at day granularity. Pinned to UTC so
+// the reviewed day reads the same for every viewer and the server-rendered
+// HTML matches the client.
 function formatReviewed(iso) {
   if (!iso) return null;
   const d = new Date(iso);
@@ -98,6 +101,7 @@ function formatReviewed(iso) {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
+    timeZone: 'UTC',
   });
 }
 

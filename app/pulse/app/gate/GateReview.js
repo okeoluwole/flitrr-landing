@@ -38,6 +38,9 @@ const OVER_CONSTRAINT_ACK =
 const CONFIRM_ERROR =
   'We could not record the gate decision. Please check your connection and try again, or email hello@flitrr.com.';
 
+// The passed_at timestamp shown at day granularity. Pinned to UTC so the
+// recorded day reads the same for every viewer and the server-rendered HTML
+// matches the client.
 function formatLongDate(iso) {
   if (!iso) return null;
   const d = new Date(iso);
@@ -46,6 +49,7 @@ function formatLongDate(iso) {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
+    timeZone: 'UTC',
   });
 }
 
