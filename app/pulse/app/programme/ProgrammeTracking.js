@@ -19,14 +19,25 @@ import {
   varianceLabel,
   bandPosition,
 } from './trackingModel';
+import {
+  GATE_DIRECTIONS,
+  nextGateCard,
+  directionLabel,
+  gateReviewHref,
+  needsAttention,
+  attentionReason,
+  behindLabel,
+  nextThirtyDays,
+} from './overviewModel';
 import styles from './ProgrammeTracking.module.css';
 
 /**
- * ProgrammeTracking - the tracking surface shell and its hero band (Programme
- * module Phase 3.5). The daily face of the module: the pinned summary band
- * with its five co-equal tiles, the colour key, the bounded tolerance dial,
- * and the Overview and Schedule tabs as shells whose content lands in the
- * next sub-steps.
+ * ProgrammeTracking - the tracking surface shell, its hero band (Programme
+ * module Phase 3.5), and the Overview tab's content (Phase 3.6). The daily
+ * face of the module: the pinned summary band with its five co-equal tiles,
+ * the colour key, the bounded tolerance dial, the Overview tab (the Next Gate
+ * card, the Needs attention list, and the Next 30 days lookahead), and the
+ * Schedule tab as a shell whose content lands in the next sub-step.
  *
  * The page (server) has loaded the frozen v1 programme and the met-points
  * view, read the clock once, and passed everything down as plain data. This
@@ -39,12 +50,18 @@ import styles from './ProgrammeTracking.module.css';
  *
  * The tolerance dial is session-only state. Changing it re-runs the RAG
  * derivation with the new tolerance, so the Status colour, the Slipping
- * count, and the flagged list respond immediately; the percent and the
- * forecast never read it.
+ * count, the flagged list, and the Needs attention block respond
+ * immediately; the percent and the forecast never read it.
+ *
+ * The Overview tab reads the engine outputs this component already computed
+ * through the pure overviewModel helpers: no new load, no re-derivation, and
+ * no second reading of the clock. It is read-only: marking a milestone met is
+ * a later sub-step and no write happens anywhere on this surface.
  */
 
-// The two tabs. The tab mechanism is real and final; the panels are shells in
-// this step, their content the next two sub-steps.
+// The two tabs. The tab mechanism is real and final; the Overview carries its
+// content (3.6), the Schedule panel is a shell whose content is the next
+// sub-step.
 const TABS = Object.freeze([
   Object.freeze({ key: 'overview', label: 'Overview' }),
   Object.freeze({ key: 'schedule', label: 'Schedule' }),
@@ -88,8 +105,9 @@ function formatStamp(value) {
 
 // The status dot, colour only, named for assistive tech by the colour the key
 // explains, never a verdict word. In the colour key the adjacent text already
-// names the colour, so the swatch there is decorative and stays silent.
-function RagDot({ colour, large, decorative }) {
+// names the colour, so the swatch there is decorative and stays silent. A
+// flagged item's dot names its contribution instead of the overall status.
+function RagDot({ colour, large, decorative, label }) {
   const colourClass = RAG_CLASS[colour];
   const classes = [
     styles.ragDot,
@@ -105,7 +123,7 @@ function RagDot({ colour, large, decorative }) {
     <span
       className={classes}
       role="img"
-      aria-label={colour ? `Status: ${colour}` : 'Status unavailable'}
+      aria-label={label ?? (colour ? `Status: ${colour}` : 'Status unavailable')}
     />
   );
 }
@@ -129,6 +147,7 @@ function Tile({ label, children, sub, subSignal }) {
 }
 
 export default function ProgrammeTracking({
+  projectId,
   projectName,
   workspaceHref,
   baselineVersion,
@@ -176,8 +195,27 @@ export default function ProgrammeTracking({
     [programme, forecast]
   );
 
+  // The Overview tab's three blocks, derived from the same engine outputs by
+  // the pure overview model: the gate states off the forecast tree, the
+  // attention list off the RAG derivation (so the dial re-orders it live),
+  // and the lookahead off the forecast dates against the today the page read
+  // once. No new load and no second clock read.
+  const nextGate = useMemo(
+    () => nextGateCard(programme, forecast),
+    [programme, forecast]
+  );
+  const attention = useMemo(() => needsAttention(rag), [rag]);
+  const lookahead = useMemo(
+    () => nextThirtyDays(programme, forecast, todayIso),
+    [programme, forecast, todayIso]
+  );
+
   const lockedOn = formatStamp(baselineLockedAt);
   const completionVariance = varianceLabel(completion.varianceWeeks);
+  const nextGateHref = nextGate.done
+    ? null
+    : gateReviewHref(projectId, nextGate.stage);
+  const nextGateSlipping = nextGate.direction === GATE_DIRECTIONS.BEHIND;
 
   // Roving focus on the tab list: Left and Right move between the two tabs,
   // Home and End jump to the ends, and moving focus selects.
@@ -362,14 +400,198 @@ export default function ProgrammeTracking({
         hidden={activeTab !== 'overview'}
         className={styles.panel}
       >
-        <div className={styles.panelShell}>
-          <p className={styles.panelShellLead}>The Overview lands here next.</p>
-          <p className={styles.panelShellNote}>
-            The Next Gate spotlight, the Needs attention list, and the next 30
-            days arrive in the coming sub-steps. The summary band above is
-            already live.
-          </p>
-        </div>
+        {/* ── Next Gate: the one gate ahead, spotlit in the same card form as
+               Needs attention so gates and milestones read the same way. ── */}
+        <section className={styles.block} aria-labelledby="overview-next-gate">
+          <div className={styles.blockHead}>
+            <h2 id="overview-next-gate" className={styles.blockTitle}>
+              Next Gate
+            </h2>
+            {!nextGate.done && (
+              <span className={styles.blockMeta}>the one gate ahead</span>
+            )}
+          </div>
+          {nextGate.done ? (
+            <div className={styles.blockEmpty}>
+              <p className={styles.blockEmptyLead}>Every gate is passed.</p>
+              <p className={styles.blockEmptyNote}>
+                The programme has cleared its final stage boundary; nothing
+                remains at a gate.
+              </p>
+            </div>
+          ) : (
+            <article
+              className={`${styles.card} ${
+                nextGateSlipping ? styles.cardSignal : ''
+              }`}
+            >
+              <div className={styles.cardBody}>
+                <p className={styles.cardName}>{nextGate.name ?? 'Gate'}</p>
+                <p className={styles.cardMeta}>
+                  gate
+                  {nextGate.stage != null ? ` · stage ${nextGate.stage}` : ''}
+                  {' · critical'}
+                </p>
+                <p className={styles.cardWhy}>
+                  The go or no-go decision that closes the stage. It is always
+                  tracked.
+                </p>
+                {nextGateHref && (
+                  <Link href={nextGateHref} className={styles.cardLink}>
+                    Open the gate review
+                  </Link>
+                )}
+              </div>
+              <div className={styles.cardSide}>
+                {nextGate.direction != null && (
+                  <span
+                    className={`${styles.statusChip} ${
+                      nextGateSlipping
+                        ? styles.statusChipSlip
+                        : styles.statusChipOn
+                    }`}
+                  >
+                    {nextGateSlipping ? 'Slipping' : 'On track'}
+                  </span>
+                )}
+                {nextGate.varianceWeeks != null && (
+                  <span
+                    className={`${styles.cardFigure} ${
+                      nextGateSlipping ? styles.cardFigureSignal : ''
+                    } tnum`}
+                  >
+                    {directionLabel(nextGate.varianceWeeks)}
+                  </span>
+                )}
+                <span className={`${styles.cardDates} tnum`}>
+                  forecast {formatShort(nextGate.forecastDate) ?? 'not dated'}
+                  {' · '}
+                  baseline {formatShort(nextGate.baselineDate) ?? 'not dated'}
+                </span>
+              </div>
+            </article>
+          )}
+        </section>
+
+        {/* ── Needs attention: the RAG engine's flagged list, worst first,
+               re-ordering live as the tolerance dial re-runs the derivation. ── */}
+        <section className={styles.block} aria-labelledby="overview-attention">
+          <div className={styles.blockHead}>
+            <h2 id="overview-attention" className={styles.blockTitle}>
+              Needs attention
+            </h2>
+            <span className={`${styles.blockMeta} tnum`}>
+              {attention.length === 0
+                ? 'no items'
+                : `${attention.length} ${attention.length === 1 ? 'item' : 'items'}`}
+            </span>
+          </div>
+          {attention.length === 0 ? (
+            <div className={styles.blockEmpty}>
+              <p className={styles.blockEmptyLead}>Nothing needs attention.</p>
+              <p className={styles.blockEmptyNote}>
+                No point is behind its baseline at this tolerance and nothing
+                is breaching.
+              </p>
+            </div>
+          ) : (
+            <ul className={styles.cardList}>
+              {attention.map((item) => (
+                <li
+                  key={item.key}
+                  className={`${styles.card} ${
+                    item.colour === 'red' ? styles.cardDanger : styles.cardSignal
+                  }`}
+                >
+                  <div className={styles.cardBody}>
+                    <p className={styles.cardName}>{item.name ?? item.key}</p>
+                    <p className={styles.cardMeta}>
+                      {item.kind}
+                      {item.stage != null ? ` · stage ${item.stage}` : ''}
+                      {` · ${item.criticality}`}
+                    </p>
+                    {attentionReason(item.condition) && (
+                      <p className={styles.cardWhy}>
+                        {attentionReason(item.condition)}
+                      </p>
+                    )}
+                  </div>
+                  <div className={styles.cardSide}>
+                    <span className={styles.cardContribution}>
+                      <RagDot
+                        colour={item.colour}
+                        label={`Contributes ${item.colour}`}
+                      />
+                      {behindLabel(item.weeksBehind) && (
+                        <span
+                          className={`${styles.cardFigure} ${
+                            item.colour === 'red'
+                              ? styles.cardFigureDanger
+                              : styles.cardFigureSignal
+                          } tnum`}
+                        >
+                          {behindLabel(item.weeksBehind)}
+                        </span>
+                      )}
+                    </span>
+                    {item.baselineDate != null && (
+                      <span className={`${styles.cardDates} tnum`}>
+                        baseline {formatShort(item.baselineDate)}
+                      </span>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {/* ── Next 30 days: the lookahead, every unmet point forecast inside
+               the month ahead, soonest first. ── */}
+        <section className={styles.block} aria-labelledby="overview-lookahead">
+          <div className={styles.blockHead}>
+            <h2 id="overview-lookahead" className={styles.blockTitle}>
+              Next 30 days
+            </h2>
+            <span className={styles.blockMeta}>by forecast date</span>
+          </div>
+          {lookahead.length === 0 ? (
+            <div className={styles.blockEmpty}>
+              <p className={styles.blockEmptyLead}>A quiet month ahead.</p>
+              <p className={styles.blockEmptyNote}>
+                No unmet point has a forecast date in the next 30 days.
+              </p>
+            </div>
+          ) : (
+            <ul className={styles.look}>
+              {lookahead.map((item) => (
+                <li key={item.key} className={styles.lookRow}>
+                  <span className={`${styles.lookDate} tnum`}>
+                    {formatShort(item.forecastDate)}
+                  </span>
+                  <span className={styles.lookBody}>
+                    <span className={styles.lookName}>
+                      {item.name ?? item.key}
+                    </span>
+                    <span className={styles.lookMeta}>
+                      {item.kind}
+                      {item.stage != null ? ` · stage ${item.stage}` : ''}
+                    </span>
+                  </span>
+                  <span
+                    className={`${styles.lookCriticality} ${
+                      item.criticality === 'critical'
+                        ? styles.lookCriticalityCritical
+                        : ''
+                    }`}
+                  >
+                    {item.criticality}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </div>
 
       <div

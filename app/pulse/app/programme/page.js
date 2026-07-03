@@ -151,6 +151,7 @@ export default async function ProgrammeTrackingPage({ searchParams }) {
   return (
     <DashboardShell user={navUser}>
       <ProgrammeTracking
+        projectId={project.id}
         projectName={project.name}
         workspaceHref={workspaceHref}
         baselineVersion={baseline.version}

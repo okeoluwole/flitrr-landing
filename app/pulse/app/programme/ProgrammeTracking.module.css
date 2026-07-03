@@ -399,6 +399,284 @@
   max-width: 60ch;
 }
 
+/* ── The Overview tab (Phase 3.6): three blocks stacked, each a head over
+      cards or rows. The Next Gate card and the attention cards share one
+      treatment, so gates and milestones read the same way; the left edge
+      carries the signal, amber for amber and the danger red for red, while
+      the dot keeps the shape-plus-hue reading. ── */
+
+.block {
+  margin-bottom: 1.9rem;
+}
+
+.block:last-child {
+  margin-bottom: 0;
+}
+
+.blockHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--app-hairline);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.blockTitle {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--app-ink);
+}
+
+.blockMeta {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  color: var(--app-ink-secondary);
+}
+
+/* The honest empty states: real surfaces, not the dashed shell that marks
+   unbuilt panels. */
+.blockEmpty {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  padding: 1.1rem 1.2rem;
+}
+
+.blockEmptyLead {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--app-ink);
+}
+
+.blockEmptyNote {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--app-ink-secondary);
+  margin-top: 0.25rem;
+  max-width: 56ch;
+}
+
+.cardList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.card {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-left: 3px solid var(--app-border-strong);
+  border-radius: var(--app-radius);
+  padding: 0.85rem 1rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.cardSignal {
+  border-left-color: var(--app-signal);
+}
+
+.cardDanger {
+  border-left-color: var(--app-danger);
+}
+
+.cardBody {
+  min-width: 0;
+}
+
+.cardName {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--app-ink);
+}
+
+.cardMeta {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--app-ink-secondary);
+  margin-top: 0.2rem;
+}
+
+.cardWhy {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--app-ink-secondary);
+  margin-top: 0.45rem;
+  max-width: 52ch;
+}
+
+.cardLink {
+  display: inline-flex;
+  margin-top: 0.6rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--app-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.cardLink:hover {
+  color: var(--app-ink-secondary);
+}
+
+.cardLink:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.cardSide {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
+.cardContribution {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.cardFigure {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--app-ink);
+}
+
+.cardFigureSignal {
+  color: var(--app-signal-ink);
+}
+
+.cardFigureDanger {
+  color: var(--app-danger);
+}
+
+.cardDates {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  color: var(--app-ink-secondary);
+}
+
+.statusChip {
+  display: inline-flex;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--app-radius-sm);
+}
+
+.statusChipSlip {
+  background: var(--app-signal-wash);
+  border: 1px solid var(--app-signal-border);
+  color: var(--app-signal-ink);
+}
+
+.statusChipOn {
+  background: transparent;
+  border: 1px solid var(--app-border-strong);
+  color: var(--app-success);
+}
+
+/* ── The lookahead: quiet rows in one bordered list, the date leading. ── */
+
+.look {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  overflow: hidden;
+}
+
+.lookRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.9rem;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--app-hairline);
+}
+
+.lookRow:last-child {
+  border-bottom: none;
+}
+
+.lookDate {
+  width: 5.5rem;
+  flex-shrink: 0;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--app-ink);
+}
+
+.lookBody {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.lookName {
+  display: block;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--app-ink);
+}
+
+.lookMeta {
+  display: block;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--app-ink-secondary);
+  margin-top: 0.1rem;
+}
+
+.lookCriticality {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--app-ink-secondary);
+}
+
+.lookCriticalityCritical {
+  font-weight: 700;
+  color: var(--app-signal-ink);
+  background: var(--app-signal-wash);
+  border: 1px solid var(--app-signal-border);
+  border-radius: var(--app-radius-sm);
+  padding: 0.15rem 0.5rem;
+}
+
 /* ── The no-baseline pointer (server-rendered): set-up first. ── */
 
 .placeholder {
@@ -478,5 +756,17 @@
   .tabBtn,
   .panel {
     scroll-margin-top: 14rem;
+  }
+
+  .card {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.25rem;
+  }
+
+  .cardSide {
+    align-items: flex-end;
+    text-align: right;
   }
 }
