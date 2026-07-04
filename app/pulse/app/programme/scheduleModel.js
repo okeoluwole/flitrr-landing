@@ -38,8 +38,10 @@
  *
  * WHAT THIS MODEL DOES NOT DO. No RAG re-derivation and no forecast roll (the
  * engines own those rules); no marking a milestone met and no write of any
- * kind (the tab is read-only in this step); no second reading of the clock;
- * no percent-complete (the four columns carry no progress figure).
+ * kind (the mark action lives in the point detail, detailModel.js over the
+ * Phase 3.3 store, and the rows themselves stay read-only); no second reading
+ * of the clock; no percent-complete (the four columns carry no progress
+ * figure).
  */
 
 // One week in milliseconds, whole seven-day spans, the same convention as the

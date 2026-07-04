@@ -1,10 +1,16 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { Fragment, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { createClient } from '../../../../lib/supabase/client';
 import { deriveProgress } from '../../../../lib/engine/programmeProgress.js';
 import { deriveRAG } from '../../../../lib/engine/programmeRAG.js';
 import { deriveForecast } from '../../../../lib/engine/programmeForecast.js';
+import {
+  loadMetPointsView,
+  markMilestoneMet,
+  unmarkMilestone,
+} from '../components/programmeActualsStore';
 import ViewOnlyBadge from '../components/ViewOnlyBadge';
 import {
   TOLERANCE_SETTINGS,
@@ -37,17 +43,27 @@ import {
   timelineLayout,
   varianceText,
 } from './scheduleModel';
+import {
+  detailFields,
+  writeControls,
+  utcDayValue,
+  validateMetDate,
+  viewWithMark,
+  viewWithoutMark,
+} from './detailModel';
 import styles from './ProgrammeTracking.module.css';
 
 /**
  * ProgrammeTracking - the tracking surface shell, its hero band (Programme
- * module Phase 3.5), the Overview tab's content (Phase 3.6), and the Schedule
- * tab's content (Phase 3.7). The daily face of the module: the pinned summary
- * band with its five co-equal tiles, the colour key, the bounded tolerance
- * dial, the Overview tab (the Next Gate card, the Needs attention list, and
- * the Next 30 days lookahead), and the Schedule tab (the high-level breakdown
- * and, behind the full-schedule control, the Register and Timeline views of
- * the one programme model).
+ * module Phase 3.5), the Overview tab's content (Phase 3.6), the Schedule
+ * tab's content (Phase 3.7), and the milestone detail with the mark action
+ * (Phase 3.8a). The daily face of the module: the pinned summary band with
+ * its five co-equal tiles, the colour key, the bounded tolerance dial, the
+ * Overview tab (the Next Gate card, the Needs attention list, and the Next
+ * 30 days lookahead), the Schedule tab (the high-level breakdown and, behind
+ * the full-schedule control, the Register and Timeline views of the one
+ * programme model), and, opened by tapping a Schedule row, the point detail,
+ * the considered home for the surface's one write.
  *
  * The page (server) has loaded the frozen v1 programme and the met-points
  * view, read the clock once, and passed everything down as plain data. This
@@ -55,8 +71,27 @@ import styles from './ProgrammeTracking.module.css';
  * deriveProgress, colour and flagged list from deriveRAG, forecast dates from
  * deriveForecast) and renders the tile values the display model derives from
  * their outputs. Nothing about a figure, colour, or date is invented at
- * render time, and nothing here writes: the surface is read-only in this
- * step.
+ * render time.
+ *
+ * THE ONE WRITE (3.8a). The met-points view is held as state so it can move.
+ * In a milestone's detail a writer marks it met on a date (defaulting to
+ * today, editable to an earlier date, lightly guarded against a future one),
+ * amends that date, or un-marks it, calling the Phase 3.3 store directly:
+ * the mark-or-amend upsert and the un-mark delete, no new store logic. After
+ * a successful write the view is re-read through loadMetPointsView and the
+ * engines re-derive, so the band's percent, colour, and forecast and both
+ * tabs' contents move without a full page reload; should that refresh read
+ * fail, the pure fallback applies the confirmed write locally, so a
+ * successful write always moves the surface. The listing surfaces stay
+ * read-only: opening a detail is navigation, not editing the table, so no
+ * inline mark control sits on the Schedule rows. Gate-met is owned by the
+ * existing gate mechanic, so a gate's detail shows its met state and offers
+ * no mark control. Write controls appear only for a writer, the canEdit the
+ * page resolved once (the same boundary the 2.3 lock used, enforced
+ * server-side by the actuals table's row-level security); a read-only member
+ * sees the detail with no write controls. No confirmation dialogs: the
+ * actions are reversible, so correction is cheap. Forecast editing and the
+ * fast-mark affordance on Next 30 days are later sub-steps.
  *
  * The tolerance dial is session-only state. Changing it re-runs the RAG
  * derivation with the new tolerance, so the Status colour, the Slipping
@@ -65,10 +100,9 @@ import styles from './ProgrammeTracking.module.css';
  * it.
  *
  * The Overview and Schedule tabs read the engine outputs this component
- * already computed through the pure overviewModel and scheduleModel helpers:
- * no new load, no re-derivation, and no second reading of the clock. Both are
- * read-only: forecast editing, actual stamping, and marking a milestone met
- * are later sub-steps and no write happens anywhere on this surface.
+ * already computed through the pure overviewModel, scheduleModel, and
+ * detailModel helpers: no new load beyond the post-write refresh, no
+ * re-derivation, and no second reading of the clock.
  */
 
 // The two tabs. Both carry their content now: the Overview (3.6) and the
@@ -92,6 +126,13 @@ const RAG_CLASS = {
   amber: 'ragAmber',
   red: 'ragRed',
 };
+
+// The write failure sentences, the app's plain register. The future-date
+// guard's own sentence comes from detailModel, stated once there.
+const MARK_ERROR =
+  'We could not save that mark. Please check your connection and try again.';
+const UNMARK_ERROR =
+  'We could not remove that mark. Please check your connection and try again.';
 
 // A compact date for a tile value, two-digit year so a date years out still
 // reads at a glance. Pinned to UTC: the engines' dates are UTC-midnight
@@ -212,50 +253,270 @@ function PointsHeader() {
 // One point row, the four columns over one row of the schedule model: Item
 // off the frozen baseline, Baseline and Current as the UTC-pinned dates the
 // row holds, Variance as the display subtraction with its direction plain.
-// A flagged row carries the RAG dot naming the colour it contributes.
-function PointRow({ row }) {
+// A flagged row carries the RAG dot naming the colour it contributes. The
+// row is a disclosure button (3.8a): tapping it opens the point's detail
+// beneath it, navigation rather than editing, so the table itself stays
+// read-only and carries no inline mark control.
+function PointRow({ row, open, detailId, onToggle }) {
   return (
     <li className={`${styles.pointRow} ${row.met ? styles.pointRowMet : ''}`}>
-      <span className={styles.pointItem}>
-        <span className={styles.pointName}>{row.name ?? row.key}</span>
-        <span className={styles.pointMetaLine}>
-          {row.kind}
-          {row.stage != null ? ` · stage ${row.stage}` : ''}
-          {` · ${row.criticality}`}
-          {row.met ? ' · met' : ''}
-        </span>
-      </span>
-      <span className={styles.pointCell}>
-        <span className={styles.pointCellLabel}>Baseline</span>
-        <span className={`${styles.pointDate} tnum`}>
-          {formatShort(row.baselineDate) ?? 'not dated'}
-        </span>
-      </span>
-      <span className={styles.pointCell}>
-        <span className={styles.pointCellLabel}>Current</span>
-        <span
-          className={`${styles.pointDate} ${
-            row.met ? styles.pointDateMet : ''
-          } tnum`}
-        >
-          {formatShort(row.currentDate) ?? 'not dated'}
-        </span>
-      </span>
-      <span className={styles.pointCell}>
-        <span className={styles.pointCellLabel}>Variance</span>
-        <span className={styles.pointVariance}>
-          {row.flagged && (
-            <RagDot
-              colour={row.flagColour}
-              label={`Contributes ${row.flagColour}`}
-            />
-          )}
-          <span className={`${varianceToneClass(row)} tnum`}>
-            {varianceText(row.varianceWeeks) ?? 'not stated'}
+      <button
+        type="button"
+        className={styles.pointRowBtn}
+        aria-expanded={open}
+        aria-controls={open ? detailId : undefined}
+        onClick={onToggle}
+      >
+        <span className={styles.pointItem}>
+          <span className={styles.pointName}>{row.name ?? row.key}</span>
+          <span className={styles.pointMetaLine}>
+            {row.kind}
+            {row.stage != null ? ` · stage ${row.stage}` : ''}
+            {` · ${row.criticality}`}
+            {row.met ? ' · met' : ''}
           </span>
         </span>
-      </span>
+        <span className={styles.pointCell}>
+          <span className={styles.pointCellLabel}>Baseline</span>
+          <span className={`${styles.pointDate} tnum`}>
+            {formatShort(row.baselineDate) ?? 'not dated'}
+          </span>
+        </span>
+        <span className={styles.pointCell}>
+          <span className={styles.pointCellLabel}>Current</span>
+          <span
+            className={`${styles.pointDate} ${
+              row.met ? styles.pointDateMet : ''
+            } tnum`}
+          >
+            {formatShort(row.currentDate) ?? 'not dated'}
+          </span>
+        </span>
+        <span className={styles.pointCell}>
+          <span className={styles.pointCellLabel}>Variance</span>
+          <span className={styles.pointVariance}>
+            {row.flagged && (
+              <RagDot
+                colour={row.flagColour}
+                label={`Contributes ${row.flagColour}`}
+              />
+            )}
+            <span className={`${varianceToneClass(row)} tnum`}>
+              {varianceText(row.varianceWeeks) ?? 'not stated'}
+            </span>
+          </span>
+        </span>
+        <span
+          className={`${styles.pointChevron} ${
+            open ? styles.pointChevronOpen : ''
+          }`}
+          aria-hidden="true"
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12">
+            <path
+              d="M4 2l4 4-4 4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
+      </button>
     </li>
+  );
+}
+
+// One list of point rows with the open detail slotted beneath its row. The
+// same milestone can be listed in the high-level breakdown and the Register,
+// so the open state carries which table it was opened in and only that
+// instance expands.
+function PointList({ rows, table, openPoint, onToggle, detail }) {
+  return (
+    <ul className={styles.pointRows}>
+      {rows.map((row) => {
+        const open =
+          openPoint != null &&
+          openPoint.table === table &&
+          openPoint.key === row.key;
+        const detailId = `point-detail-${table}-${row.key}`;
+        return (
+          <Fragment key={row.key}>
+            <PointRow
+              row={row}
+              open={open}
+              detailId={detailId}
+              onToggle={() => onToggle(table, row.key)}
+            />
+            {open && detail != null && (
+              <li id={detailId} className={styles.detailRow}>
+                {detail}
+              </li>
+            )}
+          </Fragment>
+        );
+      })}
+    </ul>
+  );
+}
+
+/* ── The point detail (Phase 3.8a): the considered home for the mark. The
+      facts the surface already holds, plainly; for a writer, a milestone
+      carries the mark form (mark met on a date, amend it, un-mark), light
+      and reversible, no confirmation. A gate's detail is read-only: gate-met
+      is owned by the gate mechanic. A thin render over detailModel. ── */
+
+function PointDetail({
+  fields,
+  canEdit,
+  todayIso,
+  busy,
+  error,
+  onMark,
+  onUnmark,
+}) {
+  // The date input's draft, null while it follows its default: today for a
+  // fresh mark, the recorded date for an amendment. Cleared when a write
+  // lands so the default tracks the fresh state.
+  const [draft, setDraft] = useState(null);
+
+  const todayValue = utcDayValue(todayIso);
+  const { canMark } = writeControls({ kind: fields.kind, canEdit });
+  const inputValue =
+    draft ??
+    (fields.met ? utcDayValue(fields.metDate) : todayValue) ??
+    todayValue ??
+    '';
+
+  const submitMark = async (event) => {
+    event.preventDefault();
+    if (busy) return;
+    const done = await onMark(inputValue);
+    if (done) setDraft(null);
+  };
+
+  const submitUnmark = async () => {
+    if (busy) return;
+    const done = await onUnmark();
+    if (done) setDraft(null);
+  };
+
+  const tone = fields.met
+    ? styles.detailMet
+    : fields.flagged
+      ? fields.flagColour === 'red'
+        ? styles.detailDanger
+        : styles.detailSignal
+      : '';
+
+  return (
+    <div className={`${styles.detail} ${tone}`}>
+      <p className={styles.detailMeta}>
+        {fields.kind}
+        {fields.stage != null ? ` · stage ${fields.stage}` : ''}
+        {` · ${fields.criticality}`}
+      </p>
+      <h3 className={styles.detailName}>{fields.name ?? fields.key}</h3>
+      <dl className={styles.detailFacts}>
+        <div className={styles.fact}>
+          <dt className={styles.factLabel}>Baseline</dt>
+          <dd className={`${styles.factValue} tnum`}>
+            {formatShort(fields.baselineDate) ?? 'not dated'}
+          </dd>
+        </div>
+        {fields.met ? (
+          <div className={styles.fact}>
+            <dt className={styles.factLabel}>Met on</dt>
+            <dd className={`${styles.factValue} ${styles.factValueMet} tnum`}>
+              {formatShort(fields.metDate) ?? 'date not recorded'}
+            </dd>
+          </div>
+        ) : (
+          <div className={styles.fact}>
+            <dt className={styles.factLabel}>Forecast</dt>
+            <dd className={`${styles.factValue} tnum`}>
+              {formatShort(fields.currentDate) ?? 'not dated'}
+            </dd>
+          </div>
+        )}
+        <div className={styles.fact}>
+          <dt className={styles.factLabel}>Variance</dt>
+          <dd className={`${styles.factValue} tnum`}>
+            {varianceText(fields.varianceWeeks) ?? 'not stated'}
+          </dd>
+        </div>
+        {fields.flagged && (
+          <div className={styles.fact}>
+            <dt className={styles.factLabel}>Flag</dt>
+            <dd className={styles.factValue}>
+              <span className={styles.factFlag}>
+                <RagDot
+                  colour={fields.flagColour}
+                  label={`Contributes ${fields.flagColour}`}
+                />
+                contributes {fields.flagColour}
+              </span>
+            </dd>
+          </div>
+        )}
+      </dl>
+
+      {fields.kind === 'gate' && (
+        <p className={styles.detailNote}>
+          {fields.met
+            ? 'This gate is passed. A gate is decided at its gate review, the go or no-go, not marked here.'
+            : 'A gate is decided at its gate review, the go or no-go, not marked here.'}
+        </p>
+      )}
+
+      {canMark && (
+        <>
+          <form className={styles.markForm} onSubmit={submitMark}>
+            <label className={styles.markField}>
+              <span className={styles.markLabel}>Met on</span>
+              <input
+                type="date"
+                className={styles.dateInput}
+                value={inputValue}
+                max={todayValue ?? undefined}
+                onChange={(event) => setDraft(event.target.value)}
+                disabled={busy}
+              />
+            </label>
+            <div className={styles.markActions}>
+              <button
+                type="submit"
+                className={styles.markBtn}
+                disabled={busy}
+              >
+                {busy ? 'Saving' : fields.met ? 'Save date' : 'Mark met'}
+              </button>
+              {fields.met && (
+                <button
+                  type="button"
+                  className={styles.unmarkBtn}
+                  onClick={submitUnmark}
+                  disabled={busy}
+                >
+                  Un-mark
+                </button>
+              )}
+            </div>
+          </form>
+          <p className={styles.markHint}>
+            {fields.met
+              ? 'Correct the date it was actually met, or un-mark it. Both are reversible.'
+              : 'Record the date it was actually met, today or earlier.'}
+          </p>
+        </>
+      )}
+      {error != null && (
+        <p className={styles.markError} role="alert">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -475,6 +736,8 @@ export default function ProgrammeTracking({
   canEdit = true,
   adminContact = null,
 }) {
+  const supabase = createClient();
+
   // The bounded tolerance dial: session-only, opens on Standard every visit,
   // persisted nowhere.
   const [toleranceKey, setToleranceKey] = useState(DEFAULT_TOLERANCE_KEY);
@@ -487,20 +750,34 @@ export default function ProgrammeTracking({
   const [fullOpen, setFullOpen] = useState(false);
   const [scheduleView, setScheduleView] = useState(SCHEDULE_VIEWS[0].key);
 
+  // The met-points view as state (3.8a): opened on what the page loaded, and
+  // replaced after a successful write so the engines re-derive and the
+  // surface moves without a full page reload.
+  const [metPoints, setMetPoints] = useState(metView);
+
+  // The open point detail: which table it was opened in and the point's key,
+  // or null with every detail closed. One detail at a time; tapping the open
+  // row closes it.
+  const [openPoint, setOpenPoint] = useState(null);
+  const [markBusy, setMarkBusy] = useState(false);
+  const [markError, setMarkError] = useState(null);
+
   // The three engines over the loaded data. Today and the tolerance are
   // inputs, read upstream, never the clock here. Only the RAG derivation
-  // reads the tolerance, so only it re-runs when the dial moves.
+  // reads the tolerance, so only it re-runs when the dial moves; all three
+  // re-run when a write refreshes the met-points view.
   const progress = useMemo(
-    () => deriveProgress(programme, metView),
-    [programme, metView]
+    () => deriveProgress(programme, metPoints),
+    [programme, metPoints]
   );
   const rag = useMemo(
-    () => deriveRAG(programme, metView, todayIso, toleranceWeeksFor(toleranceKey)),
-    [programme, metView, todayIso, toleranceKey]
+    () =>
+      deriveRAG(programme, metPoints, todayIso, toleranceWeeksFor(toleranceKey)),
+    [programme, metPoints, todayIso, toleranceKey]
   );
   const forecast = useMemo(
-    () => deriveForecast(programme, metView, todayIso),
-    [programme, metView, todayIso]
+    () => deriveForecast(programme, metPoints, todayIso),
+    [programme, metPoints, todayIso]
   );
 
   // The five tile values, derived from the engine outputs by the pure display
@@ -548,6 +825,106 @@ export default function ProgrammeTracking({
     () => timelineLayout(rows, todayIso),
     [rows, todayIso]
   );
+
+  // The open point's detail fields (3.8a): the row the Schedule already built
+  // (identity off the baseline, current off the forecast, flag off the RAG
+  // derivation), joined with the met date off the met-points view by the pure
+  // detail model. Re-derived with the rows, so a write moves the open detail
+  // too.
+  const openRow =
+    openPoint == null
+      ? null
+      : (rows.find((row) => row.key === openPoint.key) ?? null);
+  const openDetail = useMemo(
+    () => (openRow == null ? null : detailFields(openRow, metPoints)),
+    [openRow, metPoints]
+  );
+
+  // Opening a detail is navigation: tapping a row opens its detail, tapping
+  // the open row closes it, and a stale write error never follows the
+  // navigation.
+  const togglePoint = (table, key) => {
+    setMarkError(null);
+    setOpenPoint((prev) =>
+      prev != null && prev.table === table && prev.key === key
+        ? null
+        : { table, key }
+    );
+  };
+
+  // After a successful write, re-read the met-points view so the engines
+  // re-derive from what the database now holds. Should the refresh read fail
+  // (the write itself has already landed), the pure fallback applies the
+  // confirmed change locally, so a successful write always moves the surface.
+  const refreshMetPoints = async (fallbackView) => {
+    const { view, error } = await loadMetPointsView(supabase, projectId);
+    setMetPoints(error == null && view != null ? view : fallbackView);
+  };
+
+  // Mark a milestone met on the chosen date, or amend the date if it already
+  // is: one call, the store's atomic mark-or-amend upsert. The light guard
+  // runs first; a guarded or failed write leaves the view untouched and
+  // reports why. Returns whether the write landed, so the form can settle.
+  const handleMark = async (key, dateValue) => {
+    if (markBusy) return false;
+    const check = validateMetDate(dateValue, todayIso);
+    if (!check.ok) {
+      setMarkError(check.reason);
+      return false;
+    }
+    setMarkBusy(true);
+    setMarkError(null);
+    const { error } = await markMilestoneMet(supabase, {
+      projectId,
+      milestoneKey: key,
+      metDate: check.metDate,
+    });
+    if (error != null) {
+      setMarkBusy(false);
+      setMarkError(MARK_ERROR);
+      return false;
+    }
+    await refreshMetPoints(viewWithMark(metPoints, key, check.metDate));
+    setMarkBusy(false);
+    return true;
+  };
+
+  // Un-mark a milestone: the store's plain delete, then the same refresh.
+  // Reversible by construction, met if and only if a row exists, so no
+  // confirmation stands in the way.
+  const handleUnmark = async (key) => {
+    if (markBusy) return false;
+    setMarkBusy(true);
+    setMarkError(null);
+    const { error } = await unmarkMilestone(supabase, {
+      projectId,
+      milestoneKey: key,
+    });
+    if (error != null) {
+      setMarkBusy(false);
+      setMarkError(UNMARK_ERROR);
+      return false;
+    }
+    await refreshMetPoints(viewWithoutMark(metPoints, key));
+    setMarkBusy(false);
+    return true;
+  };
+
+  // The one detail panel, rendered by whichever list holds the open row.
+  // Keyed by the point so switching points resets the form's draft.
+  const detailPanel =
+    openDetail == null ? null : (
+      <PointDetail
+        key={openDetail.key}
+        fields={openDetail}
+        canEdit={canEdit}
+        todayIso={todayIso}
+        busy={markBusy}
+        error={markError}
+        onMark={(dateValue) => handleMark(openDetail.key, dateValue)}
+        onUnmark={() => handleUnmark(openDetail.key)}
+      />
+    );
 
   const lockedOn = formatStamp(baselineLockedAt);
   const completionVariance = varianceLabel(completion.varianceWeeks);
@@ -981,18 +1358,21 @@ export default function ProgrammeTracking({
                 <>
                   <div className={styles.pointsTable}>
                     <PointsHeader />
-                    <ul className={styles.pointRows}>
-                      {highLevel.map((row) => (
-                        <PointRow key={row.key} row={row} />
-                      ))}
-                    </ul>
+                    <PointList
+                      rows={highLevel}
+                      table="high"
+                      openPoint={openPoint}
+                      onToggle={togglePoint}
+                      detail={detailPanel}
+                    />
                   </div>
                   <p className={styles.tableNote}>
                     The fixed filter: the gates always, every critical
                     milestone always, and anything flagged. Flagged rows carry
                     the colour they contribute and follow the slip tolerance
                     above. Baseline is the locked v{baselineVersion} date;
-                    Current is the forecast, or the actual once met.
+                    Current is the forecast, or the actual once met. Tap a
+                    point to open its detail.
                   </p>
                 </>
               )}
@@ -1058,11 +1438,13 @@ export default function ProgrammeTracking({
                               </span>
                             )}
                           </h3>
-                          <ul className={styles.pointRows}>
-                            {group.rows.map((row) => (
-                              <PointRow key={row.key} row={row} />
-                            ))}
-                          </ul>
+                          <PointList
+                            rows={group.rows}
+                            table="register"
+                            openPoint={openPoint}
+                            onToggle={togglePoint}
+                            detail={detailPanel}
+                          />
                         </div>
                       ))}
                     </div>

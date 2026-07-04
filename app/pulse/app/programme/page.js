@@ -26,7 +26,9 @@ import styles from './ProgrammeTracking.module.css';
  *
  * Today is read here, once, and passed down as an input: the engines never
  * read the clock. The tolerance is session state on the client, handed into
- * the RAG derivation the same way. Nothing here writes to the database.
+ * the RAG derivation the same way. Nothing here writes to the database; the
+ * client's mark action (3.8a) writes through the Phase 3.3 store and re-reads
+ * the met-points view itself, so this page stays a pure load.
  *
  * Opened for a project with no baseline, the page points the developer to
  * set-up rather than rendering an empty band. A missing or non-owned project

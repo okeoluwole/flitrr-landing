@@ -28,7 +28,9 @@
  *
  * WHAT THIS MODEL DOES NOT DO. No RAG re-derivation and no forecast roll (the
  * engines own those rules); no marking a milestone met and no write of any
- * kind (the tab is read-only in this step); no second reading of the clock.
+ * kind (the mark action lives in the Schedule tab's point detail,
+ * detailModel.js over the Phase 3.3 store; this tab stays read-only until the
+ * 3.8b fast affordance); no second reading of the clock.
  */
 
 import { RAG_CONDITIONS } from '../../../../lib/engine/programmeRAG.js';

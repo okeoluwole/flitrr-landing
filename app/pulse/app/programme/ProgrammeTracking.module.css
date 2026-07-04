@@ -774,17 +774,65 @@
 }
 
 .pointRow {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.45rem 0.75rem;
-  padding: 0.7rem 0.9rem 0.75rem;
   border-bottom: 1px solid var(--app-hairline);
 }
 
+/* The row is one disclosure button (3.8a): the four cells in the row grid,
+   tappable to open the point's detail beneath. Navigation, not editing: the
+   table carries no inline mark control. */
+.pointRowBtn {
+  appearance: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem 0.75rem;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  padding: 0.7rem 2rem 0.75rem 0.9rem;
+  position: relative;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.pointRowBtn:hover {
+  background: var(--app-surface-sunken);
+}
+
+/* Met rows already sit on the sunken ground, so the underline carries the
+   hover there. */
+.pointRowBtn:hover .pointName,
+.pointRowBtn:focus-visible .pointName {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.pointRowBtn:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: -2px;
+}
+
+.pointChevron {
+  position: absolute;
+  right: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  color: var(--app-ink-secondary);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.pointChevronOpen {
+  transform: translateY(-50%) rotate(90deg);
+}
+
 /* The table's last row sits on the container border, in both shapes: the
-   one-list high-level table and the last stage group of the Register. */
-.pointsTable > .pointRows .pointRow:last-child,
-.stageGroup:last-child .pointRow:last-child {
+   one-list high-level table and the last stage group of the Register. The
+   last child may be a point row or the open detail beneath it. */
+.pointsTable > .pointRows > li:last-child,
+.stageGroup:last-child .pointRows > li:last-child {
   border-bottom: none;
 }
 
@@ -920,6 +968,237 @@
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--app-ink-secondary);
+}
+
+/* ── The point detail (Phase 3.8a): the considered home for the mark. A
+      sunken panel beneath its row with the point's facts; for a writer a
+      milestone carries the mark form, light and reversible, no confirmation.
+      The left edge carries the point's state, met green, flagged amber or
+      red, the same shape-plus-hue reading as the rest of the surface. ── */
+
+.detailRow {
+  border-bottom: 1px solid var(--app-hairline);
+  background: var(--app-surface-sunken);
+}
+
+.detail {
+  border-left: 3px solid var(--app-border-strong);
+  padding: 0.85rem 0.9rem 1rem;
+}
+
+.detailSignal {
+  border-left-color: var(--app-signal);
+}
+
+.detailDanger {
+  border-left-color: var(--app-danger);
+}
+
+.detailMet {
+  border-left-color: var(--app-success);
+}
+
+.detailMeta {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--app-ink-secondary);
+}
+
+.detailName {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--app-ink);
+  margin-top: 0.2rem;
+}
+
+.detailFacts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem 0.9rem;
+  margin: 0.75rem 0 0;
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.factLabel {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--app-ink-secondary);
+}
+
+.factValue {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--app-ink);
+  margin: 0;
+}
+
+.factValueMet {
+  color: var(--app-success);
+  font-weight: 700;
+}
+
+.factFlag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--app-ink-secondary);
+}
+
+.detailNote {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--app-ink-secondary);
+  margin-top: 0.8rem;
+  max-width: 52ch;
+}
+
+/* ── The mark form: a date and two plain actions over a hairline. ── */
+
+.markForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.6rem 0.9rem;
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--app-hairline);
+}
+
+.markField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.markLabel {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--app-ink-secondary);
+}
+
+/* The input sits on the sunken detail ground, so it takes the paper surface,
+   the inverse of the app's usual input-on-paper recipe. */
+.dateInput {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  color: var(--app-ink);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-sm);
+  padding: 0.45rem 0.6rem;
+  min-width: 0;
+}
+
+.dateInput:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 1px;
+  border-color: var(--app-ink);
+}
+
+.dateInput:disabled {
+  opacity: 0.55;
+}
+
+.markActions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.markBtn {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-button-primary-text);
+  background: var(--color-button-primary-bg);
+  border: 1.5px solid var(--color-button-primary-bg);
+  border-radius: var(--app-radius-sm);
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  transition:
+    filter var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
+}
+
+.markBtn:hover {
+  filter: brightness(0.94);
+}
+
+.markBtn:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+}
+
+.markBtn:disabled {
+  opacity: 0.45;
+  cursor: default;
+  filter: none;
+}
+
+.unmarkBtn {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--app-ink);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border-strong);
+  border-radius: var(--app-radius-sm);
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
+}
+
+.unmarkBtn:hover {
+  border-color: var(--app-ink);
+}
+
+.unmarkBtn:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+}
+
+.unmarkBtn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.markHint {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--app-ink-secondary);
+  margin-top: 0.55rem;
+  max-width: 60ch;
+}
+
+.markError {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--app-danger);
+  margin-top: 0.6rem;
 }
 
 /* ── The full-schedule disclosure and the Register or Timeline toggle. ── */
@@ -1243,13 +1522,15 @@
       its header row, and the timeline labels move beside the tracks. ── */
 
 @media (min-width: 768px) {
+  /* The header's right inset matches the row button's chevron allowance, so
+     the four columns stay aligned down the table. */
   .pointsHeader {
     display: grid;
     grid-template-columns:
       minmax(0, 2.4fr) minmax(0, 1fr) minmax(0, 1fr)
       minmax(0, 1.4fr);
     gap: 0.75rem 1rem;
-    padding: 0.55rem 1rem;
+    padding: 0.55rem 2.25rem 0.55rem 1rem;
     background: var(--app-surface-sunken);
     border-bottom: 1px solid var(--app-border);
     font-family: var(--font-body), sans-serif;
@@ -1260,13 +1541,17 @@
     color: var(--app-ink-secondary);
   }
 
-  .pointRow {
+  .pointRowBtn {
     grid-template-columns:
       minmax(0, 2.4fr) minmax(0, 1fr) minmax(0, 1fr)
       minmax(0, 1.4fr);
     gap: 0.75rem 1rem;
     align-items: baseline;
-    padding: 0.65rem 1rem 0.7rem;
+    padding: 0.65rem 2.25rem 0.7rem 1rem;
+  }
+
+  .pointChevron {
+    right: 0.9rem;
   }
 
   .pointItem {
@@ -1293,6 +1578,14 @@
 
   .stageGroupHead {
     padding-inline: 1rem;
+  }
+
+  .detail {
+    padding: 0.95rem 1rem 1.05rem;
+  }
+
+  .detailFacts {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .tlRow {
