@@ -29,15 +29,25 @@ import {
   behindLabel,
   nextThirtyDays,
 } from './overviewModel';
+import {
+  VARIANCE_DIRECTIONS,
+  scheduleRows,
+  highLevelRows,
+  registerGroups,
+  timelineLayout,
+  varianceText,
+} from './scheduleModel';
 import styles from './ProgrammeTracking.module.css';
 
 /**
  * ProgrammeTracking - the tracking surface shell, its hero band (Programme
- * module Phase 3.5), and the Overview tab's content (Phase 3.6). The daily
- * face of the module: the pinned summary band with its five co-equal tiles,
- * the colour key, the bounded tolerance dial, the Overview tab (the Next Gate
- * card, the Needs attention list, and the Next 30 days lookahead), and the
- * Schedule tab as a shell whose content lands in the next sub-step.
+ * module Phase 3.5), the Overview tab's content (Phase 3.6), and the Schedule
+ * tab's content (Phase 3.7). The daily face of the module: the pinned summary
+ * band with its five co-equal tiles, the colour key, the bounded tolerance
+ * dial, the Overview tab (the Next Gate card, the Needs attention list, and
+ * the Next 30 days lookahead), and the Schedule tab (the high-level breakdown
+ * and, behind the full-schedule control, the Register and Timeline views of
+ * the one programme model).
  *
  * The page (server) has loaded the frozen v1 programme and the met-points
  * view, read the clock once, and passed everything down as plain data. This
@@ -50,21 +60,30 @@ import styles from './ProgrammeTracking.module.css';
  *
  * The tolerance dial is session-only state. Changing it re-runs the RAG
  * derivation with the new tolerance, so the Status colour, the Slipping
- * count, the flagged list, and the Needs attention block respond
- * immediately; the percent and the forecast never read it.
+ * count, the flagged list, the Needs attention block, and the Schedule's
+ * flagged rows respond immediately; the percent and the forecast never read
+ * it.
  *
- * The Overview tab reads the engine outputs this component already computed
- * through the pure overviewModel helpers: no new load, no re-derivation, and
- * no second reading of the clock. It is read-only: marking a milestone met is
- * a later sub-step and no write happens anywhere on this surface.
+ * The Overview and Schedule tabs read the engine outputs this component
+ * already computed through the pure overviewModel and scheduleModel helpers:
+ * no new load, no re-derivation, and no second reading of the clock. Both are
+ * read-only: forecast editing, actual stamping, and marking a milestone met
+ * are later sub-steps and no write happens anywhere on this surface.
  */
 
-// The two tabs. The tab mechanism is real and final; the Overview carries its
-// content (3.6), the Schedule panel is a shell whose content is the next
-// sub-step.
+// The two tabs. Both carry their content now: the Overview (3.6) and the
+// Schedule (3.7).
 const TABS = Object.freeze([
   Object.freeze({ key: 'overview', label: 'Overview' }),
   Object.freeze({ key: 'schedule', label: 'Schedule' }),
+]);
+
+// The two views of the full schedule, one programme model, no duplication.
+// The toggle belongs to the Schedule tab only; the band never shows a
+// timeline.
+const SCHEDULE_VIEWS = Object.freeze([
+  Object.freeze({ key: 'register', label: 'Register' }),
+  Object.freeze({ key: 'timeline', label: 'Timeline' }),
 ]);
 
 // The RAG dot class per colour, so the class lookup stays explicit.
@@ -99,6 +118,17 @@ function formatStamp(value) {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
+// A month label for a timeline tick, UTC-pinned for the same reason as
+// formatShort.
+function formatMonthTick(date) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString('en-GB', {
+    month: 'short',
+    year: '2-digit',
     timeZone: 'UTC',
   });
 }
@@ -146,6 +176,292 @@ function Tile({ label, children, sub, subSignal }) {
   );
 }
 
+/* ── The Schedule tab's pieces (Phase 3.7): the four-column point rows the
+      high-level breakdown and the Register share, and the Timeline plot.
+      All thin renders over the pure schedule model; nothing here derives. ── */
+
+// The variance figure's tone. A flagged row carries the RAG colour it
+// contributes (the danger red, or ochre as amber's text-safe sibling); an
+// unflagged row reads by its direction, ahead in the success green, behind
+// in plain strong ink (the knock-on case: pushed by upstream drift but not
+// itself past its date, so the RAG derivation honestly has not flagged it),
+// on baseline quietly.
+function varianceToneClass(row) {
+  if (row.flagged) {
+    return row.flagColour === 'red' ? styles.varDanger : styles.varSignal;
+  }
+  if (row.direction === VARIANCE_DIRECTIONS.AHEAD) return styles.varAhead;
+  if (row.direction === VARIANCE_DIRECTIONS.BEHIND) return styles.varBehind;
+  return styles.varQuiet;
+}
+
+// The four column headings, once above each table. Presentation only: every
+// cell carries its own label for assistive tech (visible at phone width,
+// visually hidden from 768px), so the header row is decorative.
+function PointsHeader() {
+  return (
+    <div className={styles.pointsHeader} aria-hidden="true">
+      <span>Item</span>
+      <span>Baseline</span>
+      <span>Current</span>
+      <span>Variance</span>
+    </div>
+  );
+}
+
+// One point row, the four columns over one row of the schedule model: Item
+// off the frozen baseline, Baseline and Current as the UTC-pinned dates the
+// row holds, Variance as the display subtraction with its direction plain.
+// A flagged row carries the RAG dot naming the colour it contributes.
+function PointRow({ row }) {
+  return (
+    <li className={`${styles.pointRow} ${row.met ? styles.pointRowMet : ''}`}>
+      <span className={styles.pointItem}>
+        <span className={styles.pointName}>{row.name ?? row.key}</span>
+        <span className={styles.pointMetaLine}>
+          {row.kind}
+          {row.stage != null ? ` · stage ${row.stage}` : ''}
+          {` · ${row.criticality}`}
+          {row.met ? ' · met' : ''}
+        </span>
+      </span>
+      <span className={styles.pointCell}>
+        <span className={styles.pointCellLabel}>Baseline</span>
+        <span className={`${styles.pointDate} tnum`}>
+          {formatShort(row.baselineDate) ?? 'not dated'}
+        </span>
+      </span>
+      <span className={styles.pointCell}>
+        <span className={styles.pointCellLabel}>Current</span>
+        <span
+          className={`${styles.pointDate} ${
+            row.met ? styles.pointDateMet : ''
+          } tnum`}
+        >
+          {formatShort(row.currentDate) ?? 'not dated'}
+        </span>
+      </span>
+      <span className={styles.pointCell}>
+        <span className={styles.pointCellLabel}>Variance</span>
+        <span className={styles.pointVariance}>
+          {row.flagged && (
+            <RagDot
+              colour={row.flagColour}
+              label={`Contributes ${row.flagColour}`}
+            />
+          )}
+          <span className={`${varianceToneClass(row)} tnum`}>
+            {varianceText(row.varianceWeeks) ?? 'not stated'}
+          </span>
+        </span>
+      </span>
+    </li>
+  );
+}
+
+// The spoken form of one timeline point, the same facts the Register row
+// carries, so the drawing is never the only carrier of them.
+function timelinePointLabel(point) {
+  const baseline = formatShort(point.baselineDate) ?? 'not dated';
+  const current = formatShort(point.currentDate) ?? 'not dated';
+  const variance = varianceText(point.varianceWeeks);
+  return (
+    `${point.name ?? point.key}: ${point.kind}, ${point.criticality}` +
+    `${point.met ? ', met' : ''}. Baseline ${baseline}, current ${current}` +
+    `${variance ? `, ${variance}` : ''}.`
+  );
+}
+
+// The current marker's state: met is the success green, a flagged point
+// carries its RAG colour, everything else the neutral fill.
+function timelineMarkerState(point) {
+  if (point.met) return styles.tlMkMet;
+  if (point.flagged) {
+    return point.flagColour === 'red' ? styles.tlMkRed : styles.tlMkAmber;
+  }
+  return styles.tlMkStd;
+}
+
+// The drift connector's tone, matching the variance column: the RAG colour
+// on a flagged point, the success green when ahead, neutral otherwise.
+function timelineDriftTone(point) {
+  if (point.flagged) {
+    return point.flagColour === 'red'
+      ? styles.tlDriftRed
+      : styles.tlDriftAmber;
+  }
+  if (point.direction === VARIANCE_DIRECTIONS.AHEAD) {
+    return styles.tlDriftAhead;
+  }
+  return styles.tlDriftStd;
+}
+
+// The Timeline view: the same points laid out on time, stages as lanes, each
+// point drawn twice, an outline at its baseline position and a fill at its
+// current position, with the drift between them plain. Every position is a
+// fraction the pure layout helper computed from the dates alone: no
+// dependencies, no smoothing, no ordering beyond the dates. A point past its
+// gate sits past its gate.
+function TimelinePlot({ layout }) {
+  const pct = (frac) => `${(frac * 100).toFixed(4)}%`;
+  const markerShape = (point) =>
+    point.kind === 'gate' ? styles.tlMkGate : styles.tlMkMs;
+  const markerSize = (point) =>
+    point.criticality === 'critical' ? styles.tlMkCrit : '';
+
+  return (
+    <div>
+      <div className={styles.tlFrame}>
+        <div className={styles.tlRow}>
+          <span className={styles.tlLaneLabel} aria-hidden="true" />
+          <div className={`${styles.tlPlot} ${styles.tlAxis}`}>
+            {layout.ticks.map((tick) => (
+              <span
+                key={tick.date.getTime()}
+                className={`${styles.tlTickLabel} tnum`}
+                style={{ left: pct(tick.frac) }}
+              >
+                {formatMonthTick(tick.date)}
+              </span>
+            ))}
+            {layout.todayFrac != null && (
+              <span
+                className={styles.tlTodayLabel}
+                style={{ left: pct(layout.todayFrac) }}
+              >
+                Today
+              </span>
+            )}
+          </div>
+        </div>
+        {layout.lanes.map((lane) => (
+          <div key={lane.stage ?? 'unstaged'} className={styles.tlRow}>
+            <span className={styles.tlLaneLabel}>
+              <b className="tnum">S{lane.stage}</b> {lane.stageName}
+            </span>
+            <div className={styles.tlPlot}>
+              {layout.ticks.map((tick) => (
+                <span
+                  key={tick.date.getTime()}
+                  className={styles.tlGridline}
+                  style={{ left: pct(tick.frac) }}
+                  aria-hidden="true"
+                />
+              ))}
+              {layout.todayFrac != null && (
+                <span
+                  className={styles.tlToday}
+                  style={{ left: pct(layout.todayFrac) }}
+                  aria-hidden="true"
+                />
+              )}
+              {lane.spanStartFrac != null && lane.spanEndFrac != null && (
+                <span
+                  className={styles.tlSpan}
+                  style={{
+                    left: pct(lane.spanStartFrac),
+                    width: pct(
+                      Math.max(lane.spanEndFrac - lane.spanStartFrac, 0)
+                    ),
+                  }}
+                  aria-hidden="true"
+                />
+              )}
+              {lane.points.map((point) => (
+                <span
+                  key={point.key}
+                  role="img"
+                  aria-label={timelinePointLabel(point)}
+                >
+                  {point.baselineFrac != null &&
+                    point.currentFrac != null &&
+                    point.baselineFrac !== point.currentFrac && (
+                      <span
+                        className={`${styles.tlDrift} ${timelineDriftTone(point)}`}
+                        style={{
+                          left: pct(
+                            Math.min(point.baselineFrac, point.currentFrac)
+                          ),
+                          width: pct(
+                            Math.abs(point.currentFrac - point.baselineFrac)
+                          ),
+                        }}
+                        aria-hidden="true"
+                      />
+                    )}
+                  {point.baselineFrac != null && (
+                    <span
+                      className={`${styles.tlMk} ${markerShape(point)} ${markerSize(point)} ${styles.tlMkBase}`}
+                      style={{ left: pct(point.baselineFrac) }}
+                      aria-hidden="true"
+                    />
+                  )}
+                  {point.currentFrac != null && (
+                    <span
+                      className={`${styles.tlMk} ${markerShape(point)} ${markerSize(point)} ${timelineMarkerState(point)}`}
+                      style={{ left: pct(point.currentFrac) }}
+                      aria-hidden="true"
+                    />
+                  )}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <ul className={styles.tlLegend} aria-label="Timeline key">
+        <li className={styles.tlLegendItem}>
+          <span
+            className={`${styles.tlMk} ${styles.tlMkMs} ${styles.tlMkBase} ${styles.tlMkLegend}`}
+            aria-hidden="true"
+          />
+          baseline position
+        </li>
+        <li className={styles.tlLegendItem}>
+          <span
+            className={`${styles.tlMk} ${styles.tlMkMs} ${styles.tlMkStd} ${styles.tlMkLegend}`}
+            aria-hidden="true"
+          />
+          current position
+        </li>
+        <li className={styles.tlLegendItem}>
+          <span
+            className={`${styles.tlMk} ${styles.tlMkMs} ${styles.tlMkMet} ${styles.tlMkLegend}`}
+            aria-hidden="true"
+          />
+          met, the actual
+        </li>
+        <li className={styles.tlLegendItem}>
+          <span
+            className={`${styles.tlMk} ${styles.tlMkMs} ${styles.tlMkAmber} ${styles.tlMkLegend}`}
+            aria-hidden="true"
+          />
+          flagged amber
+        </li>
+        <li className={styles.tlLegendItem}>
+          <span
+            className={`${styles.tlMk} ${styles.tlMkMs} ${styles.tlMkRed} ${styles.tlMkLegend}`}
+            aria-hidden="true"
+          />
+          flagged red
+        </li>
+        <li className={styles.tlLegendItem}>
+          <span className={styles.tlLegendToday} aria-hidden="true" />
+          today
+        </li>
+      </ul>
+      <p className={styles.tlNote}>
+        A diamond is a gate, a circle a milestone; critical points draw
+        larger. Each point sits where its dates put it: the outline at its
+        locked baseline date, the fill at its current date, the line between
+        them the drift. The faint bar is the stage's baseline extent. Nothing
+        here is an invented dependency and nothing is smoothed; later stages
+        sit where the rolling forecast puts them.
+      </p>
+    </div>
+  );
+}
+
 export default function ProgrammeTracking({
   projectId,
   projectName,
@@ -164,6 +480,12 @@ export default function ProgrammeTracking({
   const [toleranceKey, setToleranceKey] = useState(DEFAULT_TOLERANCE_KEY);
   const [activeTab, setActiveTab] = useState(TABS[0].key);
   const tabRefs = useRef({});
+
+  // The Schedule tab's two controls, session-only like the dial: the
+  // full-schedule disclosure (the high-level breakdown shows first, every
+  // visit) and the Register or Timeline view of the full set.
+  const [fullOpen, setFullOpen] = useState(false);
+  const [scheduleView, setScheduleView] = useState(SCHEDULE_VIEWS[0].key);
 
   // The three engines over the loaded data. Today and the tolerance are
   // inputs, read upstream, never the clock here. Only the RAG derivation
@@ -208,6 +530,23 @@ export default function ProgrammeTracking({
   const lookahead = useMemo(
     () => nextThirtyDays(programme, forecast, todayIso),
     [programme, forecast, todayIso]
+  );
+
+  // The Schedule tab's faces, derived from the same engine outputs by the
+  // pure schedule model: one row set joining the frozen baseline, the
+  // forecast tree, and the RAG flags (so the dial's re-run restyles the
+  // flagged rows live), the fixed high-level filter over it, the Register's
+  // stage grouping, and the Timeline's positions from the dates alone. No
+  // new load and no second clock read.
+  const rows = useMemo(
+    () => scheduleRows(programme, forecast, rag),
+    [programme, forecast, rag]
+  );
+  const highLevel = useMemo(() => highLevelRows(rows), [rows]);
+  const stageGroups = useMemo(() => registerGroups(rows), [rows]);
+  const timeline = useMemo(
+    () => timelineLayout(rows, todayIso),
+    [rows, todayIso]
   );
 
   const lockedOn = formatStamp(baselineLockedAt);
@@ -363,8 +702,8 @@ export default function ProgrammeTracking({
         </div>
       </div>
 
-      {/* ── The two tabs. The mechanism is real and final; the panels are
-             shells whose content is the next two sub-steps. ── */}
+      {/* ── The two tabs. The mechanism is real and final, and both panels
+             carry their content: the Overview (3.6) and the Schedule (3.7). ── */}
       <div
         className={styles.tabs}
         role="tablist"
@@ -601,14 +940,140 @@ export default function ProgrammeTracking({
         hidden={activeTab !== 'schedule'}
         className={styles.panel}
       >
-        <div className={styles.panelShell}>
-          <p className={styles.panelShellLead}>The Schedule lands here next.</p>
-          <p className={styles.panelShellNote}>
-            The high-level breakdown, then the full register and timeline,
-            arrive in the coming sub-steps. The summary band above is already
-            live.
-          </p>
-        </div>
+        {rows.length === 0 ? (
+          <div className={styles.blockEmpty}>
+            <p className={styles.blockEmptyLead}>
+              The baseline holds no trackable points.
+            </p>
+            <p className={styles.blockEmptyNote}>
+              Nothing in the locked programme carries a key to track, so there
+              is no schedule to show.
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* ── The high-level breakdown, the default: the fixed governance
+                   filter, the gates always, every critical milestone always,
+                   and anything flagged. ── */}
+            <section
+              className={styles.block}
+              aria-labelledby="schedule-highlevel"
+            >
+              <div className={styles.blockHead}>
+                <h2 id="schedule-highlevel" className={styles.blockTitle}>
+                  High-level breakdown
+                </h2>
+                <span className={`${styles.blockMeta} tnum`}>
+                  {highLevel.length} of {rows.length} points
+                </span>
+              </div>
+              {highLevel.length === 0 ? (
+                <div className={styles.blockEmpty}>
+                  <p className={styles.blockEmptyLead}>
+                    Nothing rises to the breakdown.
+                  </p>
+                  <p className={styles.blockEmptyNote}>
+                    No gate, no critical milestone, and nothing flagged at
+                    this tolerance. The full schedule below holds every point.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className={styles.pointsTable}>
+                    <PointsHeader />
+                    <ul className={styles.pointRows}>
+                      {highLevel.map((row) => (
+                        <PointRow key={row.key} row={row} />
+                      ))}
+                    </ul>
+                  </div>
+                  <p className={styles.tableNote}>
+                    The fixed filter: the gates always, every critical
+                    milestone always, and anything flagged. Flagged rows carry
+                    the colour they contribute and follow the slip tolerance
+                    above. Baseline is the locked v{baselineVersion} date;
+                    Current is the forecast, or the actual once met.
+                  </p>
+                </>
+              )}
+            </section>
+
+            {/* ── The full schedule, behind its control: every point, as a
+                   register or on a timeline, two views of one model. ── */}
+            <section className={styles.block} aria-labelledby="schedule-full">
+              <div className={styles.blockHead}>
+                <h2 id="schedule-full" className={styles.blockTitle}>
+                  Full schedule
+                </h2>
+                <button
+                  type="button"
+                  className={styles.fullToggle}
+                  aria-expanded={fullOpen}
+                  aria-controls="schedule-full-body"
+                  onClick={() => setFullOpen((open) => !open)}
+                >
+                  {fullOpen
+                    ? 'Hide the full schedule'
+                    : `Show all ${rows.length} points`}
+                </button>
+              </div>
+              {fullOpen && (
+                <div id="schedule-full-body">
+                  <div
+                    className={styles.viewToggle}
+                    role="group"
+                    aria-label="Full schedule view"
+                  >
+                    {SCHEDULE_VIEWS.map((view) => (
+                      <button
+                        key={view.key}
+                        type="button"
+                        className={`${styles.viewBtn} ${
+                          scheduleView === view.key ? styles.viewBtnOn : ''
+                        }`}
+                        aria-pressed={scheduleView === view.key}
+                        onClick={() => setScheduleView(view.key)}
+                      >
+                        {view.label}
+                      </button>
+                    ))}
+                  </div>
+                  {scheduleView === 'register' ? (
+                    <div className={styles.pointsTable}>
+                      <PointsHeader />
+                      {stageGroups.map((group) => (
+                        <div
+                          key={group.stage ?? 'unstaged'}
+                          className={styles.stageGroup}
+                        >
+                          <h3 className={styles.stageGroupHead}>
+                            <span
+                              className={`${styles.stageGroupNum} tnum`}
+                            >
+                              Stage {group.stage}
+                            </span>
+                            {group.stageName && (
+                              <span className={styles.stageGroupName}>
+                                {group.stageName}
+                              </span>
+                            )}
+                          </h3>
+                          <ul className={styles.pointRows}>
+                            {group.rows.map((row) => (
+                              <PointRow key={row.key} row={row} />
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <TimelinePlot layout={timeline} />
+                  )}
+                </div>
+              )}
+            </section>
+          </>
+        )}
       </div>
     </main>
   );

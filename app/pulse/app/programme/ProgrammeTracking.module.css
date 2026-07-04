@@ -328,7 +328,8 @@
   color: var(--app-on-console-secondary);
 }
 
-/* ── The tabs: the real, final mechanism; the panels are shells. ── */
+/* ── The tabs: the real, final mechanism; both panels carry their
+      content, the Overview (3.6) and the Schedule (3.7). ── */
 
 .tabs {
   margin-top: 1.75rem;
@@ -374,29 +375,6 @@
 .panel {
   padding-top: 1.25rem;
   scroll-margin-top: 21rem;
-}
-
-.panelShell {
-  background: var(--app-surface);
-  border: 1.5px dashed var(--app-border);
-  border-radius: var(--app-radius);
-  padding: 1.75rem 1.4rem;
-}
-
-.panelShellLead {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9375rem;
-  font-weight: 700;
-  color: var(--app-ink);
-}
-
-.panelShellNote {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
-  line-height: 1.55;
-  color: var(--app-ink-secondary);
-  margin-top: 0.35rem;
-  max-width: 60ch;
 }
 
 /* ── The Overview tab (Phase 3.6): three blocks stacked, each a head over
@@ -754,7 +732,9 @@
   }
 
   .tabBtn,
-  .panel {
+  .panel,
+  .fullToggle,
+  .viewBtn {
     scroll-margin-top: 14rem;
   }
 
@@ -768,5 +748,577 @@
   .cardSide {
     align-items: flex-end;
     text-align: right;
+  }
+}
+
+/* ── The Schedule tab (Phase 3.7). Mobile-first: the four-column point row
+      reads as a stacked card at phone width, each cell carrying its own
+      small label, and becomes one aligned table row from 768px, where the
+      header row appears and the per-cell labels go screen-reader-only. ── */
+
+.pointsTable {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  overflow: hidden;
+}
+
+.pointsHeader {
+  display: none;
+}
+
+.pointRows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pointRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem 0.75rem;
+  padding: 0.7rem 0.9rem 0.75rem;
+  border-bottom: 1px solid var(--app-hairline);
+}
+
+/* The table's last row sits on the container border, in both shapes: the
+   one-list high-level table and the last stage group of the Register. */
+.pointsTable > .pointRows .pointRow:last-child,
+.stageGroup:last-child .pointRow:last-child {
+  border-bottom: none;
+}
+
+.pointRowMet {
+  background: var(--app-surface-sunken);
+}
+
+.pointItem {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.pointName {
+  display: block;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--app-ink);
+}
+
+.pointMetaLine {
+  display: block;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--app-ink-secondary);
+  margin-top: 0.15rem;
+}
+
+.pointCell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.pointCellLabel {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--app-ink-secondary);
+}
+
+.pointDate {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--app-ink);
+  white-space: nowrap;
+}
+
+.pointDateMet {
+  color: var(--app-success);
+  font-weight: 700;
+}
+
+/* Free to wrap at phone width, where a flagged double-digit variance with
+   its dot outgrows the third of the row; nowrap returns from 768px. */
+.pointVariance {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.45rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+}
+
+.varDanger {
+  color: var(--app-danger);
+  font-weight: 700;
+}
+
+.varSignal {
+  color: var(--app-signal-ink);
+  font-weight: 700;
+}
+
+.varAhead {
+  color: var(--app-success);
+  font-weight: 700;
+}
+
+.varBehind {
+  color: var(--app-ink);
+  font-weight: 700;
+}
+
+.varQuiet {
+  color: var(--app-ink-secondary);
+  font-weight: 600;
+}
+
+.tableNote {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--app-ink-secondary);
+  margin-top: 0.6rem;
+  max-width: 70ch;
+}
+
+/* ── The Register's stage grouping. ── */
+
+/* No border-top: the boundary above every head is already drawn by what
+   precedes it (the header row's or the previous row's border-bottom, or the
+   table's own border), so a top border would double the line. */
+.stageGroupHead {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.6rem;
+  background: var(--app-surface-sunken);
+  border-bottom: 1px solid var(--app-hairline);
+  padding: 0.5rem 0.9rem;
+  margin: 0;
+}
+
+.stageGroupNum {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--app-ink);
+}
+
+.stageGroupName {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--app-ink-secondary);
+}
+
+/* ── The full-schedule disclosure and the Register or Timeline toggle. ── */
+
+.fullToggle {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--app-ink);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border-strong);
+  border-radius: var(--app-radius-sm);
+  padding: 0.4rem 0.85rem;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out);
+  /* Keep the focused control clear of the pinned band, as the tabs do. */
+  scroll-margin-top: 21rem;
+}
+
+.fullToggle:hover {
+  background: var(--app-surface-sunken);
+}
+
+.fullToggle:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+}
+
+.viewToggle {
+  display: inline-flex;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-sm);
+  overflow: hidden;
+  margin-bottom: 0.9rem;
+}
+
+.viewBtn {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--app-ink-secondary);
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--app-hairline);
+  padding: 0.45rem 1.1rem;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+  scroll-margin-top: 21rem;
+}
+
+.viewBtn:last-child {
+  border-right: none;
+}
+
+.viewBtn:hover {
+  color: var(--app-ink);
+}
+
+.viewBtn:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: -2px;
+}
+
+.viewBtnOn {
+  background: var(--app-console-raised);
+  color: var(--app-on-console);
+}
+
+.viewBtnOn:hover {
+  color: var(--app-on-console);
+}
+
+/* On the selected chip the ground is the dark console, so the focus ring
+   takes the on-console token, as on the tolerance dial. */
+.viewBtnOn:focus-visible {
+  outline-color: var(--app-focus-on-console);
+}
+
+/* ── The Timeline: stages as lanes on one shared axis. At phone width each
+      lane label stacks above its full-width track (the honest compact form);
+      from 768px the labels move into a left column beside the tracks. ── */
+
+/* The inline padding leaves room for the half of an edge label (Today, a
+   month tick) that overhangs a position at the very start or end of the
+   domain, the normal state of a freshly locked baseline. */
+.tlFrame {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  padding: 0.7rem 1.25rem 0.4rem;
+}
+
+.tlRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.tlLaneLabel {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--app-ink-secondary);
+  padding: 0.55rem 0 0.2rem;
+}
+
+/* The axis row's label cell is empty; at phone width it would only open a
+   gap above the axis, so it collapses. The desktop grid restores it. */
+.tlLaneLabel:empty {
+  display: none;
+}
+
+.tlLaneLabel b {
+  color: var(--app-ink);
+  font-weight: 700;
+  margin-right: 0.35rem;
+}
+
+.tlPlot {
+  position: relative;
+  height: 2.1rem;
+  border-bottom: 1px solid var(--app-hairline);
+}
+
+.tlRow:last-child .tlPlot {
+  border-bottom: none;
+}
+
+.tlAxis {
+  height: 1.4rem;
+}
+
+.tlTickLabel {
+  position: absolute;
+  top: 0.1rem;
+  transform: translateX(-50%);
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--app-ink-secondary);
+  white-space: nowrap;
+}
+
+.tlTodayLabel {
+  position: absolute;
+  top: 0.1rem;
+  transform: translateX(-50%);
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--app-ink);
+  background: var(--app-surface);
+  padding-inline: 0.2rem;
+  white-space: nowrap;
+  z-index: 3;
+}
+
+.tlGridline {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--app-hairline);
+  z-index: 0;
+}
+
+.tlToday {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--app-ink);
+  opacity: 0.5;
+  z-index: 1;
+}
+
+/* The stage's baseline extent, context under the markers, from real
+   baseline dates only. */
+.tlSpan {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 8px;
+  border-radius: 4px;
+  background: var(--app-surface-sunken);
+  border: 1px solid var(--app-hairline);
+  z-index: 0;
+}
+
+/* The drift between a point's baseline and current positions: the honest
+   gap, drawn from the two fractions alone. */
+.tlDrift {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 3px;
+  border-radius: 1.5px;
+  z-index: 2;
+}
+
+.tlDriftRed {
+  background: var(--app-danger);
+}
+
+.tlDriftAmber {
+  background: var(--app-signal);
+}
+
+.tlDriftAhead {
+  background: var(--app-success);
+}
+
+.tlDriftStd {
+  background: var(--app-border-strong);
+}
+
+/* The markers: a circle is a milestone, a diamond a gate; the outline sits
+   at the baseline date, the fill at the current date. State keeps the
+   shape-plus-hue discipline: amber takes the ochre ring, red the paper
+   core, exactly as the RAG dots do. */
+.tlMk {
+  position: absolute;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+  z-index: 3;
+}
+
+.tlMkMs {
+  border-radius: 50%;
+}
+
+.tlMkGate {
+  border-radius: 2px;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.tlMkCrit {
+  width: 14px;
+  height: 14px;
+}
+
+.tlMkBase {
+  background: var(--app-surface);
+  border: 1.5px solid var(--app-ink-secondary);
+  z-index: 2;
+}
+
+.tlMkStd {
+  background: var(--app-ink-secondary);
+}
+
+.tlMkMet {
+  background: var(--app-success);
+}
+
+.tlMkRed {
+  background: radial-gradient(
+    circle at center,
+    var(--app-surface) 0 20%,
+    var(--app-danger) 26% 100%
+  );
+}
+
+.tlMkAmber {
+  background: var(--app-signal);
+  border: 2px solid var(--app-signal-ink);
+}
+
+/* Legend swatches reuse the marker classes in static flow. */
+.tlMkLegend {
+  position: static;
+  transform: none;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.tlLegend {
+  list-style: none;
+  margin: 0.8rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.1rem;
+}
+
+.tlLegendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  color: var(--app-ink-secondary);
+}
+
+.tlLegendToday {
+  display: inline-block;
+  width: 2px;
+  height: 12px;
+  background: var(--app-ink);
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.tlNote {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--app-ink-secondary);
+  margin-top: 0.6rem;
+  max-width: 70ch;
+}
+
+/* ── 768px and up: the point rows become one aligned four-column table with
+      its header row, and the timeline labels move beside the tracks. ── */
+
+@media (min-width: 768px) {
+  .pointsHeader {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 2.4fr) minmax(0, 1fr) minmax(0, 1fr)
+      minmax(0, 1.4fr);
+    gap: 0.75rem 1rem;
+    padding: 0.55rem 1rem;
+    background: var(--app-surface-sunken);
+    border-bottom: 1px solid var(--app-border);
+    font-family: var(--font-body), sans-serif;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--app-ink-secondary);
+  }
+
+  .pointRow {
+    grid-template-columns:
+      minmax(0, 2.4fr) minmax(0, 1fr) minmax(0, 1fr)
+      minmax(0, 1.4fr);
+    gap: 0.75rem 1rem;
+    align-items: baseline;
+    padding: 0.65rem 1rem 0.7rem;
+  }
+
+  .pointItem {
+    grid-column: auto;
+  }
+
+  .pointVariance {
+    white-space: nowrap;
+  }
+
+  /* The header row now names the columns, so each cell's own label goes
+     screen-reader-only rather than repeating down the page. */
+  .pointCellLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .stageGroupHead {
+    padding-inline: 1rem;
+  }
+
+  .tlRow {
+    grid-template-columns: 11rem minmax(0, 1fr);
+    column-gap: 0.9rem;
+  }
+
+  .tlLaneLabel {
+    display: flex;
+    align-items: center;
+    padding: 0;
+  }
+
+  .tlLaneLabel:empty {
+    display: block;
+  }
+
+  .tlLaneLabel b {
+    margin-right: 0.4rem;
+  }
+
+  .tlPlot {
+    height: 2.4rem;
+  }
+
+  .tlAxis {
+    height: 1.4rem;
   }
 }
