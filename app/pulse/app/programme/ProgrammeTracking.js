@@ -34,6 +34,7 @@ import {
   attentionReason,
   behindLabel,
   nextThirtyDays,
+  fastMarkAction,
 } from './overviewModel';
 import {
   VARIANCE_DIRECTIONS,
@@ -56,14 +57,15 @@ import styles from './ProgrammeTracking.module.css';
 /**
  * ProgrammeTracking - the tracking surface shell, its hero band (Programme
  * module Phase 3.5), the Overview tab's content (Phase 3.6), the Schedule
- * tab's content (Phase 3.7), and the milestone detail with the mark action
- * (Phase 3.8a). The daily face of the module: the pinned summary band with
- * its five co-equal tiles, the colour key, the bounded tolerance dial, the
- * Overview tab (the Next Gate card, the Needs attention list, and the Next
- * 30 days lookahead), the Schedule tab (the high-level breakdown and, behind
- * the full-schedule control, the Register and Timeline views of the one
- * programme model), and, opened by tapping a Schedule row, the point detail,
- * the considered home for the surface's one write.
+ * tab's content (Phase 3.7), the milestone detail with the mark action
+ * (Phase 3.8a), and the fast mark on Next 30 days (Phase 3.8b). The daily
+ * face of the module: the pinned summary band with its five co-equal tiles,
+ * the colour key, the bounded tolerance dial, the Overview tab (the Next
+ * Gate card, the Needs attention list, and the Next 30 days lookahead), the
+ * Schedule tab (the high-level breakdown and, behind the full-schedule
+ * control, the Register and Timeline views of the one programme model), and,
+ * opened by tapping a Schedule or Next 30 days row, the point detail, the
+ * considered home for the surface's one write.
  *
  * The page (server) has loaded the frozen v1 programme and the met-points
  * view, read the clock once, and passed everything down as plain data. This
@@ -90,8 +92,22 @@ import styles from './ProgrammeTracking.module.css';
  * page resolved once (the same boundary the 2.3 lock used, enforced
  * server-side by the actuals table's row-level security); a read-only member
  * sees the detail with no write controls. No confirmation dialogs: the
- * actions are reversible, so correction is cheap. Forecast editing and the
- * fast-mark affordance on Next 30 days are later sub-steps.
+ * actions are reversible, so correction is cheap. Forecast editing is a
+ * later sub-step.
+ *
+ * THE FAST LANE (3.8b). Next 30 days is the common case's shortest path:
+ * each unmet milestone row there carries Met today for a writer, one tap
+ * marking it met on today's UTC day through the exact same handleMark the
+ * detail's form submits to, the one write path with two entry points, never
+ * a second mark implementation. The same refresh and re-derive follow, so
+ * the band's percent, colour, and forecast and both tabs move, and the
+ * now-met point drops out of the unmet lookahead by construction. The row
+ * itself opens the same point detail the Schedule rows open (a different
+ * met date, an amendment, or an un-mark lives there, never in the fast
+ * lane); a gate row carries no fast affordance, gate-met being the gate
+ * mechanic's; and the affordance follows the same writeControls gate as
+ * 3.8a, so a read-only member sees no fast control on any row. A quiet note
+ * confirms what landed; nothing blocks.
  *
  * The tolerance dial is session-only state. Changing it re-runs the RAG
  * derivation with the new tolerance, so the Status colour, the Slipping
@@ -762,6 +778,13 @@ export default function ProgrammeTracking({
   const [markBusy, setMarkBusy] = useState(false);
   const [markError, setMarkError] = useState(null);
 
+  // The fast lane's note (3.8b): the last one-tap outcome, a quiet
+  // confirmation naming what landed (the row itself has dropped from the
+  // unmet lookahead) or the plain failure sentence. Cleared on the next fast
+  // tap and on any detail navigation, so it stays brief and never goes
+  // stale.
+  const [fastNote, setFastNote] = useState(null);
+
   // The three engines over the loaded data. Today and the tolerance are
   // inputs, read upstream, never the clock here. Only the RAG derivation
   // reads the tolerance, so only it re-runs when the dial moves; all three
@@ -841,10 +864,11 @@ export default function ProgrammeTracking({
   );
 
   // Opening a detail is navigation: tapping a row opens its detail, tapping
-  // the open row closes it, and a stale write error never follows the
-  // navigation.
+  // the open row closes it, and a stale write error or fast-lane note never
+  // follows the navigation.
   const togglePoint = (table, key) => {
     setMarkError(null);
+    setFastNote(null);
     setOpenPoint((prev) =>
       prev != null && prev.table === table && prev.key === key
         ? null
@@ -910,6 +934,29 @@ export default function ProgrammeTracking({
     return true;
   };
 
+  // The fast mark (3.8b): one tap marks a lookahead milestone met on today,
+  // through the exact same shared handleMark the detail's form submits to,
+  // then notes what landed. The request is fastMarkAction's, so the tap
+  // exists only where the 3.8a gate allows a mark. On failure the note
+  // carries the plain sentence instead and the shared error state is
+  // cleared, so the sentence lives in one visible place (the writes are
+  // serialised by markBusy, so no other owner of it is in flight).
+  const handleFastMark = async (item, request) => {
+    if (markBusy || request == null) return;
+    setFastNote(null);
+    const done = await handleMark(request.key, request.dateValue);
+    if (done) {
+      setFastNote({
+        kind: 'done',
+        name: item.name ?? item.key,
+        dateValue: request.dateValue,
+      });
+    } else {
+      setFastNote({ kind: 'failed' });
+      setMarkError(null);
+    }
+  };
+
   // The one detail panel, rendered by whichever list holds the open row.
   // Keyed by the point so switching points resets the form's draft.
   const detailPanel =
@@ -928,6 +975,12 @@ export default function ProgrammeTracking({
 
   const lockedOn = formatStamp(baselineLockedAt);
   const completionVariance = varianceLabel(completion.varianceWeeks);
+
+  // Whether any lookahead row offers the fast mark, for the block's hint
+  // line alone: a writer with at least one unmet milestone in the window.
+  const fastOffered = lookahead.some(
+    (item) => fastMarkAction(item, canEdit, todayIso) != null
+  );
   const nextGateHref = nextGate.done
     ? null
     : gateReviewHref(projectId, nextGate.stage);
@@ -1263,7 +1316,10 @@ export default function ProgrammeTracking({
         </section>
 
         {/* ── Next 30 days: the lookahead, every unmet point forecast inside
-               the month ahead, soonest first. ── */}
+               the month ahead, soonest first. Each row opens the same point
+               detail the Schedule rows open, and a writer's milestone row
+               carries the fast mark (3.8b): one tap, met on today, through
+               the one shared write path. ── */}
         <section className={styles.block} aria-labelledby="overview-lookahead">
           <div className={styles.blockHead}>
             <h2 id="overview-lookahead" className={styles.blockTitle}>
@@ -1271,6 +1327,45 @@ export default function ProgrammeTracking({
             </h2>
             <span className={styles.blockMeta}>by forecast date</span>
           </div>
+          {fastNote != null &&
+            (fastNote.kind === 'done' ? (
+              <p className={styles.lookNote} role="status">
+                <svg
+                  className={styles.lookNoteTick}
+                  width="14"
+                  height="14"
+                  viewBox="0 0 14 14"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M2.5 7.5L6 11l5.5-8"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span>
+                  {fastNote.name} marked met on{' '}
+                  <span className="tnum">
+                    {formatShort(new Date(fastNote.dateValue))}
+                  </span>
+                  .{' '}
+                  <span className={styles.lookNoteQuiet}>
+                    Amend the date or un-mark it from its detail in the
+                    Schedule.
+                  </span>
+                </span>
+              </p>
+            ) : (
+              <p
+                className={`${styles.markError} ${styles.lookError}`}
+                role="alert"
+              >
+                {MARK_ERROR}
+              </p>
+            ))}
           {lookahead.length === 0 ? (
             <div className={styles.blockEmpty}>
               <p className={styles.blockEmptyLead}>A quiet month ahead.</p>
@@ -1279,33 +1374,108 @@ export default function ProgrammeTracking({
               </p>
             </div>
           ) : (
-            <ul className={styles.look}>
-              {lookahead.map((item) => (
-                <li key={item.key} className={styles.lookRow}>
-                  <span className={`${styles.lookDate} tnum`}>
-                    {formatShort(item.forecastDate)}
-                  </span>
-                  <span className={styles.lookBody}>
-                    <span className={styles.lookName}>
-                      {item.name ?? item.key}
-                    </span>
-                    <span className={styles.lookMeta}>
-                      {item.kind}
-                      {item.stage != null ? ` · stage ${item.stage}` : ''}
-                    </span>
-                  </span>
-                  <span
-                    className={`${styles.lookCriticality} ${
-                      item.criticality === 'critical'
-                        ? styles.lookCriticalityCritical
-                        : ''
-                    }`}
-                  >
-                    {item.criticality}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <>
+              <ul className={styles.look}>
+                {lookahead.map((item) => {
+                  const open =
+                    openPoint != null &&
+                    openPoint.table === 'look' &&
+                    openPoint.key === item.key;
+                  const detailId = `point-detail-look-${item.key}`;
+                  const fast = fastMarkAction(item, canEdit, todayIso);
+                  return (
+                    <Fragment key={item.key}>
+                      <li className={styles.lookRow}>
+                        <button
+                          type="button"
+                          className={styles.lookRowBtn}
+                          aria-expanded={open}
+                          aria-controls={open ? detailId : undefined}
+                          onClick={() => togglePoint('look', item.key)}
+                        >
+                          <span className={`${styles.lookDate} tnum`}>
+                            {formatShort(item.forecastDate)}
+                          </span>
+                          <span className={styles.lookBody}>
+                            <span className={styles.lookName}>
+                              {item.name ?? item.key}
+                            </span>
+                            <span className={styles.lookMeta}>
+                              {item.kind}
+                              {item.stage != null
+                                ? ` · stage ${item.stage}`
+                                : ''}
+                            </span>
+                          </span>
+                          <span
+                            className={`${styles.lookCriticality} ${
+                              item.criticality === 'critical'
+                                ? styles.lookCriticalityCritical
+                                : ''
+                            }`}
+                          >
+                            {item.criticality}
+                          </span>
+                          <span
+                            className={`${styles.pointChevron} ${
+                              open ? styles.pointChevronOpen : ''
+                            }`}
+                            aria-hidden="true"
+                          >
+                            <svg width="12" height="12" viewBox="0 0 12 12">
+                              <path
+                                d="M4 2l4 4-4 4"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.75"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </span>
+                        </button>
+                        {fast != null && (
+                          <button
+                            type="button"
+                            className={styles.lookMarkBtn}
+                            onClick={() => handleFastMark(item, fast)}
+                            disabled={markBusy}
+                            aria-label={`Mark ${item.name ?? item.key} met today`}
+                          >
+                            <svg
+                              width="12"
+                              height="12"
+                              viewBox="0 0 12 12"
+                              aria-hidden="true"
+                            >
+                              <path
+                                d="M2 6.5L5 9.5l5-7"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.75"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                            Met today
+                          </button>
+                        )}
+                      </li>
+                      {open && detailPanel != null && (
+                        <li id={detailId} className={styles.detailRow}>
+                          {detailPanel}
+                        </li>
+                      )}
+                    </Fragment>
+                  );
+                })}
+              </ul>
+              <p className={styles.tableNote}>
+                {fastOffered
+                  ? "Tap a point to open its detail. Met today marks a milestone met on today's date; a different date or a correction lives in the detail."
+                  : 'Tap a point to open its detail.'}
+              </p>
+            </>
           )}
         </section>
       </div>

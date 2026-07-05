@@ -579,7 +579,10 @@
   color: var(--app-success);
 }
 
-/* ── The lookahead: quiet rows in one bordered list, the date leading. ── */
+/* ── The lookahead: quiet rows in one bordered list, the date leading. From
+      3.8b each row is a disclosure button opening the point's detail, with
+      the fast mark as its sibling control, never nested, so the two targets
+      stay distinct at a thumb's width. ── */
 
 .look {
   list-style: none;
@@ -593,15 +596,117 @@
 
 .lookRow {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.4rem 0.9rem;
-  padding: 0.7rem 1rem;
+  align-items: stretch;
   border-bottom: 1px solid var(--app-hairline);
 }
 
-.lookRow:last-child {
+/* The last row, or the open detail beneath it, sits on the container
+   border. */
+.look > li:last-child {
   border-bottom: none;
+}
+
+.lookRowBtn {
+  appearance: none;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.9rem;
+  padding: 0.7rem 1.8rem 0.7rem 1rem;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  position: relative;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.lookRowBtn:hover {
+  background: var(--app-surface-sunken);
+}
+
+.lookRowBtn:hover .lookName,
+.lookRowBtn:focus-visible .lookName {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.lookRowBtn:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: -2px;
+}
+
+/* The fast mark (3.8b): one tap, met on today. A quiet outline control at
+   the row's edge; the primary mark stays the detail's. */
+.lookMarkBtn {
+  flex-shrink: 0;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-right: 0.9rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--app-ink);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border-strong);
+  border-radius: var(--app-radius-sm);
+  padding: 0.45rem 0.7rem;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
+}
+
+.lookMarkBtn:hover {
+  border-color: var(--app-success);
+  color: var(--app-success);
+}
+
+.lookMarkBtn:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+}
+
+.lookMarkBtn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* The fast lane's quiet confirmation: a fact above the list, not a dialog. */
+.lookNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--app-success);
+  margin: 0 0 0.65rem;
+}
+
+.lookNoteTick {
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+}
+
+.lookNoteQuiet {
+  font-weight: 500;
+  color: var(--app-ink-secondary);
+}
+
+/* The failure sentence in the block's own flow, above the list rather than
+   inside a detail. */
+.lookError {
+  margin: 0 0 0.65rem;
 }
 
 .lookDate {

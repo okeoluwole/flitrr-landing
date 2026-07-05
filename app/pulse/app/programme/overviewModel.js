@@ -1,9 +1,12 @@
 /**
- * The Programme Overview tab display model (Programme module Phase 3.6). The
- * pure logic behind the Overview tab's three blocks: the Next Gate card, the
- * Needs attention list, and the Next 30 days lookahead. The screen is a thin
- * render over this helper, the same seam as trackingModel.js holds for the
- * band, so correctness lives here, not in the component.
+ * The Programme Overview tab display model (Programme module Phase 3.6, plus
+ * the Phase 3.8b fast-mark decision). The pure logic behind the Overview
+ * tab's three blocks: the Next Gate card, the Needs attention list, and the
+ * Next 30 days lookahead, together with the fast lane's one decision, which
+ * lookahead row offers the one-tap mark and the exact request it hands the
+ * shared write path. The screen is a thin render over this helper, the same
+ * seam as trackingModel.js holds for the band, so correctness lives here,
+ * not in the component.
  *
  * Pure and deterministic: no DB, no React, no clock. Every function reads the
  * frozen baseline's programme, the engine outputs the page already computed
@@ -27,13 +30,15 @@
  *    date discipline.
  *
  * WHAT THIS MODEL DOES NOT DO. No RAG re-derivation and no forecast roll (the
- * engines own those rules); no marking a milestone met and no write of any
- * kind (the mark action lives in the Schedule tab's point detail,
- * detailModel.js over the Phase 3.3 store; this tab stays read-only until the
- * 3.8b fast affordance); no second reading of the clock.
+ * engines own those rules); no store call, no network, and no write of any
+ * kind (the one write path is the component's shared mark handler over the
+ * Phase 3.3 store, the path the point detail submits to; fastMarkAction below
+ * only decides which lookahead row offers the one-tap mark and shapes the
+ * request that handler takes); no second reading of the clock.
  */
 
 import { RAG_CONDITIONS } from '../../../../lib/engine/programmeRAG.js';
+import { writeControls, utcDayValue } from './detailModel.js';
 
 // One week and one day in milliseconds, whole spans, the same convention as
 // the engines this model reads and as trackingModel.js.
@@ -348,4 +353,35 @@ export function nextThirtyDays(programme, forecast, today) {
     (a, b) => a.forecastDate.getTime() - b.forecastDate.getTime()
   );
   return items;
+}
+
+/**
+ * The fast mark on a Next 30 days row (Programme module Phase 3.8b): the
+ * one-tap action the row offers, or null where it offers none. The fast lane
+ * is deliberately just done-today: it marks an unmet milestone met on today's
+ * UTC calendar day through the same shared mark path the point detail submits
+ * to (the component's one handler over the Phase 3.3 store), one write path
+ * with two entry points. Everything else, a different met date, an amendment,
+ * an un-mark, lives in the detail the row also opens.
+ *
+ * The decision is the 3.8a permission gate, reused exactly: writeControls
+ * over the canEdit the page resolved once, narrowed to milestones. So a gate
+ * row offers nothing whoever is looking (gate-met is owned by the gate
+ * mechanic), and a read-only member sees no affordance on any row, the same
+ * boundary the actuals table's row-level security enforces server-side. The
+ * lookahead lists only unmet points by construction (nextThirtyDays skips
+ * every met node), so unmet-ness is the list's own fact, not re-decided here.
+ *
+ * Returns { key, dateValue }: the point key and today's UTC calendar day in
+ * the exact YYYY-MM-DD value the shared guard validates and the store takes
+ * verbatim, today being the one the page read once and handed down. Null for
+ * a gate row, for a read-only member, for a keyless item, or where today does
+ * not parse: no date is ever invented for a mark.
+ */
+export function fastMarkAction(item, canEdit, today) {
+  if (!writeControls({ kind: item?.kind, canEdit }).canMark) return null;
+  if (item?.key == null) return null;
+  const dateValue = utcDayValue(today);
+  if (dateValue == null) return null;
+  return { key: item.key, dateValue };
 }
