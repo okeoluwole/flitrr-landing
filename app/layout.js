@@ -1,4 +1,4 @@
-import { Bricolage_Grotesque, Inter } from 'next/font/google';
+import { Bricolage_Grotesque, Inter, Archivo } from 'next/font/google';
 import './globals.css';
 
 // Display face for headings and the brief. Prototyping a swap away from
@@ -22,6 +22,17 @@ const inter = Inter({
   subsets: ['latin'],
   weight: ['400', '500', '600'],
   variable: '--font-body',
+  display: 'swap',
+});
+
+// Archivo (variable) is the face for the "Considered" marketing surfaces
+// (Flitrr landing, PULSE landing, Framework). Loaded as a variable font so the
+// full light-to-bold weight range the design uses (about 250 to 620) renders
+// true. Exposed as --font-archivo and consumed only inside the marketing pages,
+// so the product app keeps Bricolage/Inter untouched.
+const archivo = Archivo({
+  subsets: ['latin'],
+  variable: '--font-archivo',
   display: 'swap',
 });
 
@@ -74,7 +85,7 @@ const ORG_JSON_LD = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${display.variable} ${inter.variable}`}>
+    <html lang="en" className={`${display.variable} ${inter.variable} ${archivo.variable}`}>
       <body>
         <script
           type="application/ld+json"
