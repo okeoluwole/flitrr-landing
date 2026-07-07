@@ -44,12 +44,12 @@ export default function ForgotPasswordPage() {
             >
               <circle
                 cx="20" cy="20" r="18"
-                stroke="var(--color-accent-1-deep-blue)"
+                stroke="var(--warm-2)"
                 strokeWidth="2"
               />
               <path
                 d="M11 20.5l6 6 12-12"
-                stroke="var(--color-accent-1-deep-blue)"
+                stroke="var(--warm-2)"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
