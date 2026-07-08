@@ -6,6 +6,9 @@ import { baseCaseInputs, resolveCurrencySymbol } from '../../lib/stack/engine/in
 import { toDisplayValues, toEngineInputs, applyGuards, validate } from './formModel';
 import StackForm from './StackForm';
 import StackSummary from './StackSummary';
+import StackCashflow from './StackCashflow';
+import StackComparison from './StackComparison';
+import StackSensitivity from './StackSensitivity';
 import styles from './stack.module.css';
 
 /**
@@ -60,7 +63,14 @@ export default function StackTool() {
 
       {error && <p className={styles.error}>{error}</p>}
 
-      {result && <StackSummary result={result} meta={meta} />}
+      {result && (
+        <div className={styles.results}>
+          <StackSummary result={result} meta={meta} />
+          <StackCashflow result={result} meta={meta} />
+          <StackComparison result={result} meta={meta} />
+          <StackSensitivity result={result} meta={meta} />
+        </div>
+      )}
     </div>
   );
 }
