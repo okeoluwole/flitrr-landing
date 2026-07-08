@@ -79,12 +79,13 @@ export async function runAppraisal(raw) {
   try {
     const inputs = normaliseInputs(raw);
     const result = computeAppraisal(inputs);
-    // The result holds no inputs, so hand back the display essentials the read
-    // only views need: the reporting currency and the commencement date.
+    // The result holds no inputs, so hand back the normalised input set the read
+    // only views read for labels, credit ratios and the cashflow calendar.
     const meta = {
       currency: inputs.reportingCurrency,
       commencementDate: inputs.commencementDate,
       strategy: inputs.fundingStrategy,
+      inputs,
     };
     return { ok: true, result, meta };
   } catch (err) {
