@@ -354,7 +354,7 @@ function DesignPartnerForm() {
         <input className={styles.in} id="hdp-email" type="email" placeholder="your@email.com" autoComplete="email" value={email} onChange={(e) => { setEmail(e.target.value); if (error) setError(null); }} />
       </div>
       <div className={styles.field}>
-        <label className={styles.flab} htmlFor="hdp-company">Company / practice name</label>
+        <label className={styles.flab} htmlFor="hdp-company">Company name</label>
         <input className={styles.in} id="hdp-company" type="text" placeholder="e.g. Northpoint Developments" autoComplete="organization" value={company} onChange={(e) => { setCompany(e.target.value); if (error) setError(null); }} />
       </div>
       <div className={styles.frow}>
@@ -411,10 +411,10 @@ export default function HomeMain({ user }) {
               <span className={styles.hero__pill}>
                 <span className={styles.live} /> PULSE is live
               </span>
-              <h1>One platform for the whole development lifecycle.</h1>
+              <h1>One platform for the whole property development lifecycle.</h1>
               <p className={styles.hero__sub}>
-                Institutional delivery discipline: classified objectives, a version-locked brief, then
-                monitor only what matters. Land acquisition to delivery and sales.
+                Institutional delivery discipline for independent and SME developers: objectives defined
+                and classified. Monitor what matters. From initiation to completion.
               </p>
               <div className={styles.hero__cta}>
                 <Link href="/pulse" className={`${styles.btn} ${styles.btnSolid}`}>
@@ -458,8 +458,8 @@ export default function HomeMain({ user }) {
               </div>
               <div>
                 <p>
-                  A delivery framework powered by the 8-6-4 methodology, built to bring independent and
-                  SME developers the rigour that large developers have always had.
+                  The 8-6-4 methodology: a delivery framework that brings independent and SME developers
+                  the rigour large developers have always had.
                 </p>
                 <div className={styles.cta}>
                   <Link className={styles.ghostlink} href="/framework">
@@ -500,8 +500,8 @@ export default function HomeMain({ user }) {
               <p className={styles.kick}>Our first product</p>
               <h2 id="pulse-heading">PULSE.</h2>
               <p>
-                Project delivery and programme management for independent and SME developers. One screen
-                tells you where a scheme stands, and the one thing that needs you.
+                Project delivery and programme management. One screen tells you where a scheme stands, and
+                the one thing that needs you.
               </p>
               <div className={styles.cta}>
                 <Link href="/pulse" className={`${styles.btn} ${styles.btnWarm}`}>
@@ -532,12 +532,12 @@ export default function HomeMain({ user }) {
               <div className={styles.suite__row}>
                 <span className={styles.suite__nm}><span className={styles.dot} />STACK</span>
                 <span className={styles.suite__st}>In design</span>
-                <span className={styles.suite__ds}>Build and lock your funding.</span>
+                <span className={styles.suite__ds}>Feasibility, budgets, and funding.</span>
               </div>
               <div className={styles.suite__row}>
                 <span className={styles.suite__nm}><span className={styles.dot} />ROUTE</span>
                 <span className={styles.suite__st}>In design</span>
-                <span className={styles.suite__ds}>Appoint the right team, and run the tender.</span>
+                <span className={styles.suite__ds}>Strategy, tenders, and appointments.</span>
               </div>
               <div className={`${styles.suite__row} ${styles.ghost}`}>
                 <span className={styles.suite__nm}><span className={styles.dot} />And more</span>
