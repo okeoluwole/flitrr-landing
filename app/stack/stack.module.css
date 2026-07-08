@@ -419,6 +419,30 @@
   gap: 1rem;
 }
 
+/* Report header: on screen, the download action; in print, the report banner. */
+.reportHead {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.downloadBtn {
+  padding: 0.6rem 1.1rem;
+  border: 1px solid var(--app-border-strong);
+  border-radius: var(--app-radius);
+  background: var(--app-surface);
+  color: var(--app-ink);
+  font-family: var(--font-body);
+  font-size: var(--app-text-sm);
+  font-weight: 600;
+}
+
+/* Print-only report chrome, hidden on screen. */
+.printBanner,
+.printStamp,
+.cashflowPrint {
+  display: none;
+}
+
 .cardNote {
   color: var(--app-ink-secondary);
   font-size: var(--app-text-sm);
@@ -530,6 +554,92 @@
 
 .cell--nogo {
   color: var(--app-danger);
+}
+
+/*
+ * Print: the PDF report. Hide the form and the app chrome, show the report
+ * banner and the stamp, and lay the cards out in normal document flow so the
+ * per-card page breaks land cleanly. The global @media print (globals.css) sets
+ * A4 and a zero page margin, so the padding here supplies the report's margins.
+ */
+@media print {
+  .topbar,
+  .form,
+  .error,
+  .downloadBtn {
+    display: none !important;
+  }
+
+  .reportHead {
+    display: block;
+  }
+
+  .page {
+    background: #ffffff;
+  }
+
+  .canvas {
+    max-width: 100%;
+    padding: 1.4cm;
+  }
+
+  .results {
+    gap: 0.6cm;
+  }
+
+  .card,
+  .grid2 {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid var(--app-border);
+  }
+
+  .printBanner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--app-ink);
+    margin-bottom: 0.3rem;
+  }
+
+  .printBrand {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: var(--app-text-lg);
+    letter-spacing: -0.015em;
+    color: var(--app-ink);
+  }
+
+  .printReportTitle {
+    font-size: var(--app-text-base);
+    color: var(--app-ink);
+  }
+
+  .printMeta {
+    font-size: var(--app-text-sm);
+    color: var(--app-ink-secondary);
+  }
+
+  .printStamp {
+    display: block;
+    margin-top: 0.3rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--app-border);
+    color: var(--app-ink-secondary);
+    font-size: var(--app-text-xs);
+    line-height: 1.5;
+  }
+
+  /* The month-by-month cashflow grid is far too wide for A4, so in the report it
+     gives way to a compact phase-totals summary; the full grid stays in the app. */
+  .cashflowScroll {
+    display: none;
+  }
+
+  .cashflowPrint {
+    display: block;
+  }
 }
 
 /* The verdict badge. Amber (signal) for CONSIDER, green for GO, red for NO GO.

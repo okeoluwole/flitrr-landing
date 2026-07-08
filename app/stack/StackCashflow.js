@@ -33,10 +33,28 @@ function monthLabel(commencementISO, offset) {
   return date.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
 }
 
+const PRINT_PHASES = [
+  { key: 'acquisition', label: 'Acquisition' },
+  { key: 'design', label: 'Design and pre-construction' },
+  { key: 'construction', label: 'Construction' },
+  { key: 'finance', label: 'Finance' },
+  { key: 'sales', label: 'Sales' },
+  { key: 'netMovement', label: 'Net (project profit)' },
+];
+
 export default function StackCashflow({ result, meta }) {
   const { rows, peakFunding } = result.cashflow;
   const currency = meta.currency;
   const commencement = meta.commencementDate;
+
+  // Phase totals across the programme, for the compact print summary.
+  const totals = rows.reduce(
+    (acc, row) => {
+      for (const phase of PRINT_PHASES) acc[phase.key] += row[phase.key];
+      return acc;
+    },
+    { acquisition: 0, design: 0, construction: 0, finance: 0, sales: 0, netMovement: 0 },
+  );
 
   return (
     <section className={styles.card}>
@@ -53,7 +71,7 @@ export default function StackCashflow({ result, meta }) {
         </div>
       </div>
 
-      <div className={styles.tableScroll}>
+      <div className={`${styles.tableScroll} ${styles.cashflowScroll}`}>
         <table className={styles.cashflowTable}>
           <thead>
             <tr>
@@ -102,6 +120,15 @@ export default function StackCashflow({ result, meta }) {
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <div className={styles.cashflowPrint} aria-hidden="true">
+        {PRINT_PHASES.map((phase) => (
+          <div key={phase.key} className={styles.line}>
+            <span className={styles.lineLabel}>{phase.label}</span>
+            <span className={`${styles.lineValue} tnum`}>{money(totals[phase.key], currency)}</span>
+          </div>
+        ))}
       </div>
     </section>
   );
