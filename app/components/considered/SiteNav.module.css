@@ -62,7 +62,10 @@
   color: #fff;
 }
 @media (max-width: 680px) {
-  .hideSm {
-    display: none;
+  .navlinks {
+    gap: 1rem;
+  }
+  .navlinks a {
+    font-size: 0.9rem;
   }
 }

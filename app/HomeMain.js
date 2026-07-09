@@ -408,9 +408,6 @@ export default function HomeMain({ user }) {
           <div className={styles.hero__scrim} />
           <div className={styles.hero__inner}>
             <div className={styles.wrap}>
-              <span className={styles.hero__pill}>
-                <span className={styles.live} /> PULSE is live
-              </span>
               <h1>One platform for the whole property development lifecycle.</h1>
               <p className={styles.hero__sub}>
                 Institutional delivery discipline for independent and SME property developers: objectives defined

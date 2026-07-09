@@ -32,13 +32,13 @@ export default function SiteNav({ user = null, current = null, product = null })
       <div className={styles.navlinks}>
         <Link
           href="/framework"
-          className={`${styles.hideSm} ${current === 'framework' ? styles.cur : ''}`}
+          className={current === 'framework' ? styles.cur : ''}
         >
           Framework
         </Link>
         <Link
           href="/pulse"
-          className={`${styles.hideSm} ${current === 'pulse' ? styles.cur : ''}`}
+          className={current === 'pulse' ? styles.cur : ''}
         >
           PULSE
         </Link>
