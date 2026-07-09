@@ -75,10 +75,10 @@ export default function HomeDesignPartner() {
         <div className={styles.pilotSplit}>
           <div className={styles.pilotLeft} data-reveal>
             <h2 id="design-partner-heading" className={styles.sectionHeading}>
-              Built with developers, not just for them.
+              Built with property developers, not just for them.
             </h2>
             <p className={styles.pilotSub}>
-              Flitrr is being shaped with a small group of working developers.
+              Flitrr is being shaped with a small group of property developers.
               If you want the infrastructure before everyone else has it, talk
               to us.
             </p>

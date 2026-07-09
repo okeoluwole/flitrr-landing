@@ -79,7 +79,7 @@ export default function PulseDesignPartner() {
               Build PULSE with us.
             </h2>
             <p className={styles.pilotSub}>
-              PULSE is being shaped with a small group of working developers.
+              PULSE is being shaped with a small group of property developers.
               Come in early, use it before anyone else, and have a real say in
               what we build next.
             </p>

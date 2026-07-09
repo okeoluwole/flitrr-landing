@@ -432,7 +432,7 @@ export default function PulseMain({ user }) {
                 was watching. <span className={styles.turn}>PULSE is built so that what matters cannot drift quietly.</span>
               </p>
               <p className={styles.pdiff}>
-                Large developers buy this discipline from firms most independent developers are priced
+                Large property developers buy this discipline from firms most independent developers are priced
                 out of. <b>PULSE gives it to you directly.</b>
               </p>
             </div>
@@ -680,7 +680,7 @@ export default function PulseMain({ user }) {
             <div>
               <h2 id="pb-h">The knowledge you were never handed.</h2>
               <p className={styles.body}>
-                Most developers learn programme management by paying for the lessons. PULSE ships with the
+                Most property developers learn programme management by paying for the lessons. PULSE ships with the
                 playbook instead: at every stage, it proposes the actions and risks a veteran programme
                 director would already be watching for, each explained in one plain sentence, each
                 prioritised by the objectives you protected. Accept with a tap, or dismiss it.
@@ -711,9 +711,9 @@ export default function PulseMain({ user }) {
         <section className={styles.dp} id="design-partner" aria-labelledby="dp-h">
           <div className={styles.wrap}>
             <div>
-              <h2 id="dp-h">Built with developers, not just for them.</h2>
+              <h2 id="dp-h">Built with property developers, not just for them.</h2>
               <p className={styles.sub}>
-                PULSE is being shaped with a small group of working developers. If you want the
+                PULSE is being shaped with a small group of property developers. If you want the
                 infrastructure before everyone else has it, talk to us.
               </p>
               <p className={styles.reassure}>

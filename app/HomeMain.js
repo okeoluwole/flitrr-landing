@@ -413,7 +413,7 @@ export default function HomeMain({ user }) {
               </span>
               <h1>One platform for the whole property development lifecycle.</h1>
               <p className={styles.hero__sub}>
-                Institutional delivery discipline for independent and SME developers: objectives defined
+                Institutional delivery discipline for independent and SME property developers: objectives defined
                 and classified. Monitor what matters. From initiation to completion.
               </p>
               <div className={styles.hero__cta}>
@@ -439,7 +439,7 @@ export default function HomeMain({ user }) {
             <p className={styles.problem__setup}>
               Property development is one of the most demanding delivery environments there is. Long
               lifecycles, high capital exposure, many parties, and decisions whose consequences surface
-              years later. Major developers meet it with programme offices and dedicated delivery
+              years later. Major property developers meet it with programme offices and dedicated delivery
               infrastructure.
             </p>
             <p className={styles.problem__turn}>
@@ -458,7 +458,7 @@ export default function HomeMain({ user }) {
               </div>
               <div>
                 <p>
-                  The 8-6-4 methodology: a delivery framework that brings independent and SME developers
+                  The 8-6-4 methodology: a delivery framework that brings independent and SME property developers
                   the rigour large developers have always had.
                 </p>
                 <div className={styles.cta}>
@@ -552,9 +552,9 @@ export default function HomeMain({ user }) {
         <section className={styles.dp} id="design-partner" aria-labelledby="dp-heading">
           <div className={styles.wrap}>
             <div>
-              <h2 id="dp-heading">Built with developers, not just for them.</h2>
+              <h2 id="dp-heading">Built with property developers, not just for them.</h2>
               <p className={styles.sub}>
-                Flitrr is being shaped with a small group of working developers. If you want the
+                Flitrr is being shaped with a small group of property developers. If you want the
                 infrastructure before everyone else has it, talk to us.
               </p>
               <p className={styles.reassure}>
