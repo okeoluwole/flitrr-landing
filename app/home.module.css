@@ -152,6 +152,11 @@
   position: relative;
   z-index: 5;
   width: 100%;
+  /* Reserve clearance for the absolute nav so the heading can never
+     ride up under the brand on short/wide viewports. Because the hero
+     content is bottom-aligned, this is invisible until the content
+     would otherwise overlap the nav. */
+  padding-top: clamp(6.5rem, 6vw, 8rem);
   padding-bottom: clamp(3rem, 8vh, 6rem);
 }
 .hero__pill {
