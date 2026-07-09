@@ -52,12 +52,12 @@ npx remotion render src/index.ts Marketing-1x1 out/flitrr-pulse-1x1.mp4 --ignore
 
 ## Audio (muted‑first)
 
-The film is designed to carry its full meaning with **no sound**. To add a track:
-
-1. Drop a **commercially‑cleared** file at `public/audio/track.mp3`.
-2. In `src/Marketing.tsx`, set `HAS_AUDIO = true` and uncomment the `<Audio>`
-   line (and its `Audio` / `staticFile` import).
-3. Re‑render.
+The film carries its full meaning with **no sound** and ships that way. Voiceover
+(female, Seed Audio) and an afrobeat/uptempo music bed are an additive layer that
+must be added on a machine with normal network access — this render container
+blocks the audio CDN. The music slot is wired (`MUSIC` flag in `src/Marketing.tsx`
+→ drop `public/audio/track.mp3`); the full VO script, voice picks, wiring snippet,
+and re‑timing steps are in **[VOICEOVER.md](./VOICEOVER.md)**.
 
 ## Structure
 

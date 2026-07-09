@@ -1,5 +1,5 @@
 import React from 'react';
-import { AbsoluteFill, Series } from 'remotion';
+import { AbsoluteFill, Audio, interpolate, Series, staticFile } from 'remotion';
 import { COL } from './theme';
 import { Hook } from './beats/Hook';
 import { Framework } from './beats/Framework';
@@ -7,9 +7,29 @@ import { Suite } from './beats/Suite';
 import { Pulse } from './beats/Pulse';
 import { Cta } from './beats/Cta';
 
-// Muted-first: kinetic type carries all meaning; audio is an additive slot.
-// Drop a commercially-cleared track at public/audio/track.mp3 and flip this on.
-const HAS_AUDIO = false;
+/* ── Audio ──────────────────────────────────────────────────
+   Muted-first: kinetic type carries all meaning. Audio is an
+   additive layer added on a machine with normal network access
+   (this render container blocks the audio CDN). See VOICEOVER.md.
+
+   MUSIC: drop a commercially-cleared afrobeat / uptempo track at
+   public/audio/track.mp3 and set MUSIC = true.
+   VOICE: see VOICEOVER.md for the per-beat VO wiring + re-timing.
+──────────────────────────────────────────────────────────── */
+const MUSIC = false;
+
+const MusicBed: React.FC = () => (
+  <Audio
+    src={staticFile('audio/track.mp3')}
+    // Under a voiceover, duck the base volume to ~0.3.
+    volume={(f) =>
+      interpolate(f, [0, 24, 1090, 1140], [0, 0.55, 0.55, 0], {
+        extrapolateLeft: 'clamp',
+        extrapolateRight: 'clamp',
+      })
+    }
+  />
+);
 
 export const Marketing: React.FC = () => {
   return (
@@ -32,8 +52,7 @@ export const Marketing: React.FC = () => {
         </Series.Sequence>
       </Series>
 
-      {/* Audio slot (see HAS_AUDIO above).
-      {HAS_AUDIO ? <Audio src={staticFile('audio/track.mp3')} volume={0.7} /> : null} */}
+      {MUSIC ? <MusicBed /> : null}
     </AbsoluteFill>
   );
 };

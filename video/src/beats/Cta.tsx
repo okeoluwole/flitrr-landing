@@ -1,7 +1,7 @@
 import React from 'react';
-import { interpolate, useCurrentFrame } from 'remotion';
+import { Img, interpolate, staticFile, useCurrentFrame } from 'remotion';
 import { COL, EASE, fadeOut, rise } from '../theme';
-import { PhotoBg, Stage, Wordmark, useU } from '../components';
+import { PhotoBg, Stage, useU } from '../components';
 import { SCRIPT } from '../data';
 
 const DUR = 240;
@@ -32,27 +32,12 @@ export const Cta: React.FC = () => {
         </div>
       </div>
 
-      {/* Phase B — wordmark, CTA, URL */}
-      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: u * 3.4 }}>
-        <div style={rise(frame, 80)}>
-          <Wordmark size={u * 8} />
-        </div>
-        <div
-          style={{
-            ...rise(frame, 100),
-            fontSize: u * 2.3,
-            fontWeight: 600,
-            color: COL.ink950,
-            background: COL.amber,
-            padding: `${u * 1.5}px ${u * 3.2}px`,
-            borderRadius: 999,
-            letterSpacing: '0.005em',
-          }}
-        >
-          {SCRIPT.cta.action}
-        </div>
-        <div style={{ ...rise(frame, 118), fontSize: u * 2.2, fontWeight: 500, color: COL.onInk2, letterSpacing: '0.02em' }}>
-          {SCRIPT.cta.url}
+      {/* Phase B — the real wordmark, CTA, URL. Amber = the brand mark. */}
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: u * 4 }}>
+        <Img src={staticFile('brand/wordmark-tight.svg')} style={{ ...rise(frame, 80), width: u * 40, height: 'auto' }} />
+        <div style={{ ...rise(frame, 104), display: 'flex', flexDirection: 'column', alignItems: 'center', gap: u * 1.3 }}>
+          <span style={{ fontSize: u * 2.5, fontWeight: 600, color: COL.cream, letterSpacing: '-0.005em' }}>{SCRIPT.cta.action}</span>
+          <span style={{ fontSize: u * 2, fontWeight: 500, color: COL.onInk2, letterSpacing: '0.04em' }}>{SCRIPT.cta.url}</span>
         </div>
       </div>
     </Stage>
