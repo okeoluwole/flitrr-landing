@@ -1,0 +1,25 @@
+{
+  "name": "flitrr-pulse-video",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Marketing film for Flitrr / PULSE, built in Remotion on the live design system.",
+  "scripts": {
+    "studio": "remotion studio",
+    "still": "remotion still src/index.ts Marketing-1x1 out/still.png --frame=690",
+    "render:1x1": "remotion render src/index.ts Marketing-1x1 out/flitrr-pulse-1x1.mp4",
+    "render:16x9": "remotion render src/index.ts Marketing-16x9 out/flitrr-pulse-16x9.mp4",
+    "render:draft": "remotion render src/index.ts Marketing-1x1 out/draft.mp4 --scale=0.5 --jpeg-quality=70"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.0",
+    "@remotion/google-fonts": "^4.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
+    "typescript": "^5.5.0"
+  }
+}

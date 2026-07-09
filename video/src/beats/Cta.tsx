@@ -1,0 +1,60 @@
+import React from 'react';
+import { interpolate, useCurrentFrame } from 'remotion';
+import { COL, EASE, fadeOut, rise } from '../theme';
+import { PhotoBg, Stage, Wordmark, useU } from '../components';
+import { SCRIPT } from '../data';
+
+const DUR = 240;
+
+/* Beat 4 · CTA (~8s).
+   The design-partner ask, then everything clears to the wordmark and URL.
+   Amber returns once, as the CTA — its third sanctioned meaning. */
+export const Cta: React.FC = () => {
+  const frame = useCurrentFrame();
+  const { u, width } = useU();
+
+  const aOp = Math.min(
+    interpolate(frame, [10, 24], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: EASE }),
+    fadeOut(frame, 58, 72)
+  );
+
+  return (
+    <Stage dur={DUR}>
+      <PhotoBg src="images/lifecycle/cranes.jpg" dur={DUR} darken={0.72} from={1.05} to={1.12} />
+
+      {/* Phase A — the ask */}
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', gap: u * 2.6, padding: u * 10, opacity: aOp }}>
+        <div style={{ maxWidth: width * 0.8, fontSize: u * 5, fontWeight: 500, lineHeight: 1.16, letterSpacing: '-0.02em', color: COL.onInk }}>
+          {SCRIPT.cta.l1}
+        </div>
+        <div style={{ maxWidth: width * 0.72, fontSize: u * 2.5, fontWeight: 400, color: COL.onInk2 }}>
+          {SCRIPT.cta.l2}
+        </div>
+      </div>
+
+      {/* Phase B — wordmark, CTA, URL */}
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: u * 3.4 }}>
+        <div style={rise(frame, 80)}>
+          <Wordmark size={u * 8} />
+        </div>
+        <div
+          style={{
+            ...rise(frame, 100),
+            fontSize: u * 2.3,
+            fontWeight: 600,
+            color: COL.ink950,
+            background: COL.amber,
+            padding: `${u * 1.5}px ${u * 3.2}px`,
+            borderRadius: 999,
+            letterSpacing: '0.005em',
+          }}
+        >
+          {SCRIPT.cta.action}
+        </div>
+        <div style={{ ...rise(frame, 118), fontSize: u * 2.2, fontWeight: 500, color: COL.onInk2, letterSpacing: '0.02em' }}>
+          {SCRIPT.cta.url}
+        </div>
+      </div>
+    </Stage>
+  );
+};
