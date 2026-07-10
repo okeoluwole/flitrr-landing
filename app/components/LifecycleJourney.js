@@ -34,37 +34,37 @@ const STAGES = [
   {
     name: 'Project Objectives and Funding',
     desc: 'Define the project, classify its objectives, confirm the funding.',
-    img: '/images/lifecycle/signing.jpg',
+    img: '/images/lifecycle/objectives.jpg',
   },
   {
     name: 'Consultant Appointment',
     desc: 'Assemble and scope the professional team.',
-    img: '/images/lifecycle/consultants.jpg',
+    img: '/images/lifecycle/appointment.jpg',
   },
   {
     name: 'Design and Planning Approvals',
     desc: 'Freeze the design and secure permission to build.',
-    img: '/images/lifecycle/drafting.jpg',
+    img: '/images/lifecycle/design.jpg',
   },
   {
     name: 'Contractor Procurement',
     desc: 'Tender, negotiate and execute the contract.',
-    img: '/images/lifecycle/crew.jpg',
+    img: '/images/lifecycle/procurement.jpg',
   },
   {
     name: 'Construction',
     desc: 'Build it, watching cost, time and quality.',
-    img: '/images/lifecycle/cranes.jpg',
+    img: '/images/lifecycle/construction.jpg',
   },
   {
     name: 'Completion and Handover',
     desc: 'Practical completion, defects and final accounts.',
-    img: '/images/lifecycle/handover.jpg',
+    img: '/images/lifecycle/completion.jpg',
   },
   {
     name: 'Sales and Disposal',
     desc: 'Realise the value the project was set up to deliver.',
-    img: '/images/lifecycle/sales.jpg',
+    img: '/images/lifecycle/disposal.jpg',
   },
 ];
 

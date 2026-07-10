@@ -25,13 +25,13 @@ const PRINCIPLES = [
 
 const STAGES = [
   ['Land and Site Acquisition', 'Confirm there is a feasible development here, and secure the site on terms that match your confidence.', '/images/lifecycle/land.jpg', 'Land'],
-  ['Project Objectives and Funding', 'Turn the feasible hypothesis into a defined, funded, committed project, with its objectives classified.', '/images/lifecycle/signing.jpg', 'Objectives'],
-  ['Consultant Appointment', 'Assemble the right professional team for this scheme, on clear terms, before serious work begins.', '/images/lifecycle/consultants.jpg', 'Consultants'],
-  ['Design and Planning Approvals', 'Develop the design to win its approvals and carry the project into construction.', '/images/lifecycle/drafting.jpg', 'Design'],
-  ['Contractor Procurement', 'Appoint the contractor on terms that fit the project and protect what must hold.', '/images/lifecycle/crew.jpg', 'Procurement'],
-  ['Construction', 'Build to the defined project, defending what must hold through to the finish.', '/images/lifecycle/cranes.jpg', 'Construction'],
-  ['Completion and Handover', 'Close the project out properly: complete, certified, settled, and handed over.', '/images/lifecycle/handover.jpg', 'Completion'],
-  ['Sales and Disposal', 'Realise the value the whole project was built to create, and close the loop on the case you set.', '/images/lifecycle/sales.jpg', 'Sales'],
+  ['Project Objectives and Funding', 'Turn the feasible hypothesis into a defined, funded, committed project, with its objectives classified.', '/images/lifecycle/objectives.jpg', 'Objectives'],
+  ['Consultant Appointment', 'Assemble the right professional team for this scheme, on clear terms, before serious work begins.', '/images/lifecycle/appointment.jpg', 'Consultants'],
+  ['Design and Planning Approvals', 'Develop the design to win its approvals and carry the project into construction.', '/images/lifecycle/design.jpg', 'Design'],
+  ['Contractor Procurement', 'Appoint the contractor on terms that fit the project and protect what must hold.', '/images/lifecycle/procurement.jpg', 'Procurement'],
+  ['Construction', 'Build to the defined project, defending what must hold through to the finish.', '/images/lifecycle/construction.jpg', 'Construction'],
+  ['Completion and Handover', 'Close the project out properly: complete, certified, settled, and handed over.', '/images/lifecycle/completion.jpg', 'Completion'],
+  ['Sales and Disposal', 'Realise the value the whole project was built to create, and close the loop on the case you set.', '/images/lifecycle/disposal.jpg', 'Sales'],
 ];
 
 const pad = (n) => String(n).padStart(2, '0');

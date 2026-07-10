@@ -23,13 +23,13 @@ const pad = (n) => String(n).padStart(2, '0');
 
 const LIFE = [
   ['Land and Site Acquisition', 'Secure control of the site and clear title.', '/images/lifecycle/land.jpg', 'Land'],
-  ['Project Objectives and Funding', 'Define the project, classify its objectives, confirm the funding.', '/images/lifecycle/signing.jpg', 'Objectives'],
-  ['Consultant Appointment', 'Assemble and scope the professional team.', '/images/lifecycle/consultants.jpg', 'Consultants'],
-  ['Design and Planning Approvals', 'Freeze the design and secure permission to build.', '/images/lifecycle/drafting.jpg', 'Design'],
-  ['Contractor Procurement', 'Tender, negotiate and execute the contract.', '/images/lifecycle/crew.jpg', 'Procurement'],
-  ['Construction', 'Build it, watching cost, time and quality.', '/images/lifecycle/cranes.jpg', 'Construction'],
-  ['Completion and Handover', 'Practical completion, defects and final accounts.', '/images/lifecycle/handover.jpg', 'Completion'],
-  ['Sales and Disposal', 'Realise the value the project was set up to deliver.', '/images/lifecycle/sales.jpg', 'Sales'],
+  ['Project Objectives and Funding', 'Define the project, classify its objectives, confirm the funding.', '/images/lifecycle/objectives.jpg', 'Objectives'],
+  ['Consultant Appointment', 'Assemble and scope the professional team.', '/images/lifecycle/appointment.jpg', 'Consultants'],
+  ['Design and Planning Approvals', 'Freeze the design and secure permission to build.', '/images/lifecycle/design.jpg', 'Design'],
+  ['Contractor Procurement', 'Tender, negotiate and execute the contract.', '/images/lifecycle/procurement.jpg', 'Procurement'],
+  ['Construction', 'Build it, watching cost, time and quality.', '/images/lifecycle/construction.jpg', 'Construction'],
+  ['Completion and Handover', 'Practical completion, defects and final accounts.', '/images/lifecycle/completion.jpg', 'Completion'],
+  ['Sales and Disposal', 'Realise the value the project was set up to deliver.', '/images/lifecycle/disposal.jpg', 'Sales'],
 ];
 
 function LifecycleReel() {
