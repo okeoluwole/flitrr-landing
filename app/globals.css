@@ -123,71 +123,108 @@
 
 /* ─────────────────────────────────────────────────────────
    PULSE product theme: "Instrument"
-   The authenticated app surface: a dark console frame (the
-   existing ink ramp, reused) around a light, cool paper canvas
-   that produces the formal Brief. Distinct from the marketing
-   ink pages and from the retired flat cream app. Composed from
-   the locked palette (console = ink, signal = amber, ochre for
-   amber as text); only the cool paper neutrals are new. The
-   system and its primitives are documented in DESIGN.md.
+   The authenticated app is a dark instrument: a cool graphite
+   ground, deliberately cooler and flatter than the marketing
+   ink (so the two blacks read as different blacks), with
+   hairline-seated panels, density as a virtue, and a numeric
+   voice in mono. Amber keeps ONE meaning: criticality. The
+   primary action is structural white, never honey. The stage
+   rail is monochrome; amber returns to it only if a stage
+   itself is at risk.
+   The produced document (the Brief, its exports) does NOT
+   live on these tokens: it stands on the --doc-* paper group
+   below, so the instrument can go fully dark without ever
+   darkening the document.
+   Approved look and feel: the Instrument strategy artifact,
+   2026-07-10. Documented in DESIGN.md.
 ───────────────────────────────────────────────────────── */
 :root {
-  /* Console: app chrome (top bar, the step rail, footers). */
-  --app-console:        var(--color-ink-950);
-  --app-console-raised: var(--color-ink-900);
-  --app-console-edge:   var(--color-ink-700);
-  --app-on-console:           var(--color-on-ink-primary);
-  --app-on-console-secondary: var(--color-on-ink-secondary);
-  --app-on-console-faint:     var(--color-on-ink-faint);
-  --app-console-hairline:        var(--color-ink-hairline);
-  --app-console-hairline-strong: var(--color-ink-hairline-strong);
+  /* Console: app chrome (top bar, the step rail, footers).
+     One step above the ground, hairline-edged. */
+  --app-console:        #12171C;
+  --app-console-raised: #161C22;
+  --app-console-edge:   #232C35;
+  --app-on-console:           #EAEDEF;
+  --app-on-console-secondary: #98A3AB;
+  --app-on-console-faint:     #828C95;
+  --app-console-hairline:        rgba(233, 236, 238, 0.08);
+  --app-console-hairline-strong: rgba(233, 236, 238, 0.15);
 
-  /* Paper: the work canvas and the cards on it. Cooler than the
-     retired cream; the only genuinely new neutrals in the system. */
-  --app-paper:          #F5F8FB;
-  --app-surface:        #FFFFFF;
-  --app-surface-sunken: #EEF2F7;
-  --app-ink:            #1B2A3A;
-  --app-ink-secondary:  #51677C;
-  --app-ink-muted:      #7C93A6;
-  --app-hairline:       #E4E9EF;
-  --app-border:         #D6DEE7;
-  --app-border-strong:  #B7C3CF;
+  /* The work canvas and the panels seated on it. --app-paper is
+     the legacy name for the page ground (each screen drops the
+     name as its Phase 3 re-skin touches the file). */
+  --app-paper:          #0E1216;
+  --app-surface:        #161C22;
+  --app-surface-raised: #1A212A;
+  --app-surface-sunken: #12171C;
+  --app-ink:            #EAEDEF;
+  --app-ink-secondary:  #98A3AB;
+  --app-ink-muted:      #828C95;
+  --app-hairline:       rgba(233, 236, 238, 0.08);
+  --app-border:         rgba(233, 236, 238, 0.15);
+  --app-border-strong:  rgba(233, 236, 238, 0.28);
+  --app-hover:          rgba(233, 236, 238, 0.06);
 
-  /* Signal: amber keeps one meaning, the thing that matters. */
-  --app-signal:        var(--color-signal-amber);
-  --app-signal-strong: var(--color-signal-amber-deep);
-  --app-signal-wash:   var(--color-signal-amber-wash);
-  --app-signal-ink:    var(--color-ochre);
-  --app-signal-border: var(--color-critical-card-border);
+  /* Signal: amber keeps one meaning, criticality. On the calm
+     cool field it reads louder, so proportional monitoring
+     shows itself. --app-signal-ink is amber as text on dark. */
+  --app-signal:        #F4C031;
+  --app-signal-strong: #D9A61F;
+  --app-signal-wash:   rgba(244, 192, 49, 0.10);
+  --app-signal-ink:    #ECC172;
+  --app-signal-border: rgba(244, 192, 49, 0.42);
 
-  /* Criticality: the cascade's loud end (the app critical wash). */
-  --app-critical-bg:     var(--color-critical-card-bg);
-  --app-critical-border: var(--color-critical-card-border);
+  /* Criticality: the cascade's loud end. A wash and a full
+     border, never a side-stripe. */
+  --app-critical-bg:     rgba(244, 192, 49, 0.10);
+  --app-critical-border: rgba(244, 192, 49, 0.42);
 
-  /* Semantic states. Placeholders use --app-ink-secondary, not muted,
-     to hold AA contrast; --app-ink-muted is non-essential metadata only. */
-  --app-focus:            var(--color-accent-1-deep-blue);
-  --app-focus-on-console: var(--color-signal-amber);
-  --app-danger:  var(--color-error);
-  --app-success: #15795F;
-  --app-warning: var(--color-ochre);
+  /* Primary action: structural white. Ink on it is the console
+     dark, so the button reads as an inverted surface. */
+  --app-primary:       #F1F3F5;
+  --app-primary-ink:   #12171C;
+  --app-primary-hover: #FFFFFF;
 
-  /* Elevation: paper sits just above the canvas; console gets depth. */
-  --app-elev-1: 0 1px 2px rgba(16, 28, 41, 0.05), 0 2px 6px rgba(16, 28, 41, 0.06);
-  --app-elev-2: 0 4px 16px rgba(16, 28, 41, 0.08);
-  --app-elev-console: var(--shadow-ink);
+  /* Semantic states, tuned for the dark ground (the global navy
+     red and deep green are illegible here). Focus is structural
+     white: visible on every app surface and never confusable
+     with the amber criticality read. Placeholders use
+     --app-ink-secondary, not muted, to hold AA contrast;
+     --app-ink-muted is non-essential metadata only. */
+  --app-focus:            #F1F3F5;
+  --app-focus-on-console: #F1F3F5;
+  --app-danger:        #E8988A;
+  --app-danger-wash:   rgba(232, 120, 100, 0.12);
+  --app-danger-border: rgba(232, 120, 100, 0.45);
+  --app-success: #6FB39A;
+  --app-warning: #C9A24B;
+
+  /* Elevation: on dark, depth is shadow plus a faint top light. */
+  --app-elev-1: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px -16px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  --app-elev-2: 0 2px 8px rgba(0, 0, 0, 0.35), 0 16px 40px -16px rgba(0, 0, 0, 0.60),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --app-elev-console: 0 24px 64px rgba(0, 0, 0, 0.45);
 
   /* Radii (product scale: inputs 8 to 10, cards 12 to 14). */
   --app-radius-sm: 8px;
   --app-radius:    10px;
   --app-radius-lg: 14px;
 
-  /* The pulse-line rail (the signature motif). */
-  --app-rail-line:      var(--color-ink-hairline);
-  --app-rail-line-done: var(--color-signal-amber);
-  --app-rail-node:      var(--color-on-ink-faint);
-  --app-rail-node-done: var(--color-signal-amber);
+  /* The stage rail: monochrome. Done is a grey fill, current is
+     a white ring. (Overrides the old done-goes-amber canon.) */
+  --app-rail-line:      rgba(233, 236, 238, 0.15);
+  --app-rail-line-done: #828C95;
+  --app-rail-node:      #828C95;
+  --app-rail-node-done: #98A3AB;
+
+  /* Instrument type: Geist carries the voice, Geist Mono the
+     numeric instrument voice (money, dates, stage numerals,
+     criticality scores, reference ids). */
+  --app-font-sans: var(--font-geist-sans), -apple-system, BlinkMacSystemFont,
+    'Segoe UI', system-ui, Roboto, Helvetica, Arial, sans-serif;
+  --app-font-mono: var(--font-geist-mono), ui-monospace, 'SF Mono',
+    'Cascadia Code', Menlo, Consolas, monospace;
 
   /* Instrument type scale: fixed rem, product register (about 1.2 ratio). */
   --app-text-xs:   0.75rem;
@@ -196,6 +233,33 @@
   --app-text-md:   1.0625rem;
   --app-text-lg:   1.375rem;
   --app-text-xl:   1.75rem;
+}
+
+/* ─────────────────────────────────────────────────────────
+   The produced document: the --doc-* paper group.
+   The Brief and its exports stand on these tokens, never on
+   --app-*. A whisper-warm document white on the cool console:
+   a real page on a cool desk. Depth comes from typographic
+   hierarchy and the earned drop shadow, never from color.
+   Consumed from Phase 4 (Brief, MemberBriefView, print).
+───────────────────────────────────────────────────────── */
+:root {
+  --doc-paper:   #FAFAF7;
+  --doc-paper-2: #F1F0EA;
+  --doc-ink:     #22231E;
+  --doc-ink-2:   #5C5D53;
+  --doc-ink-3:   #6E6F63;
+  --doc-line:    #E7E5DC;
+  --doc-navy:    #0B141E;
+  --doc-ochre:   #8A6A16;
+  --doc-signal:  #F4C031;
+  --doc-font-serif: Georgia, 'Iowan Old Style', 'Palatino Linotype',
+    'Book Antiqua', 'Times New Roman', serif;
+  --doc-font-mono: var(--app-font-mono);
+  --doc-radius: 3px;
+  --doc-shadow: 0 55px 100px -34px rgba(0, 0, 0, 0.74),
+    0 10px 26px -10px rgba(0, 0, 0, 0.50),
+    inset 0 1px 0 rgba(255, 255, 255, 0.60);
 }
 
 /* Tabular figures for money, dates, and stage numerals: the

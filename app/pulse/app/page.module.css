@@ -1,11 +1,13 @@
 /* ─────────────────────────────────────────
    /pulse/app: the PULSE project dashboard.
-   "New project" action + a minimal list of the
-   user's projects. Wraps in DashboardShell.
+   "New project" action + the organisation's
+   projects as one seated register panel with
+   hairline-divided rows. Instrument surface;
+   wraps in DashboardShell.
 ───────────────────────────────────────── */
 
 .page {
-  padding-block: 4rem 6rem;
+  padding-block: 2.75rem 6rem;
 }
 
 /* ── Header ────────────────────────────── */
@@ -16,7 +18,7 @@
   justify-content: space-between;
   gap: 1.5rem;
   flex-wrap: wrap;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.75rem;
 }
 
 .headText {
@@ -24,55 +26,57 @@
 }
 
 .eyebrow {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--app-ink-secondary);
-  margin-bottom: 0.5rem;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
+  margin-bottom: 0.6rem;
 }
 
 .heading {
-  font-family: var(--font-heading), sans-serif;
-  font-size: clamp(2rem, 4.5vw, 2.75rem);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.015em;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-xl);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
   color: var(--app-ink);
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.6rem;
 }
 
 .sub {
-  font-family: var(--font-body), sans-serif;
-  font-size: 1.0625rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.9375rem;
   font-weight: 400;
   line-height: 1.55;
   color: var(--app-ink-secondary);
-  max-width: 540px;
+  max-width: 56ch;
 }
 
-/* "New project" primary action. */
+/* "New project": the primary action, structural white. */
 .newBtn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   flex-shrink: 0;
-  background-color: var(--color-button-primary-bg);
-  color: var(--color-button-primary-text);
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9375rem;
+  background-color: var(--app-primary);
+  color: var(--app-primary-ink);
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.875rem;
   font-weight: 600;
-  letter-spacing: 0.005em;
-  padding: 12px 18px;
-  border: 1.5px solid var(--color-button-primary-bg);
-  border-radius: 8px;
+  letter-spacing: -0.005em;
+  padding: 10px 16px;
+  border: none;
+  border-radius: var(--app-radius-sm);
   text-decoration: none;
-  transition: filter var(--dur-fast) var(--ease-out),
+  transition: background-color var(--dur-fast) var(--ease-out),
     transform var(--dur-press) var(--ease-out);
 }
 
 .newBtn:hover,
 .newBtn:focus-visible {
-  filter: brightness(0.94);
+  background-color: var(--app-primary-hover);
 }
 
 .newBtn:focus-visible {
@@ -88,13 +92,16 @@
   flex-shrink: 0;
 }
 
-/* ── Project list ──────────────────────── */
+/* ── Project register ──────────────────── */
 
+/* One seated panel; the rows divide with hairlines. */
 .list {
   list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  background-color: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-elev-1);
+  overflow: hidden;
 }
 
 .listItem {
@@ -102,35 +109,37 @@
   position: relative;
 }
 
+.listItem + .listItem {
+  border-top: 1px solid var(--app-hairline);
+}
+
 .cardLink {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  background-color: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: 14px;
-  padding: 1.25rem 1.5rem;
+  padding: 1.05rem 1.35rem;
   text-decoration: none;
-  box-shadow: 0 8px 32px rgba(55, 97, 131, 0.06);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease,
-    transform 0.15s ease;
+  transition: background-color 0.15s ease;
 }
 
 .cardLink:hover {
-  border-color: var(--app-ink);
-  box-shadow: 0 10px 36px rgba(55, 97, 131, 0.12);
-  transform: translateY(-2px);
+  background-color: var(--app-hover);
+}
+
+.cardLink:active {
+  background-color: rgba(233, 236, 238, 0.09);
 }
 
 .cardLink:focus-visible {
   outline: 2px solid var(--app-focus);
-  outline-offset: 2px;
+  outline-offset: -2px;
+  border-radius: 2px;
 }
 
-/* Press settles the card back down, tactile feedback on tap/click. */
-.cardLink:active {
-  transform: translateY(0) scale(0.995);
+/* A draft row reserves clearance for the floating delete control. */
+.listItem:has(.cardDelete) .cardLink {
+  padding-right: 3.6rem;
 }
 
 .cardMain {
@@ -138,21 +147,23 @@
 }
 
 .cardName {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 1.1875rem;
-  font-weight: 800;
-  line-height: 1.2;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25;
   letter-spacing: -0.01em;
   color: var(--app-ink);
   margin: 0 0 0.3rem;
   overflow-wrap: break-word;
 }
 
+/* Stage numeral and date: the numeric instrument voice. */
 .cardMeta {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.75rem;
   font-weight: 400;
-  line-height: 1.45;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
   color: var(--app-ink-secondary);
   margin: 0;
 }
@@ -171,22 +182,28 @@
 
 .cardLink:hover .cardChevron {
   color: var(--app-ink);
-  transform: translateX(2px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cardLink:hover .cardChevron {
+    transform: translateX(2px);
+  }
 }
 
 /* ── Delete a draft (two-step) ─────────── */
 
 .cardDelete {
   position: absolute;
-  top: 10px;
-  right: 12px;
+  top: 50%;
+  right: 0.9rem;
+  transform: translateY(-50%);
   z-index: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--app-radius-sm);
   border: 1px solid transparent;
   background: transparent;
   color: var(--app-ink-muted);
@@ -196,8 +213,8 @@
 }
 
 .cardDelete:hover {
-  background: rgba(176, 42, 55, 0.08);
-  border-color: rgba(176, 42, 55, 0.4);
+  background: var(--app-danger-wash);
+  border-color: var(--app-danger-border);
   color: var(--app-danger);
 }
 
@@ -206,19 +223,16 @@
   outline-offset: 2px;
 }
 
-/* The confirm prompt replaces the card row. A destructive action, so it
-   carries a danger-tinted edge, not the amber criticality accent. */
+/* The confirm prompt replaces the row. Destructive, so it carries the
+   danger wash, never the amber criticality read. */
 .confirm {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 1rem;
-  background-color: var(--app-surface);
-  border: 1px solid rgba(176, 42, 55, 0.35);
-  border-radius: 14px;
-  padding: 1.15rem 1.5rem;
-  box-shadow: var(--app-elev-1);
+  background-color: var(--app-danger-wash);
+  padding: 1.05rem 1.35rem;
 }
 
 .confirmText {
@@ -229,17 +243,17 @@
 }
 
 .confirmTitle {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 1.0625rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
   color: var(--app-ink);
 }
 
 .confirmNote {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
-  line-height: 1.45;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.8125rem;
+  line-height: 1.5;
   color: var(--app-ink-secondary);
   max-width: 60ch;
 }
@@ -252,33 +266,35 @@
 
 .cancelBtn,
 .deleteBtn {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  border-radius: 8px;
-  padding: 0.6rem 1rem;
+  border-radius: var(--app-radius-sm);
+  padding: 0.55rem 1rem;
   cursor: pointer;
-  transition: filter 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    filter 0.15s ease, opacity 0.15s ease;
 }
 
 .cancelBtn {
   color: var(--app-ink);
   background: transparent;
-  border: 1.5px solid var(--app-border);
+  border: 1px solid var(--app-border);
 }
 
 .cancelBtn:hover:not(:disabled) {
   border-color: var(--app-border-strong);
+  background: var(--app-hover);
 }
 
 .deleteBtn {
-  color: #fff;
+  color: var(--app-primary-ink);
   background: var(--app-danger);
-  border: 1.5px solid var(--app-danger);
+  border: 1px solid var(--app-danger);
 }
 
 .deleteBtn:hover:not(:disabled) {
-  filter: brightness(0.95);
+  filter: brightness(1.06);
 }
 
 .cancelBtn:disabled,
@@ -294,43 +310,49 @@
 }
 
 .deleteError {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--app-danger);
   margin-top: 1rem;
 }
 
-/* ── Status pills ──────────────────────── */
+/* ── Status chips ──────────────────────── */
 
+/* Monochrome by design: status is not criticality, so no amber.
+   Intensity carries the read: Active brightest, Draft quieter,
+   the rest metadata. */
 .pill {
   display: inline-flex;
   align-items: center;
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-weight: 500;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  padding: 5px 11px;
+  padding: 3px 10px;
   border-radius: 999px;
+  border: 1px solid transparent;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .pillDraft {
-  background-color: rgba(181, 188, 202, 0.3);
+  background-color: transparent;
   color: var(--app-ink-secondary);
-  border: 1px solid var(--app-border);
+  border-color: var(--app-border);
 }
 
 .pillActive {
-  background-color: var(--app-signal);
+  background-color: rgba(233, 236, 238, 0.07);
   color: var(--app-ink);
+  border-color: var(--app-border-strong);
 }
 
 .pillMuted {
-  background-color: var(--app-ink);
-  color: var(--app-surface);
+  background-color: transparent;
+  color: var(--app-ink-muted);
+  border-color: var(--app-hairline);
 }
 
 /* ── Empty state ───────────────────────── */
@@ -338,7 +360,8 @@
 .empty {
   background-color: var(--app-surface);
   border: 1px solid var(--app-border);
-  border-radius: 16px;
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-elev-1);
   padding: 3rem 2.5rem;
   text-align: center;
   max-width: 520px;
@@ -346,41 +369,41 @@
 }
 
 .emptyHeading {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 1.375rem;
-  font-weight: 800;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 1.1875rem;
+  font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--app-ink);
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.6rem;
 }
 
 .emptyBody {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9375rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.875rem;
   font-weight: 400;
   line-height: 1.55;
   color: var(--app-ink-secondary);
-  margin: 0 auto 1.75rem;
+  margin: 0 auto 1.6rem;
   max-width: 400px;
 }
 
 .emptyCta {
   display: inline-block;
-  background-color: var(--color-button-primary-bg);
-  color: var(--color-button-primary-text);
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9375rem;
+  background-color: var(--app-primary);
+  color: var(--app-primary-ink);
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.875rem;
   font-weight: 600;
-  padding: 12px 20px;
-  border: 1.5px solid var(--color-button-primary-bg);
-  border-radius: 8px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: var(--app-radius-sm);
   text-decoration: none;
-  transition: filter 0.18s ease;
+  transition: background-color 0.18s ease;
 }
 
 .emptyCta:hover,
 .emptyCta:focus-visible {
-  filter: brightness(0.94);
+  background-color: var(--app-primary-hover);
 }
 
 .emptyCta:focus-visible {

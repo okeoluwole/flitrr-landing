@@ -1,4 +1,6 @@
 import { Bricolage_Grotesque, Inter, Archivo } from 'next/font/google';
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
 import './globals.css';
 
 // Display face for headings and the brief. Prototyping a swap away from
@@ -28,13 +30,20 @@ const inter = Inter({
 // Archivo (variable) is the face for the "Considered" marketing surfaces
 // (Flitrr landing, PULSE landing, Framework). Loaded as a variable font so the
 // full light-to-bold weight range the design uses (about 250 to 620) renders
-// true. Exposed as --font-archivo and consumed only inside the marketing pages,
-// so the product app keeps Bricolage/Inter untouched.
+// true. Exposed as --font-archivo and consumed only inside the marketing pages.
 const archivo = Archivo({
   subsets: ['latin'],
   variable: '--font-archivo',
   display: 'swap',
 });
+
+// Geist + Geist Mono are the Instrument faces for the authenticated PULSE app:
+// Geist carries the voice, Geist Mono the numeric instrument voice (money,
+// dates, stage numerals, criticality scores). Bundled locally via the geist
+// package (Next 14.2's Google font data predates Geist). Their .variable
+// classes expose --font-geist-sans / --font-geist-mono, consumed only through
+// the --app-font-* tokens in globals.css, so marketing type is untouched. The
+// Brief document face is Georgia via --doc-font-serif (zero-install).
 
 const SITE_TITLE = 'Flitrr. One platform for property development';
 const SITE_DESCRIPTION =
@@ -85,7 +94,10 @@ const ORG_JSON_LD = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${display.variable} ${inter.variable} ${archivo.variable}`}>
+    <html
+      lang="en"
+      className={`${display.variable} ${inter.variable} ${archivo.variable} ${GeistSans.variable} ${GeistMono.variable}`}
+    >
       <body>
         <script
           type="application/ld+json"
