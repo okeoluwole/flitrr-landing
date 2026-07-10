@@ -1,24 +1,28 @@
 /* ─────────────────────────────────────────
-   Project workspace hub. Instrument product
-   theme: the Brief leads as a featured card
-   (it creates the baseline every module reads),
-   the monitoring modules follow as a grid.
+   Project workspace hub, on the Instrument
+   surface. The Brief leads as the keystone
+   panel (it creates the baseline every module
+   reads); the monitoring modules follow as
+   one seated register with hairline rows.
 ───────────────────────────────────────── */
 
 .page {
-  padding-block: 3rem 6rem;
+  padding-block: 2.75rem 6rem;
 }
+
+/* ── Back to the project list ────────────── */
 
 .backLink {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-family: var(--font-body), sans-serif;
+  min-height: 44px;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--app-ink-secondary);
   text-decoration: none;
-  margin-bottom: 1.5rem;
+  margin: -0.6rem 0 0.6rem;
   transition: color var(--dur-fast) var(--ease-out);
 }
 
@@ -27,59 +31,61 @@
   color: var(--app-ink);
 }
 
-.backLink svg {
-  transition: transform var(--dur-fast) var(--ease-out);
+.backLink:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
-.backLink:hover svg,
-.backLink:focus-visible svg {
-  transform: translateX(-3px);
+@media (prefers-reduced-motion: no-preference) {
+  .backLink svg {
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+
+  .backLink:hover svg,
+  .backLink:focus-visible svg {
+    transform: translateX(-2px);
+  }
 }
 
-.head {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-bottom: 0.75rem;
-}
+/* ── Header ──────────────────────────────── */
 
 .heading {
-  font-family: var(--font-heading), sans-serif;
-  font-size: clamp(2rem, 4.5vw, 2.75rem);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.015em;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-xl);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
   color: var(--app-ink);
   overflow-wrap: break-word;
+  margin: 0 0 0.45rem;
 }
 
-.stageChip {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--font-body), sans-serif;
+/* The stage read, in the numeric instrument voice: the same line this
+   project's row carries on the hub list. */
+.stageMeta {
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--app-surface);
-  background: var(--app-ink);
-  padding: 0.34rem 0.72rem;
-  border-radius: 999px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  color: var(--app-ink-secondary);
+  margin: 0 0 1.1rem;
+}
+
+/* The View only badge sits between the stage line and the intro. */
+.viewOnly {
+  margin: 0 0 1rem;
 }
 
 .sub {
-  font-family: var(--font-body), sans-serif;
-  font-size: 1.0625rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.9375rem;
   font-weight: 400;
   line-height: 1.55;
   color: var(--app-ink-secondary);
-  max-width: 560px;
-  margin-bottom: 2.25rem;
-}
-
-/* The View only badge sits between the project head and the intro line. */
-.viewOnly {
-  margin: 0 0 1rem;
+  max-width: 56ch;
+  margin: 0 0 2.25rem;
 }
 
 /* ── The Brief: the keystone, featured ───── */
@@ -87,22 +93,24 @@
 .featured {
   display: flex;
   align-items: center;
-  gap: 1.4rem;
+  gap: 1.35rem;
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
-  padding: 1.6rem 1.85rem;
   box-shadow: var(--app-elev-1);
+  padding: 1.45rem 1.6rem;
   text-decoration: none;
-  margin-bottom: 2.5rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease,
-    transform 0.15s ease;
+  margin-bottom: 2.25rem;
+  transition: border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
 }
 
 .featured:hover {
   border-color: var(--app-border-strong);
-  box-shadow: var(--app-elev-2);
-  transform: translateY(-2px);
+}
+
+.featured:active {
+  background: var(--app-surface-raised);
 }
 
 .featured:focus-visible {
@@ -110,24 +118,22 @@
   outline-offset: 2px;
 }
 
-.featured:active {
-  transform: translateY(0) scale(0.995);
-}
-
 .featuredIcon {
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  width: 58px;
-  height: 58px;
-  border-radius: 14px;
-  background: rgba(27, 42, 58, 0.07);
-  color: var(--app-ink);
-  transition: background-color var(--dur-base) var(--ease-out);
+  width: 48px;
+  height: 48px;
+  border-radius: var(--app-radius);
+  background: rgba(233, 236, 238, 0.06);
+  color: var(--app-ink-secondary);
+  transition: background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
 }
 
 .featured:hover .featuredIcon {
-  background: rgba(27, 42, 58, 0.12);
+  background: rgba(233, 236, 238, 0.1);
+  color: var(--app-ink);
 }
 
 .featuredMain {
@@ -135,31 +141,35 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.18rem;
+  gap: 0.2rem;
 }
 
 .featuredEyebrow {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--app-ink-secondary);
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
+  margin: 0;
 }
 
 .featuredTitle {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 1.4rem;
-  font-weight: 800;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 1.1875rem;
+  font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--app-ink);
+  margin: 0;
 }
 
 .featuredDesc {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9rem;
-  line-height: 1.45;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.5;
   color: var(--app-ink-secondary);
   max-width: 54ch;
-  margin-top: 0.15rem;
+  margin: 0;
 }
 
 .featuredAside {
@@ -167,156 +177,228 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0.5rem;
-  text-align: right;
+  gap: 0.55rem;
 }
 
-.featuredStatus {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 600;
+/* The Brief's lock state: monochrome by intensity, like the hub's status
+   pills. Locked reads brightest; in setup is the quiet draft read. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.chipLocked {
+  background: rgba(233, 236, 238, 0.07);
   color: var(--app-ink);
+  border-color: var(--app-border-strong);
+}
+
+.chipSetup {
+  background: transparent;
+  color: var(--app-ink-secondary);
+  border-color: var(--app-border);
 }
 
 .featuredCta {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-button-primary-bg);
+  color: var(--app-ink-secondary);
+  transition: color var(--dur-fast) var(--ease-out);
 }
 
-.featuredCta svg {
-  transition: transform 0.15s ease;
+.featured:hover .featuredCta {
+  color: var(--app-ink);
 }
 
-.featured:hover .featuredCta svg {
-  transform: translateX(2px);
+@media (prefers-reduced-motion: no-preference) {
+  .featuredCta svg {
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+
+  .featured:hover .featuredCta svg {
+    transform: translateX(2px);
+  }
 }
 
 /* ── Monitoring modules ──────────────────── */
 
 .sectionLabel {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--app-ink-secondary);
-  margin-bottom: 1rem;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
+  margin: 0 0 0.85rem;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.25rem;
-}
-
-.tile {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.55rem;
+/* One seated register; the module rows divide with hairlines. */
+.register {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
-  padding: 1.5rem 1.6rem 1.4rem;
-  min-height: 184px;
+  box-shadow: var(--app-elev-1);
+  overflow: hidden;
+}
+
+.registerItem {
+  margin: 0;
+}
+
+.registerItem + .registerItem {
+  border-top: 1px solid var(--app-hairline);
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.05rem;
+  padding: 1.15rem 1.35rem;
   text-decoration: none;
 }
 
-/* Open tiles lift on hover, like the project cards. */
-.tileOpen {
+/* Only an open row is interactive: it tints like the hub's project rows. */
+.rowOpen {
   cursor: pointer;
-  box-shadow: var(--app-elev-1);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease,
-    transform 0.15s ease;
+  transition: background-color 0.15s ease;
 }
 
-.tileOpen:hover {
-  border-color: var(--app-border-strong);
-  box-shadow: var(--app-elev-2);
-  transform: translateY(-2px);
+.rowOpen:hover {
+  background-color: var(--app-hover);
 }
 
-.tileOpen:focus-visible {
+.rowOpen:active {
+  background-color: rgba(233, 236, 238, 0.09);
+}
+
+.rowOpen:focus-visible {
   outline: 2px solid var(--app-focus);
-  outline-offset: 2px;
+  outline-offset: -2px;
+  border-radius: 2px;
 }
 
-.tileOpen:active {
-  transform: translateY(0) scale(0.992);
-}
-
-.tileOpen .tileIcon {
-  transition: background-color var(--dur-base) var(--ease-out);
-}
-
-.tileOpen:hover .tileIcon {
-  background: rgba(27, 42, 58, 0.12);
-}
-
-/* Gated and coming-soon tiles are inert and read quieter. */
-.tileLocked {
-  background: var(--app-surface-sunken);
-}
-
-.tileSoon {
-  background: var(--app-surface-sunken);
-  opacity: 0.85;
-}
-
-.tileIcon {
+.rowIcon {
+  flex: 0 0 auto;
   display: grid;
   place-items: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 11px;
-  background: rgba(27, 42, 58, 0.07);
-  color: var(--app-ink);
-  margin-bottom: 0.35rem;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--app-radius-sm);
+  background: rgba(233, 236, 238, 0.06);
+  color: var(--app-ink-secondary);
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.tileLocked .tileIcon,
-.tileSoon .tileIcon {
-  background: rgba(27, 42, 58, 0.06);
+.rowOpen:hover .rowIcon {
+  background: rgba(233, 236, 238, 0.1);
+  color: var(--app-ink);
+}
+
+.rowLocked .rowIcon,
+.rowSoon .rowIcon {
+  background: rgba(233, 236, 238, 0.04);
   color: var(--app-ink-muted);
 }
 
-.tileTitle {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 1.1875rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: var(--app-ink);
+.rowMain {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
 }
 
-.tileDesc {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
-  line-height: 1.45;
+.rowTitle {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+  color: var(--app-ink);
+  margin: 0;
+}
+
+.rowLocked .rowTitle,
+.rowSoon .rowTitle {
   color: var(--app-ink-secondary);
 }
 
-.tileFoot {
-  margin-top: auto;
-  padding-top: 0.75rem;
-  font-family: var(--font-body), sans-serif;
+.rowDesc {
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--app-ink-secondary);
+  max-width: 60ch;
+  margin: 0;
+}
+
+/* The live read: what this module needs from the developer right now.
+   Calm reads stay secondary; an alert steps up to full ink. The amber text
+   tone is spent on exactly one read, open critical actions (amber means
+   criticality, nothing else). Gate hints read quiet, never amber. */
+.rowFoot {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--app-ink-secondary);
+  margin: 0;
+  padding-top: 0.35rem;
+}
+
+.footAlert {
   font-weight: 600;
-  line-height: 1.4;
   color: var(--app-ink);
 }
 
-/* The gated note is the one place a tile carries the amber caution. */
-.tileLocked .tileFoot {
-  font-weight: 500;
+.footCritical {
+  font-weight: 600;
   color: var(--app-signal-ink);
 }
 
-.tileSoon .tileFoot {
-  font-weight: 600;
+.rowSoon .rowFoot {
   color: var(--app-ink-muted);
+}
+
+/* The right slot carries the state affordance: a chevron on an open row,
+   a lock on a gated one, nothing on coming soon. */
+.rowAside {
+  flex: 0 0 auto;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  color: var(--app-ink-muted);
+  transition: color 0.15s ease;
+}
+
+.rowOpen:hover .rowAside {
+  color: var(--app-ink);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rowOpen .rowAside svg {
+    transition: transform 0.15s ease;
+  }
+
+  .rowOpen:hover .rowAside svg {
+    transform: translateX(2px);
+  }
 }
 
 @media (max-width: 720px) {
@@ -325,17 +407,16 @@
     align-items: flex-start;
     gap: 1rem;
   }
+
   .featuredAside {
-    align-items: flex-start;
-    text-align: left;
     flex-direction: row;
-    gap: 1rem;
     align-items: center;
+    gap: 1rem;
   }
 }
 
 @media (max-width: 640px) {
-  .grid {
-    grid-template-columns: 1fr;
+  .row {
+    padding: 1.05rem 1.1rem;
   }
 }

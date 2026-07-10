@@ -17,25 +17,29 @@ import styles from './Workspace.module.css';
 /**
  * /pulse/app/workspace - the project workspace hub.
  *
- * A project's home: a header with its current stage, then the PULSE modules
- * as tiles. The Brief (initiation) is always available; the monitoring
- * modules unlock as the project advances. The Risk register and the Action
- * Log open at Stage 2 (once the gate has committed the baseline). Programme
- * set-up opens once the Brief is locked (it is the on-ramp run at lock); the
- * project Dashboard is a placeholder here, built in a later milestone.
+ * A project's home: a header with its current stage, then the Brief as the
+ * keystone panel and the monitoring modules as one seated register of rows.
+ * The Brief (initiation) is always available; the monitoring modules unlock
+ * as the project advances. The Risk register and the Action Log open at
+ * Stage 2 (once the gate has committed the baseline). Programme set-up opens
+ * once the Brief is locked (it is the on-ramp run at lock); the project
+ * Dashboard is a placeholder here, built in a later milestone.
  *
- * The Action Log tile sits first (M7.2): it is the central attention home,
+ * The Action Log row sits first (M7.2): it is the central attention home,
  * and its footer is the live read of what needs the developer, counts of
  * items needing a response (actionFeed's trigger rule) and open critical
- * tracked actions, or the calm all-quiet line when there is nothing.
+ * tracked actions, or the calm all-quiet line when there is nothing. The
+ * read's tone honours the amber discipline: amber only when open critical
+ * actions exist, full ink when something needs a response, quiet otherwise.
  *
- * The Risk register tile footer is the same kind of live read (B2): the count
- * of risks the monitor flags (lib/engine/monitor.js, assessRisks), so the tile
+ * The Risk register row footer is the same kind of live read (B2): the count
+ * of risks the monitor flags (lib/engine/monitor.js, assessRisks), so the row
  * and the register's Needs attention panel agree, or a calm line when nothing
- * is flagged.
+ * is flagged. Cadence attention is not criticality, so this read peaks at
+ * full ink and never takes the amber.
  *
  * This is the launcher the modules are reached from, so each new module
- * becomes another tile rather than another scattered link.
+ * becomes another row in the register rather than another scattered link.
  */
 
 const UUID_RE =
@@ -151,32 +155,91 @@ function DashboardIcon() {
   );
 }
 
-// One module tile. `state` is 'open' (a link), 'locked' (gated, with a note),
-// or 'soon' (a later milestone). Only an open tile is interactive.
-function Tile({ icon, title, desc, footer, state, href }) {
+function ChevronGlyph() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+      <path
+        d="M6 3l5 5-5 5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function LockGlyph() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+      <rect
+        x="3.25"
+        y="7"
+        width="9.5"
+        height="6.25"
+        rx="1.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <path
+        d="M5.5 7V5.25a2.5 2.5 0 0 1 5 0V7"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+// One module row. `state` is 'open' (a link), 'locked' (gated, with a note),
+// or 'soon' (a later milestone). Only an open row is interactive. `tone` sets
+// how loudly the footer read speaks: 'calm' stays secondary, 'alert' steps up
+// to full ink, and 'critical' takes the amber text tone, the register's one
+// amber spend (amber means criticality, nothing else).
+function ModuleRow({ icon, title, desc, footer, tone = 'calm', state, href }) {
+  const footClass =
+    tone === 'critical'
+      ? `${styles.rowFoot} ${styles.footCritical}`
+      : tone === 'alert'
+        ? `${styles.rowFoot} ${styles.footAlert}`
+        : styles.rowFoot;
+
   const body = (
     <>
-      <span className={styles.tileIcon}>{icon}</span>
-      <span className={styles.tileTitle}>{title}</span>
-      <span className={styles.tileDesc}>{desc}</span>
-      <span className={styles.tileFoot}>{footer}</span>
+      <span className={styles.rowIcon}>{icon}</span>
+      <div className={styles.rowMain}>
+        <h2 className={styles.rowTitle}>{title}</h2>
+        <p className={styles.rowDesc}>{desc}</p>
+        <p className={footClass}>{footer}</p>
+      </div>
     </>
   );
 
   if (state === 'open') {
     return (
-      <Link href={href} className={`${styles.tile} ${styles.tileOpen}`}>
+      <Link href={href} className={`${styles.row} ${styles.rowOpen}`}>
         {body}
+        <span className={styles.rowAside}>
+          <ChevronGlyph />
+        </span>
       </Link>
     );
   }
 
   return (
     <div
-      className={`${styles.tile} ${state === 'locked' ? styles.tileLocked : styles.tileSoon}`}
+      className={`${styles.row} ${state === 'locked' ? styles.rowLocked : styles.rowSoon}`}
       aria-disabled="true"
     >
       {body}
+      {state === 'locked' && (
+        <span className={styles.rowAside}>
+          <LockGlyph />
+        </span>
+      )}
     </div>
   );
 }
@@ -263,7 +326,9 @@ export default async function WorkspacePage({ searchParams }) {
   // and critical in the tracked list. Only once the log is open; below
   // Stage 2 the tile stays locked and reads nothing.
   let actionLogFooter = 'Open';
+  let actionLogTone = 'calm';
   let riskTileFooter = 'Open';
+  let riskTileTone = 'calm';
   if (stage2Reached) {
     const raidColumns = 'id, linked_objective_id, updated_at';
     const [
@@ -313,6 +378,14 @@ export default async function WorkspacePage({ searchParams }) {
       needsResponseCount,
       openCriticalCount
     );
+    // The read's tone: amber is spent on open critical actions only (the one
+    // criticality read on this screen); a needed response steps up to ink.
+    actionLogTone =
+      openCriticalCount > 0
+        ? 'critical'
+        : needsResponseCount > 0
+          ? 'alert'
+          : 'calm';
 
     // The Risk tile footer (B2): the count of risks the monitor flags, the
     // same verdict the register's Needs attention panel renders, so the tile
@@ -328,6 +401,8 @@ export default async function WorkspacePage({ searchParams }) {
       riskAttentionCount > 0
         ? `${riskAttentionCount} ${riskAttentionCount === 1 ? 'risk needs' : 'risks need'} attention`
         : 'All within their review cadence.';
+    // Cadence attention is not criticality: this read peaks at full ink.
+    riskTileTone = riskAttentionCount > 0 ? 'alert' : 'calm';
   }
 
   return (
@@ -347,12 +422,10 @@ export default async function WorkspacePage({ searchParams }) {
           Back to projects
         </Link>
 
-        <div className={styles.head}>
-          <h1 className={styles.heading}>{project.name}</h1>
-          <span className={styles.stageChip}>
-            Stage {project.current_stage}: {stageName}
-          </span>
-        </div>
+        <h1 className={styles.heading}>{project.name}</h1>
+        <p className={styles.stageMeta}>
+          Stage {project.current_stage}: {stageName}
+        </p>
         {!canEdit && (
           <div className={styles.viewOnly}>
             <ViewOnlyBadge adminContact={adminContact} />
@@ -364,7 +437,7 @@ export default async function WorkspacePage({ searchParams }) {
         </p>
 
         {/* The Brief is the keystone: it creates the baseline every other
-            module reads, so it leads as a featured card. */}
+            module reads, so it leads as the featured panel. */}
         <Link
           href={`/pulse/app/initiate?project=${project.id}`}
           className={styles.featured}
@@ -372,16 +445,18 @@ export default async function WorkspacePage({ searchParams }) {
           <span className={styles.featuredIcon}>
             <BriefIcon />
           </span>
-          <span className={styles.featuredMain}>
-            <span className={styles.featuredEyebrow}>The baseline</span>
-            <span className={styles.featuredTitle}>Brief</span>
-            <span className={styles.featuredDesc}>
+          <div className={styles.featuredMain}>
+            <p className={styles.featuredEyebrow}>The baseline</p>
+            <h2 className={styles.featuredTitle}>Brief</h2>
+            <p className={styles.featuredDesc}>
               The nine-step initiation flow and the version-locked baseline
               every module reads from.
-            </span>
-          </span>
+            </p>
+          </div>
           <span className={styles.featuredAside}>
-            <span className={styles.featuredStatus}>
+            <span
+              className={`${styles.chip} ${briefLocked ? styles.chipLocked : styles.chipSetup}`}
+            >
               {briefLocked ? 'Baseline locked' : 'In setup'}
             </span>
             <span className={styles.featuredCta}>
@@ -402,47 +477,57 @@ export default async function WorkspacePage({ searchParams }) {
 
         <p className={styles.sectionLabel}>Monitoring modules</p>
 
-        <div className={styles.grid}>
-          <Tile
-            icon={<ActionLogIcon />}
-            title="Action Log"
-            desc="Log and track the critical actions you are working on."
-            footer={
-              stage2Reached
-                ? actionLogFooter
-                : 'The Action Log opens once you pass the gate into Stage 2.'
-            }
-            state={stage2Reached ? 'open' : 'locked'}
-            href={`/pulse/app/actions?project=${project.id}`}
-          />
-          <Tile
-            icon={<RiskIcon />}
-            title="Risk register"
-            desc="Monitor, score and manage the risks to your objectives."
-            footer={
-              stage2Reached
-                ? riskTileFooter
-                : 'Risk monitoring opens once you pass the gate into Stage 2.'
-            }
-            state={stage2Reached ? 'open' : 'locked'}
-            href={`/pulse/app/risk?project=${project.id}`}
-          />
-          <Tile
-            icon={<ProgrammeIcon />}
-            title="Programme"
-            desc="Set a credible delivery programme, then track it against the baseline."
-            footer={programmeTile.footer}
-            state={programmeTile.state}
-            href={programmeTile.href}
-          />
-          <Tile
-            icon={<DashboardIcon />}
-            title="Project dashboard"
-            desc="The proportional view of where the project stands."
-            footer="Coming soon"
-            state="soon"
-          />
-        </div>
+        <ul className={styles.register}>
+          <li className={styles.registerItem}>
+            <ModuleRow
+              icon={<ActionLogIcon />}
+              title="Action Log"
+              desc="Log and track the critical actions you are working on."
+              footer={
+                stage2Reached
+                  ? actionLogFooter
+                  : 'The Action Log opens once you pass the gate into Stage 2.'
+              }
+              tone={stage2Reached ? actionLogTone : 'calm'}
+              state={stage2Reached ? 'open' : 'locked'}
+              href={`/pulse/app/actions?project=${project.id}`}
+            />
+          </li>
+          <li className={styles.registerItem}>
+            <ModuleRow
+              icon={<RiskIcon />}
+              title="Risk register"
+              desc="Monitor, score and manage the risks to your objectives."
+              footer={
+                stage2Reached
+                  ? riskTileFooter
+                  : 'Risk monitoring opens once you pass the gate into Stage 2.'
+              }
+              tone={stage2Reached ? riskTileTone : 'calm'}
+              state={stage2Reached ? 'open' : 'locked'}
+              href={`/pulse/app/risk?project=${project.id}`}
+            />
+          </li>
+          <li className={styles.registerItem}>
+            <ModuleRow
+              icon={<ProgrammeIcon />}
+              title="Programme"
+              desc="Set a credible delivery programme, then track it against the baseline."
+              footer={programmeTile.footer}
+              state={programmeTile.state}
+              href={programmeTile.href}
+            />
+          </li>
+          <li className={styles.registerItem}>
+            <ModuleRow
+              icon={<DashboardIcon />}
+              title="Project dashboard"
+              desc="The proportional view of where the project stands."
+              footer="Coming soon"
+              state="soon"
+            />
+          </li>
+        </ul>
       </main>
     </DashboardShell>
   );
