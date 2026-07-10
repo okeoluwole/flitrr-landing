@@ -1,13 +1,14 @@
 /* ─────────────────────────────────────────
    /dashboard/team: admin-only team and access
-   management. Sits in the dashboard portal under
-   DashboardShell, so it matches the portal's
-   brand tokens (deep-blue headings, cream cards),
-   not the Instrument app tokens.
+   management. Instrument surface: seated
+   panels, hairline-divided member rows, mono
+   for the numeric and data voice (seat count,
+   emails, dates, role chips). Sits under
+   DashboardShell.
 ───────────────────────────────────────── */
 
 .page {
-  padding-block: 4rem 6rem;
+  padding-block: 2.75rem 6rem;
 }
 
 .wrap {
@@ -15,7 +16,7 @@
   margin-inline: auto;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 /* ── Header ─────────────────────────────── */
@@ -30,80 +31,83 @@
 }
 
 .heading {
-  font-family: var(--font-heading), sans-serif;
-  font-size: clamp(2rem, 4.5vw, 2.75rem);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.015em;
-  color: var(--color-accent-1-deep-blue);
-  margin: 0 0 0.4rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-xl);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--app-ink);
+  margin: 0 0 0.5rem;
 }
 
 .sub {
-  font-family: var(--font-body), sans-serif;
-  font-size: 1.0625rem;
-  line-height: 1.5;
-  color: var(--color-accent-2-grey-blue);
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--app-ink-secondary);
   margin: 0;
 }
 
+/* The seat readout: the numeric instrument voice. */
 .seatBox {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  gap: 0.3rem;
   text-align: right;
   flex-shrink: 0;
 }
 
 .seatCount {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: var(--color-accent-1-deep-blue);
-  line-height: 1.1;
+  font-family: var(--app-font-mono), monospace;
+  font-size: var(--app-text-lg);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--app-ink);
+  line-height: 1;
 }
 
 .seatLabel {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
   font-weight: 500;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-muted);
 }
 
-/* ── Cards ──────────────────────────────── */
+/* ── Panels ─────────────────────────────── */
 
 .card {
-  background-color: var(--color-foreground-cream);
-  border: 1px solid var(--color-border);
-  border-radius: 16px;
+  background-color: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
   padding: 1.5rem;
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--app-elev-1);
 }
 
 @media (min-width: 768px) {
   .card {
-    padding: 1.75rem;
+    padding: 1.6rem 1.75rem;
   }
 }
 
 .cardTitle {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 600;
   letter-spacing: -0.01em;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   margin: 0 0 0.4rem;
 }
 
 .cardLead {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9375rem;
-  line-height: 1.5;
-  color: var(--color-accent-2-grey-blue);
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--app-ink-secondary);
   margin: 0 0 1.1rem;
+  max-width: 60ch;
 }
 
 /* ── Invite form ────────────────────────── */
@@ -123,24 +127,25 @@
 .input {
   flex: 1;
   min-width: 220px;
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.9375rem;
-  color: var(--color-accent-1-deep-blue);
-  background-color: var(--color-input-bg);
-  border: 1.5px solid var(--color-input-border);
-  border-radius: 8px;
-  padding: 11px 14px;
-  transition: border-color var(--dur-fast) var(--ease-out);
+  color: var(--app-ink);
+  background-color: var(--app-surface-sunken);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-sm);
+  padding: 10px 14px;
+  transition: border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
 }
 
 .input::placeholder {
-  color: var(--color-input-placeholder);
+  color: var(--app-ink-secondary);
 }
 
 .input:focus-visible {
   outline: none;
-  border-color: var(--color-input-focus);
-  box-shadow: 0 0 0 3px rgba(55, 97, 131, 0.14);
+  border-color: var(--app-focus);
+  box-shadow: 0 0 0 3px rgba(241, 243, 245, 0.14);
 }
 
 .input:disabled {
@@ -151,31 +156,32 @@
 
 .primaryBtn,
 .primaryBtnSm {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-weight: 600;
-  background-color: var(--color-button-primary-bg);
-  color: var(--color-button-primary-text);
-  border: 1.5px solid var(--color-button-primary-bg);
-  border-radius: 8px;
+  background-color: var(--app-primary);
+  color: var(--app-primary-ink);
+  border: none;
+  border-radius: var(--app-radius-sm);
   cursor: pointer;
   white-space: nowrap;
-  transition: filter var(--dur-fast) var(--ease-out),
-    transform var(--dur-press) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
+  transition: background-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-press) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
 }
 
 .primaryBtn {
   font-size: 0.9375rem;
-  padding: 11px 20px;
+  padding: 10px 20px;
 }
 
 .primaryBtnSm {
-  font-size: 0.875rem;
-  padding: 8px 15px;
+  font-size: 0.8125rem;
+  padding: 8px 14px;
 }
 
 .primaryBtn:hover:not(:disabled),
 .primaryBtnSm:hover:not(:disabled) {
-  filter: brightness(0.94);
+  background-color: var(--app-primary-hover);
 }
 
 .primaryBtn:active:not(:disabled),
@@ -184,45 +190,50 @@
 }
 
 .ghostBtn {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-button-ghost-text);
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--app-ink);
   background-color: transparent;
-  border: 1.5px solid var(--color-button-ghost-border);
-  border-radius: 8px;
-  padding: 8px 15px;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-sm);
+  padding: 8px 14px;
   cursor: pointer;
   white-space: nowrap;
   transition: background-color var(--dur-fast) var(--ease-out),
-    transform var(--dur-press) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-press) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
 }
 
 .ghostBtn:hover:not(:disabled) {
-  background-color: var(--color-button-ghost-hover-bg);
+  background-color: var(--app-hover);
+  border-color: var(--app-border-strong);
 }
 
 .ghostBtn:active:not(:disabled) {
   transform: scale(0.98);
 }
 
+/* Destructive action: the dark-tuned danger read, outline weight. */
 .dangerBtn {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-error);
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--app-danger);
   background-color: transparent;
-  border: 1.5px solid var(--color-error);
-  border-radius: 8px;
-  padding: 8px 15px;
+  border: 1px solid var(--app-danger-border);
+  border-radius: var(--app-radius-sm);
+  padding: 8px 14px;
   cursor: pointer;
   white-space: nowrap;
   transition: background-color var(--dur-fast) var(--ease-out),
-    transform var(--dur-press) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
+    transform var(--dur-press) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
 }
 
 .dangerBtn:hover:not(:disabled) {
-  background-color: rgba(176, 42, 55, 0.08);
+  background-color: var(--app-danger-wash);
 }
 
 .dangerBtn:active:not(:disabled) {
@@ -241,7 +252,7 @@
 .primaryBtnSm:focus-visible,
 .ghostBtn:focus-visible,
 .dangerBtn:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 2px;
 }
 
@@ -260,7 +271,7 @@
   align-items: center;
   gap: 1rem;
   padding: 0.9rem 0;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--app-hairline);
   flex-wrap: wrap;
 }
 
@@ -270,7 +281,7 @@
 
 .rowMuted .rowName,
 .rowMuted .rowMeta {
-  color: var(--color-accent-3-light-grey-blue);
+  color: var(--app-ink-muted);
 }
 
 .rowMain {
@@ -278,33 +289,38 @@
   min-width: 180px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .rowName {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--color-accent-1-deep-blue);
+  letter-spacing: -0.005em;
+  color: var(--app-ink);
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
 }
 
+/* Emails and dates: the data voice. */
 .rowMeta {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
-  color: var(--color-accent-2-grey-blue);
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.01em;
+  color: var(--app-ink-secondary);
 }
 
 .youTag {
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-weight: 500;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-accent-2-grey-blue);
-  background-color: rgba(119, 147, 168, 0.16);
-  padding: 2px 7px;
+  color: var(--app-ink-secondary);
+  border: 1px solid var(--app-hairline);
+  background-color: var(--app-surface-sunken);
+  padding: 1px 7px;
   border-radius: 999px;
 }
 
@@ -323,67 +339,73 @@
   flex-wrap: wrap;
 }
 
-/* ── Pills ──────────────────────────────── */
+/* ── Role chips ─────────────────────────── */
 
+/* Monochrome by intensity, matching the hub's status chips:
+   Admin brightest, Member quieter, waiting states muted. */
 .pill {
   display: inline-flex;
   align-items: center;
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.6875rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  padding: 4px 10px;
+  padding: 3px 10px;
   border-radius: 999px;
+  border: 1px solid transparent;
   white-space: nowrap;
 }
 
 .pillAdmin {
-  background-color: var(--color-pill-in-build-bg);
-  color: var(--color-pill-in-build-text);
+  background-color: rgba(233, 236, 238, 0.07);
+  color: var(--app-ink);
+  border-color: var(--app-border-strong);
 }
 
 .pillMember {
-  background-color: var(--color-pill-designed-bg);
-  color: var(--color-pill-designed-text);
+  background-color: transparent;
+  color: var(--app-ink-secondary);
+  border-color: var(--app-border);
 }
 
 .pillPending {
-  background-color: var(--color-foreground-cream);
-  color: var(--color-accent-2-grey-blue);
-  border: 1px solid var(--color-border);
+  background-color: transparent;
+  color: var(--app-ink-muted);
+  border-color: var(--app-border);
 }
 
 .pillDeactivated {
-  background-color: rgba(119, 147, 168, 0.16);
-  color: var(--color-accent-2-grey-blue);
+  background-color: transparent;
+  color: var(--app-ink-muted);
+  border-color: var(--app-hairline);
 }
 
 /* ── Messages ───────────────────────────── */
 
 .error {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.8125rem;
   font-weight: 500;
-  line-height: 1.45;
-  color: var(--color-error);
+  line-height: 1.5;
+  color: var(--app-danger);
   margin: 0;
 }
 
 .notice {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.8125rem;
   font-weight: 500;
-  line-height: 1.45;
-  color: var(--color-accent-1-deep-blue);
+  line-height: 1.5;
+  color: var(--app-success);
   margin: 0;
 }
 
 .inlineNote {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.8125rem;
-  line-height: 1.45;
-  color: var(--color-accent-2-grey-blue);
+  line-height: 1.5;
+  color: var(--app-ink-secondary);
   margin: 0.6rem 0 0;
 }
 

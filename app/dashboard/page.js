@@ -33,21 +33,8 @@ function sortProducts(rows) {
   });
 }
 
-function StatusPill({ status }) {
-  if (status === 'live') {
-    return <span className={`${styles.pill} ${styles.pillLive}`}>Live</span>;
-  }
-  if (status === 'in_build') {
-    return (
-      <span className={`${styles.pill} ${styles.pillInBuild}`}>In build</span>
-    );
-  }
-  // status === 'planned' (or unknown) → muted
-  return (
-    <span className={`${styles.pill} ${styles.pillPlanned}`}>Planned</span>
-  );
-}
-
+/* No live/in-build vocabulary on the launcher: an available product simply
+   opens. A planned product says "Coming soon." in place of its action. */
 function ProductCard({ product }) {
   const { slug, name, description, status } = product;
   const isPlanned = status === 'planned';
@@ -55,10 +42,7 @@ function ProductCard({ product }) {
 
   return (
     <article className={styles.card}>
-      <div className={styles.cardHeader}>
-        <h2 className={styles.cardName}>{name}</h2>
-        <StatusPill status={status} />
-      </div>
+      <h2 className={styles.cardName}>{name}</h2>
       <p className={styles.cardBody}>{description}</p>
       {isPlanned ? (
         <span className={styles.cardCtaMuted}>Coming soon.</span>

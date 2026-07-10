@@ -1,30 +1,33 @@
 /* ─────────────────────────────────────────
-   /dashboard — product grid for the signed-in
-   user. Uses DashboardShell as the chrome.
+   /dashboard: product launcher for the
+   signed-in user. Instrument surface: seated
+   panels on the graphite ground, Geist voice,
+   structural white primary. Uses
+   DashboardShell as the chrome.
 ───────────────────────────────────────── */
 
 .page {
-  padding-block: 4rem 6rem;
+  padding-block: 2.75rem 6rem;
 }
 
 .heading {
-  font-family: var(--font-heading), sans-serif;
-  font-size: clamp(2rem, 4.5vw, 2.75rem);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.015em;
-  color: var(--color-accent-1-deep-blue);
-  margin-bottom: 0.75rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-xl);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--app-ink);
+  margin-bottom: 0.6rem;
 }
 
 .sub {
-  font-family: var(--font-body), sans-serif;
-  font-size: 1.125rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.9375rem;
   font-weight: 400;
   line-height: 1.55;
-  color: var(--color-accent-2-grey-blue);
-  margin-bottom: 3rem;
-  max-width: 660px;
+  color: var(--app-ink-secondary);
+  margin-bottom: 2.25rem;
+  max-width: 56ch;
 }
 
 /* ── Product grid ──────────────────────── */
@@ -32,7 +35,7 @@
 .grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 @media (min-width: 720px) {
@@ -47,83 +50,71 @@
   }
 }
 
-/* ── Product card ──────────────────────── */
+/* ── Product panel ─────────────────────── */
 
 .card {
-  position: relative;
-  background-color: var(--color-foreground-cream);
-  border: 1px solid var(--color-border);
-  border-radius: 16px;
-  padding: 1.75rem;
+  background-color: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  box-shadow: var(--shadow-card);
-  transition: transform var(--dur-base) var(--ease-out),
-    border-color var(--dur-base) var(--ease-out),
-    box-shadow var(--dur-base) var(--ease-out);
+  gap: 0.75rem;
+  box-shadow: var(--app-elev-1);
+  transition: border-color var(--dur-base) var(--ease-out);
 }
 
 @media (hover: hover) {
   .card:hover {
-    transform: translateY(-3px);
-    border-color: var(--color-accent-3-light-grey-blue);
-    box-shadow: var(--shadow-card-hover);
+    border-color: var(--app-border-strong);
   }
 }
 
-.cardHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
 .cardName {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 1.5rem;
-  font-weight: 800;
-  line-height: 1.15;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 1.1875rem;
+  font-weight: 600;
+  line-height: 1.2;
   letter-spacing: -0.01em;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   margin: 0;
 }
 
 .cardBody {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9375rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.875rem;
   font-weight: 400;
   line-height: 1.55;
-  color: var(--color-accent-2-grey-blue);
+  color: var(--app-ink-secondary);
   margin: 0;
   flex: 1;
 }
 
 .cardCta {
   display: inline-block;
-  margin-top: 0.25rem;
+  margin-top: 0.35rem;
   align-self: flex-start;
-  background-color: var(--color-button-primary-bg);
-  color: var(--color-button-primary-text);
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9375rem;
+  background-color: var(--app-primary);
+  color: var(--app-primary-ink);
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.875rem;
   font-weight: 600;
-  letter-spacing: 0.005em;
-  padding: 12px 18px;
-  border: 1.5px solid var(--color-button-primary-bg);
-  border-radius: 8px;
+  letter-spacing: -0.005em;
+  padding: 10px 16px;
+  border: none;
+  border-radius: var(--app-radius-sm);
   text-decoration: none;
-  transition: filter var(--dur-fast) var(--ease-out),
+  transition: background-color var(--dur-fast) var(--ease-out),
     transform var(--dur-press) var(--ease-out);
 }
 
 .cardCta:hover,
 .cardCta:focus-visible {
-  filter: brightness(0.94);
+  background-color: var(--app-primary-hover);
 }
 
 .cardCta:focus-visible {
-  outline: 2px solid var(--color-accent-1-deep-blue);
+  outline: 2px solid var(--app-focus);
   outline-offset: 3px;
 }
 
@@ -132,55 +123,21 @@
 }
 
 .cardCtaMuted {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9375rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.875rem;
   font-weight: 500;
-  color: var(--color-accent-2-grey-blue);
-  margin-top: 0.25rem;
+  color: var(--app-ink-secondary);
+  margin-top: 0.35rem;
   align-self: flex-start;
-}
-
-/* ── Status pills ──────────────────────── */
-
-.pill {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 5px 11px;
-  border-radius: 999px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.pillLive {
-  background-color: var(--color-background-amber);
-  color: var(--color-accent-1-deep-blue);
-}
-
-.pillInBuild {
-  background-color: var(--color-accent-1-deep-blue);
-  color: var(--color-foreground-cream);
-}
-
-/* PLANNED. Spec called for cream fill on cream background with an
-   Accent 3 border. That reads almost invisible on a cream card, so
-   we lift the fill to a faint Accent 3 tint. Border kept for shape. */
-.pillPlanned {
-  background-color: rgba(181, 188, 202, 0.30);
-  color: var(--color-accent-2-grey-blue);
-  border: 1px solid var(--color-border);
 }
 
 /* ── Empty state ───────────────────────── */
 
 .empty {
-  background-color: var(--color-foreground-cream);
-  border: 1px solid var(--color-border);
-  border-radius: 16px;
+  background-color: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-elev-1);
   padding: 2.5rem;
   text-align: center;
   max-width: 480px;
@@ -188,19 +145,19 @@
 }
 
 .emptyHeading {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 1.1875rem;
+  font-weight: 600;
   letter-spacing: -0.01em;
-  color: var(--color-accent-1-deep-blue);
+  color: var(--app-ink);
   margin-bottom: 0.5rem;
 }
 
 .emptyBody {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9375rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.875rem;
   font-weight: 400;
-  line-height: 1.5;
-  color: var(--color-accent-2-grey-blue);
+  line-height: 1.55;
+  color: var(--app-ink-secondary);
   margin: 0;
 }

@@ -26,6 +26,9 @@
 }
 
 .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
   font-family: var(--app-font-mono), monospace;
   font-size: 0.6875rem;
   font-weight: 500;
@@ -33,6 +36,17 @@
   text-transform: uppercase;
   color: var(--app-ink-muted);
   margin-bottom: 0.6rem;
+}
+
+/* PULSE's own pulse-line mark, amber like the criticality signal it draws. */
+.eyebrowMark {
+  width: 26px;
+  height: 11px;
+  flex-shrink: 0;
+}
+
+.eyebrowMark path {
+  stroke: var(--app-signal);
 }
 
 .heading {

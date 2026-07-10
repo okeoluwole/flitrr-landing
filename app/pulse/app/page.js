@@ -58,7 +58,24 @@ export default async function PulseAppPage() {
       <main className={`container ${styles.page}`} id="main-content">
         <div className={styles.head}>
           <div className={styles.headText}>
-            <p className={styles.eyebrow}>PULSE</p>
+            {/* The pulse-line glyph is PULSE's own mark: it sits with the
+                product name, never on the shared Flitrr chrome. */}
+            <p className={styles.eyebrow}>
+              <svg
+                className={styles.eyebrowMark}
+                viewBox="0 0 40 16"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M0 8 H11 L14 8 L16.5 2 L19.5 14 L22.5 8 H40"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              PULSE
+            </p>
             <h1 className={styles.heading}>Your projects</h1>
             <p className={styles.sub}>
               {canEdit

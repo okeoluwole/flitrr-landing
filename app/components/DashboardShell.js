@@ -69,24 +69,11 @@ export default function DashboardShell({ user, isAdmin = false, children }) {
     <div className={styles.shell}>
       <header className={styles.topBar} role="banner">
         <div className={`container ${styles.topBarInner}`}>
-          {/* The pulse-line mark is the one amber element on the chrome:
-              the product's own signature, not decoration. The wordmark
-              text itself stays monochrome. */}
+          {/* Flitrr wears the marketing amber dot. The pulse-line glyph
+              belongs to PULSE and lives on PULSE surfaces, not here. */}
           <Link href="/dashboard" className={styles.brandWordmark}>
-            <svg
-              className={styles.brandMark}
-              viewBox="0 0 40 16"
-              fill="none"
-              aria-hidden="true"
-            >
-              <path
-                d="M0 8 H11 L14 8 L16.5 2 L19.5 14 L22.5 8 H40"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
             Flitrr
+            <span className={styles.brandDot} aria-hidden="true" />
           </Link>
 
           <div className={styles.menuWrap} ref={wrapRef}>
