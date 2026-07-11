@@ -1,10 +1,17 @@
 /*
- * Programme tracking shell and hero band (Phase 3.5). Instrument product
- * surface: the summary band is the deep-blue console masthead, the same
- * treatment as the Brief's header band, pinned under the app top bar, with
- * the five co-equal tiles as paper cells set into it. Amber is reserved for
- * signal: the band's bottom hairline and the critical call-outs; amber as
- * text is always its ochre sibling. Mobile-first, enhanced at 768px.
+ * Programme tracking on the Instrument surface. The summary band is a raised
+ * console cluster pinned under the app bar, its five tiles inset display
+ * cells; the tabs, tables, and timeline sit as seated panels beneath it.
+ *
+ * The status vocabulary, reconciled with the house rule that amber means
+ * criticality only: the engine's three bands render as the workspace ladder,
+ * not as traffic lights. On course is a calm hollow mark, slipping is the
+ * bright monochrome alert (the framework is absorbing it: a standard point
+ * behind, or a critical one within the agreed tolerance), and critical slip
+ * is the one amber read, earned because only a critical point or a gate can
+ * reach that band. Danger red belongs to write errors alone; the success
+ * green marks met and ahead facts, never a status verdict. Mobile-first,
+ * enhanced at 768px.
  */
 
 .page {
@@ -18,12 +25,13 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-family: var(--font-body), sans-serif;
+  min-height: 44px;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--app-ink-secondary);
   text-decoration: none;
-  margin-bottom: 1.5rem;
+  margin: -0.6rem 0 0.6rem;
   transition: color var(--dur-fast) var(--ease-out);
 }
 
@@ -32,13 +40,21 @@
   color: var(--app-ink);
 }
 
-.backLink svg {
-  transition: transform var(--dur-fast) var(--ease-out);
+.backLink:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
-.backLink:hover svg,
-.backLink:focus-visible svg {
-  transform: translateX(-3px);
+@media (prefers-reduced-motion: no-preference) {
+  .backLink svg {
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+
+  .backLink:hover svg,
+  .backLink:focus-visible svg {
+    transform: translateX(-3px);
+  }
 }
 
 .head {
@@ -50,42 +66,44 @@
 }
 
 .eyebrow {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--app-ink-secondary);
-  margin-bottom: 0.5rem;
+  color: var(--app-ink-muted);
+  margin: 0 0 0.6rem;
 }
 
 .title {
-  font-family: var(--font-heading), sans-serif;
-  font-size: clamp(1.75rem, 4vw, 2.4rem);
-  font-weight: 800;
-  line-height: 1.05;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-xl);
+  font-weight: 600;
+  line-height: 1.15;
   letter-spacing: -0.02em;
   color: var(--app-ink);
+  overflow-wrap: break-word;
 }
 
 .projectName {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--app-ink-secondary);
   margin-top: 0.35rem;
 }
 
 .baselineChip {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: var(--app-ink-secondary);
-  background: var(--app-surface);
+  background: transparent;
   border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-sm);
-  padding: 0.4rem 0.65rem;
+  border-radius: 999px;
+  padding: 3px 10px;
   white-space: nowrap;
 }
 
@@ -93,33 +111,36 @@
   margin-top: 0.75rem;
 }
 
-/* ── The summary band: pinned under the app top bar (64px), persistent
-      while the tabs scroll beneath it. ── */
+/* ── The summary band: a raised cluster pinned under the 56px app bar,
+      persistent while the tabs scroll beneath it. No amber on the chrome;
+      the tiles carry any signal themselves. ── */
 
 .band {
   position: sticky;
-  top: 64px;
+  top: 56px;
   z-index: 40;
   margin-top: 1.5rem;
-  background: var(--app-console-raised);
+  background: var(--app-surface-raised);
+  border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
-  border-bottom: 3px solid var(--app-signal);
-  box-shadow: var(--app-elev-console);
+  box-shadow: var(--app-elev-2);
   /* Compact at phone width: the pinned band must leave the viewport mostly
      to the content scrolling beneath it. */
   padding: 0.65rem 0.65rem 0.7rem;
 }
 
 .bandEyebrow {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--app-on-console-secondary);
+  color: var(--app-ink-secondary);
   margin: 0 0.15rem 0.6rem;
 }
 
+/* Inset display cells: sunken on the raised band, the 1px gaps reading as
+   seams of the cluster itself. */
 .tiles {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -129,7 +150,7 @@
 }
 
 .tile {
-  background: var(--app-surface);
+  background: var(--app-surface-sunken);
   padding: 0.5rem 0.65rem 0.55rem;
   display: flex;
   flex-direction: column;
@@ -138,78 +159,89 @@
 }
 
 .tileLabel {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--app-ink-secondary);
+  color: var(--app-ink-muted);
 }
 
 .tileValue {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 1.0625rem;
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1.2;
   color: var(--app-ink);
   display: flex;
   align-items: center;
+  gap: 0.45rem;
   min-height: 1.5rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .tileSub {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.75rem;
   line-height: 1.4;
   color: var(--app-ink-secondary);
 }
 
+/* The Slipping tile's critical subset: a literal criticality read, amber as
+   text. The JS gates the class on a live count, so a zero never glows. */
 .tileSubSignal {
   color: var(--app-signal-ink);
   font-weight: 600;
 }
 
-/* ── The RAG dots. On paper, green and red hold their own contrast; the
-      amber fill takes an ochre ring so the dot never washes out. Each colour
-      also carries its own shape, never hue alone: green is solid, amber is
-      ringed, red holds a paper core, so the three read apart without a
-      verdict word. ── */
+/* The critical-slip status word, the band's one amber value, render-gated on
+   the red band being live. */
+.tileValueCrit {
+  color: var(--app-signal-ink);
+}
 
-.ragDot {
+/* ── The status marks. Three silhouettes on the workspace ladder, never hue
+      alone: on course is a hollow ring (calm), slipping a solid bright disc
+      (the monochrome alert), critical slip a bullseye held in amber (the one
+      criticality read; only a critical point or a gate can reach the band).
+      The met green lives on met facts, not here. ── */
+
+.stDot {
   display: inline-block;
   flex-shrink: 0;
   width: 12px;
   height: 12px;
   border-radius: 50%;
+  box-sizing: border-box;
 }
 
-.ragDotLarge {
-  width: 22px;
-  height: 22px;
+.stDotLarge {
+  width: 18px;
+  height: 18px;
 }
 
-.ragGreen {
-  background: var(--app-success);
+.stOn {
+  background: transparent;
+  border: 2px solid var(--app-ink-secondary);
 }
 
-.ragAmber {
-  background: var(--app-signal);
-  border: 2px solid var(--app-signal-ink);
+.stSlip {
+  background: var(--app-ink);
 }
 
-.ragRed {
+.stCrit {
   background: radial-gradient(
     circle at center,
-    var(--app-surface) 0 20%,
-    var(--app-danger) 26% 100%
+    var(--app-paper) 0 22%,
+    var(--app-signal) 30% 100%
   );
 }
 
-.ragUnknown {
+.stUnknown {
   background: var(--app-ink-muted);
 }
 
-/* ── The colour key and the tolerance dial: a quiet strip below the band,
+/* ── The status key and the tolerance dial: a quiet strip below the band,
       outside the pinned mass. ── */
 
 .keyStrip {
@@ -232,20 +264,20 @@
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.75rem;
   line-height: 1.5;
   color: var(--app-ink-secondary);
   max-width: 62ch;
 }
 
-.keyItem .ragDot {
+.keyItem .stDot {
   margin-top: 3px;
 }
 
 .keyText b {
   color: var(--app-ink);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .tolerance {
@@ -256,76 +288,73 @@
 }
 
 .toleranceLabel {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--app-ink-secondary);
+  color: var(--app-ink-muted);
 }
 
+/* The dial is the house segmented control: a sunken well, the active choice
+   a bright monochrome fill. */
 .toleranceChoices {
   display: inline-flex;
-  background: var(--app-surface);
+  flex-wrap: wrap;
+  background: var(--app-surface-sunken);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-sm);
-  overflow: hidden;
+  padding: 3px;
+  gap: 2px;
 }
 
 .toleranceBtn {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 1px;
-  font-family: var(--font-body), sans-serif;
+  min-height: 44px;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--app-ink-secondary);
   background: transparent;
   border: none;
-  border-right: 1px solid var(--app-hairline);
-  padding: 0.4rem 0.8rem 0.45rem;
+  border-radius: 5px;
+  padding: 0.35rem 0.8rem;
   cursor: pointer;
   transition: color var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-out);
 }
 
-.toleranceBtn:last-child {
-  border-right: none;
-}
-
 .toleranceBtn:hover {
   color: var(--app-ink);
+  background: var(--app-hover);
 }
 
 .toleranceBtn:focus-visible {
   outline: 2px solid var(--app-focus);
-  outline-offset: -2px;
+  outline-offset: 2px;
 }
 
-.toleranceBtnOn {
-  background: var(--app-console-raised);
-  color: var(--app-on-console);
-}
-
+.toleranceBtnOn,
 .toleranceBtnOn:hover {
-  color: var(--app-on-console);
-}
-
-/* On the selected chip the ground is the dark console, so the focus ring
-   takes the on-console focus token, never the deep blue that vanishes on it. */
-.toleranceBtnOn:focus-visible {
-  outline-color: var(--app-focus-on-console);
+  background: var(--app-ink);
+  color: var(--app-primary-ink);
+  font-weight: 600;
 }
 
 .toleranceWeeks {
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.6875rem;
-  font-weight: 600;
-  color: var(--app-ink-secondary);
+  font-weight: 500;
+  color: var(--app-ink-muted);
 }
 
 .toleranceBtnOn .toleranceWeeks {
-  color: var(--app-on-console-secondary);
+  color: var(--app-primary-ink);
+  opacity: 0.72;
 }
 
 /* ── The tabs: the real, final mechanism; both panels carry their
@@ -344,18 +373,19 @@
   border: none;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
-  padding: 0.65rem 1rem;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  min-height: 44px;
+  padding: 0.55rem 1rem;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--app-ink-secondary);
   cursor: pointer;
   transition: color var(--dur-fast) var(--ease-out);
   /* Keep a focused tab clear of the pinned band when the browser scrolls it
      into view: the app bar plus the band's tallest (phone) form. */
-  scroll-margin-top: 21rem;
+  scroll-margin-top: 24rem;
 }
 
 .tabBtn:hover {
@@ -374,14 +404,13 @@
 
 .panel {
   padding-top: 1.25rem;
-  scroll-margin-top: 21rem;
+  scroll-margin-top: 24rem;
 }
 
 /* ── The Overview tab (Phase 3.6): three blocks stacked, each a head over
       cards or rows. The Next Gate card and the attention cards share one
-      treatment, so gates and milestones read the same way; the left edge
-      carries the signal, amber for amber and the danger red for red, while
-      the dot keeps the shape-plus-hue reading. ── */
+      seated treatment; a card in the critical-slip band takes the house
+      critical wash and full border, never a side-stripe. ── */
 
 .block {
   margin-bottom: 1.9rem;
@@ -402,38 +431,37 @@
 }
 
 .blockTitle {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--app-ink);
+  color: var(--app-ink-secondary);
 }
 
 .blockMeta {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.75rem;
   color: var(--app-ink-secondary);
 }
 
-/* The honest empty states: real surfaces, not the dashed shell that marks
-   unbuilt panels. */
+/* The honest empty states: real, quiet surfaces. */
 .blockEmpty {
   background: var(--app-surface);
   border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
+  border-radius: var(--app-radius-lg);
   padding: 1.1rem 1.2rem;
 }
 
 .blockEmptyLead {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.9375rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--app-ink);
 }
 
 .blockEmptyNote {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.8125rem;
   line-height: 1.55;
   color: var(--app-ink-secondary);
@@ -453,20 +481,19 @@
 .card {
   background: var(--app-surface);
   border: 1px solid var(--app-border);
-  border-left: 3px solid var(--app-border-strong);
-  border-radius: var(--app-radius);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-elev-1);
   padding: 0.85rem 1rem 0.9rem;
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
 }
 
-.cardSignal {
-  border-left-color: var(--app-signal);
-}
-
-.cardDanger {
-  border-left-color: var(--app-danger);
+/* The critical-slip card: the criticality wash and its full border, the same
+   recipe as the register's critical rows. */
+.cardCrit {
+  background: var(--app-critical-bg);
+  border-color: var(--app-critical-border);
 }
 
 .cardBody {
@@ -474,24 +501,24 @@
 }
 
 .cardName {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.9375rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--app-ink);
 }
 
 .cardMeta {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-weight: 500;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--app-ink-secondary);
-  margin-top: 0.2rem;
+  margin-top: 0.25rem;
 }
 
 .cardWhy {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.8125rem;
   line-height: 1.5;
   color: var(--app-ink-secondary);
@@ -501,18 +528,22 @@
 
 .cardLink {
   display: inline-flex;
-  margin-top: 0.6rem;
-  font-family: var(--font-body), sans-serif;
+  align-items: center;
+  min-height: 44px;
+  margin-block: -0.45rem;
+  margin-top: 0.15rem;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--app-ink);
   text-decoration: underline;
   text-underline-offset: 3px;
-  transition: color var(--dur-fast) var(--ease-out);
+  text-decoration-color: var(--app-border-strong);
+  transition: text-decoration-color var(--dur-fast) var(--ease-out);
 }
 
 .cardLink:hover {
-  color: var(--app-ink-secondary);
+  text-decoration-color: var(--app-ink);
 }
 
 .cardLink:focus-visible {
@@ -536,50 +567,58 @@
 }
 
 .cardFigure {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--app-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Behind but in the watch band: the bright monochrome alert. */
+.cardFigureBehind {
   color: var(--app-ink);
 }
 
-.cardFigureSignal {
+/* Behind in the critical-slip band: amber as text, the criticality read. */
+.cardFigureCrit {
   color: var(--app-signal-ink);
-}
-
-.cardFigureDanger {
-  color: var(--app-danger);
 }
 
 .cardDates {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.75rem;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
   color: var(--app-ink-secondary);
+  font-variant-numeric: tabular-nums;
 }
 
+/* The gate card's chip: monochrome status, never amber. Slipping is the
+   bright chip, on track the quiet outline. */
 .statusChip {
   display: inline-flex;
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-weight: 500;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  padding: 0.2rem 0.55rem;
-  border-radius: var(--app-radius-sm);
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
 }
 
 .statusChipSlip {
-  background: var(--app-signal-wash);
-  border: 1px solid var(--app-signal-border);
-  color: var(--app-signal-ink);
+  background: rgba(233, 236, 238, 0.07);
+  color: var(--app-ink);
+  border-color: var(--app-border-strong);
 }
 
 .statusChipOn {
   background: transparent;
-  border: 1px solid var(--app-border-strong);
-  color: var(--app-success);
+  color: var(--app-ink-secondary);
+  border-color: var(--app-border);
 }
 
-/* ── The lookahead: quiet rows in one bordered list, the date leading. From
+/* ── The lookahead: quiet rows in one seated list, the date leading. From
       3.8b each row is a disclosure button opening the point's detail, with
       the fast mark as its sibling control, never nested, so the two targets
       stay distinct at a thumb's width. ── */
@@ -590,7 +629,8 @@
   padding: 0;
   background: var(--app-surface);
   border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-elev-1);
   overflow: hidden;
 }
 
@@ -610,6 +650,7 @@
   appearance: none;
   flex: 1 1 auto;
   min-width: 0;
+  min-height: 44px;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -626,7 +667,7 @@
 }
 
 .lookRowBtn:hover {
-  background: var(--app-surface-sunken);
+  background: var(--app-hover);
 }
 
 .lookRowBtn:hover .lookName,
@@ -648,26 +689,25 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  min-height: 44px;
   margin-right: 0.9rem;
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
   color: var(--app-ink);
-  background: var(--app-surface);
+  background: transparent;
   border: 1px solid var(--app-border-strong);
   border-radius: var(--app-radius-sm);
   padding: 0.45rem 0.7rem;
   cursor: pointer;
   transition:
     border-color var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out),
     opacity var(--dur-fast) var(--ease-out);
 }
 
 .lookMarkBtn:hover {
-  border-color: var(--app-success);
-  color: var(--app-success);
+  border-color: var(--app-ink);
 }
 
 .lookMarkBtn:focus-visible {
@@ -680,12 +720,13 @@
   cursor: default;
 }
 
-/* The fast lane's quiet confirmation: a fact above the list, not a dialog. */
+/* The fast lane's quiet confirmation: a fact above the list, not a dialog.
+   The success green, a met fact landing. */
 .lookNote {
   display: flex;
   align-items: flex-start;
   gap: 0.45rem;
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.5;
@@ -712,10 +753,11 @@
 .lookDate {
   width: 5.5rem;
   flex-shrink: 0;
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--app-ink);
+  font-variant-numeric: tabular-nums;
 }
 
 .lookBody {
@@ -725,7 +767,7 @@
 
 .lookName {
   display: block;
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--app-ink);
@@ -733,31 +775,32 @@
 
 .lookMeta {
   display: block;
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-weight: 500;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--app-ink-secondary);
   margin-top: 0.1rem;
 }
 
 .lookCriticality {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-weight: 500;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--app-ink-secondary);
 }
 
+/* The criticality pill, the house Critical read: amber, and only here. */
 .lookCriticalityCritical {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--app-signal-ink);
   background: var(--app-signal-wash);
   border: 1px solid var(--app-signal-border);
-  border-radius: var(--app-radius-sm);
-  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  padding: 3px 10px;
 }
 
 /* ── The no-baseline pointer (server-rendered): set-up first. ── */
@@ -766,12 +809,13 @@
   margin-top: 1.75rem;
   background: var(--app-surface);
   border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-elev-1);
   padding: 1.5rem 1.4rem;
 }
 
 .placeholderLead {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.9375rem;
   line-height: 1.55;
   color: var(--app-ink);
@@ -782,20 +826,22 @@
   margin-top: 1.1rem;
   display: inline-flex;
   align-items: center;
-  font-family: var(--font-body), sans-serif;
+  justify-content: center;
+  min-height: 44px;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--color-button-primary-text);
-  background: var(--color-button-primary-bg);
-  border: 1.5px solid var(--color-button-primary-bg);
+  font-weight: 600;
+  color: var(--app-primary-ink);
+  background: var(--app-primary);
+  border: none;
   border-radius: var(--app-radius-sm);
   padding: 0.6rem 1.1rem;
   text-decoration: none;
-  transition: filter var(--dur-fast) var(--ease-out);
+  transition: background-color var(--dur-fast) var(--ease-out);
 }
 
 .cta:hover {
-  filter: brightness(0.94);
+  background: var(--app-primary-hover);
 }
 
 .cta:focus-visible {
@@ -864,7 +910,8 @@
 .pointsTable {
   background: var(--app-surface);
   border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-elev-1);
   overflow: hidden;
 }
 
@@ -891,6 +938,7 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.45rem 0.75rem;
   width: 100%;
+  min-height: 44px;
   text-align: left;
   font: inherit;
   color: inherit;
@@ -903,7 +951,7 @@
 }
 
 .pointRowBtn:hover {
-  background: var(--app-surface-sunken);
+  background: var(--app-hover);
 }
 
 /* Met rows already sit on the sunken ground, so the underline carries the
@@ -925,8 +973,13 @@
   top: 50%;
   transform: translateY(-50%);
   display: inline-flex;
-  color: var(--app-ink-secondary);
-  transition: transform var(--dur-fast) var(--ease-out);
+  color: var(--app-ink-muted);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pointChevron {
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
 }
 
 .pointChevronOpen {
@@ -941,6 +994,7 @@
   border-bottom: none;
 }
 
+/* A met row rests on the sunken ground, the done state. */
 .pointRowMet {
   background: var(--app-surface-sunken);
 }
@@ -952,7 +1006,7 @@
 
 .pointName {
   display: block;
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--app-ink);
@@ -960,10 +1014,10 @@
 
 .pointMetaLine {
   display: block;
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-weight: 500;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--app-ink-secondary);
   margin-top: 0.15rem;
@@ -977,65 +1031,71 @@
 }
 
 .pointCellLabel {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 500;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--app-ink-secondary);
+  color: var(--app-ink-muted);
 }
 
 .pointDate {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--app-ink);
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .pointDateMet {
   color: var(--app-success);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* Free to wrap at phone width, where a flagged double-digit variance with
-   its dot outgrows the third of the row; nowrap returns from 768px. */
+   its mark outgrows the third of the row; nowrap returns from 768px. */
 .pointVariance {
   display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 0.25rem 0.45rem;
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
 }
 
-.varDanger {
-  color: var(--app-danger);
-  font-weight: 700;
-}
-
-.varSignal {
-  color: var(--app-signal-ink);
-  font-weight: 700;
+/* The variance ladder, quietest to loudest: not stated, on baseline, behind
+   but honestly unflagged (the knock-on case), the watch band's bright
+   monochrome, the critical-slip amber. The flagged tones ride with their
+   status mark; the unflagged never carry one. */
+.varQuiet {
+  color: var(--app-ink-muted);
+  font-weight: 500;
 }
 
 .varAhead {
   color: var(--app-success);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .varBehind {
-  color: var(--app-ink);
-  font-weight: 700;
-}
-
-.varQuiet {
   color: var(--app-ink-secondary);
   font-weight: 600;
 }
 
+.varSlip {
+  color: var(--app-ink);
+  font-weight: 600;
+}
+
+.varCrit {
+  color: var(--app-signal-ink);
+  font-weight: 600;
+}
+
 .tableNote {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.75rem;
   line-height: 1.55;
   color: var(--app-ink-secondary);
@@ -1060,16 +1120,16 @@
 }
 
 .stageGroupNum {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-weight: 600;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--app-ink);
 }
 
 .stageGroupName {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--app-ink-secondary);
@@ -1078,8 +1138,9 @@
 /* ── The point detail (Phase 3.8a): the considered home for the mark. A
       sunken panel beneath its row with the point's facts; for a writer a
       milestone carries the mark form, light and reversible, no confirmation.
-      The left edge carries the point's state, met green, flagged amber or
-      red, the same shape-plus-hue reading as the rest of the surface. ── */
+      A detail in the critical-slip band takes the house critical wash and
+      full inset border, never a side-stripe; met and watch-band states read
+      from their facts. ── */
 
 .detailRow {
   border-bottom: 1px solid var(--app-hairline);
@@ -1087,35 +1148,27 @@
 }
 
 .detail {
-  border-left: 3px solid var(--app-border-strong);
   padding: 0.85rem 0.9rem 1rem;
 }
 
-.detailSignal {
-  border-left-color: var(--app-signal);
-}
-
-.detailDanger {
-  border-left-color: var(--app-danger);
-}
-
-.detailMet {
-  border-left-color: var(--app-success);
+.detailCrit {
+  background: var(--app-critical-bg);
+  box-shadow: inset 0 0 0 1px var(--app-critical-border);
 }
 
 .detailMeta {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-weight: 500;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--app-ink-secondary);
 }
 
 .detailName {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.9375rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--app-ink);
   margin-top: 0.2rem;
 }
@@ -1135,38 +1188,38 @@
 }
 
 .factLabel {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 500;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--app-ink-secondary);
+  color: var(--app-ink-muted);
 }
 
 .factValue {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--app-ink);
   margin: 0;
+  font-variant-numeric: tabular-nums;
 }
 
 .factValueMet {
   color: var(--app-success);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .factFlag {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--app-ink-secondary);
 }
 
 .detailNote {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.8125rem;
   line-height: 1.5;
   color: var(--app-ink-secondary);
@@ -1193,31 +1246,34 @@
 }
 
 .markLabel {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 500;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--app-ink-secondary);
+  color: var(--app-ink-muted);
 }
 
-/* The input sits on the sunken detail ground, so it takes the paper surface,
-   the inverse of the app's usual input-on-paper recipe. */
+/* The input sits on the sunken detail ground, so it takes the seated
+   surface, the inverse of the app's usual sunken-input-on-surface recipe.
+   color-scheme keeps the native picker's iconography dark-tuned. */
 .dateInput {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.875rem;
   color: var(--app-ink);
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-sm);
+  min-height: 44px;
   padding: 0.45rem 0.6rem;
   min-width: 0;
+  color-scheme: dark;
 }
 
 .dateInput:focus-visible {
   outline: 2px solid var(--app-focus);
   outline-offset: 1px;
-  border-color: var(--app-ink);
+  border-color: var(--app-border-strong);
 }
 
 .dateInput:disabled {
@@ -1231,22 +1287,23 @@
 }
 
 .markBtn {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--color-button-primary-text);
-  background: var(--color-button-primary-bg);
-  border: 1.5px solid var(--color-button-primary-bg);
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
+  font-weight: 600;
+  color: var(--app-primary-ink);
+  background: var(--app-primary);
+  border: none;
   border-radius: var(--app-radius-sm);
-  padding: 0.5rem 0.9rem;
+  min-height: 44px;
+  padding: 0.5rem 1rem;
   cursor: pointer;
   transition:
-    filter var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out),
     opacity var(--dur-fast) var(--ease-out);
 }
 
 .markBtn:hover {
-  filter: brightness(0.94);
+  background: var(--app-primary-hover);
 }
 
 .markBtn:focus-visible {
@@ -1257,17 +1314,17 @@
 .markBtn:disabled {
   opacity: 0.45;
   cursor: default;
-  filter: none;
 }
 
 .unmarkBtn {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 700;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
+  font-weight: 600;
   color: var(--app-ink);
-  background: var(--app-surface);
+  background: transparent;
   border: 1px solid var(--app-border-strong);
   border-radius: var(--app-radius-sm);
+  min-height: 44px;
   padding: 0.5rem 0.9rem;
   cursor: pointer;
   transition:
@@ -1290,7 +1347,7 @@
 }
 
 .markHint {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.75rem;
   line-height: 1.55;
   color: var(--app-ink-secondary);
@@ -1298,8 +1355,10 @@
   max-width: 60ch;
 }
 
+/* The write failure: the dark-tuned danger, text plus tone, never colour
+   alone. The one red on the surface. */
 .markError {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--app-danger);
@@ -1309,22 +1368,27 @@
 /* ── The full-schedule disclosure and the Register or Timeline toggle. ── */
 
 .fullToggle {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--app-ink);
-  background: var(--app-surface);
+  background: transparent;
   border: 1px solid var(--app-border-strong);
   border-radius: var(--app-radius-sm);
+  min-height: 44px;
+  margin-block: -0.5rem;
   padding: 0.4rem 0.85rem;
   cursor: pointer;
-  transition: background-color var(--dur-fast) var(--ease-out);
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
   /* Keep the focused control clear of the pinned band, as the tabs do. */
-  scroll-margin-top: 21rem;
+  scroll-margin-top: 24rem;
 }
 
 .fullToggle:hover {
-  background: var(--app-surface-sunken);
+  border-color: var(--app-ink);
+  background: var(--app-hover);
 }
 
 .fullToggle:focus-visible {
@@ -1332,56 +1396,52 @@
   outline-offset: 2px;
 }
 
+/* The two views of one model: the same sunken well as the tolerance dial. */
 .viewToggle {
   display: inline-flex;
-  background: var(--app-surface);
+  flex-wrap: wrap;
+  background: var(--app-surface-sunken);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-sm);
-  overflow: hidden;
+  padding: 3px;
+  gap: 2px;
   margin-bottom: 0.9rem;
 }
 
 .viewBtn {
-  font-family: var(--font-body), sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--app-ink-secondary);
   background: transparent;
   border: none;
-  border-right: 1px solid var(--app-hairline);
-  padding: 0.45rem 1.1rem;
+  border-radius: 5px;
+  padding: 0.35rem 1.1rem;
   cursor: pointer;
   transition: color var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-out);
-  scroll-margin-top: 21rem;
-}
-
-.viewBtn:last-child {
-  border-right: none;
+  scroll-margin-top: 24rem;
 }
 
 .viewBtn:hover {
   color: var(--app-ink);
+  background: var(--app-hover);
 }
 
 .viewBtn:focus-visible {
   outline: 2px solid var(--app-focus);
-  outline-offset: -2px;
+  outline-offset: 2px;
 }
 
-.viewBtnOn {
-  background: var(--app-console-raised);
-  color: var(--app-on-console);
-}
-
+.viewBtnOn,
 .viewBtnOn:hover {
-  color: var(--app-on-console);
-}
-
-/* On the selected chip the ground is the dark console, so the focus ring
-   takes the on-console token, as on the tolerance dial. */
-.viewBtnOn:focus-visible {
-  outline-color: var(--app-focus-on-console);
+  background: var(--app-ink);
+  color: var(--app-primary-ink);
+  font-weight: 600;
 }
 
 /* ── The Timeline: stages as lanes on one shared axis. At phone width each
@@ -1394,7 +1454,8 @@
 .tlFrame {
   background: var(--app-surface);
   border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-elev-1);
   padding: 0.7rem 1.25rem 0.4rem;
 }
 
@@ -1404,9 +1465,9 @@
 }
 
 .tlLaneLabel {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.3;
   color: var(--app-ink-secondary);
   padding: 0.55rem 0 0.2rem;
@@ -1419,8 +1480,9 @@
 }
 
 .tlLaneLabel b {
+  font-family: var(--app-font-mono), monospace;
   color: var(--app-ink);
-  font-weight: 700;
+  font-weight: 600;
   margin-right: 0.35rem;
 }
 
@@ -1442,21 +1504,22 @@
   position: absolute;
   top: 0.1rem;
   transform: translateX(-50%);
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.625rem;
-  font-weight: 600;
-  color: var(--app-ink-secondary);
+  font-weight: 500;
+  color: var(--app-ink-muted);
   white-space: nowrap;
 }
 
+/* Today is reference, not signal: ink, never amber. */
 .tlTodayLabel {
   position: absolute;
   top: 0.1rem;
   transform: translateX(-50%);
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-weight: 600;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--app-ink);
   background: var(--app-surface);
@@ -1498,7 +1561,7 @@
 }
 
 /* The drift between a point's baseline and current positions: the honest
-   gap, drawn from the two fractions alone. */
+   gap, drawn from the two fractions alone, in the tone of its band. */
 .tlDrift {
   position: absolute;
   top: 50%;
@@ -1508,12 +1571,12 @@
   z-index: 2;
 }
 
-.tlDriftRed {
-  background: var(--app-danger);
+.tlDriftCritSlip {
+  background: var(--app-signal);
 }
 
-.tlDriftAmber {
-  background: var(--app-signal);
+.tlDriftSlip {
+  background: var(--app-ink);
 }
 
 .tlDriftAhead {
@@ -1526,8 +1589,9 @@
 
 /* The markers: a circle is a milestone, a diamond a gate; the outline sits
    at the baseline date, the fill at the current date. State keeps the
-   shape-plus-hue discipline: amber takes the ochre ring, red the paper
-   core, exactly as the RAG dots do. */
+   shape-plus-intensity discipline of the status marks: met is the success
+   green, the watch band the bright monochrome fill, critical slip the amber
+   bullseye. */
 .tlMk {
   position: absolute;
   top: 50%;
@@ -1566,17 +1630,16 @@
   background: var(--app-success);
 }
 
-.tlMkRed {
+.tlMkCritSlip {
   background: radial-gradient(
     circle at center,
-    var(--app-surface) 0 20%,
-    var(--app-danger) 26% 100%
+    var(--app-paper) 0 22%,
+    var(--app-signal) 30% 100%
   );
 }
 
-.tlMkAmber {
-  background: var(--app-signal);
-  border: 2px solid var(--app-signal-ink);
+.tlMkSlip {
+  background: var(--app-ink);
 }
 
 /* Legend swatches reuse the marker classes in static flow. */
@@ -1600,7 +1663,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.75rem;
   color: var(--app-ink-secondary);
 }
@@ -1615,12 +1678,34 @@
 }
 
 .tlNote {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.75rem;
   line-height: 1.55;
   color: var(--app-ink-secondary);
   margin-top: 0.6rem;
   max-width: 70ch;
+}
+
+/* ── Under 640px: the segmented wells go full width, their choices sharing
+      the row at thumb size. ── */
+
+@media (max-width: 640px) {
+  .toleranceChoices,
+  .viewToggle {
+    display: flex;
+    width: 100%;
+  }
+
+  .toleranceBtn,
+  .viewBtn {
+    flex: 1 1 auto;
+    min-height: 44px;
+  }
+
+  .tolerance {
+    width: 100%;
+    align-items: stretch;
+  }
 }
 
 /* ── 768px and up: the point rows become one aligned four-column table with
@@ -1638,12 +1723,12 @@
     padding: 0.55rem 2.25rem 0.55rem 1rem;
     background: var(--app-surface-sunken);
     border-bottom: 1px solid var(--app-border);
-    font-family: var(--font-body), sans-serif;
+    font-family: var(--app-font-mono), monospace;
     font-size: 0.625rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    font-weight: 500;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--app-ink-secondary);
+    color: var(--app-ink-muted);
   }
 
   .pointRowBtn {

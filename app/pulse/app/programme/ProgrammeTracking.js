@@ -60,7 +60,7 @@ import styles from './ProgrammeTracking.module.css';
  * tab's content (Phase 3.7), the milestone detail with the mark action
  * (Phase 3.8a), and the fast mark on Next 30 days (Phase 3.8b). The daily
  * face of the module: the pinned summary band with its five co-equal tiles,
- * the colour key, the bounded tolerance dial, the Overview tab (the Next
+ * the status key, the bounded tolerance dial, the Overview tab (the Next
  * Gate card, the Needs attention list, and the Next 30 days lookahead), the
  * Schedule tab (the high-level breakdown and, behind the full-schedule
  * control, the Register and Timeline views of the one programme model), and,
@@ -136,12 +136,29 @@ const SCHEDULE_VIEWS = Object.freeze([
   Object.freeze({ key: 'timeline', label: 'Timeline' }),
 ]);
 
-// The RAG dot class per colour, so the class lookup stays explicit.
-const RAG_CLASS = {
-  green: 'ragGreen',
-  amber: 'ragAmber',
-  red: 'ragRed',
+// The engine's status bands render in the workspace ladder, never as traffic
+// lights: amber is criticality only, and only the red band (a gate overdue, a
+// critical point beyond tolerance, a floor breach) can earn it, because only
+// a critical point or a gate can reach that band. One word and one mark class
+// per band, keyed by the engine's own colour value; the engine and its
+// vocabulary stay untouched.
+const STATUS_WORDS = {
+  green: 'On course',
+  amber: 'Slipping',
+  red: 'Critical slip',
 };
+
+const STATUS_CLASS = {
+  green: 'stOn',
+  amber: 'stSlip',
+  red: 'stCrit',
+};
+
+// The spoken or written form of a band, lowercase mid-sentence.
+function statusPhrase(colour) {
+  const word = STATUS_WORDS[colour];
+  return word ? word.toLowerCase() : null;
+}
 
 // The write failure sentences, the app's plain register. The future-date
 // guard's own sentence comes from detailModel, stated once there.
@@ -190,16 +207,17 @@ function formatMonthTick(date) {
   });
 }
 
-// The status dot, colour only, named for assistive tech by the colour the key
-// explains, never a verdict word. In the colour key the adjacent text already
-// names the colour, so the swatch there is decorative and stays silent. A
-// flagged item's dot names its contribution instead of the overall status.
+// The status mark, one silhouette per band, named for assistive tech by the
+// band's word. Where the adjacent text already carries the word (the status
+// key, the Status tile, the detail's flag line) the mark is decorative and
+// stays silent. A flagged item's mark names the band it contributes instead
+// of the overall status.
 function RagDot({ colour, large, decorative, label }) {
-  const colourClass = RAG_CLASS[colour];
+  const bandClass = STATUS_CLASS[colour];
   const classes = [
-    styles.ragDot,
-    large ? styles.ragDotLarge : '',
-    colourClass ? styles[colourClass] : styles.ragUnknown,
+    styles.stDot,
+    large ? styles.stDotLarge : '',
+    bandClass ? styles[bandClass] : styles.stUnknown,
   ]
     .filter(Boolean)
     .join(' ');
@@ -210,7 +228,12 @@ function RagDot({ colour, large, decorative, label }) {
     <span
       className={classes}
       role="img"
-      aria-label={label ?? (colour ? `Status: ${colour}` : 'Status unavailable')}
+      aria-label={
+        label ??
+        (STATUS_WORDS[colour]
+          ? `Status: ${statusPhrase(colour)}`
+          : 'Status unavailable')
+      }
     />
   );
 }
@@ -237,15 +260,15 @@ function Tile({ label, children, sub, subSignal }) {
       high-level breakdown and the Register share, and the Timeline plot.
       All thin renders over the pure schedule model; nothing here derives. ── */
 
-// The variance figure's tone. A flagged row carries the RAG colour it
-// contributes (the danger red, or ochre as amber's text-safe sibling); an
-// unflagged row reads by its direction, ahead in the success green, behind
-// in plain strong ink (the knock-on case: pushed by upstream drift but not
-// itself past its date, so the RAG derivation honestly has not flagged it),
-// on baseline quietly.
+// The variance figure's tone. A flagged row carries its band (the amber
+// critical-slip read, or the watch band's bright monochrome); an unflagged
+// row reads by its direction, ahead in the success green, behind in plain
+// secondary ink (the knock-on case: pushed by upstream drift but not itself
+// past its date, so the RAG derivation honestly has not flagged it), on
+// baseline quietly.
 function varianceToneClass(row) {
   if (row.flagged) {
-    return row.flagColour === 'red' ? styles.varDanger : styles.varSignal;
+    return row.flagColour === 'red' ? styles.varCrit : styles.varSlip;
   }
   if (row.direction === VARIANCE_DIRECTIONS.AHEAD) return styles.varAhead;
   if (row.direction === VARIANCE_DIRECTIONS.BEHIND) return styles.varBehind;
@@ -314,7 +337,7 @@ function PointRow({ row, open, detailId, onToggle }) {
             {row.flagged && (
               <RagDot
                 colour={row.flagColour}
-                label={`Contributes ${row.flagColour}`}
+                label={`Flag: ${statusPhrase(row.flagColour)}`}
               />
             )}
             <span className={`${varianceToneClass(row)} tnum`}>
@@ -418,12 +441,11 @@ function PointDetail({
     if (done) setDraft(null);
   };
 
-  const tone = fields.met
-    ? styles.detailMet
-    : fields.flagged
-      ? fields.flagColour === 'red'
-        ? styles.detailDanger
-        : styles.detailSignal
+  // Only the critical-slip band recolours the panel, the house critical wash
+  // and full border; met and watch-band states read from their facts.
+  const tone =
+    !fields.met && fields.flagged && fields.flagColour === 'red'
+      ? styles.detailCrit
       : '';
 
   return (
@@ -466,12 +488,13 @@ function PointDetail({
           <div className={styles.fact}>
             <dt className={styles.factLabel}>Flag</dt>
             <dd className={styles.factValue}>
-              <span className={styles.factFlag}>
-                <RagDot
-                  colour={fields.flagColour}
-                  label={`Contributes ${fields.flagColour}`}
-                />
-                contributes {fields.flagColour}
+              <span
+                className={`${styles.factFlag} ${
+                  fields.flagColour === 'red' ? styles.varCrit : styles.varSlip
+                }`}
+              >
+                <RagDot colour={fields.flagColour} decorative />
+                {statusPhrase(fields.flagColour)}
               </span>
             </dd>
           </div>
@@ -550,22 +573,23 @@ function timelinePointLabel(point) {
 }
 
 // The current marker's state: met is the success green, a flagged point
-// carries its RAG colour, everything else the neutral fill.
+// carries its band (the amber bullseye for critical slip, the bright
+// monochrome fill for the watch band), everything else the neutral fill.
 function timelineMarkerState(point) {
   if (point.met) return styles.tlMkMet;
   if (point.flagged) {
-    return point.flagColour === 'red' ? styles.tlMkRed : styles.tlMkAmber;
+    return point.flagColour === 'red' ? styles.tlMkCritSlip : styles.tlMkSlip;
   }
   return styles.tlMkStd;
 }
 
-// The drift connector's tone, matching the variance column: the RAG colour
-// on a flagged point, the success green when ahead, neutral otherwise.
+// The drift connector's tone, matching the variance column: the band on a
+// flagged point, the success green when ahead, neutral otherwise.
 function timelineDriftTone(point) {
   if (point.flagged) {
     return point.flagColour === 'red'
-      ? styles.tlDriftRed
-      : styles.tlDriftAmber;
+      ? styles.tlDriftCritSlip
+      : styles.tlDriftSlip;
   }
   if (point.direction === VARIANCE_DIRECTIONS.AHEAD) {
     return styles.tlDriftAhead;
@@ -710,17 +734,17 @@ function TimelinePlot({ layout }) {
         </li>
         <li className={styles.tlLegendItem}>
           <span
-            className={`${styles.tlMk} ${styles.tlMkMs} ${styles.tlMkAmber} ${styles.tlMkLegend}`}
+            className={`${styles.tlMk} ${styles.tlMkMs} ${styles.tlMkSlip} ${styles.tlMkLegend}`}
             aria-hidden="true"
           />
-          flagged amber
+          slipping
         </li>
         <li className={styles.tlLegendItem}>
           <span
-            className={`${styles.tlMk} ${styles.tlMkMs} ${styles.tlMkRed} ${styles.tlMkLegend}`}
+            className={`${styles.tlMk} ${styles.tlMkMs} ${styles.tlMkCritSlip} ${styles.tlMkLegend}`}
             aria-hidden="true"
           />
-          flagged red
+          critical slip
         </li>
         <li className={styles.tlLegendItem}>
           <span className={styles.tlLegendToday} aria-hidden="true" />
@@ -1043,7 +1067,14 @@ export default function ProgrammeTracking({
         <p className={styles.bandEyebrow}>{bandPosition(currentStage)}</p>
         <div className={styles.tiles}>
           <Tile label="Status">
-            <RagDot colour={status.colour} large />
+            <RagDot colour={status.colour} large decorative />
+            <span
+              className={
+                status.colour === 'red' ? styles.tileValueCrit : undefined
+              }
+            >
+              {STATUS_WORDS[status.colour] ?? 'Not available'}
+            </span>
           </Tile>
           <Tile
             label="Complete"
@@ -1092,15 +1123,17 @@ export default function ProgrammeTracking({
         </div>
       </section>
 
-      {/* ── The colour key and the tolerance dial: a quiet strip under the
-             band, not part of the pinned mass. ── */}
+      {/* ── The status key and the tolerance dial: a quiet strip under the
+             band, not part of the pinned mass. The key lines are the model's
+             Section 9 rule verbatim; only the band words are the surface's. ── */}
       <div className={styles.keyStrip}>
-        <ul className={styles.key} aria-label="Colour key">
+        <ul className={styles.key} aria-label="Status key">
           {COLOUR_KEY.map((entry) => (
             <li key={entry.colour} className={styles.keyItem}>
               <RagDot colour={entry.colour} decorative />
               <span className={styles.keyText}>
-                <b>{entry.label}.</b> {entry.line}
+                <b>{STATUS_WORDS[entry.colour] ?? entry.label}.</b>{' '}
+                {entry.line}
               </span>
             </li>
           ))}
@@ -1189,11 +1222,7 @@ export default function ProgrammeTracking({
               </p>
             </div>
           ) : (
-            <article
-              className={`${styles.card} ${
-                nextGateSlipping ? styles.cardSignal : ''
-              }`}
-            >
+            <article className={styles.card}>
               <div className={styles.cardBody}>
                 <p className={styles.cardName}>{nextGate.name ?? 'Gate'}</p>
                 <p className={styles.cardMeta}>
@@ -1226,7 +1255,7 @@ export default function ProgrammeTracking({
                 {nextGate.varianceWeeks != null && (
                   <span
                     className={`${styles.cardFigure} ${
-                      nextGateSlipping ? styles.cardFigureSignal : ''
+                      nextGateSlipping ? styles.cardFigureBehind : ''
                     } tnum`}
                   >
                     {directionLabel(nextGate.varianceWeeks)}
@@ -1269,7 +1298,7 @@ export default function ProgrammeTracking({
                 <li
                   key={item.key}
                   className={`${styles.card} ${
-                    item.colour === 'red' ? styles.cardDanger : styles.cardSignal
+                    item.colour === 'red' ? styles.cardCrit : ''
                   }`}
                 >
                   <div className={styles.cardBody}>
@@ -1289,14 +1318,14 @@ export default function ProgrammeTracking({
                     <span className={styles.cardContribution}>
                       <RagDot
                         colour={item.colour}
-                        label={`Contributes ${item.colour}`}
+                        label={`Flag: ${statusPhrase(item.colour)}`}
                       />
                       {behindLabel(item.weeksBehind) && (
                         <span
                           className={`${styles.cardFigure} ${
                             item.colour === 'red'
-                              ? styles.cardFigureDanger
-                              : styles.cardFigureSignal
+                              ? styles.cardFigureCrit
+                              : styles.cardFigureBehind
                           } tnum`}
                         >
                           {behindLabel(item.weeksBehind)}
@@ -1539,7 +1568,7 @@ export default function ProgrammeTracking({
                   <p className={styles.tableNote}>
                     The fixed filter: the gates always, every critical
                     milestone always, and anything flagged. Flagged rows carry
-                    the colour they contribute and follow the slip tolerance
+                    the status they contribute and follow the slip tolerance
                     above. Baseline is the locked v{baselineVersion} date;
                     Current is the forecast, or the actual once met. Tap a
                     point to open its detail.

@@ -13,7 +13,7 @@ import styles from './ProgrammeTracking.module.css';
  * /pulse/app/programme - the Programme module's tracking home (Phase 3.5).
  *
  * The daily face of the module for a project with a locked operational
- * baseline: the pinned summary band reading the three engines, the colour
+ * baseline: the pinned summary band reading the three engines, the status
  * key, the bounded tolerance dial, and the Overview and Schedule tab shells.
  * Set-up (the one-time on-ramp) lives alongside at /pulse/app/programme/setup;
  * this page is where a developer lands once v1 is locked.
