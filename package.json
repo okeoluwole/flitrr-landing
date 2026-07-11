@@ -15,8 +15,7 @@
     "geist": "^1.7.2",
     "next": "14.2.3",
     "react": "^18",
-    "react-dom": "^18",
-    "three": "^0.184.0"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "eslint": "^8",

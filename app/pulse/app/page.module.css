@@ -84,8 +84,14 @@
   border: none;
   border-radius: var(--app-radius-sm);
   text-decoration: none;
-  transition: background-color var(--dur-fast) var(--ease-out),
-    transform var(--dur-press) var(--ease-out);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .newBtn {
+    transition: background-color var(--dur-fast) var(--ease-out),
+      transform var(--dur-press) var(--ease-out);
+  }
 }
 
 .newBtn:hover,
@@ -191,7 +197,7 @@
 
 .cardChevron {
   color: var(--app-ink-muted);
-  transition: color 0.15s ease, transform 0.15s ease;
+  transition: color 0.15s ease;
 }
 
 .cardLink:hover .cardChevron {
@@ -199,6 +205,10 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  .cardChevron {
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+
   .cardLink:hover .cardChevron {
     transform: translateX(2px);
   }

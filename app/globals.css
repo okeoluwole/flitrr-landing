@@ -152,16 +152,16 @@
   --app-console-hairline:        rgba(233, 236, 238, 0.08);
   --app-console-hairline-strong: rgba(233, 236, 238, 0.15);
 
-  /* The work canvas and the panels seated on it. --app-paper is
-     the legacy name for the page ground (each screen drops the
-     name as its Phase 3 re-skin touches the file). */
-  --app-paper:          #0E1216;
+  /* The work canvas and the panels seated on it. */
+  --app-ground:         #0E1216;
   --app-surface:        #161C22;
   --app-surface-raised: #1A212A;
   --app-surface-sunken: #12171C;
   --app-ink:            #EAEDEF;
   --app-ink-secondary:  #98A3AB;
-  --app-ink-muted:      #828C95;
+  /* Muted holds AA (4.5) even over the wash-tinted surfaces it sits on
+     (critical cards, hovered rows), not just the plain grounds. */
+  --app-ink-muted:      #8A949E;
   --app-hairline:       rgba(233, 236, 238, 0.08);
   --app-border:         rgba(233, 236, 238, 0.15);
   --app-border-strong:  rgba(233, 236, 238, 0.28);
@@ -250,11 +250,12 @@
   --doc-paper-2: #F1F0EA;
   --doc-ink:     #22231E;
   --doc-ink-2:   #5C5D53;
-  --doc-ink-3:   #6E6F63;
+  /* ink-3 and ochre clear AA (4.5) on paper-2 panels, not just paper. */
+  --doc-ink-3:   #6A6B5F;
   --doc-line:    #E7E5DC;
   --doc-line-strong: #DBD8CC;
   --doc-navy:    #0B141E;
-  --doc-ochre:   #8A6A16;
+  --doc-ochre:   #856414;
   --doc-signal:  #F4C031;
   --doc-signal-wash:   rgba(244, 192, 49, 0.16);
   --doc-signal-border: rgba(138, 106, 22, 0.45);
@@ -472,5 +473,38 @@ p {
   html,
   body {
     background: #ffffff !important;
+  }
+
+  /* The instrument is a screen surface. If any app page beyond the Brief
+     reaches a printer, flip the --app-* tokens to dark-on-white so the
+     sheet stays legible instead of printing near-white ink on white.
+     The Brief's own print rules consume --doc-* and are untouched. */
+  :root {
+    --app-ground: #ffffff;
+    --app-surface: #ffffff;
+    --app-surface-raised: #ffffff;
+    --app-surface-sunken: #f2f3f4;
+    --app-console: #ffffff;
+    --app-ink: #16181a;
+    --app-ink-secondary: #454c52;
+    --app-ink-muted: #5b6268;
+    --app-hairline: rgba(20, 24, 28, 0.14);
+    --app-border: rgba(20, 24, 28, 0.26);
+    --app-border-strong: rgba(20, 24, 28, 0.42);
+    --app-hover: transparent;
+    --app-signal-ink: #856414;
+    --app-danger: #9c3d2a;
+    --app-success: #2e6b54;
+    --app-warning: #7a5e1e;
+    --app-primary: #16181a;
+    --app-primary-ink: #ffffff;
+    --app-primary-hover: #16181a;
+    --app-rail-line: rgba(20, 24, 28, 0.2);
+    --app-rail-line-done: #5b6268;
+    --app-rail-node: #5b6268;
+    --app-rail-node-done: #454c52;
+    --app-elev-1: none;
+    --app-elev-2: none;
+    --app-elev-console: none;
   }
 }

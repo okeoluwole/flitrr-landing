@@ -11,6 +11,7 @@
 }
 
 .badge {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -24,6 +25,14 @@
   border-radius: 999px;
   padding: 0.3rem 0.7rem;
   cursor: pointer;
+}
+
+/* The pill stays visually quiet at 26px; the touch target does not.
+   Extends the hit area to 44px effective without moving the layout. */
+.badge::after {
+  content: '';
+  position: absolute;
+  inset: -9px 0;
 }
 
 @media (prefers-reduced-motion: no-preference) {

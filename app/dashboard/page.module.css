@@ -104,8 +104,14 @@
   border: none;
   border-radius: var(--app-radius-sm);
   text-decoration: none;
-  transition: background-color var(--dur-fast) var(--ease-out),
-    transform var(--dur-press) var(--ease-out);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cardCta {
+    transition: background-color var(--dur-fast) var(--ease-out),
+      transform var(--dur-press) var(--ease-out);
+  }
 }
 
 .cardCta:hover,

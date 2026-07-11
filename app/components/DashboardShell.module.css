@@ -9,7 +9,7 @@
 
 .shell {
   min-height: 100vh;
-  background-color: var(--app-paper);
+  background-color: var(--app-ground);
   display: flex;
   flex-direction: column;
 }
@@ -30,6 +30,7 @@
 }
 
 .brandWordmark {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -41,6 +42,14 @@
   color: var(--app-on-console);
   text-decoration: none;
   transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+/* The wordmark keeps its 16px visual height; the touch target reaches
+   44px effective inside the 56px bar. */
+.brandWordmark::after {
+  content: '';
+  position: absolute;
+  inset: -14px 0;
 }
 
 /* The marketing brand dot, carried across the login line. */
@@ -70,6 +79,7 @@
 }
 
 .menuTrigger {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -85,6 +95,13 @@
   transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
+/* 30px visual pill, 44px effective target. */
+.menuTrigger::after {
+  content: '';
+  position: absolute;
+  inset: -7px 0;
+}
+
 .menuTrigger:hover {
   background-color: var(--app-hover);
 }
@@ -98,7 +115,12 @@
   width: 12px;
   height: 12px;
   color: var(--app-on-console-secondary);
-  transition: transform 0.18s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .menuChevron {
+    transition: transform 0.18s ease;
+  }
 }
 
 .menuChevronOpen {

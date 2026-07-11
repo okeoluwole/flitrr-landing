@@ -232,7 +232,7 @@
 .stCrit {
   background: radial-gradient(
     circle at center,
-    var(--app-paper) 0 22%,
+    var(--app-ground) 0 22%,
     var(--app-signal) 30% 100%
   );
 }
@@ -1633,7 +1633,7 @@
 .tlMkCritSlip {
   background: radial-gradient(
     circle at center,
-    var(--app-paper) 0 22%,
+    var(--app-ground) 0 22%,
     var(--app-signal) 30% 100%
   );
 }
