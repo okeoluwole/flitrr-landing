@@ -1,8 +1,10 @@
 /*
- * MemberBriefView - the read-only Project Brief frame a member sees. The header
- * mirrors the monitoring surfaces (back link, eyebrow, title); the document,
- * lens selector and download reuse Brief.module.css. Product (Instrument)
- * tokens only.
+ * MemberBriefView, the read-only Project Brief frame a member sees. The
+ * header mirrors the monitoring surfaces (back link, mono eyebrow, title);
+ * the document, lens selector and download reuse Brief.module.css. The
+ * frame stands on the dark instrument (--app-*); the document inside it
+ * stands on --doc-* paper. In print the frame disappears and only the
+ * sheet prints.
  */
 
 .page {
@@ -13,17 +15,25 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-family: var(--app-font-sans);
+  font-size: var(--app-text-sm);
+  font-weight: 500;
   color: var(--app-ink-secondary);
   text-decoration: none;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.1rem;
+  /* A 44px hit area without shifting the layout. */
+  padding-block: 0.6rem;
+  margin-block: -0.6rem 0.5rem;
 }
 
 .backLink:hover,
 .backLink:focus-visible {
   color: var(--app-ink);
+}
+
+.backLink:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -37,19 +47,21 @@
 }
 
 .eyebrow {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
+  font-family: var(--app-font-mono);
+  font-size: var(--app-text-xs);
   font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--app-ink-secondary);
   margin-bottom: 0.5rem;
 }
 
 .title {
-  font-family: var(--font-heading), sans-serif;
-  font-size: clamp(1.9rem, 4vw, 2.5rem);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.015em;
+  font-family: var(--app-font-sans);
+  font-size: var(--app-text-xl);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
   color: var(--app-ink);
   margin-bottom: 0;
 }
@@ -59,19 +71,20 @@
   margin: 0.85rem 0 1.75rem;
 }
 
-/* No locked baseline yet: a sparse read-only state. */
+/* No locked baseline yet: a sparse read-only state on a seated panel. */
 .placeholder {
   margin-top: 0.5rem;
   background: var(--app-surface);
   border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-elev-1);
   padding: 1.5rem 1.4rem;
 }
 
 .placeholderLead {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 1.0625rem;
-  font-weight: 700;
+  font-family: var(--app-font-sans);
+  font-size: var(--app-text-md);
+  font-weight: 600;
   color: var(--app-ink);
   line-height: 1.35;
   margin: 0;
@@ -81,23 +94,46 @@
   margin-top: 1.1rem;
   display: inline-flex;
   align-items: center;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--color-button-primary-text);
-  background: var(--color-button-primary-bg);
-  border: 1.5px solid var(--color-button-primary-bg);
+  font-family: var(--app-font-sans);
+  font-size: var(--app-text-sm);
+  font-weight: 600;
+  color: var(--app-primary-ink);
+  background: var(--app-primary);
+  border: 1px solid var(--app-primary);
   border-radius: var(--app-radius-sm);
   padding: 0.6rem 1.1rem;
+  min-height: 44px;
   text-decoration: none;
-  transition: filter var(--dur-fast) var(--ease-out);
+  transition: background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
 }
 
 .cta:hover {
-  filter: brightness(0.94);
+  background: var(--app-primary-hover);
+  border-color: var(--app-primary-hover);
 }
 
 .cta:focus-visible {
   outline: 2px solid var(--app-focus);
   outline-offset: 2px;
+}
+
+/* ── Print (M4) ──
+   The member's PDF export: hide the frame (back link, eyebrow, title,
+   badge) and flush the page so only the document sheet prints, exactly
+   as the wizard's export does. */
+@media print {
+  .backLink,
+  .eyebrow,
+  .title,
+  .viewOnly,
+  .placeholder {
+    display: none !important;
+  }
+
+  .page {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+  }
 }

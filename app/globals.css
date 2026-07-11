@@ -252,9 +252,12 @@
   --doc-ink-2:   #5C5D53;
   --doc-ink-3:   #6E6F63;
   --doc-line:    #E7E5DC;
+  --doc-line-strong: #DBD8CC;
   --doc-navy:    #0B141E;
   --doc-ochre:   #8A6A16;
   --doc-signal:  #F4C031;
+  --doc-signal-wash:   rgba(244, 192, 49, 0.16);
+  --doc-signal-border: rgba(138, 106, 22, 0.45);
   --doc-font-serif: Georgia, 'Iowan Old Style', 'Palatino Linotype',
     'Book Antiqua', 'Times New Roman', serif;
   --doc-font-mono: var(--app-font-mono);

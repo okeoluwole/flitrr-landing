@@ -683,9 +683,22 @@ export default function BriefDocument({ model, lens, lockState }) {
     <div className={styles.doc}>
       <div className={styles.docHead}>
         <div className={styles.brand}>
-          <span className={styles.brandMark} aria-hidden="true">
-            P
-          </span>
+          {/* The pulse-line glyph is PULSE's own mark. Navy here: the
+              document letterhead is monochrome, never the amber signal. */}
+          <svg
+            className={styles.brandMark}
+            viewBox="0 0 40 16"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M0 8 H11 L14 8 L16.5 2 L19.5 14 L22.5 8 H40"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
           <span className={styles.brandName}>PULSE</span>
         </div>
         <div className={styles.eyebrow}>Project Initiation Brief</div>
@@ -731,7 +744,7 @@ export default function BriefDocument({ model, lens, lockState }) {
 
       <div className={styles.docFoot}>
         <div className={styles.meth}>
-          Built on <b>The PULSE Framework</b>. Objectives are classified by how
+          Built on <b>the Flitrr Framework</b>. Objectives are classified by how
           much each can flex before the project is compromised, and that
           classification cascades to milestones, risks and workstreams. This is
           the version-locked baseline against which every later stage is
