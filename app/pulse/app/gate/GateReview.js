@@ -95,8 +95,9 @@ function OutstandingIcon() {
   );
 }
 
-// A plain checklist row: met (deep-blue check) or outstanding (amber caution
-// mark with a pointer to resolve it).
+// A plain checklist row: met rests settled (muted check), outstanding steps
+// up to the full-ink alert read with a pointer to resolve it. Amber is not
+// spent here: blocking is not criticality.
 function Item({ label, met, outstanding }) {
   return (
     <li className={`${styles.item} ${met ? styles.itemMet : styles.itemOut}`}>
