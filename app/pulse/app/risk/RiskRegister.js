@@ -625,7 +625,11 @@ export default function RiskRegister({
           <span className={styles.statLabel}>Active</span>
         </div>
         <div className={styles.stat}>
-          <span className={`${styles.statValue} ${styles.statCritical}`}>
+          {/* Amber is criticality only, and only when it exists: a zero
+              count reads monochrome. */}
+          <span
+            className={`${styles.statValue} ${criticalCount > 0 ? styles.statCritical : ''}`}
+          >
             {criticalCount}
           </span>
           <span className={styles.statLabel}>Critical</span>
