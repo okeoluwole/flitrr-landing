@@ -542,7 +542,12 @@ export default function ActionLog({
     const promoting = promotingId === row.id;
 
     return (
-      <article key={`${kind}-${row.id}`} className={styles.pushItem}>
+      <article
+        key={`${kind}-${row.id}`}
+        className={`${styles.pushItem} ${
+          reasons.critical ? styles.pushItemCritical : ''
+        }`}
+      >
         <div className={styles.pushTags}>
           {reasons.critical && (
             <span className={`${styles.chip} ${styles.chipCritical}`}>
@@ -1039,7 +1044,7 @@ export default function ActionLog({
 
         <div className={styles.controls}>
           <div className={styles.controlRow}>
-            <span className={styles.controlLabel}>Status</span>
+            <span className={styles.roLabel}>Status</span>
             <span className={styles.roValue}>{statusLabel ?? 'Not set'}</span>
           </div>
         </div>
@@ -1047,14 +1052,14 @@ export default function ActionLog({
         {isDone(a) && (
           <div className={styles.outcome}>
             <div className={styles.controlRow}>
-              <span className={styles.controlLabel}>Outcome</span>
+              <span className={styles.roLabel}>Outcome</span>
               <span className={styles.roValue}>
                 {outcomeLabel ?? 'Not recorded'}
               </span>
             </div>
             {variance && (
               <div className={styles.controlRow}>
-                <span className={styles.controlLabel}>What varied</span>
+                <span className={styles.roLabel}>What varied</span>
                 <span className={styles.roValue}>{variance}</span>
               </div>
             )}
@@ -1176,7 +1181,12 @@ export default function ActionLog({
           <span className={styles.statLabel}>Open</span>
         </div>
         <div className={styles.stat}>
-          <span className={`${styles.statValue} ${styles.statCritical}`}>
+          {/* The amber read is gated on a live count: a zero never glows. */}
+          <span
+            className={`${styles.statValue} ${
+              criticalOpenCount > 0 ? styles.statCritical : ''
+            }`}
+          >
             {criticalOpenCount}
           </span>
           <span className={styles.statLabel}>Critical</span>

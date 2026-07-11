@@ -1,30 +1,44 @@
 /* ─────────────────────────────────────────
-   Action Log (M7.1).
+   Action Log (M7.1 + M7.2 + M7.4), on the
+   Instrument surface.
 
-   On-brand, restrained, matching the Risk
-   register in tone. Amber carries one meaning,
-   as everywhere in PULSE: criticality (an
-   action serving a protected objective).
-   Everything else stays navy and greyscale.
-   Sharp edges, hairline rules, no new library.
+   Amber carries one meaning here, as it does
+   everywhere on the instrument: criticality,
+   an action serving a non-negotiable
+   objective. It is spent on the Critical
+   pills, the critical card and feed-item
+   washes, the live Critical count, the
+   critical subset of the gate line, and the
+   add flow's logs-as-critical hint, nowhere
+   else. The needs-your-response band is a
+   sunken well, not an amber one: required
+   attention is cadence, not criticality. The
+   suggests band is a hairline frame, offered
+   knowledge. Severity (Serious) reads as the
+   register's monochrome bright fill, so the
+   two axes never blur. Cards sit as seated
+   panels; controls take the white primary;
+   delete carries the dark danger ramp.
 ───────────────────────────────────────── */
 
 .page {
-  padding-block: 3rem 6rem;
+  padding-block: 2.75rem 6rem;
   max-width: 880px;
-  --ochre: var(--app-signal-ink);
 }
+
+/* ── Back to the project ─────────────────── */
 
 .backLink {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-family: var(--font-body), sans-serif;
+  min-height: 44px;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--app-ink-secondary);
   text-decoration: none;
-  margin-bottom: 1.5rem;
+  margin: -0.6rem 0 0.6rem;
   transition: color var(--dur-fast) var(--ease-out);
 }
 
@@ -33,39 +47,52 @@
   color: var(--app-ink);
 }
 
-.backLink svg {
-  transition: transform var(--dur-fast) var(--ease-out);
+.backLink:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
-.backLink:hover svg,
-.backLink:focus-visible svg {
-  transform: translateX(-3px);
+@media (prefers-reduced-motion: no-preference) {
+  .backLink svg {
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+
+  .backLink:hover svg,
+  .backLink:focus-visible svg {
+    transform: translateX(-2px);
+  }
 }
+
+/* ── Header ──────────────────────────────── */
 
 .eyebrow {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--app-ink-secondary);
-  margin-bottom: 0.5rem;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
+  margin: 0 0 0.6rem;
 }
 
 .title {
-  font-family: var(--font-heading), sans-serif;
-  font-size: clamp(1.9rem, 4vw, 2.5rem);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.015em;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-xl);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
   color: var(--app-ink);
-  margin-bottom: 0.5rem;
+  overflow-wrap: break-word;
+  margin: 0 0 0.6rem;
 }
 
 .projectName {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 1rem;
   font-weight: 600;
   color: var(--app-ink-secondary);
-  margin-bottom: 1.75rem;
+  margin: 0 0 1.75rem;
 }
 
 /* ── Stage-gate locked state (below Stage 2) ── */
@@ -73,7 +100,7 @@
 .locked {
   background: var(--app-surface-sunken);
   border: 1px solid var(--app-border);
-  border-radius: 12px;
+  border-radius: var(--app-radius-lg);
   padding: 2rem 1.75rem;
   display: flex;
   flex-direction: column;
@@ -83,56 +110,69 @@
 }
 
 .lockedText {
-  font-family: var(--font-body), sans-serif;
-  font-size: 1rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.9375rem;
   line-height: 1.55;
   color: var(--app-ink-secondary);
   margin: 0;
 }
 
+/* The log's decisive actions do not exist below Stage 2, so this pointer
+   back stays a quiet outline, not the white primary. */
 .lockedCta {
   display: inline-flex;
   align-items: center;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9375rem;
+  min-height: 44px;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-button-primary-text);
-  background: var(--color-button-primary-bg);
-  border: 1.5px solid var(--color-button-primary-bg);
-  border-radius: 8px;
-  padding: 0.7rem 1.2rem;
+  color: var(--app-ink);
+  background: transparent;
+  border: 1px solid var(--app-border-strong);
+  border-radius: var(--app-radius-sm);
+  padding: 0.6rem 1.2rem;
   text-decoration: none;
-  transition: filter 0.18s ease;
+  transition: border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
 }
 
-.lockedCta:hover,
+.lockedCta:hover {
+  border-color: var(--app-ink);
+  background: var(--app-hover);
+}
+
 .lockedCta:focus-visible {
-  filter: brightness(0.94);
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
 }
 
-/* ── Needs-your-response band (M7.2) ─────
-   Pushed items derived live from the register.
-   The band sits on cream with white item cards,
-   the inverse of the tracked list (white cards
-   on the page), so suggestions awaiting a
-   response can never be mistaken for the
-   developer's own actions. */
+/* ── Needs-your-response band (M7.2 + A5) ──
+   Pushed items derived live from the register
+   and the RAID tables. A sunken well marks
+   required attention, the inverse of the
+   hairline suggests band below; the items sit
+   as surface cards inside it, so a suggestion
+   awaiting a response can never be mistaken
+   for a tracked action. Critical items carry
+   the same wash as their card in the
+   register, one meaning on both surfaces. */
 
 .band {
   background: var(--app-surface-sunken);
   border: 1px solid var(--app-border);
-  border-radius: 12px;
+  border-radius: var(--app-radius-lg);
   padding: 1.1rem 1.4rem 1.4rem;
   margin-bottom: 1.5rem;
 }
 
+/* Shared band heading: the mono group-title read. */
 .bandHeading {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.13em;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--app-ink);
+  color: var(--app-ink-muted);
   margin: 0 0 0.9rem;
 }
 
@@ -142,13 +182,21 @@
   gap: 0.75rem;
 }
 
-/* One pushed item: a suggestion, not a tracked action. White card, no
-   status controls, just the two responses. */
+/* One pushed item: a suggestion, not a tracked action. A surface card with
+   no status controls, just the responses. */
 .pushItem {
   background: var(--app-surface);
   border: 1px solid var(--app-border);
-  border-radius: 10px;
+  border-radius: var(--app-radius);
   padding: 1rem 1.1rem;
+}
+
+/* A critical (non-negotiable objective) item wears the same wash as its
+   card in the register, so the one functional colour means the same thing
+   on both surfaces. */
+.pushItemCritical {
+  border-color: var(--app-critical-border);
+  background: var(--app-critical-bg);
 }
 
 .pushTags {
@@ -156,15 +204,15 @@
   align-items: center;
   gap: 0.6rem;
   flex-wrap: wrap;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.55rem;
 }
 
 .pushName {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1.35;
-  letter-spacing: -0.01em;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-base);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.005em;
   color: var(--app-ink);
   margin: 0 0 0.85rem;
 }
@@ -176,51 +224,55 @@
   flex-wrap: wrap;
 }
 
-/* Why it surfaced, as plain chips. Critical wears the amber wash (the one
-   functional colour, same meaning as everywhere); Serious wears the
-   register's own severity treatment, so the two surfaces read identically. */
+/* Why it surfaced, as chips in the instrument voice. Criticality is the
+   mono pill and takes the amber wash, the one functional colour; severity
+   is the register's separate monochrome axis, the bright-fill tag, so how
+   bad never borrows the colour of what it threatens. */
 .chip {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  padding: 0.28rem 0.6rem;
-  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
   white-space: nowrap;
 }
 
 .chipCritical {
-  background: rgba(244, 192, 49, 0.18);
-  color: var(--ochre);
-  text-transform: uppercase;
-  font-size: 0.6rem;
-  letter-spacing: 0.06em;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--app-signal-wash);
+  color: var(--app-signal-ink);
+  border-color: var(--app-critical-border);
 }
 
 .chipSerious {
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
   background: var(--app-ink);
-  color: var(--app-surface-sunken);
+  color: var(--app-primary-ink);
 }
 
 /* The collapsed state: one calm line. Quiet is a feature. */
 .bandQuiet {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--app-ink-secondary);
   background: var(--app-surface-sunken);
   border: 1px solid var(--app-border);
-  border-radius: 12px;
+  border-radius: var(--app-radius-lg);
   padding: 0.85rem 1.4rem;
   margin-bottom: 1.5rem;
 }
 
 /* ── PULSE suggests band (M7.4) ──────────
-   Curated plays offered to the project. One
-   notch quieter than needs-your-response:
-   offered knowledge, not required attention,
-   so the band is a hairline frame with no
-   filled ground. */
+   Curated plays offered to the project.
+   Offered knowledge, not required attention:
+   a hairline frame with no filled ground,
+   the inverse of the response well above. */
 
 .suggestBand {
   background: transparent;
@@ -229,17 +281,17 @@
 /* A suggestion's title sits tight over its why line; the why is the
    knowledge transfer, shown in full, never truncated. */
 .playTitle {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1.35;
-  letter-spacing: -0.01em;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-base);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.005em;
   color: var(--app-ink);
   margin: 0 0 0.35rem;
 }
 
 .why {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.875rem;
   line-height: 1.55;
   color: var(--app-ink-secondary);
@@ -251,62 +303,78 @@
 }
 
 /* The quiet provenance label (A4): the knowledge source a surfaced or
-   engine-raised item is labelled by (This project, Playbook library). Muted
-   metadata, never amber. The risk variant is a link (.fromRisk) that cites the
-   source risk in the register; the rest are plain text. */
+   engine-raised item is labelled by (This project, Playbook library).
+   Muted metadata in the instrument voice, never amber. The risk variant is
+   a link (.fromRisk) that cites the source risk in the register; the rest
+   are plain text. */
 .provenance {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 400;
+  letter-spacing: 0.01em;
   color: var(--app-ink-secondary);
 }
 
-/* The RAID kind label (A5): the item type in the band (Assumption, Constraint,
-   Dependency). A small muted category tag, never amber. */
+/* The RAID kind label (A5): the item type in the band (Assumption,
+   Constraint, Dependency). A small muted category tag, never amber. */
 .kind {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.65rem;
-  font-weight: 700;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--app-ink-secondary);
+  color: var(--app-ink-muted);
 }
 
 /* The quiet provenance marker on a tracked action promoted from a risk,
-   linking back to the source risk in the register. */
+   linking back to the source risk in the register. The hit area meets 44px
+   without inflating the chip row; the hairline underline hugs the text. */
 .fromRisk {
-  font-family: var(--font-body), sans-serif;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-block: -0.55rem;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 400;
+  letter-spacing: 0.01em;
   color: var(--app-ink-secondary);
-  text-decoration: none;
-  border-bottom: 1px solid var(--app-ink-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--app-border-strong);
   transition: color var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out);
+    text-decoration-color var(--dur-fast) var(--ease-out);
 }
 
-.fromRisk:hover,
-.fromRisk:focus-visible {
+.fromRisk:hover {
   color: var(--app-ink);
-  border-color: var(--app-ink);
+  text-decoration-color: var(--app-ink);
+}
+
+.fromRisk:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 /* ── Gate readiness (A3) ─────────────────
-   The operational headline: the open actions bearing on the current stage's
-   gate. A calm paper panel, narrative rather than a stat clone; the critical
-   subset wears the one amber meaning. */
+   The operational headline: the open actions bearing on the current
+   stage's gate. A seated statement panel, narrative rather than a stat
+   clone; the critical subset wears the one amber meaning and only renders
+   when it is live. */
 
 .gateReady {
   background: var(--app-surface);
   border: 1px solid var(--app-border);
-  border-radius: 12px;
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-elev-1);
   padding: 1.1rem 1.4rem;
   margin-bottom: 1.5rem;
 }
 
 .gateReadyLine {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9375rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-base);
   line-height: 1.55;
   color: var(--app-ink-secondary);
   margin: 0;
@@ -314,8 +382,8 @@
 }
 
 .gateReadyCritical {
-  color: var(--ochre);
-  font-weight: 700;
+  color: var(--app-signal-ink);
+  font-weight: 600;
 }
 
 /* ── Summary bar ───────────────────────── */
@@ -325,59 +393,67 @@
   align-items: center;
   gap: 2rem;
   flex-wrap: wrap;
-  padding: 1.1rem 1.4rem;
+  padding: 1rem 1.4rem;
   background: var(--app-surface);
   border: 1px solid var(--app-border);
-  border-radius: 12px;
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-elev-1);
   margin-bottom: 1.5rem;
 }
 
 .stat {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 0.15rem;
 }
 
+/* Counts speak in the numeric instrument voice. */
 .statValue {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 1.6rem;
-  font-weight: 800;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 1.5rem;
+  font-weight: 600;
   line-height: 1;
-  letter-spacing: -0.01em;
   color: var(--app-ink);
   font-variant-numeric: tabular-nums;
 }
 
+/* The critical count is a literal criticality read, so it takes the amber
+   text tone. The JS gates the class on a live count, so a zero never
+   glows. */
 .statCritical {
-  color: var(--ochre);
+  color: var(--app-signal-ink);
 }
 
 .statLabel {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--app-ink-secondary);
+  color: var(--app-ink-muted);
 }
 
 .doneToggle {
   margin-left: auto;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
   font-weight: 600;
   color: var(--app-ink);
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: 8px;
-  padding: 0.5rem 0.85rem;
+  background: transparent;
+  border: 1px solid var(--app-border-strong);
+  border-radius: var(--app-radius-sm);
+  padding: 0.5rem 0.95rem;
   cursor: pointer;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition: border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
 }
 
 .doneToggle:hover {
   border-color: var(--app-ink);
-  background: rgba(55, 97, 131, 0.05);
+  background: var(--app-hover);
 }
 
 .doneToggle:focus-visible {
@@ -386,7 +462,7 @@
 }
 
 .error {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--app-danger);
@@ -401,7 +477,8 @@
   gap: 0.7rem;
   background: var(--app-surface);
   border: 1px solid var(--app-border);
-  border-radius: 10px;
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-elev-1);
   padding: 1rem 1.1rem;
   margin-bottom: 1.5rem;
 }
@@ -413,25 +490,28 @@
   flex-wrap: wrap;
 }
 
+/* Inputs are sunken instrument wells. */
 .input {
-  font-family: var(--font-body), sans-serif;
+  min-height: 44px;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.875rem;
   color: var(--app-ink);
   background: var(--app-surface-sunken);
   border: 1px solid var(--app-border);
-  border-radius: 8px;
-  padding: 0.55rem 0.75rem;
+  border-radius: var(--app-radius-sm);
+  padding: 0.55rem 0.8rem;
   min-width: 0;
+  transition: border-color var(--dur-fast) var(--ease-out);
 }
 
 .input::placeholder {
-  color: var(--app-ink-secondary);
+  color: var(--app-ink-muted);
 }
 
 .input:focus-visible {
   outline: 2px solid var(--app-focus);
-  outline-offset: 1px;
-  border-color: var(--app-ink);
+  outline-offset: 2px;
+  border-color: var(--app-border-strong);
 }
 
 .noteInput {
@@ -439,65 +519,75 @@
 }
 
 .select {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
+  min-height: 44px;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
   font-weight: 600;
   color: var(--app-ink);
   background: var(--app-surface-sunken);
   border: 1px solid var(--app-border);
-  border-radius: 8px;
+  border-radius: var(--app-radius-sm);
   padding: 0.55rem 0.6rem;
   max-width: 100%;
   cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out);
 }
 
 .select:focus-visible {
   outline: 2px solid var(--app-focus);
-  outline-offset: 1px;
-  border-color: var(--app-ink);
+  outline-offset: 2px;
+  border-color: var(--app-border-strong);
 }
 
 /* The cascade made visible: what the link will log the action as. The one
-   amber moment in the add flow, only when it means critical. */
+   amber moment in the add flow, rendered only when it means critical, in
+   the same pill the card will wear. */
 .addHint {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  padding: 0.28rem 0.55rem;
-  border-radius: 3px;
-  background: rgba(244, 192, 49, 0.18);
-  color: var(--ochre);
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--app-signal-wash);
+  color: var(--app-signal-ink);
+  border: 1px solid var(--app-critical-border);
   white-space: nowrap;
 }
 
 .primaryBtn {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--color-button-primary-text);
-  background: var(--color-button-primary-bg);
-  border: 1.5px solid var(--color-button-primary-bg);
-  border-radius: 8px;
-  padding: 0.5rem 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
+  font-weight: 600;
+  color: var(--app-primary-ink);
+  background: var(--app-primary);
+  border: 1px solid transparent;
+  border-radius: var(--app-radius-sm);
+  padding: 0.5rem 1rem;
   cursor: pointer;
-  transition: filter 0.18s ease, opacity 0.18s ease;
+  transition: background-color var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
 }
 
-.primaryBtn:hover {
-  filter: brightness(0.94);
+.primaryBtn:hover:not(:disabled) {
+  background: var(--app-primary-hover);
 }
 
 .primaryBtn:focus-visible {
   outline: 2px solid var(--app-focus);
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
 .primaryBtn:disabled {
   opacity: 0.45;
   cursor: default;
-  filter: none;
 }
 
 .addBtn {
@@ -509,12 +599,12 @@
 .empty {
   background: var(--app-surface-sunken);
   border: 1px solid var(--app-border);
-  border-radius: 12px;
+  border-radius: var(--app-radius-lg);
   padding: 2rem 1.75rem;
 }
 
 .emptyText {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.9375rem;
   line-height: 1.55;
   color: var(--app-ink-secondary);
@@ -533,12 +623,14 @@
 .card {
   background: var(--app-surface);
   border: 1px solid var(--app-border);
-  border-radius: 10px;
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-elev-1);
   padding: 1.25rem 1.4rem;
 }
 
-/* Critical (protected-objective) actions carry the amber accent, as in the
-   Brief and the register. The one functional colour, meaning the same thing. */
+/* Critical (non-negotiable objective) actions carry the amber accent, as
+   in the Brief and the register. The one functional colour, meaning the
+   same thing. */
 .cardCritical {
   border-color: var(--app-critical-border);
   background: var(--app-critical-bg);
@@ -561,43 +653,49 @@
   min-width: 0;
 }
 
-/* The criticality chip states what the linked objective makes of the action:
-   Critical (amber), Standard, or Needs a link. Static, not a control:
-   criticality follows the objective now (A2), it is not toggled. */
+/* The criticality chip states what the linked objective makes of the
+   action: Critical (the amber pill), Standard (the quiet outline), or
+   Needs a link. Static, not a control: criticality follows the objective
+   now (A2), it is not toggled. */
 .crit {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  padding: 0.2rem 0.45rem;
-  border-radius: 3px;
+  padding: 3px 10px;
+  border-radius: 999px;
   border: 1px solid transparent;
   white-space: nowrap;
 }
 
 .critCritical {
-  background: rgba(244, 192, 49, 0.18);
-  color: var(--ochre);
+  background: var(--app-signal-wash);
+  color: var(--app-signal-ink);
+  border-color: var(--app-critical-border);
 }
 
 .critStandard {
-  background: var(--app-surface-sunken);
+  background: transparent;
   color: var(--app-ink-secondary);
+  border-color: var(--app-border);
 }
 
-/* Needs a link: a governance gap, not a criticality. A hairline dashed frame
+/* Needs a link: a governance gap, not a criticality. The dashed outline
    marks it as incomplete without borrowing amber, which means criticality
    alone. */
 .critUnlinked {
   background: transparent;
-  color: var(--app-ink-secondary);
+  color: var(--app-ink-muted);
   border: 1px dashed var(--app-border-strong);
 }
 
-/* The criticality detail under an action: the derivation in plain words and
-   the one allowed change, reducing a derived-critical action to standard with
-   a recorded reason. The text buttons reuse the card-foot vocabulary. */
+/* The criticality detail under an action: the derivation in plain words
+   and the one allowed change, reducing a derived-critical action to
+   standard with a recorded reason. The text buttons reuse the card-foot
+   vocabulary. */
 .critDetail {
   display: flex;
   flex-direction: column;
@@ -607,8 +705,8 @@
 }
 
 .critCaption {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
   line-height: 1.5;
   color: var(--app-ink-secondary);
   margin: 0;
@@ -616,16 +714,16 @@
 }
 
 .critReason {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
   line-height: 1.5;
   color: var(--app-ink);
   margin: 0;
   max-width: 60ch;
 }
 
-/* The reason-tagged override form, inline when reducing to standard. Reason is
-   required: Reduce stays disabled until it is given. */
+/* The reason-tagged override form, inline when reducing to standard.
+   Reason is required: Reduce stays disabled until it is given. */
 .overrideForm {
   display: flex;
   flex-direction: column;
@@ -642,38 +740,42 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  flex-wrap: wrap;
 }
 
+/* The objective the action serves: meta, in the instrument voice. */
 .objective {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 600;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
   color: var(--app-ink-secondary);
 }
 
 .description {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 1.0625rem;
-  font-weight: 700;
-  line-height: 1.35;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-md);
+  font-weight: 600;
+  line-height: 1.4;
   letter-spacing: -0.01em;
   color: var(--app-ink);
-  margin-bottom: 0.35rem;
+  margin: 0 0 0.35rem;
 }
 
 .noteText {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.875rem;
   line-height: 1.5;
   color: var(--app-ink-secondary);
   margin: 0;
 }
 
-/* The citable reason an engine-raised action was raised (A4): the play's why,
-   or why a risk was promoted. Quiet metadata, the engine's trace within reach. */
+/* The citable reason an engine-raised action was raised (A4): the play's
+   why, or why a risk was promoted. Quiet metadata, the engine's trace
+   within reach. */
 .reasonLine {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
   line-height: 1.5;
   color: var(--app-ink-secondary);
   margin: 0.35rem 0 0;
@@ -699,44 +801,53 @@
 .controlLabel {
   flex: 0 0 auto;
   width: 168px;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 600;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
+  font-weight: 500;
+  line-height: 1.4;
   color: var(--app-ink);
 }
 
-/* Segmented control (the one-tap status). */
+/* Segmented control (the one-tap status and outcome): a sunken instrument
+   well; the settled value is the bright monochrome fill. */
 .seg {
   display: inline-flex;
   flex-wrap: wrap;
-  background: var(--app-surface);
+  background: var(--app-surface-sunken);
   border: 1px solid var(--app-border);
-  border-radius: 8px;
+  border-radius: var(--app-radius-sm);
   padding: 3px;
   gap: 2px;
 }
 
 .segBtn {
-  font-family: var(--font-body), sans-serif;
-  font-weight: 600;
-  font-size: 0.8125rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  font-family: var(--app-font-sans), sans-serif;
+  font-weight: 500;
+  font-size: var(--app-text-sm);
   color: var(--app-ink-secondary);
   border: 0;
   background: transparent;
-  padding: 0.42rem 0.8rem;
-  border-radius: 6px;
+  padding: 0.35rem 0.8rem;
+  border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
 }
 
 .segBtn:hover {
   color: var(--app-ink);
+  background: var(--app-hover);
 }
 
 .segBtnActive,
 .segBtnActive:hover {
   background: var(--app-ink);
-  color: var(--app-surface-sunken);
+  color: var(--app-primary-ink);
+  font-weight: 600;
 }
 
 .segBtn:focus-visible {
@@ -746,15 +857,15 @@
 
 /* ── Outcome capture on close (A7) ───────
    How a closed action closed (the outcome) and what varied from plan, the
-   lessons-learnt input. Sits under the status on a done card, behind its own
-   hairline. The variance note appears once an outcome is recorded. */
+   lessons-learnt input. Sits under the status on a done card, behind its
+   own hairline. The variance note appears once an outcome is recorded. */
 .outcome {
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
   margin-top: 1.1rem;
   padding-top: 0.85rem;
-  border-top: 1px solid var(--app-surface-sunken);
+  border-top: 1px solid var(--app-hairline);
 }
 
 .varianceInput {
@@ -791,27 +902,32 @@
   gap: 0.6rem;
 }
 
-/* Shared by buttons and links (Review in register renders as a Link), so it
-   carries the anchor resets too. */
+/* Shared by buttons and links (Review in register renders as a Link), so
+   it carries the anchor resets too. */
 .ghostBtn {
   display: inline-flex;
   align-items: center;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
+  justify-content: center;
+  min-height: 44px;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
   font-weight: 600;
   color: var(--app-ink-secondary);
   background: transparent;
   border: 1px solid var(--app-border);
-  border-radius: 8px;
-  padding: 0.5rem 0.9rem;
+  border-radius: var(--app-radius-sm);
+  padding: 0.5rem 1rem;
   cursor: pointer;
   text-decoration: none;
-  transition: border-color 0.15s ease, color 0.15s ease;
+  transition: border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
 }
 
-.ghostBtn:hover {
-  border-color: var(--app-ink);
+.ghostBtn:hover:not(:disabled) {
+  border-color: var(--app-border-strong);
   color: var(--app-ink);
+  background: var(--app-hover);
 }
 
 .ghostBtn:focus-visible {
@@ -834,12 +950,14 @@
   flex-wrap: wrap;
   margin-top: 1.1rem;
   padding-top: 0.85rem;
-  border-top: 1px solid var(--app-surface-sunken);
+  border-top: 1px solid var(--app-hairline);
 }
 
+/* The logged stamp is a date: the instrument voice, quiet. */
 .logged {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.75rem;
+  font-family: var(--app-font-mono), monospace;
+  font-size: var(--app-text-xs);
+  letter-spacing: 0.01em;
   color: var(--app-ink-muted);
 }
 
@@ -849,16 +967,22 @@
   gap: 0.9rem;
 }
 
+/* Quiet text actions (edit, delete, the criticality detail's one change).
+   The hit area meets 44px without inflating the visual line. */
 .footBtn {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
   font-weight: 600;
   color: var(--app-ink-secondary);
   background: transparent;
   border: 0;
   padding: 0.2rem 0;
+  margin-block: -0.5rem;
   cursor: pointer;
-  transition: color 0.15s ease;
+  transition: color var(--dur-fast) var(--ease-out);
 }
 
 .footBtn:hover {
@@ -868,6 +992,7 @@
 .footBtn:focus-visible {
   outline: 2px solid var(--app-focus);
   outline-offset: 2px;
+  border-radius: 2px;
 }
 
 .footBtnDanger:hover {
@@ -875,7 +1000,8 @@
 }
 
 /* Delete is behind a confirm step: delete is for mistakes, done is for
-   completed work. The confirm Delete is the one place error red acts. */
+   completed work. The confirm Delete is the one place the danger ramp
+   acts, tuned for the dark ground and never amber. */
 .confirm {
   display: flex;
   align-items: center;
@@ -884,32 +1010,36 @@
 }
 
 .confirmText {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
   font-weight: 600;
   color: var(--app-ink);
 }
 
 .dangerBtn {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--app-surface);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
+  font-weight: 600;
+  color: var(--app-primary-ink);
   background: var(--app-danger);
-  border: 1.5px solid var(--app-danger);
-  border-radius: 8px;
-  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--app-danger);
+  border-radius: var(--app-radius-sm);
+  padding: 0.5rem 1rem;
   cursor: pointer;
-  transition: filter 0.18s ease;
+  transition: filter var(--dur-fast) var(--ease-out);
 }
 
 .dangerBtn:hover {
-  filter: brightness(0.94);
+  filter: brightness(1.06);
 }
 
 .dangerBtn:focus-visible {
-  outline: 2px solid var(--app-danger);
-  outline-offset: 2px;
+  outline: 2px solid var(--app-focus);
+  outline-offset: 3px;
 }
 
 /* ── Done section ──────────────────────── */
@@ -919,33 +1049,18 @@
 }
 
 .doneHeading {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.13em;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--app-ink-secondary);
-  margin-bottom: 1rem;
+  color: var(--app-ink-muted);
+  margin: 0 0 1rem;
 }
 
 /* Done cards read quieter than open ones. */
 .doneSection .card {
-  opacity: 0.78;
-}
-
-@media (max-width: 640px) {
-  .controlLabel {
-    width: 100%;
-  }
-  .summary {
-    gap: 1.25rem;
-  }
-  .addBtn {
-    margin-left: 0;
-  }
-  .roValue {
-    width: 100%;
-  }
+  opacity: 0.72;
 }
 
 /* ── View only (member) ────────────────── */
@@ -956,21 +1071,67 @@
   margin: -1rem 0 1.75rem;
 }
 
+/* The member card's spec-sheet labels: mono, against plain settled
+   values, mirroring the register's read-only detail. */
+.roLabel {
+  flex: 0 0 auto;
+  width: 168px;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
+  margin: 0;
+}
+
 /* The settled value that replaces a segmented control on a member's card. */
 .roValue {
   flex: 1 1 200px;
   min-width: 0;
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.875rem;
   line-height: 1.5;
-  color: var(--app-ink-secondary);
+  color: var(--app-ink);
 }
 
 /* The one sparse line a member sees where the add flow sits for an admin. */
 .memberNote {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.875rem;
   line-height: 1.5;
   color: var(--app-ink-secondary);
   margin: 0 0 1.75rem;
+}
+
+/* ── Phone-first adjustments ───────────── */
+
+@media (max-width: 640px) {
+  .controlLabel,
+  .roLabel {
+    width: 100%;
+  }
+
+  /* Segments stretch to comfortable full-width touch targets. */
+  .seg {
+    display: flex;
+    width: 100%;
+  }
+
+  .segBtn {
+    flex: 1 1 auto;
+    min-height: 44px;
+  }
+
+  .summary {
+    gap: 1.25rem;
+  }
+
+  .addBtn {
+    margin-left: 0;
+  }
+
+  .roValue {
+    width: 100%;
+  }
 }
