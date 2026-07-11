@@ -73,9 +73,11 @@
 
   /* ── Ink theme: the marketing ground ──────────────────────
      The brand navy pushed to a near-black ramp. The marketing
-     surfaces stand on ink; the product app stays on the light
-     tokens above. Amber is reserved for signal on ink: the
-     pulse line, criticality, the primary CTA. */
+     surfaces stand on ink; the product app stands on its own
+     --app-* Instrument tokens below (a cooler graphite, so the
+     two blacks read as different blacks). Amber is reserved
+     for signal on ink: the pulse line, criticality, the
+     primary CTA. */
   --color-ink-950: #0B141E;  /* page ground */
   --color-ink-900: #101C29;  /* raised band */
   --color-ink-800: #142435;  /* card on ink */
