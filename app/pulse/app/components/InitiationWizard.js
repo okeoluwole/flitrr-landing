@@ -30,10 +30,9 @@ import styles from './InitiationWizard.module.css';
 /**
  * InitiationWizard, the nine-step PULSE Project Initiation flow.
  *
- * The widened nine-step flow. Steps 3 (Scope and Site) and 6 (Financial
- * Baseline) are navigable placeholders for now; step 4 holds the workstreams
- * list until the parties, the authority and the cadence are added; step 5
- * merges the objective definitions and the priority ranking. The rest are built.
+ * The widened nine-step flow, all nine steps built: step 3 merges the
+ * objective definitions and the priority ranking; step 5 carries the
+ * parties, the authority, the cadence and the workstreams list.
  * Architecture decisions:
  *
  *   - One route, one wizard. The progress indicator shows all nine steps.

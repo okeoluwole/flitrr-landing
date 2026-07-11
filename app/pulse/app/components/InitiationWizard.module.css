@@ -1,8 +1,16 @@
-/* ─────────────────────────────────────────
-   InitiationWizard, the nine-step PULSE
-   Project Initiation flow. Shared by the
-   wizard shell and every step component.
-───────────────────────────────────────── */
+/*
+ * InitiationWizard on the Instrument surface: the nine-step PULSE Project
+ * Initiation flow. Shared by the wizard shell and every step component.
+ *
+ * Amber spends on criticality only. Here that is the classification read
+ * alone: the Non-negotiable ranking pill, the Critical milestone badge,
+ * and the over-constraint warning (all non-negotiable IS the criticality
+ * read, the gate screen's precedent). The progress rail is monochrome by
+ * intensity (progress is not criticality), the required marker holds ink,
+ * and the advised-date suggestion is a quiet mono chip. Danger red belongs
+ * to the failed save and the remove affordance alone. Mobile-first; the
+ * rail goes vertical at 880px.
+ */
 
 .page {
   padding-block: 2.5rem 5rem;
@@ -28,7 +36,7 @@
   }
 }
 
-/* ── Wizard header ─────────────────────── */
+/* ── Wizard header ── */
 
 .header {
   margin-bottom: 2rem;
@@ -38,12 +46,14 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-family: var(--font-body), sans-serif;
+  min-height: 44px;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--app-ink-secondary);
   text-decoration: none;
-  margin-bottom: 1.25rem;
+  margin: -0.6rem 0 0.6rem;
+  transition: color var(--dur-fast) var(--ease-out);
 }
 
 .backLink:hover,
@@ -51,65 +61,76 @@
   color: var(--app-ink);
 }
 
+.backLink:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 .title {
-  font-family: var(--font-heading), sans-serif;
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.015em;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-xl);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
   color: var(--app-ink);
+  overflow-wrap: break-word;
   margin-bottom: 0.5rem;
 }
 
 .subtitle {
-  font-family: var(--font-body), sans-serif;
-  font-size: 1.0625rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.9375rem;
   font-weight: 400;
-  line-height: 1.55;
+  line-height: 1.6;
   color: var(--app-ink-secondary);
-  max-width: 640px;
+  max-width: 60ch;
 }
 
 /* ── Stage indicator (M5) ──
-   Surfaces the project's current lifecycle stage on the project view so the
-   Gate 1 to 2 advance is visible. A state indicator only, not a Stage 2
-   workspace. */
+   The stage read, in the numeric instrument voice: the same line the hub row
+   and the workspace carry. A state indicator only, never a chip. */
 .stageIndicator {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   flex-wrap: wrap;
-  gap: 0.5rem 0.85rem;
-  margin-top: 1rem;
+  gap: 0.35rem 0.85rem;
+  margin-top: 0.9rem;
 }
 
 .stageChip {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--app-surface);
-  background: var(--app-ink);
-  padding: 0.32rem 0.7rem;
-  border-radius: 999px;
-}
-
-.stageDecision {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
   color: var(--app-ink-secondary);
 }
 
-/* ── Progress: the pulse line. A compact node strip on mobile, a vertical
-   rail beside the work column on desktop (see the 880px block below). ── */
+.stageDecision {
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  color: var(--app-ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Progress: the step rail. A compact node strip on mobile, a vertical
+   rail beside the work column on desktop (see the 880px block below).
+   Monochrome by intensity: reached nodes take the grey fill, the current
+   node the bright ring. Progress is not criticality, so never amber. ── */
 
 .progress {
-  background-color: var(--app-console);
+  /* min-width 0 lets the 1fr track shrink below the node strip's intrinsic
+     width on narrow phones; the strip then scrolls inside (.steps). */
+  min-width: 0;
+  background-color: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
-  padding: 1.1rem 1.25rem 0.95rem;
-  box-shadow: var(--app-elev-console);
+  padding: 0.9rem 1rem 0.75rem;
+  box-shadow: var(--app-elev-1);
 }
 
 .steps {
@@ -133,9 +154,9 @@
   text-align: center;
 }
 
-/* The pulse line: a faint connector to the previous node, lit amber once
-   the step has been reached. Horizontal on mobile; the 880px block turns it
-   into the vertical rail. */
+/* The connector to the previous node: a hairline, lifted to the grey done
+   tone once the step has been reached. Horizontal on mobile; the 880px
+   block turns it into the vertical rail. */
 .step:not(:first-child)::before {
   content: '';
   position: absolute;
@@ -161,12 +182,12 @@
   width: 36px;
   height: 36px;
   border-radius: 999px;
-  border: 2px solid var(--app-console-hairline-strong);
-  background-color: var(--app-console);
-  font-family: var(--font-body), sans-serif;
+  border: 2px solid var(--app-border);
+  background-color: var(--app-surface);
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--app-on-console-faint);
+  font-weight: 500;
+  color: var(--app-ink-muted);
   cursor: pointer;
   transition: background-color var(--dur-fast) var(--ease-out),
     border-color var(--dur-fast) var(--ease-out),
@@ -175,47 +196,61 @@
     transform var(--dur-fast) var(--ease-out);
 }
 
+/* The 44px hit area around the 36px node. */
+.dotButton::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 999px;
+}
+
 .dotButton:disabled {
   cursor: not-allowed;
 }
 
+/* Reached: the grey node fill, the rail's done vocabulary. */
 .stepReached .dotButton {
-  border-color: var(--app-signal);
-  color: var(--app-signal);
+  border-color: var(--app-rail-node-done);
+  background-color: var(--app-rail-node-done);
+  color: var(--app-primary-ink);
+  font-weight: 600;
 }
 
 .stepReached .dotButton:hover {
-  background-color: rgba(244, 192, 49, 0.14);
+  box-shadow: 0 0 0 3px var(--app-hover);
 }
 
+/* Current: the bright ring, hollow, the live position. */
 .stepCurrent .dotButton {
-  border-color: var(--app-signal);
-  background-color: var(--app-signal);
-  color: var(--app-console);
+  border-color: var(--app-ink);
+  background-color: var(--app-surface);
+  color: var(--app-ink);
+  font-weight: 600;
   transform: scale(1.08);
-  box-shadow: 0 0 0 4px var(--app-signal-wash);
 }
 
 .dotButton:focus-visible {
-  outline: 2px solid var(--app-focus-on-console);
+  outline: 2px solid var(--app-focus);
   outline-offset: 2px;
 }
 
 .stepName {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.75rem;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
   font-weight: 500;
-  line-height: 1.25;
-  color: var(--app-on-console-faint);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.3;
+  color: var(--app-ink-muted);
   max-width: 88px;
 }
 
 .stepReached .stepName {
-  color: var(--app-on-console-secondary);
+  color: var(--app-ink-secondary);
 }
 
 .stepCurrent .stepName {
-  color: var(--app-on-console);
+  color: var(--app-ink);
   font-weight: 600;
 }
 
@@ -225,12 +260,12 @@
 }
 
 /* Desktop: the rail goes vertical, each step a node-and-label row, the
-   pulse line running down through the nodes. */
+   connector running down through the nodes. */
 @media (min-width: 880px) {
   .progress {
     position: sticky;
-    top: 88px;
-    padding: 1.35rem 1.2rem;
+    top: 72px;
+    padding: 1.2rem 1.1rem;
   }
 
   .steps {
@@ -265,13 +300,13 @@
   }
 }
 
-/* ── Step panel ────────────────────────── */
+/* ── Step panel ── */
 
 .panel {
   background-color: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
-  padding: clamp(1.5rem, 3vw, 2.5rem);
+  padding: clamp(1.25rem, 3vw, 2rem);
   box-shadow: var(--app-elev-1);
 }
 
@@ -293,8 +328,8 @@
 }
 
 .skelBar {
-  height: 46px;
-  border-radius: 8px;
+  height: 44px;
+  border-radius: var(--app-radius-sm);
   background-color: var(--app-border);
   opacity: 0.5;
 }
@@ -313,33 +348,36 @@
 }
 
 .panelEyebrow {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--app-ink-secondary);
-  margin-bottom: 0.5rem;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
+  margin-bottom: 0.6rem;
 }
 
 .panelHeading {
-  font-family: var(--font-heading), sans-serif;
-  font-size: clamp(1.375rem, 3vw, 1.75rem);
-  font-weight: 800;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-lg);
+  font-weight: 600;
+  line-height: 1.2;
   letter-spacing: -0.01em;
   color: var(--app-ink);
   margin-bottom: 0.5rem;
 }
 
 .panelIntro {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.9375rem;
   font-weight: 400;
-  line-height: 1.55;
+  line-height: 1.6;
   color: var(--app-ink-secondary);
   margin-bottom: 1.75rem;
-  max-width: 620px;
+  max-width: 62ch;
 }
 
-/* ── Form fields ───────────────────────── */
+/* ── Form fields ── */
 
 .fieldGrid {
   display: grid;
@@ -364,19 +402,21 @@
 }
 
 .label {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
   color: var(--app-ink);
 }
 
+/* Required-ness is intensity, never amber: a requirement is not criticality. */
 .required {
-  color: var(--app-signal-ink);
+  color: var(--app-ink);
+  font-weight: 600;
   margin-left: 0.15rem;
 }
 
 .optional {
-  font-weight: 400;
+  font-weight: 500;
   color: var(--app-ink-secondary);
   margin-left: 0.3rem;
 }
@@ -385,49 +425,47 @@
 .select,
 .textarea {
   width: 100%;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9375rem;
+  min-height: 44px;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.875rem;
   font-weight: 400;
+  line-height: 1.5;
   color: var(--app-ink);
-  background-color: var(--app-surface);
+  background-color: var(--app-surface-sunken);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-sm);
-  padding: 0.7rem 0.85rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  padding: 0.6rem 0.75rem;
+  color-scheme: dark;
+  transition: border-color var(--dur-fast) var(--ease-out);
 }
 
 .textarea {
   min-height: 110px;
   resize: vertical;
-  line-height: 1.5;
 }
 
 .input::placeholder,
 .textarea::placeholder {
-  color: var(--app-ink-secondary);
+  color: var(--app-ink-muted);
 }
 
-.input:focus,
-.select:focus,
-.textarea:focus {
-  outline: none;
-  border-color: var(--app-focus);
-  box-shadow: 0 0 0 3px rgba(55, 97, 131, 0.15);
+.input:focus-visible,
+.select:focus-visible,
+.textarea:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 1px;
+  border-color: var(--app-border-strong);
 }
 
 .select {
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%237793A8' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.85rem center;
-  padding-right: 2.25rem;
+  cursor: pointer;
 }
 
 .hint {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.8125rem;
   font-weight: 400;
-  line-height: 1.4;
+  line-height: 1.45;
   color: var(--app-ink-secondary);
 }
 
@@ -436,33 +474,36 @@
 .groupHead {
   margin-top: 0.5rem;
   padding-top: 1.5rem;
-  border-top: 1px solid var(--app-border);
+  border-top: 1px solid var(--app-hairline);
 }
 
 .groupTitle {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--app-ink);
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.35rem;
 }
 
 .groupHint {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.8125rem;
   font-weight: 400;
-  line-height: 1.45;
+  line-height: 1.5;
   color: var(--app-ink-secondary);
-  max-width: 560px;
+  max-width: 60ch;
 }
 
-/* ── Footer navigation ─────────────────── */
+/* ── Footer navigation ── */
 
+/* The failed save: the dark-tuned danger, text plus tone, never colour
+   alone (the row carries role="alert"). */
 .error {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--app-danger);
   margin-top: 1.5rem;
 }
@@ -479,40 +520,44 @@
 .btnNext {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9375rem;
+  min-height: 44px;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.875rem;
   font-weight: 600;
-  border-radius: 8px;
-  padding: 0.75rem 1.25rem;
+  border-radius: var(--app-radius-sm);
+  padding: 0.6rem 1.1rem;
   cursor: pointer;
-  transition: filter 0.18s ease, background-color 0.15s ease,
-    border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+  transition: background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
 }
 
 .btnBack {
   background-color: transparent;
-  border: 1.5px solid var(--app-border);
+  border: 1px solid var(--app-border-strong);
   color: var(--app-ink);
 }
 
 .btnBack:hover:not(:disabled) {
-  border-color: var(--app-border-strong);
+  border-color: var(--app-ink);
 }
 
 .btnNext {
-  background-color: var(--color-button-primary-bg);
-  border: 1.5px solid var(--color-button-primary-bg);
-  color: var(--color-button-primary-text);
+  background-color: var(--app-primary);
+  border: none;
+  color: var(--app-primary-ink);
 }
 
 .btnNext:hover:not(:disabled) {
-  filter: brightness(0.94);
+  background-color: var(--app-primary-hover);
 }
 
 .btnBack:disabled,
 .btnNext:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
@@ -529,18 +574,19 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9375rem;
+  min-height: 44px;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--app-ink);
   text-decoration: none;
-  padding: 0.75rem 0.85rem;
-  border-radius: 8px;
-  transition: background-color 0.15s ease, filter 0.15s ease;
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--app-radius-sm);
+  transition: background-color var(--dur-fast) var(--ease-out);
 }
 
 .returnLink:hover {
-  background-color: rgba(55, 97, 131, 0.06);
+  background-color: var(--app-hover);
 }
 
 .returnLink:focus-visible {
@@ -548,64 +594,51 @@
   outline-offset: 2px;
 }
 
-/* ── Placeholder steps (3 to 8) ────────── */
+/* The footer arrows answer the hover, gently and only when motion is
+   welcome. */
+@media (prefers-reduced-motion: no-preference) {
+  .backLink svg,
+  .btnBack svg,
+  .btnNext svg,
+  .returnLink svg {
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
 
-.placeholder {
-  text-align: center;
-  padding-block: 1.5rem;
+  .backLink:hover svg,
+  .backLink:focus-visible svg,
+  .btnBack:hover:not(:disabled) svg {
+    transform: translateX(-3px);
+  }
+
+  .btnNext:hover:not(:disabled) svg,
+  .returnLink:hover svg {
+    transform: translateX(3px);
+  }
 }
 
-.placeholderBadge {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 5px 11px;
-  border-radius: 999px;
-  background-color: rgba(181, 188, 202, 0.3);
-  color: var(--app-ink-secondary);
-  border: 1px solid var(--app-border);
-  margin-bottom: 1.25rem;
-}
-
-.placeholderHeading {
-  font-family: var(--font-heading), sans-serif;
-  font-size: clamp(1.375rem, 3vw, 1.75rem);
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: var(--app-ink);
-  margin-bottom: 0.75rem;
-}
-
-.placeholderBody {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9375rem;
-  font-weight: 400;
-  line-height: 1.55;
-  color: var(--app-ink-secondary);
-  max-width: 460px;
-  margin: 0 auto;
-}
-
-/* ── Step 3: Project Objectives ────────── */
+/* ── Step 3: Objectives and Priority ──
+   The five objectives as a hairline-ruled register inside the panel, never
+   boxes within the box. */
 
 .objList {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 0;
 }
 
 .objCard {
   display: flex;
   flex-direction: column;
   gap: 1.1rem;
-  background-color: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: 12px;
-  padding: clamp(1.1rem, 2.5vw, 1.5rem);
+  padding: 1.35rem 0;
+}
+
+.objCard:first-child {
+  padding-top: 0.25rem;
+}
+
+.objCard:not(:first-child) {
+  border-top: 1px solid var(--app-hairline);
 }
 
 .objCardHead {
@@ -615,25 +648,28 @@
 }
 
 .objName {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 1.0625rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--app-ink);
 }
 
 .objDesc {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.8125rem;
   font-weight: 400;
-  line-height: 1.45;
+  line-height: 1.5;
   color: var(--app-ink-secondary);
+  max-width: 62ch;
 }
 
-/* Classification choice: two radios styled as selectable cards. The
-   native inputs stay in the DOM (keyboard and screen-reader operable) but
-   are visually hidden; the label card carries the visible styling and the
-   focus ring (via :focus-within). */
+/* Classification choice: two radios styled as selectable wells. The native
+   inputs stay in the DOM (keyboard and screen-reader operable) but are
+   visually hidden; the label well carries the visible styling and the focus
+   ring (via :focus-within). The chosen side takes the bright monochrome
+   fill, the segmented-control vocabulary at card scale; the classification
+   READ (the amber pill) lives on the ranking and the milestones, never on
+   the control. */
 .choiceGroup {
   border: 0;
   margin: 0;
@@ -642,9 +678,9 @@
 }
 
 .choiceLegend {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
   color: var(--app-ink);
   padding: 0;
   margin-bottom: 0.5rem;
@@ -667,22 +703,24 @@
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
-  border: 1.5px solid var(--app-border);
-  border-radius: 10px;
+  min-height: 44px;
+  background-color: var(--app-surface-sunken);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-sm);
   padding: 0.7rem 0.85rem 0.75rem;
   cursor: pointer;
-  transition: border-color 0.15s ease, background-color 0.15s ease,
-    box-shadow 0.15s ease;
+  transition: border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
 }
 
 .choice:not(.choiceFrozen):hover {
-  border-color: var(--app-ink-secondary);
+  border-color: var(--app-border-strong);
 }
 
-.choiceSelected {
+.choiceSelected,
+.choice.choiceSelected:not(.choiceFrozen):hover {
+  background-color: var(--app-ink);
   border-color: var(--app-ink);
-  background-color: rgba(55, 97, 131, 0.06);
-  box-shadow: inset 0 0 0 1px var(--app-ink);
 }
 
 .choiceInput {
@@ -699,21 +737,30 @@
 }
 
 .choiceTitle {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9375rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--app-ink);
 }
 
 .choiceHint {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.8125rem;
   font-weight: 400;
-  line-height: 1.35;
+  line-height: 1.4;
   color: var(--app-ink-secondary);
 }
 
-/* ── Step 4: Constraint Ranking ────────── */
+.choiceSelected .choiceTitle {
+  color: var(--app-primary-ink);
+}
+
+.choiceSelected .choiceHint {
+  color: var(--app-primary-ink);
+  opacity: 0.78;
+}
+
+/* ── Step 3: priority ranking ── */
 
 .rankList {
   list-style: none;
@@ -728,12 +775,14 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background-color: var(--app-surface);
-  border: 1.5px solid var(--app-border);
-  border-radius: 10px;
-  padding: 0.7rem 0.85rem;
-  transition: border-color 0.15s ease, background-color 0.15s ease,
-    opacity 0.15s ease;
+  min-height: 44px;
+  background-color: var(--app-surface-sunken);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-sm);
+  padding: 0.55rem 0.85rem;
+  transition: border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
 }
 
 .rankRowDragging {
@@ -742,7 +791,7 @@
 
 .rankRowDragOver {
   border-color: var(--app-ink);
-  background-color: rgba(55, 97, 131, 0.06);
+  background-color: var(--app-hover);
 }
 
 .rankHandle {
@@ -753,19 +802,18 @@
   cursor: grab;
 }
 
+/* The rank numeral: the instrument voice, no disc. */
 .rankNum {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 999px;
-  background-color: var(--app-ink);
-  color: var(--app-surface);
-  font-family: var(--font-body), sans-serif;
+  min-width: 1.2rem;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
+  color: var(--app-ink);
+  font-variant-numeric: tabular-nums;
 }
 
 .rankMain {
@@ -778,61 +826,73 @@
 }
 
 .rankName {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.9375rem;
   font-weight: 600;
   color: var(--app-ink);
 }
 
+/* The classification badges: the house mono pair. Non-negotiable is the
+   criticality read, the amber pill; flexible is its calm counterpart,
+   plain mono, monochrome by intensity. */
 .rankBadge {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  padding: 3px 9px;
-  border-radius: 999px;
-  border: 1px solid transparent;
   white-space: nowrap;
 }
 
 .rankBadgeNN {
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
   background-color: var(--app-signal-wash);
+  border: 1px solid var(--app-signal-border);
   color: var(--app-signal-ink);
-  border-color: var(--app-signal-border);
 }
 
 .rankBadgeFlex {
-  background-color: rgba(119, 147, 168, 0.12);
+  font-weight: 500;
+  padding: 3px 0;
+  border: 1px solid transparent;
   color: var(--app-ink-secondary);
-  border-color: var(--app-border);
 }
 
 .rankControls {
   flex: 0 0 auto;
   display: inline-flex;
-  gap: 0.25rem;
+  gap: 0.6rem;
   margin-left: auto;
 }
 
 .moveBtn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--app-radius-sm);
   border: 1px solid var(--app-border);
-  background-color: var(--app-surface);
-  color: var(--app-ink);
+  background-color: transparent;
+  color: var(--app-ink-secondary);
   cursor: pointer;
-  transition: border-color 0.15s ease, background-color 0.15s ease,
-    opacity 0.15s ease;
+  transition: border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
+}
+
+/* The 44px hit area around the 36px control. */
+.moveBtn::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
 }
 
 .moveBtn:hover:not(:disabled) {
-  border-color: var(--app-ink);
-  background-color: rgba(55, 97, 131, 0.06);
+  border-color: var(--app-border-strong);
+  color: var(--app-ink);
 }
 
 .moveBtn:disabled {
@@ -845,15 +905,16 @@
   outline-offset: 2px;
 }
 
-/* Over-constraint advisory. Amber, on brand, distinct from the red error
-   message: this warns, it does not block. */
+/* Over-constraint advisory: the screen's one amber moment beyond the
+   classification pills. All non-negotiable IS the criticality read. It
+   warns, it does not block. */
 .warning {
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  background-color: rgba(244, 192, 49, 0.16);
-  border: 1px solid var(--app-signal);
-  border-radius: 12px;
+  background-color: var(--app-critical-bg);
+  border: 1px solid var(--app-critical-border);
+  border-radius: var(--app-radius);
   padding: 1rem 1.1rem;
   margin-top: 1.25rem;
 }
@@ -865,8 +926,8 @@
 }
 
 .warningText {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.875rem;
   font-weight: 400;
   line-height: 1.5;
   color: var(--app-ink);
@@ -874,18 +935,17 @@
 }
 
 /* ── Post-gate freeze (M6.2.0) ──
-   Steps 3 and 4 become read-only once the baseline is committed (Stage 2+).
-   A calm locked state, distinct from the amber over-constraint warning: it
-   explains the lock in the navy/neutral palette and keeps the committed
-   values legible. Re-baseline (editing a committed baseline) is a separate
-   milestone, not yet built. */
+   Steps become read-only once the baseline is committed (Stage 2+). A calm
+   locked state, offered knowledge in the hairline frame, distinct from the
+   amber over-constraint warning. Re-baseline (editing a committed baseline)
+   is a separate milestone, not yet built. */
 .frozenNote {
   display: flex;
   align-items: flex-start;
   gap: 0.7rem;
-  background-color: rgba(55, 97, 131, 0.05);
-  border: 1px solid rgba(55, 97, 131, 0.18);
-  border-radius: 12px;
+  background-color: transparent;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
   padding: 0.85rem 1rem;
   margin-bottom: 1.5rem;
 }
@@ -897,7 +957,7 @@
 }
 
 .frozenNoteText {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.875rem;
   font-weight: 400;
   line-height: 1.5;
@@ -905,20 +965,20 @@
   margin: 0;
 }
 
-/* Locked objective fields: keep the value at full ink, soften the chrome so
-   it reads as committed rather than active. Overrides the active focus ring,
-   so a read-only field never looks like it is accepting input. */
+/* Locked objective fields: keep the value at full ink, quieten the chrome
+   to the hairline so it reads as committed rather than active. The focus
+   ring stays (the field is still focusable), only the editable affordance
+   goes. */
 .inputFrozen,
-.inputFrozen:focus {
-  background-color: rgba(55, 97, 131, 0.04);
-  border-color: var(--app-border);
-  box-shadow: none;
+.inputFrozen:focus-visible {
+  background-color: transparent;
+  border-color: var(--app-hairline);
   cursor: default;
 }
 
 /* Locked classification choice: drop the interactive affordances. The
-   selected option keeps its .choiceSelected highlight, so the committed
-   choice stays clear. */
+   selected option keeps its bright fill, so the committed choice stays
+   clear. */
 .choiceFrozen {
   cursor: default;
 }
@@ -930,27 +990,28 @@
   opacity: 0.35;
 }
 
-/* ── Steps 5 to 7: editable item lists ─── */
+/* ── Editable item lists (workstreams, RAID) ── */
 
 .itemList {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
   padding: 0;
   margin: 1.25rem 0 0;
 }
 
-/* Each item is a fieldset (grouping its inputs for assistive tech) styled as
-   a card. The visible index label is decorative (aria-hidden); a visually
-   hidden legend names the group. */
+/* Each item is a fieldset (grouping its inputs for assistive tech) framed by
+   a quiet hairline border, never a surface on the surface. The visible index
+   label is decorative (aria-hidden); a visually hidden legend names the
+   group. */
 .itemCard {
   min-width: 0;
   margin: 0;
-  padding: clamp(1rem, 2.5vw, 1.4rem);
+  padding: clamp(1rem, 2.5vw, 1.3rem);
   border: 1px solid var(--app-border);
-  border-radius: 12px;
-  background-color: var(--app-surface);
+  border-radius: var(--app-radius);
+  background-color: transparent;
 }
 
 .itemHead {
@@ -962,34 +1023,43 @@
 }
 
 .itemIndex {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.75rem;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--app-ink-secondary);
 }
 
 .removeBtn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--app-radius-sm);
   border: 1px solid var(--app-border);
-  background-color: var(--app-surface);
+  background-color: transparent;
   color: var(--app-ink-secondary);
   cursor: pointer;
-  transition: border-color 0.15s ease, background-color 0.15s ease,
-    color 0.15s ease;
+  transition: border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+/* The 44px hit area around the 36px control. */
+.removeBtn::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
 }
 
 .removeBtn:hover {
-  border-color: var(--app-danger);
+  border-color: var(--app-danger-border);
   color: var(--app-danger);
-  background-color: rgba(176, 42, 55, 0.08);
+  background-color: var(--app-danger-wash);
 }
 
 .removeBtn:focus-visible {
@@ -1024,21 +1094,23 @@
   gap: 0.45rem;
   align-self: flex-start;
   margin-top: 1rem;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9375rem;
+  min-height: 44px;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--app-ink);
   background-color: transparent;
-  border: 1.5px dashed var(--app-border);
-  border-radius: 8px;
+  border: 1px dashed var(--app-border-strong);
+  border-radius: var(--app-radius-sm);
   padding: 0.6rem 1.05rem;
   cursor: pointer;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition: border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
 }
 
 .addBtn:hover {
   border-color: var(--app-ink);
-  background-color: rgba(55, 97, 131, 0.05);
+  background-color: var(--app-hover);
 }
 
 .addBtn:focus-visible {
@@ -1047,15 +1119,15 @@
 }
 
 .emptyHint {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.9rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.875rem;
   font-weight: 400;
   line-height: 1.5;
   color: var(--app-ink-secondary);
   margin: 1.25rem 0 0;
   padding: 1.1rem 1.25rem;
   border: 1px dashed var(--app-border);
-  border-radius: 12px;
+  border-radius: var(--app-radius);
   text-align: center;
 }
 
@@ -1104,17 +1176,18 @@
 }
 
 .gateRow .input:disabled {
-  background-color: rgba(55, 97, 131, 0.04);
-  color: var(--app-ink-secondary);
+  border-color: var(--app-hairline);
+  color: var(--app-ink-muted);
   cursor: not-allowed;
 }
 
 .naToggle {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
   flex: 0 0 auto;
-  font-family: var(--font-body), sans-serif;
+  min-height: 44px;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--app-ink-secondary);
@@ -1123,11 +1196,16 @@
 }
 
 .naToggle input {
-  width: 1rem;
-  height: 1rem;
+  width: 1.1rem;
+  height: 1.1rem;
   margin: 0;
-  accent-color: var(--app-ink);
+  accent-color: var(--app-primary);
   cursor: pointer;
+}
+
+.naToggle input:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
 }
 
 /* Disabled toggle on a not-yet-reached gate: dimmed, not interactive. */
@@ -1137,35 +1215,46 @@
   cursor: not-allowed;
 }
 
-/* The advised-date suggestion for the open gate: a light amber pill to accept
-   the rolling date, beside an honest basis hint (a typical span, not statute). */
+/* The advised-date suggestion for the open gate: a quiet mono chip to accept
+   the rolling date, beside an honest basis hint (a typical span, not statute).
+   Offered knowledge, never amber. */
 .gateSuggest {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   flex-wrap: wrap;
   gap: 0.3rem 0.6rem;
   margin-top: 0.5rem;
 }
 
 .suggestBtn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   flex: 0 0 auto;
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--app-signal-ink);
-  background-color: var(--app-signal-wash);
-  border: 1px solid var(--app-signal-border);
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--app-ink);
+  background-color: transparent;
+  border: 1px solid var(--app-border-strong);
   border-radius: 999px;
-  padding: 0.3rem 0.7rem;
+  padding: 0.35rem 0.8rem;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+
+/* The 44px hit area around the compact chip. */
+.suggestBtn::after {
+  content: '';
+  position: absolute;
+  inset: -6px 0;
 }
 
 .suggestBtn:hover {
-  background-color: rgba(244, 192, 49, 0.24);
-  border-color: var(--app-signal);
+  border-color: var(--app-ink);
+  background-color: var(--app-hover);
 }
 
 .suggestBtn:focus-visible {
@@ -1174,7 +1263,7 @@
 }
 
 .suggestHint {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.8125rem;
   font-weight: 400;
   line-height: 1.4;
@@ -1196,10 +1285,10 @@
 }
 
 .milestoneStageLabel {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--app-ink-secondary);
   margin-bottom: 0.6rem;
@@ -1223,7 +1312,7 @@
 }
 
 .milestoneName {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.9375rem;
   font-weight: 600;
   color: var(--app-ink);
@@ -1231,52 +1320,55 @@
 }
 
 /* Read-only criticality badge: derived from the served objective, never set
-   here. Critical wears the amber signal; standard stays neutral. Mirrors the
-   Step 4 ranking badges so criticality reads the same across the flow. */
+   here. Critical wears the house amber pill; standard is its calm plain-mono
+   counterpart. Mirrors the ranking badges so criticality reads the same
+   across the flow. */
 .critBadge {
   flex: 0 0 auto;
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-mono), monospace;
   font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  padding: 3px 9px;
-  border-radius: 999px;
-  border: 1px solid transparent;
   white-space: nowrap;
 }
 
 .critBadgeCritical {
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
   background-color: var(--app-signal-wash);
+  border: 1px solid var(--app-signal-border);
   color: var(--app-signal-ink);
-  border-color: var(--app-signal-border);
 }
 
 .critBadgeStandard {
-  background-color: rgba(119, 147, 168, 0.12);
+  font-weight: 500;
+  padding: 3px 0;
+  border: 1px solid transparent;
   color: var(--app-ink-secondary);
-  border-color: var(--app-border);
 }
 
+/* The served objective, in the instrument's meta voice. */
 .milestoneServes {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 400;
-  line-height: 1.4;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: var(--app-ink-secondary);
   margin: 0 0 0.9rem;
 }
 
 /* Location-sensitive flag: an informational prompt to confirm a local
-   requirement. Read-only, asserts no value. A calm neutral note, distinct from
-   the amber over-constraint warning. */
+   requirement. Read-only, asserts no value: offered knowledge in the
+   hairline frame, distinct from the amber over-constraint warning. */
 .locationNote {
   display: flex;
   align-items: flex-start;
   gap: 0.55rem;
-  background-color: rgba(55, 97, 131, 0.05);
-  border: 1px solid rgba(55, 97, 131, 0.18);
-  border-radius: 10px;
+  background-color: transparent;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
   padding: 0.7rem 0.85rem;
   margin-top: 0.6rem;
 }
@@ -1288,7 +1380,7 @@
 }
 
 .locationNoteText {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.8125rem;
   font-weight: 400;
   line-height: 1.45;
@@ -1300,7 +1392,7 @@
   font-weight: 600;
 }
 
-/* ── Accessibility ─────────────────────── */
+/* ── Accessibility ── */
 
 .srOnly {
   position: absolute;
@@ -1314,10 +1406,10 @@
   border: 0;
 }
 
-/* ── Print (M4) ────────────────────────────
-   When printing the brief (Step 8), hide the wizard chrome and flush the
+/* ── Print (M4) ──
+   When printing the brief (Step 9), hide the wizard chrome and flush the
    page and panel so the brief document sits flush within the page margins.
-   Only Step 8 is ever on screen when the brief is exported, so hiding the
+   Only Step 9 is ever on screen when the brief is exported, so hiding the
    shared panel heading here only removes the "Generated Brief" step header. */
 @media print {
   .header,

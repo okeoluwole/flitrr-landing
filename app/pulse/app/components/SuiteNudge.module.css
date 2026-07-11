@@ -1,19 +1,16 @@
-/* ─────────────────────────────────────────
-   SuiteNudge: a quiet pointer to a sibling
-   product (ROUTE, STACK) at the field where
-   it does the deeper job. Informational, not
-   a signal, so it stays in the calm navy
-   register and never borrows the amber that
-   means criticality. Mirrors the wizard's
-   .frozenNote info-note treatment.
-───────────────────────────────────────── */
+/*
+ * SuiteNudge: a quiet pointer to a sibling product (ROUTE, STACK) at the
+ * field where it does the deeper job. Offered knowledge in the hairline
+ * frame, mirroring the wizard's info notes: informational, not a signal,
+ * so it never borrows the amber that means criticality.
+ */
 
 .nudge {
   display: flex;
   align-items: flex-start;
   gap: 0.7rem;
-  background-color: rgba(55, 97, 131, 0.05);
-  border: 1px solid rgba(55, 97, 131, 0.18);
+  background-color: transparent;
+  border: 1px solid var(--app-border);
   border-radius: var(--app-radius);
   padding: 0.8rem 0.95rem;
   margin-top: 0.6rem;
@@ -22,7 +19,7 @@
 .mark {
   flex: 0 0 auto;
   margin-top: 1px;
-  color: var(--app-focus);
+  color: var(--app-ink-secondary);
 }
 
 .body {
@@ -33,7 +30,7 @@
 }
 
 .text {
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.8125rem;
   font-weight: 400;
   line-height: 1.5;
@@ -41,10 +38,12 @@
   margin: 0;
 }
 
+/* The sibling's name, in the instrument's meta voice. */
 .tag {
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  color: var(--app-focus);
+  font-family: var(--app-font-mono), monospace;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--app-ink);
   margin-right: 0.4rem;
 }
 
@@ -53,11 +52,14 @@
   align-items: center;
   gap: 0.3rem;
   align-self: flex-start;
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--app-font-sans), sans-serif;
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--app-ink);
   text-decoration: none;
+  min-height: 44px;
+  padding-block: 0.3rem;
+  margin-block: -0.7rem;
 }
 
 .link:hover {
