@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   computeAppraisal,
   baseCaseInputs,
+  ENGINE_VERSION,
   FUNDING_STRATEGY,
   DEBT_STRUCTURE,
   JV_PARTNER_CONTRIBUTES,
@@ -220,5 +221,14 @@ describe('known limitation, faithfully reproduced: an oversized mezzanine', () =
     expect(result.funding.totalCashEquity).toBe(0);
     expect(Math.abs(result.invariants.cashUsesReconciliation)).toBeGreaterThan(1);
     expect(Math.abs(result.invariants.waterfallReconciliation)).toBeLessThan(ZERO);
+  });
+});
+
+describe('the engine version stamp (sub-step 3.1)', () => {
+  it('exports a semantic version for the scheme store to stamp on save', () => {
+    // stack_schemes.engine_version (migration 028) records what computed a
+    // saved scheme; the save action reads this constant. Semver-shaped so a
+    // later engine can be ordered against it.
+    expect(ENGINE_VERSION).toMatch(/^\d+\.\d+\.\d+$/);
   });
 });
