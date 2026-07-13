@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { runAppraisal } from './actions';
+import { runAppraisal, saveScheme, openScheme, removeScheme } from './actions';
 import { baseCaseInputs, resolveCurrencySymbol } from '../../lib/stack/engine/inputs.js';
 import { toDisplayValues, toEngineInputs, applyGuards, validate } from './formModel';
+import StackSchemes from './StackSchemes';
 import StackForm from './StackForm';
 import StackSummary from './StackSummary';
 import StackCashflow from './StackCashflow';
@@ -15,15 +16,38 @@ import styles from './stack.module.css';
  * The STACK tool (sub-step 2.3). Holds the form's display values, validates and
  * guards them, runs the appraisal through the server action, and renders the
  * read-only appraisal summary.
+ *
+ * Saved schemes (Bucket 3.2): the tool also owns the organisation's scheme
+ * list. Saving stores the current inputs under a name; loading puts a stored
+ * input set back into the form and recomputes it under the current engine. The
+ * server actions and row level security decide what the viewer may write;
+ * canEdit only makes the surface match that.
+ *
+ * Props:
+ *   initialSchemes  the organisation's saved schemes, from the server render
+ *   canEdit         whether the viewer is an organisation admin (may save and
+ *                   delete); a member gets the list and load only
+ *   adminContact    the contact line for the View only badge, member only
  */
 
-export default function StackTool() {
+export default function StackTool({
+  initialSchemes = [],
+  canEdit = false,
+  adminContact = null,
+}) {
   const [values, setValues] = useState(() => toDisplayValues(baseCaseInputs()));
   const [errors, setErrors] = useState({});
   const [result, setResult] = useState(null);
   const [meta, setMeta] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+
+  const [schemes, setSchemes] = useState(initialSchemes);
+  const [activeScheme, setActiveScheme] = useState(null);
+  const [engineNote, setEngineNote] = useState(null);
+  const [schemeBusy, setSchemeBusy] = useState(false);
+  const [schemeNotice, setSchemeNotice] = useState(null);
+  const [schemeError, setSchemeError] = useState(null);
 
   const currencySymbol = resolveCurrencySymbol(values.reportingCurrency || 'GBP');
 
@@ -47,6 +71,87 @@ export default function StackTool() {
       setMeta(response.meta);
     } else {
       setError(response.error);
+    }
+  }
+
+  // Save the current form values as a scheme: a new one, or over the loaded
+  // one. The same validation as a run applies, so what is stored always
+  // computes.
+  async function handleSaveScheme(name, mode) {
+    setSchemeNotice(null);
+    setSchemeError(null);
+
+    if (typeof name !== 'string' || name.trim() === '') {
+      setSchemeError('Enter a scheme name.');
+      return;
+    }
+
+    const found = validate(values);
+    setErrors(found);
+    if (Object.keys(found).length > 0) {
+      setSchemeError('Fix the highlighted fields before saving.');
+      return;
+    }
+
+    setSchemeBusy(true);
+    const raw = toEngineInputs(applyGuards(values));
+    const response = await saveScheme({
+      name,
+      raw,
+      schemeId: mode === 'over' ? activeScheme?.id ?? null : null,
+    });
+    setSchemeBusy(false);
+
+    if (response.ok) {
+      setSchemes(response.schemes);
+      setActiveScheme(response.scheme);
+      // The stored stamp is now the current engine, so any stale note clears.
+      setEngineNote(null);
+      setSchemeNotice(`Saved "${response.scheme.name}".`);
+    } else {
+      setSchemeError(response.error);
+    }
+  }
+
+  // Load a scheme back: the stored inputs into the form, and the recomputed
+  // result straight onto the report.
+  async function handleLoadScheme(id) {
+    setSchemeNotice(null);
+    setSchemeError(null);
+    setSchemeBusy(true);
+    const response = await openScheme(id);
+    setSchemeBusy(false);
+
+    if (response.ok) {
+      setValues(toDisplayValues(response.inputs));
+      setErrors({});
+      setError(null);
+      setResult(response.result);
+      setMeta(response.meta);
+      setActiveScheme(response.scheme);
+      setEngineNote(response.engineNote);
+      setSchemeNotice(`Loaded "${response.scheme.name}".`);
+    } else {
+      setSchemeError(response.error);
+    }
+  }
+
+  async function handleDeleteScheme(id) {
+    setSchemeNotice(null);
+    setSchemeError(null);
+    setSchemeBusy(true);
+    const response = await removeScheme(id);
+    setSchemeBusy(false);
+
+    if (response.ok) {
+      setSchemes(response.schemes);
+      if (activeScheme?.id === id) {
+        setActiveScheme(null);
+        setEngineNote(null);
+      }
+      setSchemeNotice('Scheme deleted.');
+    } else {
+      setSchemeError(response.error);
     }
   }
 
@@ -74,6 +179,20 @@ export default function StackTool() {
 
   return (
     <div className={styles.tool}>
+      <StackSchemes
+        schemes={schemes}
+        activeScheme={activeScheme}
+        canEdit={canEdit}
+        adminContact={adminContact}
+        busy={schemeBusy}
+        notice={schemeNotice}
+        error={schemeError}
+        engineNote={engineNote}
+        onSave={handleSaveScheme}
+        onLoad={handleLoadScheme}
+        onDelete={handleDeleteScheme}
+      />
+
       <StackForm
         values={values}
         errors={errors}

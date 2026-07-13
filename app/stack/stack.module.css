@@ -287,6 +287,110 @@
   font-size: var(--app-text-sm);
 }
 
+/* Saved schemes (Bucket 3.2): the save and load panel above the form. It
+   reuses .card for the shell; these classes lay out the save row and the
+   list. */
+.schemes {
+  gap: 0.75rem;
+}
+
+.schemesHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.saveRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.nameInput {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.schemeList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.schemeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--app-hairline);
+}
+
+.schemeRow:last-child {
+  border-bottom: none;
+}
+
+.schemeInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.schemeName {
+  font-size: var(--app-text-sm);
+  font-weight: 600;
+  color: var(--app-ink);
+  overflow-wrap: anywhere;
+}
+
+.schemeLoaded {
+  font-weight: 400;
+  color: var(--app-ink-secondary);
+}
+
+.schemeMeta {
+  font-size: var(--app-text-xs);
+  color: var(--app-ink-secondary);
+}
+
+.schemeActions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Small secondary action, the downloadBtn register at list scale. The 44px
+   minimum target height holds. */
+.miniBtn {
+  min-height: 44px;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--app-border-strong);
+  border-radius: var(--app-radius);
+  background: var(--app-surface);
+  color: var(--app-ink);
+  font-family: var(--font-body);
+  font-size: var(--app-text-sm);
+  font-weight: 600;
+}
+
+.miniBtn:disabled {
+  opacity: 0.6;
+}
+
+.miniBtnDanger {
+  color: var(--app-danger);
+}
+
+.schemesEmpty,
+.notice {
+  color: var(--app-ink-secondary);
+  font-size: var(--app-text-sm);
+}
+
 /* Read-only summary: a stack of cards. */
 .summary {
   display: flex;
@@ -566,6 +670,7 @@
   .topbar,
   .form,
   .error,
+  .schemes,
   .downloadBtn {
     display: none !important;
   }
