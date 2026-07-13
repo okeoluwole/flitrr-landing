@@ -15,11 +15,11 @@ export default function StackComparison({ result, meta }) {
   const currency = meta.currency;
 
   const routes = [
-    { label: 'Self-funded', route: c.selfFunded, note: 'Most cash in, no debt' },
-    { label: 'Bank-financed', route: c.bankFinanced, note: 'Senior debt, less cash in' },
-    { label: 'Mixed', route: c.mixed, note: 'Senior plus mezzanine' },
-    { label: c.selected.strategy, route: c.selected, note: 'Your route, live', selected: true },
-    { label: 'Off-plan', route: c.offPlan, note: 'Pre-sales fund the build' },
+    { key: 'selfFunded', label: 'Self-funded', route: c.selfFunded, note: 'Most cash in, no debt' },
+    { key: 'bankFinanced', label: 'Bank-financed', route: c.bankFinanced, note: 'Senior debt, less cash in' },
+    { key: 'mixed', label: 'Mixed', route: c.mixed, note: 'Senior plus mezzanine' },
+    { key: 'selected', label: c.selected.strategy, route: c.selected, note: 'Your route, live', selected: true },
+    { key: 'offPlan', label: 'Off-plan', route: c.offPlan, note: 'Pre-sales fund the build' },
   ];
 
   return (
@@ -43,7 +43,7 @@ export default function StackComparison({ result, meta }) {
           </thead>
           <tbody>
             {routes.map((r) => (
-              <tr key={r.label} className={r.selected ? styles.rowSelected : undefined}>
+              <tr key={r.key} className={r.selected ? styles.rowSelected : undefined}>
                 <th scope="row">
                   {r.label}
                   {r.selected && <span className={styles.rowHint}> selected</span>}
