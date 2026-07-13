@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { runAppraisal, saveScheme, openScheme, removeScheme } from './actions';
+import { runAppraisal, saveScheme, openScheme, removeScheme, exportWorkbook } from './actions';
 import { baseCaseInputs, resolveCurrencySymbol } from '../../lib/stack/engine/inputs.js';
 import { toDisplayValues, toEngineInputs, applyGuards, validate } from './formModel';
 import StackSchemes from './StackSchemes';
@@ -48,6 +48,9 @@ export default function StackTool({
   const [schemeBusy, setSchemeBusy] = useState(false);
   const [schemeNotice, setSchemeNotice] = useState(null);
   const [schemeError, setSchemeError] = useState(null);
+
+  const [exportBusy, setExportBusy] = useState(false);
+  const [exportError, setExportError] = useState(null);
 
   const currencySymbol = resolveCurrencySymbol(values.reportingCurrency || 'GBP');
 
@@ -158,6 +161,42 @@ export default function StackTool({
   // Export via the browser's print-to-PDF, the same path the PULSE brief uses.
   // The print stylesheet hides the form and the app chrome and lays out the
   // report only. The engine is never in the download; the figures are static.
+  // Export the displayed appraisal as a values-only Excel workbook. The server
+  // action recomputes from the inputs that produced the on-screen result
+  // (meta.inputs), so the download always matches what is showing, even when
+  // the form has moved on since the run. Figures only; the engine is never in
+  // the file.
+  async function handleDownloadExcel() {
+    if (!meta) return;
+    setExportError(null);
+    setExportBusy(true);
+    const response = await exportWorkbook({
+      raw: meta.inputs,
+      schemeName: activeScheme?.name ?? null,
+    });
+    setExportBusy(false);
+
+    if (!response.ok) {
+      setExportError(response.error);
+      return;
+    }
+
+    const binary = atob(response.base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const blob = new Blob([bytes], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = response.filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
   function handleDownloadPdf() {
     if (typeof window === 'undefined') return;
     const label = `Flitrr STACK, ${meta?.strategy ?? ''} appraisal`.trim();
@@ -214,10 +253,20 @@ export default function StackTool({
                 {meta.strategy} scheme, generated {generatedDate}
               </span>
             </div>
+            <button
+              type="button"
+              className={styles.downloadBtn}
+              onClick={handleDownloadExcel}
+              disabled={exportBusy}
+            >
+              {exportBusy ? 'Preparing Excel' : 'Download Excel (values only)'}
+            </button>
             <button type="button" className={styles.downloadBtn} onClick={handleDownloadPdf}>
               Download PDF report
             </button>
           </div>
+
+          {exportError && <p className={styles.error}>{exportError}</p>}
 
           <StackSummary result={result} meta={meta} />
           <StackCashflow result={result} meta={meta} />

@@ -523,10 +523,12 @@
   gap: 1rem;
 }
 
-/* Report header: on screen, the download action; in print, the report banner. */
+/* Report header: on screen, the download actions; in print, the report banner. */
 .reportHead {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.6rem;
 }
 
 .downloadBtn {
@@ -538,6 +540,10 @@
   font-family: var(--font-body);
   font-size: var(--app-text-sm);
   font-weight: 600;
+}
+
+.downloadBtn:disabled {
+  opacity: 0.6;
 }
 
 /* Print-only report chrome, hidden on screen. */

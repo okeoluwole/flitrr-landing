@@ -20,6 +20,8 @@ import {
   baseCaseInputs,
   ENGINE_VERSION,
 } from '../../lib/stack/engine/index.js';
+import { writeWorkbook } from '../../lib/stack/excel/xlsxWriter.js';
+import { buildWorkbook } from './workbookModel';
 import { createClient } from '../../lib/supabase/server.js';
 import {
   listSchemes,
@@ -117,6 +119,46 @@ export async function runAppraisal(raw) {
     return { ok: true, result, meta: buildMeta(inputs) };
   } catch (err) {
     return { ok: false, error: 'The appraisal could not be computed from these inputs.' };
+  }
+}
+
+/**
+ * Build the values-only Excel workbook for an input set (Bucket 3.5). The
+ * appraisal recomputes here from the inputs that produced the on-screen
+ * report, and the workbook carries the figures only: the writer has no
+ * formula path, so the model itself is never in the download, matching the
+ * PDF export's boundary.
+ *
+ * @param {{ raw: object, schemeName?: string|null }} payload the inputs the
+ *   displayed result was computed from, and the loaded scheme's name if any
+ * @returns {Promise<{ ok: boolean, filename?: string, base64?: string, error?: string }>}
+ */
+export async function exportWorkbook({ raw, schemeName = null }) {
+  try {
+    const inputs = normaliseInputs(raw);
+    const result = computeAppraisal(inputs);
+
+    const now = new Date();
+    const generatedDate = now.toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+
+    const workbook = buildWorkbook({
+      result,
+      meta: buildMeta(inputs),
+      generatedDate,
+      engineVersion: ENGINE_VERSION,
+      schemeName,
+    });
+    const bytes = writeWorkbook(workbook, { date: now });
+
+    const stamp = now.toISOString().slice(0, 10);
+    const filename = `Flitrr STACK ${inputs.fundingStrategy} appraisal ${stamp}.xlsx`;
+    return { ok: true, filename, base64: bytes.toString('base64') };
+  } catch (err) {
+    return { ok: false, error: 'The Excel workbook could not be generated.' };
   }
 }
 
