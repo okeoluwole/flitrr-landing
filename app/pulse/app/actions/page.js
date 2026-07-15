@@ -7,6 +7,7 @@ import { OBJECTIVE_META } from '../components/objectiveMeta';
 import { deriveProposals } from '../../../../lib/playbook/playbookModel';
 import { buildObjectiveIndex } from '../../../../lib/engine/criticality';
 import ActionLog from './ActionLog';
+import { actionLogLockedFooter } from './actionModel';
 import styles from './ActionLog.module.css';
 
 /**
@@ -23,10 +24,12 @@ import styles from './ActionLog.module.css';
  * standard by the project's own objective classification, accepted into the
  * log or dismissed with one tap. The notification layer is M7.3.
  *
- * Availability mirrors the Risk register's baseline-read pattern: the log
- * opens only once the gate has committed the baseline, so the section is
- * gated on current_stage being Stage 2 or beyond. A direct visit before then
- * shows the open-at-Stage-2 note rather than the log.
+ * Availability stays on the Gate 1 to 2 (M9.4): the Action Log is a delivery
+ * act, gated on current_stage being Stage 2 or beyond, and is deliberately NOT
+ * re-gated on the Brief lock the way Risk now is. A direct visit before the
+ * gate shows a phase-aware note (actionLogLockedFooter) that tells the truth
+ * about what still opens it, naming the Brief lock too when that is still
+ * ahead, rather than the log.
  */
 
 const UUID_RE =
@@ -101,15 +104,26 @@ export default async function ActionsPage({ searchParams }) {
     </>
   );
 
-  // Stage gate: the log opens at Stage 2. Below that, show the note.
+  // The gate still governs the Action Log: it stays on the Gate 1 to 2, not
+  // re-gated on the Brief lock. Below the gate, show the note. Only the copy is
+  // phase-aware now (M9.4): it names the Brief lock too when that is still
+  // ahead, so the brief lock state is read here, on the locked path only.
   if (project.current_stage < STAGE_2) {
+    const { data: brief } = await supabase
+      .from('project_briefs')
+      .select('is_locked')
+      .eq('project_id', project.id)
+      .order('version', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const briefLocked = brief?.is_locked === true;
     return (
       <DashboardShell user={navUser}>
         <main className={`container ${styles.page}`} id="main-content">
           {Header}
           <div className={styles.locked}>
             <p className={styles.lockedText}>
-              The Action Log opens once you pass the gate into Stage 2.
+              {actionLogLockedFooter(briefLocked)}
             </p>
             <Link href={workspaceHref} className={styles.lockedCta}>
               Back to the project

@@ -6,6 +6,7 @@ import DashboardShell from '../../../components/DashboardShell';
 import { OBJECTIVE_META } from '../components/objectiveMeta';
 import { deriveProposals } from '../../../../lib/playbook/playbookModel';
 import RiskRegister from './RiskRegister';
+import { RISK_LOCKED_COPY } from './riskModel';
 import styles from './RiskRegister.module.css';
 
 /**
@@ -22,16 +23,15 @@ import styles from './RiskRegister.module.css';
  * accepted play becomes an ordinary project_risks row (not yet reviewed) and
  * behaves as any risk from there.
  *
- * Availability mirrors the M5 baseline-read pattern: monitoring opens only
- * once the gate has committed the baseline, so the section is gated on
- * current_stage being Stage 2 or beyond. A direct visit before then shows the
- * open-at-Stage-2 note rather than the register.
+ * Availability re-gates on the Brief lock (M9.4): Risk is a baselining act, so
+ * the register opens the moment the Brief locks, in the Plan phase, ahead of
+ * the Gate 1 to 2. A direct visit before the Brief is locked shows the
+ * lock-your-Brief note rather than the register. The workspace tile and this
+ * guard share one string (riskModel.RISK_LOCKED_COPY) so they cannot disagree.
  */
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-const STAGE_2 = 2;
 
 const NAME_BY_TYPE = Object.fromEntries(
   OBJECTIVE_META.map((o) => [o.type, o.name])
@@ -66,16 +66,30 @@ export default async function RiskPage({ searchParams }) {
     full_name: profile?.full_name ?? null,
   };
 
-  const { data: project } = await supabase
-    .from('projects')
-    .select('id, name, current_stage')
-    .eq('id', projectParam)
-    .maybeSingle();
+  // The project, and its latest brief lock state (the gate this register now
+  // opens on). current_stage is still read: the playbook query below is keyed
+  // on it. Fetched together; the null-check on the project follows.
+  const [{ data: project }, { data: brief }] = await Promise.all([
+    supabase
+      .from('projects')
+      .select('id, name, current_stage')
+      .eq('id', projectParam)
+      .maybeSingle(),
+    supabase
+      .from('project_briefs')
+      .select('is_locked')
+      .eq('project_id', projectParam)
+      .order('version', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
 
   // Not found, or not owned (RLS filtered it out).
   if (!project) {
     redirect('/pulse/app');
   }
+
+  const briefLocked = brief?.is_locked === true;
 
   const workspaceHref = `/pulse/app/workspace?project=${project.id}`;
 
@@ -100,16 +114,16 @@ export default async function RiskPage({ searchParams }) {
     </>
   );
 
-  // Stage gate: the register opens at Stage 2. Below that, show the note.
-  if (project.current_stage < STAGE_2) {
+  // The Brief-lock gate (M9.4): Risk is a baselining act, so the register opens
+  // the moment the Brief locks, not at the later Gate 1 to 2. Before the lock,
+  // show the note (the one string the workspace tile shows too).
+  if (!briefLocked) {
     return (
       <DashboardShell user={navUser}>
         <main className={`container ${styles.page}`} id="main-content">
           {Header}
           <div className={styles.locked}>
-            <p className={styles.lockedText}>
-              Risk monitoring opens once you pass the gate into Stage 2.
-            </p>
+            <p className={styles.lockedText}>{RISK_LOCKED_COPY}</p>
             <Link href={workspaceHref} className={styles.lockedCta}>
               Back to the project
             </Link>

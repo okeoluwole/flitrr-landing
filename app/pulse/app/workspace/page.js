@@ -10,12 +10,14 @@ import {
   deriveResponseFeed,
   formatActionLogSummary,
 } from '../actions/actionFeed';
-import { isCritical, isDone } from '../actions/actionModel';
+import { isCritical, isDone, actionLogLockedFooter } from '../actions/actionModel';
+import { RISK_LOCKED_COPY } from '../risk/riskModel';
 import { programmeTileTarget } from '../programme/trackingModel';
 import { loadCurrentProgrammeBaseline } from '../components/programmeBaselineStore';
 import { loadMetPointsView } from '../components/programmeActualsStore';
 import { deriveDashboard } from '../dashboard/dashboardModel';
 import { PAGE_SUB, TILE_LOCKED, tileStateLine } from '../dashboard/dashboardRead';
+import { derivePhase, deriveTileStates, PHASE_INTRO } from './phaseModel';
 import styles from './Workspace.module.css';
 
 /**
@@ -24,11 +26,18 @@ import styles from './Workspace.module.css';
  * A project's home: a header with its current stage, then the Brief as the
  * keystone panel and the monitoring modules as one seated register of rows.
  * The Brief (initiation) is always available; the monitoring modules unlock
- * as the project advances. The Risk register and the Action Log open at
- * Stage 2 (once the gate has committed the baseline). Programme set-up opens
- * once the Brief is locked (it is the on-ramp run at lock); the project
- * Dashboard (M9.3) opens on the same lock, and its tile carries the project
- * state in words, read from the same assembly the dashboard runs.
+ * as the project advances.
+ *
+ * What each tile does is read through the PHASE (M9.4, phaseModel.js): a
+ * derived reading of where the project sits in its own set-up, Define then
+ * Plan then Run, keyed off the Brief lock and the Programme baseline lock and
+ * never off current_stage. Risk, Programme set-up, and the Dashboard (M9.3)
+ * are baselining reads: they open the moment the Brief locks (from Plan on).
+ * The Action Log is a delivery act and is the one tile that stays gated on the
+ * Gate 1 to 2, which advances current_stage; it opens only once the gate is
+ * passed, and until then carries an honest, phase-aware locked line. The
+ * Dashboard tile carries the project state in words, read from the same
+ * assembly the dashboard runs.
  *
  * The Action Log row sits first (M7.2): it is the central attention home,
  * and its footer is the live read of what needs the developer, counts of
@@ -309,14 +318,20 @@ export default async function WorkspacePage({ searchParams }) {
 
   const stageName =
     STAGE_NAMES[project.current_stage] ?? `Stage ${project.current_stage}`;
-  // The Risk register and the Action Log both open at Stage 2, once the gate
-  // has committed the baseline.
-  const stage2Reached = project.current_stage >= STAGE_2;
   const briefLocked = brief?.is_locked === true;
+  const hasBaseline = baseline != null;
+
+  // The phase, derived once (phaseModel.js) from the two locks and never from
+  // current_stage, and the tile states read through it. Risk and the Dashboard
+  // open at the Brief lock (from Plan on). The Action Log keys on the gate, so
+  // its tile state is driven by gatePassed, never by the phase.
+  const gatePassed = project.current_stage >= STAGE_2;
+  const phase = derivePhase({ briefLocked, hasBaseline });
+  const tileState = deriveTileStates({ phase, gatePassed });
 
   // The Programme tile routes by state: no locked Brief, locked; Brief locked
-  // but no baseline, to set-up; baseline locked, to the tracking home.
-  const hasBaseline = baseline != null;
+  // but no baseline, to set-up; baseline locked, to the tracking home. It
+  // encodes the same phase logic, plus the href each state needs.
   const programmeTile = programmeTileTarget(project.id, {
     briefLocked,
     hasBaseline,
@@ -337,12 +352,13 @@ export default async function WorkspacePage({ searchParams }) {
   let riskTileFooter = 'Open';
   let riskTileTone = 'calm';
 
-  // The shared reads open once the Brief is locked (which every Stage 2 project
-  // has done): the same live rows the Risk register and the Action Log read,
-  // the RAID tables the needs-a-response feed reads, and the met-points view the
-  // Programme engines read. They feed the dashboard tile's state here and the
-  // Stage 2 tile footers below, in one pass.
-  if (briefLocked || stage2Reached) {
+  // The shared reads open once the Brief is locked (or the gate is passed, for
+  // the reopened-Brief case): the same live rows the Risk register and the
+  // Action Log read, the RAID tables the needs-a-response feed reads, and the
+  // met-points view the Programme engines read. They feed the dashboard tile's
+  // state, the Risk footer (open at the Brief lock), and the Action Log footer
+  // (open at the gate), in one pass.
+  if (briefLocked || gatePassed) {
     const raidColumns = 'id, linked_objective_id, updated_at';
     const [
       { data: actions },
@@ -391,9 +407,33 @@ export default async function WorkspacePage({ searchParams }) {
     });
     dashboardState = dash.health.project.state;
 
-    // The Stage 2 tile footers: unchanged reads for the Action Log and Risk
-    // rows, which only render once those modules are open.
-    if (stage2Reached) {
+    // The Risk tile footer opens with the Risk tile, at the Brief lock (from
+    // Plan on), so it is computed whenever the Brief is locked, not held to the
+    // gate. In the reopened-Brief case the block still runs (the gate is
+    // passed), but the Brief is open, so the Risk tile is locked and this read
+    // is skipped, matching the tile.
+    if (briefLocked) {
+      // The Risk tile footer (B2): the count of risks the monitor flags, the
+      // same verdict the register's Needs attention panel renders, so the tile
+      // and the register agree. assessRisks reads the clock from its caller; the
+      // server supplies it. Closed risks are never flagged, so the filter drops
+      // them.
+      const riskAttentionCount = assessRisks(
+        risks ?? [],
+        byId,
+        Date.now()
+      ).filter((v) => v.assessment.needsAttention).length;
+      riskTileFooter =
+        riskAttentionCount > 0
+          ? `${riskAttentionCount} ${riskAttentionCount === 1 ? 'risk needs' : 'risks need'} attention`
+          : 'All within their review cadence.';
+      // Cadence attention is not criticality: this read peaks at full ink.
+      riskTileTone = riskAttentionCount > 0 ? 'alert' : 'calm';
+    }
+
+    // The Action Log tile footer stays on the gate: it is a delivery act, so it
+    // is computed only once the gate is passed and the log is open.
+    if (gatePassed) {
       // Criticality is derived live from the linked objective (A2), so the tile
       // counts critical the same way the log does, override included. The
       // needs-a-response count is the full feed (risks plus RAID, A5).
@@ -420,32 +460,15 @@ export default async function WorkspacePage({ searchParams }) {
           : needsResponseCount > 0
             ? 'alert'
             : 'calm';
-
-      // The Risk tile footer (B2): the count of risks the monitor flags, the
-      // same verdict the register's Needs attention panel renders, so the tile
-      // and the register agree. assessRisks reads the clock from its caller; the
-      // server supplies it. Closed risks are never flagged, so the filter drops
-      // them.
-      const riskAttentionCount = assessRisks(
-        risks ?? [],
-        byId,
-        Date.now()
-      ).filter((v) => v.assessment.needsAttention).length;
-      riskTileFooter =
-        riskAttentionCount > 0
-          ? `${riskAttentionCount} ${riskAttentionCount === 1 ? 'risk needs' : 'risks need'} attention`
-          : 'All within their review cadence.';
-      // Cadence attention is not criticality: this read peaks at full ink.
-      riskTileTone = riskAttentionCount > 0 ? 'alert' : 'calm';
     }
   }
 
-  // The dashboard tile copy: before the Brief is locked it does not open and
-  // reads the lock line; once locked it opens and carries the state in words.
-  const dashboardTileState = briefLocked ? 'open' : 'locked';
-  const dashboardTileFooter = briefLocked
-    ? tileStateLine(dashboardState)
-    : TILE_LOCKED;
+  // The dashboard tile copy: locked in Define (it reads the lock line), open
+  // from Plan on, when it carries the project state in words. Its state comes
+  // through the phase like the others; the footer follows that state.
+  const dashboardTileState = tileState.dashboard;
+  const dashboardTileFooter =
+    dashboardTileState === 'open' ? tileStateLine(dashboardState) : TILE_LOCKED;
 
   return (
     <DashboardShell user={navUser}>
@@ -473,10 +496,7 @@ export default async function WorkspacePage({ searchParams }) {
             <ViewOnlyBadge adminContact={adminContact} />
           </div>
         )}
-        <p className={styles.sub}>
-          Your project workspace. Set up the baseline in the Brief, then open
-          each monitoring module as the project advances through its stages.
-        </p>
+        <p className={styles.sub}>{PHASE_INTRO[phase]}</p>
 
         {/* The Brief is the keystone: it creates the baseline every other
             module reads, so it leads as the featured panel. */}
@@ -526,12 +546,12 @@ export default async function WorkspacePage({ searchParams }) {
               title="Action Log"
               desc="Log and track the critical actions you are working on."
               footer={
-                stage2Reached
+                tileState.actionLog === 'open'
                   ? actionLogFooter
-                  : 'The Action Log opens once you pass the gate into Stage 2.'
+                  : actionLogLockedFooter(briefLocked)
               }
-              tone={stage2Reached ? actionLogTone : 'calm'}
-              state={stage2Reached ? 'open' : 'locked'}
+              tone={tileState.actionLog === 'open' ? actionLogTone : 'calm'}
+              state={tileState.actionLog}
               href={`/pulse/app/actions?project=${project.id}`}
             />
           </li>
@@ -540,13 +560,9 @@ export default async function WorkspacePage({ searchParams }) {
               icon={<RiskIcon />}
               title="Risk register"
               desc="Monitor, score and manage the risks to your objectives."
-              footer={
-                stage2Reached
-                  ? riskTileFooter
-                  : 'Risk monitoring opens once you pass the gate into Stage 2.'
-              }
-              tone={stage2Reached ? riskTileTone : 'calm'}
-              state={stage2Reached ? 'open' : 'locked'}
+              footer={tileState.risk === 'open' ? riskTileFooter : RISK_LOCKED_COPY}
+              tone={tileState.risk === 'open' ? riskTileTone : 'calm'}
+              state={tileState.risk}
               href={`/pulse/app/risk?project=${project.id}`}
             />
           </li>
