@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import {
   PHASES,
+  SURFACES,
   derivePhase,
+  deriveLanding,
   deriveTileStates,
   PHASE_INTRO,
 } from '../app/pulse/app/workspace/phaseModel.js';
@@ -53,6 +55,52 @@ describe('derivePhase: the two locks in, one phase out', () => {
     // must not change the result; the phase is a pure function of the locks.
     const withStage = { briefLocked: true, hasBaseline: false, current_stage: 5 };
     expect(derivePhase(withStage)).toBe(PHASES.PLAN);
+  });
+});
+
+describe('deriveLanding: the phase decides the surface, derived not stored (M9.5)', () => {
+  it('lands Define and Plan on the workspace', () => {
+    expect(deriveLanding({ phase: PHASES.DEFINE })).toBe(SURFACES.WORKSPACE);
+    expect(deriveLanding({ phase: PHASES.PLAN })).toBe(SURFACES.WORKSPACE);
+  });
+
+  it('lands Run on the dashboard: the delivery home', () => {
+    expect(deriveLanding({ phase: PHASES.RUN })).toBe(SURFACES.DASHBOARD);
+  });
+
+  it('returns the workspace on the explicit view path, even in Run: the anti-loop', () => {
+    // The dashboard back-link asks for the workspace with viewWorkspace set. In
+    // Run a bare open redirects to the dashboard; this explicit ask must not, or
+    // the pair loops. It returns the workspace in every phase.
+    expect(deriveLanding({ phase: PHASES.RUN, viewWorkspace: true })).toBe(SURFACES.WORKSPACE);
+    expect(deriveLanding({ phase: PHASES.PLAN, viewWorkspace: true })).toBe(SURFACES.WORKSPACE);
+    expect(deriveLanding({ phase: PHASES.DEFINE, viewWorkspace: true })).toBe(SURFACES.WORKSPACE);
+  });
+
+  it('sends a bare open to the dashboard on Run, and only on Run', () => {
+    // Only Run, and only without the explicit view path, sends a bare open to
+    // the dashboard. Every other phase stays on the workspace, so the redirect
+    // can never fire on a project whose Brief is open (Define) or unbaselined
+    // (Plan).
+    for (const phase of Object.values(PHASES)) {
+      const bare = deriveLanding({ phase });
+      expect(bare).toBe(phase === PHASES.RUN ? SURFACES.DASHBOARD : SURFACES.WORKSPACE);
+    }
+  });
+
+  it('reverses for free: reopening the Brief on a Run project lands on the workspace', () => {
+    // The reversibility (Task 3), composed from the two real functions, not
+    // asserted from memory. A project in Run (both locks) lands on the dashboard.
+    // Reopen the Brief (briefLocked false) with the baseline still present:
+    // derivePhase reads Define, and Define lands on the workspace. The landing
+    // follows the live phase, so the flip reverses with nothing stored.
+    const run = derivePhase({ briefLocked: true, hasBaseline: true });
+    expect(run).toBe(PHASES.RUN);
+    expect(deriveLanding({ phase: run })).toBe(SURFACES.DASHBOARD);
+
+    const reopened = derivePhase({ briefLocked: false, hasBaseline: true });
+    expect(reopened).toBe(PHASES.DEFINE);
+    expect(deriveLanding({ phase: reopened })).toBe(SURFACES.WORKSPACE);
   });
 });
 

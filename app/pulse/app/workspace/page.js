@@ -17,7 +17,13 @@ import { loadCurrentProgrammeBaseline } from '../components/programmeBaselineSto
 import { loadMetPointsView } from '../components/programmeActualsStore';
 import { deriveDashboard } from '../dashboard/dashboardModel';
 import { PAGE_SUB, TILE_LOCKED, tileStateLine } from '../dashboard/dashboardRead';
-import { derivePhase, deriveTileStates, PHASE_INTRO } from './phaseModel';
+import {
+  derivePhase,
+  deriveLanding,
+  deriveTileStates,
+  PHASE_INTRO,
+  SURFACES,
+} from './phaseModel';
 import styles from './Workspace.module.css';
 
 /**
@@ -311,6 +317,29 @@ export default async function WorkspacePage({ searchParams }) {
     redirect('/pulse/app');
   }
 
+  // The phase, derived once (phaseModel.js) from the two locks read above and
+  // never from current_stage. It is needed here for the landing decision, and
+  // reused below for the tile states, so it is derived before anything else.
+  const briefLocked = brief?.is_locked === true;
+  const hasBaseline = baseline != null;
+  const phase = derivePhase({ briefLocked, hasBaseline });
+
+  // The landing (M9.5). In Run a project opens to its dashboard, the delivery
+  // home; in Define and Plan it opens to the workspace, as now. The decision is
+  // DERIVED from the phase on every request, never stored, so it reverses for
+  // free when the Brief is reopened: an open Brief reads Define, and Define
+  // lands on the workspace. Decided here, before the heavier reads and the
+  // access resolution below, since a redirect makes all of that moot.
+  //
+  // viewWorkspace is the anti-loop path. The dashboard back-link carries
+  // ?view=workspace, an explicit request for the workspace that the redirect
+  // does not fire on, so a developer in Run can always reach the modules and the
+  // redirect can never bounce them straight back.
+  const viewWorkspace = searchParams?.view === 'workspace';
+  if (deriveLanding({ phase, viewWorkspace }) === SURFACES.DASHBOARD) {
+    redirect(`/pulse/app/dashboard?project=${project.id}`);
+  }
+
   // Resolve the viewer's edit access once (Step 3a helpers), so the workspace
   // header carries the View only badge for a member. The tiles are navigation;
   // the edit controls live on the surfaces the tiles open.
@@ -318,15 +347,11 @@ export default async function WorkspacePage({ searchParams }) {
 
   const stageName =
     STAGE_NAMES[project.current_stage] ?? `Stage ${project.current_stage}`;
-  const briefLocked = brief?.is_locked === true;
-  const hasBaseline = baseline != null;
 
-  // The phase, derived once (phaseModel.js) from the two locks and never from
-  // current_stage, and the tile states read through it. Risk and the Dashboard
+  // The tile states read through the phase derived above. Risk and the Dashboard
   // open at the Brief lock (from Plan on). The Action Log keys on the gate, so
   // its tile state is driven by gatePassed, never by the phase.
   const gatePassed = project.current_stage >= STAGE_2;
-  const phase = derivePhase({ briefLocked, hasBaseline });
   const tileState = deriveTileStates({ phase, gatePassed });
 
   // The Programme tile routes by state: no locked Brief, locked; Brief locked

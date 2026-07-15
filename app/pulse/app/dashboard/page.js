@@ -90,7 +90,12 @@ export default async function DashboardPage({ searchParams }) {
     redirect('/pulse/app');
   }
 
-  const workspaceHref = `/pulse/app/workspace?project=${project.id}`;
+  // Back to the project reaches the WORKSPACE (the route to the modules), and
+  // carries ?view=workspace (M9.5). In Run a bare workspace open redirects to
+  // this dashboard, so the back-link must ask for the workspace explicitly; the
+  // workspace redirect respects view=workspace and stays put. That is what makes
+  // the pair loop-safe: dashboard -> workspace (explicit) -> stays on workspace.
+  const workspaceHref = `/pulse/app/workspace?project=${project.id}&view=workspace`;
 
   const Header = (
     <>

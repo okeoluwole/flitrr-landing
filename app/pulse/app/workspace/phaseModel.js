@@ -45,6 +45,39 @@ export function derivePhase({ briefLocked, hasBaseline }) {
 }
 
 /**
+ * The two surfaces a project can land on when it is opened.
+ */
+export const SURFACES = Object.freeze({
+  WORKSPACE: 'workspace',
+  DASHBOARD: 'dashboard',
+});
+
+/**
+ * The landing decision (M9.5): which surface a project opens to. A pure
+ * function of the phase, so it is DERIVED ON EVERY REQUEST, never stored. That
+ * is the whole point: the moment a lock changes the landing changes with it,
+ * with nothing to go stale. Reopen the Brief on a project in Run and the phase
+ * drops to Define (an open Brief reads Define, baseline or not), so the same
+ * project now lands on the workspace again, for free.
+ *
+ *   Define -> workspace  (the project is being defined)
+ *   Plan   -> workspace  (the project is being planned)
+ *   Run    -> dashboard  (the project is being delivered)
+ *
+ * In Run the workspace does not disappear; it becomes the route to the modules,
+ * one tap back from the dashboard. viewWorkspace carries that tap: the dashboard
+ * back-link asks for the workspace explicitly, and an explicit ask always
+ * returns the workspace, whatever the phase. This is the anti-loop mechanism. A
+ * bare open in Run lands on the dashboard; the dashboard's back-link is not a
+ * bare open, so it is not bounced back, and a developer in Run can always reach
+ * the modules.
+ */
+export function deriveLanding({ phase, viewWorkspace = false }) {
+  if (viewWorkspace) return SURFACES.WORKSPACE;
+  return phase === PHASES.RUN ? SURFACES.DASHBOARD : SURFACES.WORKSPACE;
+}
+
+/**
  * The tile-state mapping: every workspace tile reads its state THROUGH the
  * phase, in one place, rather than through its own inline booleans.
  *
