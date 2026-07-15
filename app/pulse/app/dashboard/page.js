@@ -9,14 +9,15 @@ import ProjectDashboard from './ProjectDashboard';
 import styles from './ProjectDashboard.module.css';
 
 /**
- * /pulse/app/dashboard - the Project Dashboard (M9.2, Bands 1 and 2).
+ * /pulse/app/dashboard - the Project Dashboard (M9.2 Bands 1 and 2, M9.3
+ * Band 3).
  *
  * The objective lens, run continuously: organised by objective, not by
  * module. It owns no data, writes nothing, and re-derives nothing of its
  * own; it reads the same rows and the same frozen baseline the other modules
- * read, runs the same engines, and routes. Band 3 (what needs you now) is
- * M9.3, so the workspace tile stays Coming soon and this route is reached
- * directly until that band completes the surface.
+ * read, runs the same engines, and routes. Band 3 (what needs you now) is the
+ * one ranked attention list across the three modules, composed over the same
+ * assembly; the workspace tile now opens this finished surface.
  *
  * What it loads, reads only:
  *   - the project (name, stage, and the target completion date Band 1's
@@ -149,13 +150,15 @@ export default async function DashboardPage({ searchParams }) {
       .eq('project_id', project.id),
     supabase
       .from('project_risks')
-      .select('id, description, linked_objective_id, likelihood, impact, status')
+      .select(
+        'id, description, linked_objective_id, likelihood, impact, status, last_reviewed_at, response_note, updated_at'
+      )
       .eq('project_id', project.id)
       .order('created_at', { ascending: true }),
     supabase
       .from('project_actions')
       .select(
-        'id, description, linked_objective_id, criticality_override, status, stage'
+        'id, description, linked_objective_id, criticality_override, status, stage, source, source_id, reason'
       )
       .eq('project_id', project.id)
       .order('created_at', { ascending: false }),

@@ -1,7 +1,7 @@
 /*
- * ProjectDashboard (M9.2, Bands 1 and 2). Product (Instrument) surface
- * tokens only, phone first: both bands hold on a narrow screen and widen
- * from there.
+ * ProjectDashboard (M9.2 Bands 1 and 2, M9.3 Band 3). Product (Instrument)
+ * surface tokens only, phone first: every band holds on a narrow screen and
+ * widens from there.
  *
  * THE EDGE GRAMMAR (M9.2b). The state is the news, so the state owns the
  * row's loudness: a left edge the eye scans down the band, and the loud
@@ -695,6 +695,158 @@
 }
 
 .groupLink:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Band 3: what needs you now. One ranked, deduplicated attention list */
+/* across the three modules. No colour is spent here: this band is a   */
+/* routing list, not a status read, and its ordering (gate first,      */
+/* protected before flexible) already carries the priority. Phone      */
+/* first: the row stacks its title over its meta, and the tag wraps.   */
+
+.attnBand {
+  margin-top: 2rem;
+}
+
+/* The empty state: one calm line, no list frame. Proportional monitoring is
+   silent when things are fine; a heading over an empty register would read as
+   broken, so nothing is rendered beneath this line. */
+.attnEmpty {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-base);
+  line-height: 1.6;
+  color: var(--app-ink-secondary);
+  max-width: 44rem;
+}
+
+.attnRow {
+  border-bottom: 1px solid var(--app-border);
+}
+
+.attnRow:last-child {
+  border-bottom: none;
+}
+
+/* The whole row is the deep link: a 44px target that stays a calm list row
+   until hover. */
+.attnLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 44px;
+  padding: 0.85rem 1.1rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.attnLink:hover {
+  background: var(--app-hover);
+}
+
+.attnLink:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: -2px;
+}
+
+.attnMain {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+/* Protected rows carry full weight, flexible rows are quieter: the same
+   proportional typography as Band 2, priority rendered in type not decoration. */
+.attnTitle {
+  font-family: var(--app-font-sans), sans-serif;
+  line-height: 1.45;
+  color: var(--app-ink);
+}
+
+.attnProtected .attnTitle {
+  font-size: var(--app-text-md);
+  font-weight: 600;
+}
+
+.attnFlexible .attnTitle {
+  font-size: var(--app-text-base);
+  font-weight: 500;
+  color: var(--app-ink-secondary);
+}
+
+.attnMeta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+/* The objective tag (or "Gate"): a small dim word, context beside the reason,
+   the same demoted treatment Band 2 gives classification. */
+.attnTag {
+  font-family: var(--app-font-mono), monospace;
+  font-size: var(--app-text-xs);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
+  white-space: nowrap;
+}
+
+.attnReason {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
+  line-height: 1.5;
+  color: var(--app-ink-secondary);
+}
+
+/* The named source of a deduped, promoted action (M7.2): the risk it replaced,
+   kept quiet as provenance. */
+.attnRaised {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
+  line-height: 1.5;
+  color: var(--app-ink-muted);
+}
+
+.attnChevron {
+  flex: 0 0 auto;
+  color: var(--app-ink-muted);
+}
+
+.attnLink:hover .attnChevron {
+  color: var(--app-ink-secondary);
+}
+
+/* The footer: the true overflow across all modules, linking to the module
+   holding the most of it. A tally, so digits. */
+.attnFooter {
+  padding: 0.9rem 0 0;
+}
+
+.attnFooterLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
+  font-weight: 600;
+  color: var(--app-ink-secondary);
+  text-decoration: underline;
+  text-decoration-color: var(--app-border-strong);
+  text-underline-offset: 3px;
+}
+
+.attnFooterLink:hover {
+  color: var(--app-ink);
+}
+
+.attnFooterLink:focus-visible {
   outline: 2px solid var(--app-focus);
   outline-offset: 2px;
   border-radius: 4px;

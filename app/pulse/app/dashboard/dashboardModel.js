@@ -1,9 +1,10 @@
 /**
- * The Project Dashboard display model (Dashboard module, M9.2). The pure logic
- * behind the dashboard surface: the one assembly that feeds the objective
- * health engine, the Band 1 facts, and the Band 2 row order. The screen is a
- * thin render over this helper, so correctness lives here, not in the
- * component.
+ * The Project Dashboard display model (Dashboard module, M9.2, extended M9.3).
+ * The pure logic behind the dashboard surface: the one assembly that feeds the
+ * objective health engine, the Band 1 facts, the Band 2 row order, and (M9.3)
+ * the Band 3 attention list, which attentionModel.js composes over the same
+ * inputs plus the health engine's output. The screen is a thin render over
+ * this helper, so correctness lives here, not in the component.
  *
  * Pure and deterministic: no DB, no React, no clock. The surface reads today
  * ONCE and passes it down; the engines never read the clock. Everything else
@@ -42,6 +43,7 @@ import {
 } from '../../../../lib/engine/objectiveHealth';
 import { gateReadiness } from '../../../../lib/engine/readiness';
 import { buildObjectiveIndex } from '../../../../lib/engine/criticality';
+import { deriveAttention } from './attentionModel';
 import {
   DEFAULT_TOLERANCE_KEY,
   toleranceWeeksFor,
@@ -140,6 +142,8 @@ export function nextGate(programme, metPoints) {
  *   {
  *     health,          deriveObjectiveHealth's full output
  *     rows,            health.objectives in Band 2 order
+ *     attention,       deriveAttention's Band 3 read: { items, total,
+ *                      overflow, overflowModule }
  *     facts: {
  *       currentStage,
  *       percentComplete,       rounded, or null with no baseline
@@ -200,9 +204,21 @@ export function deriveDashboard({
   const { byId } = buildObjectiveIndex(orderedObjectives);
   const readiness = gateReadiness(actions ?? [], byId, currentStage);
 
+  // Band 3's attention list: the one ranked, deduplicated read across the three
+  // modules, composed over the same rows and the health engine's output. The
+  // monitor reads today as epoch; the surface already handed it down as ISO.
+  const attention = deriveAttention({
+    risks: risks ?? [],
+    actions: actions ?? [],
+    health,
+    objectivesById: byId,
+    nowMs: Date.parse(todayIso),
+  });
+
   return {
     health,
     rows: orderHealthRows(health.objectives),
+    attention,
     facts: {
       currentStage,
       percentComplete: hasBaseline ? completeTile(progress).percent : null,

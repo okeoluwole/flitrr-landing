@@ -25,9 +25,11 @@ import {
   HEALTH_STATES,
   HEALTH_TRIGGERS,
   DATE_VERDICTS,
+  PROJECT_STATES,
 } from '../../../../lib/engine/objectiveHealth';
 import { OBJECTIVE_META } from '../components/objectiveMeta';
 import { formatList } from '../components/briefFormat';
+import { ATTENTION_KINDS, ATTENTION_TRIGGERS } from './attentionModel';
 
 // ---------------------------------------------------------------------------
 // Section 3: the page.
@@ -530,4 +532,108 @@ export function driftLine(row) {
     return `${name} is protected, but your locked programme still monitors it as standard. Re-baseline to bring them into line.`;
   }
   return `${name} is flexible, but your locked programme still monitors it as critical. Re-baseline to bring them into line.`;
+}
+
+// ===========================================================================
+// M9.3, Band 3: what needs you now. The copy over the attention assembly. It
+// takes an attention item and returns its strings; the assembly returns
+// structured triggers and no copy. Every trigger the sources can emit has a
+// string below; a key without one THROWS (uncovered), never a generic line.
+
+// Section 1.1: the band heading.
+export const ATTENTION_HEADING = 'What needs you now';
+
+// Section 1.2: the empty state. One line, and then the surface stops: no list,
+// no filler beneath it. Proportional monitoring is silent when things are fine.
+export const ATTENTION_EMPTY =
+  'Nothing needs you right now. Every flagged item is being handled.';
+
+// Section 1.5: the gate's tag. Not an objective: a gate answers to all five.
+export const ATTENTION_GATE_TAG = 'Gate';
+
+/**
+ * Section 1.3 and 1.5: the row's quiet tag. The objective the item serves, or
+ * "Gate" for a gate, which serves all five.
+ */
+export function attentionTag(item) {
+  if (item?.kind === ATTENTION_KINDS.GATE) return ATTENTION_GATE_TAG;
+  return objectiveName(item?.objectiveType);
+}
+
+/**
+ * Section 1.4 and 1.5: the "why it is here" line, selected by the flag that put
+ * the item on the list. Every trigger the sources emit is covered; an unknown
+ * key throws, because a missing string is a build error, never a licence for a
+ * generic fallback.
+ *
+ * The gate line names the stage the gate opens into: a gate closes its own
+ * stage S and is the go or no-go into stage S + 1, so the copy reads S + 1.
+ */
+export function attentionReason(item) {
+  const key = item?.trigger?.key;
+  switch (key) {
+    // From the risk monitor.
+    case ATTENTION_TRIGGERS.ESCALATED_SEVERITY:
+      return 'Its severity has risen.';
+    case ATTENTION_TRIGGERS.CRITICAL_UNMANAGED:
+      return 'Critical, and nothing is being done yet.';
+    case ATTENTION_TRIGGERS.WENT_STALE:
+      return 'Overdue for review.';
+    case ATTENTION_TRIGGERS.NOT_YET_ENGAGED:
+      return 'Critical, and not yet looked at.';
+    // From the Action Log.
+    case ATTENTION_TRIGGERS.OPEN_CRITICAL_ACTION:
+      return 'A critical action, still open.';
+    case ATTENTION_TRIGGERS.NEEDS_RESPONSE:
+      return 'Waiting on your response.';
+    // From the Programme.
+    case ATTENTION_TRIGGERS.MILESTONE_RED:
+      return `A milestone serving ${objectiveName(item.objectiveType)} has slipped past your tolerance.`;
+    case ATTENTION_TRIGGERS.MILESTONE_AMBER:
+      return `A milestone serving ${objectiveName(item.objectiveType)} is slipping.`;
+    case ATTENTION_TRIGGERS.GATE_RED:
+      return `The gate into Stage ${item.stage + 1} has slipped past your tolerance.`;
+    case ATTENTION_TRIGGERS.GATE_AMBER:
+      return `The gate into Stage ${item.stage + 1} is slipping.`;
+    default:
+      return uncovered(key);
+  }
+}
+
+/**
+ * Section 1.7: the footer, shown only when the list is capped and more remains.
+ * N is a tally, so it is digits (the sheet's rule: counts inside sentences are
+ * words, tallies are digits).
+ */
+export function attentionFooter(overflow) {
+  return `${overflow} more need your attention.`;
+}
+
+// ===========================================================================
+// M9.3, Section 2: the workspace tile. It reaches the finished surface and
+// carries a single live signal, the project state in words, no colour and no
+// counts (every number lives on the dashboard, one source of truth). The
+// heading and line reuse the page's own (PAGE_TITLE, PAGE_SUB).
+
+// Section 2.2: before the Brief is locked the tile does not open.
+export const TILE_LOCKED = 'Lock your Brief to open the dashboard.';
+
+/**
+ * Section 2.1: the project state in words, the tile's one live signal. Read
+ * from the same assembly the dashboard uses (health.project.state); an unknown
+ * state throws rather than inventing a line.
+ */
+export function tileStateLine(projectState) {
+  switch (projectState) {
+    case PROJECT_STATES.GREEN:
+      return 'Every objective holding.';
+    case PROJECT_STATES.AMBER:
+      return 'Under pressure.';
+    case PROJECT_STATES.RED:
+      return 'A protected objective is compromised.';
+    case PROJECT_STATES.NO_STATE:
+      return 'Nothing scored yet.';
+    default:
+      return uncovered(`project state ${projectState}`);
+  }
 }

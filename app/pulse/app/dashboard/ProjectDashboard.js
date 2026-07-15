@@ -25,20 +25,27 @@ import {
   dateLine,
   driftLine,
   formatDate,
+  ATTENTION_HEADING,
+  ATTENTION_EMPTY,
+  attentionTag,
+  attentionReason,
+  attentionFooter,
 } from './dashboardRead';
 import styles from './ProjectDashboard.module.css';
 
 /**
- * ProjectDashboard (M9.2): Bands 1 and 2 of the Project Dashboard. The
- * objective lens rendered: Band 1 is the read (the state sentence, up to two
- * supporting lines, and four facts), Band 2 is objective health, five rows
- * organised protected block first, each expanding IN PLACE to list every item
- * tagged to that objective across the three modules.
+ * ProjectDashboard (M9.2 Bands 1 and 2, M9.3 Band 3). The objective lens
+ * rendered: Band 1 is the read (the state sentence, up to two supporting
+ * lines, and four facts), Band 2 is objective health, five rows organised
+ * protected block first, each expanding IN PLACE to list every item tagged to
+ * that objective across the three modules. Band 3 is "what needs you now", the
+ * one ranked, deduplicated attention list across all three modules, silent
+ * (one calm line, no list frame) when nothing is flagged.
  *
  * READ-ONLY, WHOLLY. No write action exists anywhere on this page: every
- * interaction is either the in-place expansion or a navigation link, one per
- * group, into the module that owns the items. The dashboard routes, it does
- * not act.
+ * interaction is either the in-place expansion or a navigation link (Band 2's
+ * one-per-group links, Band 3's whole-row deep links) into the module that
+ * owns the items. The dashboard routes, it does not act.
  *
  * Everything rendered comes from two places: deriveDashboard (the display
  * model over the engines) and dashboardRead (the copy sheet). This component
@@ -269,6 +276,50 @@ function ObjectiveRow({ row, hrefs }) {
   );
 }
 
+// One Band 3 attention row. The WHOLE row deep-links to the item in its home
+// module (a gate to the Programme, which no single module owns). Full weight
+// for protected-objective items and for a gate (which answers to all five);
+// flexible-objective items are quieter, the same proportional typography as
+// Band 2. No write action: the dashboard routes, it does not act.
+function AttentionRow({ item, href }) {
+  const tag = attentionTag(item);
+  const reason = attentionReason(item);
+  return (
+    <li
+      className={`${styles.attnRow} ${item.isProtected === false ? styles.attnFlexible : styles.attnProtected}`}
+    >
+      <Link href={href} className={styles.attnLink}>
+        <span className={styles.attnMain}>
+          <span className={styles.attnTitle}>{item.title}</span>
+          <span className={styles.attnMeta}>
+            <span className={styles.attnTag}>{tag}</span>
+            <span className={styles.attnReason}>{reason}</span>
+          </span>
+          {item.raisedFrom && (
+            <span className={styles.attnRaised}>{item.raisedFrom}</span>
+          )}
+        </span>
+        <svg
+          className={styles.attnChevron}
+          width="14"
+          height="14"
+          viewBox="0 0 14 14"
+          aria-hidden="true"
+        >
+          <path
+            d="M5 3l4 4-4 4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </Link>
+    </li>
+  );
+}
+
 export default function ProjectDashboard({
   projectId,
   projectName,
@@ -318,7 +369,7 @@ export default function ProjectDashboard({
     ]
   );
 
-  const { health, rows, facts } = dashboard;
+  const { health, rows, facts, attention } = dashboard;
 
   const sentence = stateSentence(health);
   const support = supportingLines(health, {
@@ -407,6 +458,39 @@ export default function ProjectDashboard({
             <ObjectiveRow key={row.id} row={row} hrefs={hrefs} />
           ))}
         </ul>
+      </section>
+
+      {/* Band 3: what needs you now. The one ranked, deduplicated attention
+          list across the three modules. Silent when nothing is flagged: one
+          calm line and no list frame, because a heading over an empty list
+          reads as broken. */}
+      <section className={styles.attnBand} aria-label={ATTENTION_HEADING}>
+        <p className={styles.bandLabel}>{ATTENTION_HEADING}</p>
+        {attention.total === 0 ? (
+          <p className={styles.attnEmpty}>{ATTENTION_EMPTY}</p>
+        ) : (
+          <>
+            <ul className={styles.register}>
+              {attention.items.map((item) => (
+                <AttentionRow
+                  key={`${item.kind}:${item.id}`}
+                  item={item}
+                  href={hrefs[item.module]}
+                />
+              ))}
+            </ul>
+            {attention.overflow > 0 && (
+              <p className={styles.attnFooter}>
+                <Link
+                  href={hrefs[attention.overflowModule]}
+                  className={styles.attnFooterLink}
+                >
+                  {attentionFooter(attention.overflow)}
+                </Link>
+              </p>
+            )}
+          </>
+        )}
       </section>
     </main>
   );

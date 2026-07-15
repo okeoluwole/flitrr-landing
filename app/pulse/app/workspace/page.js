@@ -12,6 +12,10 @@ import {
 } from '../actions/actionFeed';
 import { isCritical, isDone } from '../actions/actionModel';
 import { programmeTileTarget } from '../programme/trackingModel';
+import { loadCurrentProgrammeBaseline } from '../components/programmeBaselineStore';
+import { loadMetPointsView } from '../components/programmeActualsStore';
+import { deriveDashboard } from '../dashboard/dashboardModel';
+import { PAGE_SUB, TILE_LOCKED, tileStateLine } from '../dashboard/dashboardRead';
 import styles from './Workspace.module.css';
 
 /**
@@ -23,7 +27,8 @@ import styles from './Workspace.module.css';
  * as the project advances. The Risk register and the Action Log open at
  * Stage 2 (once the gate has committed the baseline). Programme set-up opens
  * once the Brief is locked (it is the on-ramp run at lock); the project
- * Dashboard is a placeholder here, built in a later milestone.
+ * Dashboard (M9.3) opens on the same lock, and its tile carries the project
+ * state in words, read from the same assembly the dashboard runs.
  *
  * The Action Log row sits first (M7.2): it is the central attention home,
  * and its footer is the live read of what needs the developer, counts of
@@ -273,30 +278,25 @@ export default async function WorkspacePage({ searchParams }) {
     full_name: profile?.full_name ?? null,
   };
 
-  // The project, its latest brief lock state (to label the Brief tile), and
-  // whether a current programme baseline exists (to route the Programme tile
-  // to tracking once v1 is locked). The baseline read is the row's id only.
-  const [{ data: project }, { data: brief }, { data: baselineRow }] =
-    await Promise.all([
-      supabase
-        .from('projects')
-        .select('id, name, current_stage')
-        .eq('id', projectParam)
-        .maybeSingle(),
-      supabase
-        .from('project_briefs')
-        .select('is_locked')
-        .eq('project_id', projectParam)
-        .order('version', { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-      supabase
-        .from('programme_baselines')
-        .select('id')
-        .eq('project_id', projectParam)
-        .is('superseded_at', null)
-        .maybeSingle(),
-    ]);
+  // The project (with the target completion date the dashboard state reads),
+  // its latest brief lock state (to label the Brief tile), and the current
+  // programme baseline. The full baseline is loaded, not just its id: it routes
+  // the Programme tile (present or not) and feeds the dashboard tile's state.
+  const [{ data: project }, { data: brief }, { baseline }] = await Promise.all([
+    supabase
+      .from('projects')
+      .select('id, name, current_stage, target_completion_date')
+      .eq('id', projectParam)
+      .maybeSingle(),
+    supabase
+      .from('project_briefs')
+      .select('is_locked')
+      .eq('project_id', projectParam)
+      .order('version', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    loadCurrentProgrammeBaseline(supabase, projectParam),
+  ]);
 
   if (!project) {
     redirect('/pulse/app');
@@ -316,10 +316,17 @@ export default async function WorkspacePage({ searchParams }) {
 
   // The Programme tile routes by state: no locked Brief, locked; Brief locked
   // but no baseline, to set-up; baseline locked, to the tracking home.
+  const hasBaseline = baseline != null;
   const programmeTile = programmeTileTarget(project.id, {
     briefLocked,
-    hasBaseline: baselineRow != null,
+    hasBaseline,
   });
+
+  // The dashboard tile's one live signal: the project state in words, read from
+  // the SAME assembly the dashboard uses (deriveDashboard), so the tile and the
+  // surface can never disagree. No number leaves this tile; every count lives on
+  // the dashboard, one source of truth.
+  let dashboardState = null;
 
   // The Action Log tile's live summary (M7.2): what needs a response
   // (derived from the register by the feed's trigger rule) and what is open
@@ -329,7 +336,13 @@ export default async function WorkspacePage({ searchParams }) {
   let actionLogTone = 'calm';
   let riskTileFooter = 'Open';
   let riskTileTone = 'calm';
-  if (stage2Reached) {
+
+  // The shared reads open once the Brief is locked (which every Stage 2 project
+  // has done): the same live rows the Risk register and the Action Log read,
+  // the RAID tables the needs-a-response feed reads, and the met-points view the
+  // Programme engines read. They feed the dashboard tile's state here and the
+  // Stage 2 tile footers below, in one pass.
+  if (briefLocked || stage2Reached) {
     const raidColumns = 'id, linked_objective_id, updated_at';
     const [
       { data: actions },
@@ -338,11 +351,12 @@ export default async function WorkspacePage({ searchParams }) {
       { data: assumptions },
       { data: constraints },
       { data: dependencies },
+      { view },
     ] = await Promise.all([
       supabase
         .from('project_actions')
         .select(
-          'id, status, criticality, criticality_override, linked_objective_id, source, source_id'
+          'id, status, criticality, criticality_override, linked_objective_id, source, source_id, stage, reason'
         )
         .eq('project_id', project.id),
       supabase
@@ -353,57 +367,85 @@ export default async function WorkspacePage({ searchParams }) {
         .eq('project_id', project.id),
       supabase
         .from('project_objectives')
-        .select('id, classification')
+        .select('id, objective_type, classification')
         .eq('project_id', project.id),
       supabase.from('project_assumptions').select(raidColumns).eq('project_id', project.id),
       supabase.from('project_constraints').select(raidColumns).eq('project_id', project.id),
       supabase.from('project_dependencies').select(raidColumns).eq('project_id', project.id),
+      loadMetPointsView(supabase, project.id),
     ]);
-    // Criticality is derived live from the linked objective (A2), so the tile
-    // counts critical the same way the log does, override included. The
-    // needs-a-response count is the full feed (risks plus RAID, A5).
     const { byId } = buildObjectiveIndex(objectives ?? []);
-    const needsResponseCount = deriveResponseFeed({
-      risks: risks ?? [],
-      assumptions: assumptions ?? [],
-      constraints: constraints ?? [],
-      dependencies: dependencies ?? [],
-      actions: actions ?? [],
-      objectivesById: byId,
-    }).length;
-    const openCriticalCount = (actions ?? []).filter(
-      (a) => !isDone(a) && isCritical(a, byId)
-    ).length;
-    actionLogFooter = formatActionLogSummary(
-      needsResponseCount,
-      openCriticalCount
-    );
-    // The read's tone: amber is spent on open critical actions only (the one
-    // criticality read on this screen); a needed response steps up to ink.
-    actionLogTone =
-      openCriticalCount > 0
-        ? 'critical'
-        : needsResponseCount > 0
-          ? 'alert'
-          : 'calm';
 
-    // The Risk tile footer (B2): the count of risks the monitor flags, the
-    // same verdict the register's Needs attention panel renders, so the tile
-    // and the register agree. assessRisks reads the clock from its caller; the
-    // server supplies it. Closed risks are never flagged, so the filter drops
-    // them.
-    const riskAttentionCount = assessRisks(
-      risks ?? [],
-      byId,
-      Date.now()
-    ).filter((v) => v.assessment.needsAttention).length;
-    riskTileFooter =
-      riskAttentionCount > 0
-        ? `${riskAttentionCount} ${riskAttentionCount === 1 ? 'risk needs' : 'risks need'} attention`
-        : 'All within their review cadence.';
-    // Cadence attention is not criticality: this read peaks at full ink.
-    riskTileTone = riskAttentionCount > 0 ? 'alert' : 'calm';
+    // The project state, the tile's one signal. The same call the dashboard
+    // makes over the same rows and frozen baseline; the tile reads only its
+    // state word (green, amber, red, or no_state), never recomputing anything.
+    const dash = deriveDashboard({
+      objectives: objectives ?? [],
+      risks: risks ?? [],
+      actions: actions ?? [],
+      programme: baseline?.programme ?? null,
+      metPoints: view ?? {},
+      todayIso: new Date().toISOString(),
+      targetCompletionDate: project.target_completion_date ?? null,
+      currentStage: project.current_stage,
+    });
+    dashboardState = dash.health.project.state;
+
+    // The Stage 2 tile footers: unchanged reads for the Action Log and Risk
+    // rows, which only render once those modules are open.
+    if (stage2Reached) {
+      // Criticality is derived live from the linked objective (A2), so the tile
+      // counts critical the same way the log does, override included. The
+      // needs-a-response count is the full feed (risks plus RAID, A5).
+      const needsResponseCount = deriveResponseFeed({
+        risks: risks ?? [],
+        assumptions: assumptions ?? [],
+        constraints: constraints ?? [],
+        dependencies: dependencies ?? [],
+        actions: actions ?? [],
+        objectivesById: byId,
+      }).length;
+      const openCriticalCount = (actions ?? []).filter(
+        (a) => !isDone(a) && isCritical(a, byId)
+      ).length;
+      actionLogFooter = formatActionLogSummary(
+        needsResponseCount,
+        openCriticalCount
+      );
+      // The read's tone: amber is spent on open critical actions only (the one
+      // criticality read on this screen); a needed response steps up to ink.
+      actionLogTone =
+        openCriticalCount > 0
+          ? 'critical'
+          : needsResponseCount > 0
+            ? 'alert'
+            : 'calm';
+
+      // The Risk tile footer (B2): the count of risks the monitor flags, the
+      // same verdict the register's Needs attention panel renders, so the tile
+      // and the register agree. assessRisks reads the clock from its caller; the
+      // server supplies it. Closed risks are never flagged, so the filter drops
+      // them.
+      const riskAttentionCount = assessRisks(
+        risks ?? [],
+        byId,
+        Date.now()
+      ).filter((v) => v.assessment.needsAttention).length;
+      riskTileFooter =
+        riskAttentionCount > 0
+          ? `${riskAttentionCount} ${riskAttentionCount === 1 ? 'risk needs' : 'risks need'} attention`
+          : 'All within their review cadence.';
+      // Cadence attention is not criticality: this read peaks at full ink.
+      riskTileTone = riskAttentionCount > 0 ? 'alert' : 'calm';
+    }
   }
+
+  // The dashboard tile copy: before the Brief is locked it does not open and
+  // reads the lock line; once locked it opens and carries the state in words.
+  const dashboardTileState = briefLocked ? 'open' : 'locked';
+  const dashboardTileFooter = briefLocked
+    ? tileStateLine(dashboardState)
+    : TILE_LOCKED;
 
   return (
     <DashboardShell user={navUser}>
@@ -522,9 +564,11 @@ export default async function WorkspacePage({ searchParams }) {
             <ModuleRow
               icon={<DashboardIcon />}
               title="Project dashboard"
-              desc="The proportional view of where the project stands."
-              footer="Coming soon"
-              state="soon"
+              desc={PAGE_SUB}
+              footer={dashboardTileFooter}
+              tone="calm"
+              state={dashboardTileState}
+              href={`/pulse/app/dashboard?project=${project.id}`}
             />
           </li>
         </ul>

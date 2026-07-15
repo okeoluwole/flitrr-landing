@@ -18,7 +18,17 @@ import {
   classificationWord,
   formatDate,
   FACT_NOT_SET,
+  attentionReason,
+  attentionTag,
+  attentionFooter,
+  tileStateLine,
+  ATTENTION_GATE_TAG,
 } from '../app/pulse/app/dashboard/dashboardRead.js';
+import {
+  ATTENTION_KINDS,
+  ATTENTION_TRIGGERS,
+} from '../app/pulse/app/dashboard/attentionModel.js';
+import { PROJECT_STATES } from '../lib/engine/objectiveHealth.js';
 
 /**
  * The dashboard read (M9.2): the copy layer over the objective health
@@ -660,5 +670,90 @@ describe('the state labels and dates', () => {
   it('formats dates day month year, UTC-safe', () => {
     expect(formatDate('2026-09-12')).toBe('12 September 2026');
     expect(formatDate(null)).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// M9.3: Band 3, the attention list, and the workspace tile.
+
+function attn({ kind = ATTENTION_KINDS.RISK, key, objectiveType = null, stage = null } = {}) {
+  return { kind, trigger: { key }, objectiveType, stage };
+}
+
+describe('the attention copy (Band 3)', () => {
+  it('gives every trigger the sources emit a string', () => {
+    expect(attentionReason(attn({ key: ATTENTION_TRIGGERS.ESCALATED_SEVERITY }))).toBe(
+      'Its severity has risen.'
+    );
+    expect(attentionReason(attn({ key: ATTENTION_TRIGGERS.CRITICAL_UNMANAGED }))).toBe(
+      'Critical, and nothing is being done yet.'
+    );
+    expect(attentionReason(attn({ key: ATTENTION_TRIGGERS.WENT_STALE }))).toBe(
+      'Overdue for review.'
+    );
+    expect(attentionReason(attn({ key: ATTENTION_TRIGGERS.NOT_YET_ENGAGED }))).toBe(
+      'Critical, and not yet looked at.'
+    );
+    expect(attentionReason(attn({ key: ATTENTION_TRIGGERS.OPEN_CRITICAL_ACTION }))).toBe(
+      'A critical action, still open.'
+    );
+    expect(attentionReason(attn({ key: ATTENTION_TRIGGERS.NEEDS_RESPONSE }))).toBe(
+      'Waiting on your response.'
+    );
+    expect(
+      attentionReason(
+        attn({ key: ATTENTION_TRIGGERS.MILESTONE_RED, objectiveType: 'cost' })
+      )
+    ).toBe('A milestone serving Cost has slipped past your tolerance.');
+    expect(
+      attentionReason(
+        attn({ key: ATTENTION_TRIGGERS.MILESTONE_AMBER, objectiveType: 'time' })
+      )
+    ).toBe('A milestone serving Time is slipping.');
+    // A gate names the stage it opens into: it closes stage 2, so the line
+    // reads Stage 3.
+    expect(
+      attentionReason(
+        attn({ kind: ATTENTION_KINDS.GATE, key: ATTENTION_TRIGGERS.GATE_RED, stage: 2 })
+      )
+    ).toBe('The gate into Stage 3 has slipped past your tolerance.');
+    expect(
+      attentionReason(
+        attn({ kind: ATTENTION_KINDS.GATE, key: ATTENTION_TRIGGERS.GATE_AMBER, stage: 2 })
+      )
+    ).toBe('The gate into Stage 3 is slipping.');
+  });
+
+  it('throws on an unknown trigger rather than inventing a line', () => {
+    expect(() => attentionReason(attn({ key: 'not-a-real-trigger' }))).toThrow();
+  });
+
+  it('tags a gate Gate and an objective row by its name', () => {
+    expect(attentionTag(attn({ kind: ATTENTION_KINDS.GATE, key: ATTENTION_TRIGGERS.GATE_RED }))).toBe(
+      ATTENTION_GATE_TAG
+    );
+    expect(
+      attentionTag(attn({ key: ATTENTION_TRIGGERS.MILESTONE_RED, objectiveType: 'quality' }))
+    ).toBe('Quality');
+  });
+
+  it('writes the overflow footer with a digit tally', () => {
+    expect(attentionFooter(3)).toBe('3 more need your attention.');
+    expect(attentionFooter(1)).toBe('1 more need your attention.');
+  });
+});
+
+describe('the tile state line', () => {
+  it('reads each project state in words, no colour', () => {
+    expect(tileStateLine(PROJECT_STATES.GREEN)).toBe('Every objective holding.');
+    expect(tileStateLine(PROJECT_STATES.AMBER)).toBe('Under pressure.');
+    expect(tileStateLine(PROJECT_STATES.RED)).toBe(
+      'A protected objective is compromised.'
+    );
+    expect(tileStateLine(PROJECT_STATES.NO_STATE)).toBe('Nothing scored yet.');
+  });
+
+  it('throws on an unknown state', () => {
+    expect(() => tileStateLine('teal')).toThrow();
   });
 });
