@@ -175,6 +175,13 @@
   --app-signal-wash:   rgba(244, 192, 49, 0.10);
   --app-signal-ink:    #ECC172;
   --app-signal-border: rgba(244, 192, 49, 0.42);
+  /* The dimmed amber voice: the flexible ladder's state labels sit one
+     notch below the protected ladder's at the same shape (Dashboard,
+     M9.2c). Tinted toward the ground rather than alpha-faded so the ink
+     holds AA on the app surfaces; the print flip re-tunes the ink for
+     paper the same way it re-tunes --app-signal-ink. */
+  --app-signal-ink-dim:    #C9A75F;
+  --app-signal-border-dim: rgba(244, 192, 49, 0.26);
 
   /* Criticality: the cascade's loud end. A wash and a full
      border, never a side-stripe. */
@@ -493,6 +500,7 @@ p {
     --app-border-strong: rgba(20, 24, 28, 0.42);
     --app-hover: transparent;
     --app-signal-ink: #856414;
+    --app-signal-ink-dim: #8a6a1a;
     --app-danger: #9c3d2a;
     --app-success: #2e6b54;
     --app-warning: #7a5e1e;

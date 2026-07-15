@@ -1,0 +1,39 @@
+/*
+ * CriticalityChip - the mono pill idiom for derived criticality. Product
+ * (Instrument) surface tokens only. Amber is spent on Critical and nowhere
+ * else in a chip row; Standard is the quiet outline; Needs a link is the
+ * dashed governance gap and never borrows amber. The chip carries no external
+ * margin, so each surface places it in its own tag row.
+ */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.critical {
+  background: var(--app-signal-wash);
+  color: var(--app-signal-ink);
+  border-color: var(--app-critical-border);
+}
+
+.standard {
+  background: transparent;
+  color: var(--app-ink-secondary);
+  border-color: var(--app-border);
+}
+
+.unlinked {
+  background: transparent;
+  color: var(--app-ink-muted);
+  border: 1px dashed var(--app-border-strong);
+}

@@ -30,6 +30,7 @@ import {
   buildActionFromPlay,
 } from '../../../../lib/playbook/playbookModel';
 import ViewOnlyBadge from '../components/ViewOnlyBadge';
+import CriticalityChip from '../components/CriticalityChip';
 import styles from './ActionLog.module.css';
 
 /**
@@ -86,8 +87,6 @@ const ACCEPT_PLAY_ERROR =
 const DISMISS_PLAY_ERROR =
   'We could not dismiss that suggestion. Please check your connection and try again.';
 
-const CRITICALITY_LABEL = { critical: 'Critical', standard: 'Standard' };
-const NEEDS_LINK_LABEL = 'Needs a link';
 const OVERRIDE_REASON_PLACEHOLDER = 'Why reduce this to standard?';
 
 // The read-only line shown to a member where the inline add flow sits for an
@@ -759,16 +758,6 @@ export default function ActionLog({
 
     // The head chip states the live criticality, or the needs-a-link gap.
     // Static, not a control: criticality follows the objective now.
-    let critClass = styles.critStandard;
-    let critLabel = CRITICALITY_LABEL.standard;
-    if (unlinked) {
-      critClass = styles.critUnlinked;
-      critLabel = NEEDS_LINK_LABEL;
-    } else if (critical) {
-      critClass = styles.critCritical;
-      critLabel = CRITICALITY_LABEL.critical;
-    }
-
     return (
       <article
         key={a.id}
@@ -776,7 +765,7 @@ export default function ActionLog({
       >
         <div className={styles.cardHead}>
           <div className={styles.cardTags}>
-            <span className={`${styles.crit} ${critClass}`}>{critLabel}</span>
+            <CriticalityChip critical={critical} unlinked={unlinked} />
             {linkedName && (
               <span className={styles.objective}>for {linkedName}</span>
             )}
@@ -971,16 +960,6 @@ export default function ActionLog({
     const outcomeLabel = labelFor(OUTCOME_OPTIONS, a.outcome);
     const variance = (a.variance ?? '').trim();
 
-    let critClass = styles.critStandard;
-    let critLabel = CRITICALITY_LABEL.standard;
-    if (unlinked) {
-      critClass = styles.critUnlinked;
-      critLabel = NEEDS_LINK_LABEL;
-    } else if (critical) {
-      critClass = styles.critCritical;
-      critLabel = CRITICALITY_LABEL.critical;
-    }
-
     return (
       <article
         key={a.id}
@@ -988,7 +967,7 @@ export default function ActionLog({
       >
         <div className={styles.cardHead}>
           <div className={styles.cardTags}>
-            <span className={`${styles.crit} ${critClass}`}>{critLabel}</span>
+            <CriticalityChip critical={critical} unlinked={unlinked} />
             {linkedName && (
               <span className={styles.objective}>for {linkedName}</span>
             )}

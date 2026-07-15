@@ -21,6 +21,7 @@ import {
   buildRiskFromPlay,
 } from '../../../../lib/playbook/playbookModel';
 import ViewOnlyBadge from '../components/ViewOnlyBadge';
+import CriticalityChip from '../components/CriticalityChip';
 import styles from './RiskRegister.module.css';
 
 /**
@@ -330,9 +331,7 @@ export default function RiskRegister({
       <article key={s.playId} className={styles.playItem}>
         {s.criticality === 'critical' && (
           <div className={styles.playTags}>
-            <span className={`${styles.crit} ${styles.critCritical}`}>
-              Critical
-            </span>
+            <CriticalityChip critical />
           </div>
         )}
         <p className={styles.playTitle}>{s.title}</p>
@@ -378,11 +377,7 @@ export default function RiskRegister({
         className={`${styles.attnItem} ${critical ? styles.attnItemCritical : ''}`}
       >
         <div className={styles.attnTags}>
-          <span
-            className={`${styles.crit} ${critical ? styles.critCritical : styles.critStandard}`}
-          >
-            {critical ? 'Critical' : 'Standard'}
-          </span>
+          <CriticalityChip critical={critical} />
           <SeverityChip severity={assessment.severity} />
           <span className={styles.objective}>
             {objective === 'Unlinked' ? 'Unlinked' : `vs ${objective}`}
@@ -419,11 +414,7 @@ export default function RiskRegister({
       >
         <div className={styles.cardHead}>
           <div className={styles.cardTags}>
-            <span
-              className={`${styles.crit} ${critical ? styles.critCritical : styles.critStandard}`}
-            >
-              {critical ? 'Critical' : 'Standard'}
-            </span>
+            <CriticalityChip critical={critical} />
             <span className={styles.objective}>
               {objective === 'Unlinked' ? 'Unlinked' : `vs ${objective}`}
             </span>
@@ -530,11 +521,7 @@ export default function RiskRegister({
       >
         <div className={styles.cardHead}>
           <div className={styles.cardTags}>
-            <span
-              className={`${styles.crit} ${critical ? styles.critCritical : styles.critStandard}`}
-            >
-              {critical ? 'Critical' : 'Standard'}
-            </span>
+            <CriticalityChip critical={critical} />
             <span className={styles.objective}>
               {objective === 'Unlinked' ? 'Unlinked' : `vs ${objective}`}
             </span>

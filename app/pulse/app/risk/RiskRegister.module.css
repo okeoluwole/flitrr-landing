@@ -533,33 +533,8 @@
   min-width: 0;
 }
 
-/* Criticality chip: the mono pill idiom. Amber is spent on Critical and
-   nowhere else in the chip row; Standard is the quiet outline. */
-.crit {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 3px 10px;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  white-space: nowrap;
-}
-
-.critCritical {
-  background: var(--app-signal-wash);
-  color: var(--app-signal-ink);
-  border-color: var(--app-critical-border);
-}
-
-.critStandard {
-  background: transparent;
-  color: var(--app-ink-secondary);
-  border-color: var(--app-border);
-}
+/* The criticality chip is the shared CriticalityChip component
+   (../components/CriticalityChip.js); no local chip classes here. */
 
 /* The objective the risk threatens: meta, in the instrument voice. */
 .objective {
