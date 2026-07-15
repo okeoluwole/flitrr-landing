@@ -91,7 +91,10 @@ export default async function RiskPage({ searchParams }) {
 
   const briefLocked = brief?.is_locked === true;
 
-  const workspaceHref = `/pulse/app/workspace?project=${project.id}`;
+  // Back to the workspace launcher, carrying view=workspace so in Run it reaches
+  // the launcher (to hop to another module) instead of being redirected to the
+  // dashboard, the same loop-safe param the dashboard back-link uses (M9.5a).
+  const workspaceHref = `/pulse/app/workspace?project=${project.id}&view=workspace`;
 
   const Header = (
     <>
@@ -106,7 +109,7 @@ export default async function RiskPage({ searchParams }) {
             strokeLinejoin="round"
           />
         </svg>
-        Back to the project
+        Back to the workspace
       </Link>
       <p className={styles.eyebrow}>Risk module</p>
       <h1 className={styles.title}>Risk register</h1>
@@ -125,7 +128,7 @@ export default async function RiskPage({ searchParams }) {
           <div className={styles.locked}>
             <p className={styles.lockedText}>{RISK_LOCKED_COPY}</p>
             <Link href={workspaceHref} className={styles.lockedCta}>
-              Back to the project
+              Back to the workspace
             </Link>
           </div>
         </main>

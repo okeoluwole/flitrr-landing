@@ -118,7 +118,11 @@ export default async function ProgrammeTrackingPage({ searchParams }) {
     redirect('/pulse/app');
   }
 
-  const workspaceHref = `/pulse/app/workspace?project=${project.id}`;
+  // Back to the workspace launcher, carrying view=workspace so in Run it reaches
+  // the launcher (to hop to another module) instead of being redirected to the
+  // dashboard, the same loop-safe param the dashboard back-link uses (M9.5a).
+  // Feeds both the SetUpFirst pointer and the ProgrammeTracking back-link.
+  const workspaceHref = `/pulse/app/workspace?project=${project.id}&view=workspace`;
   const setupHref = `/pulse/app/programme/setup?project=${project.id}`;
 
   // The two loads this page makes, side by side, plus the viewer's access for

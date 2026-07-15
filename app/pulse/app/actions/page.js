@@ -81,7 +81,10 @@ export default async function ActionsPage({ searchParams }) {
     redirect('/pulse/app');
   }
 
-  const workspaceHref = `/pulse/app/workspace?project=${project.id}`;
+  // Back to the workspace launcher, carrying view=workspace so in Run it reaches
+  // the launcher (to hop to another module) instead of being redirected to the
+  // dashboard, the same loop-safe param the dashboard back-link uses (M9.5a).
+  const workspaceHref = `/pulse/app/workspace?project=${project.id}&view=workspace`;
 
   const Header = (
     <>
@@ -96,7 +99,7 @@ export default async function ActionsPage({ searchParams }) {
             strokeLinejoin="round"
           />
         </svg>
-        Back to the project
+        Back to the workspace
       </Link>
       <p className={styles.eyebrow}>Action Log module</p>
       <h1 className={styles.title}>Action Log</h1>
@@ -126,7 +129,7 @@ export default async function ActionsPage({ searchParams }) {
               {actionLogLockedFooter(briefLocked)}
             </p>
             <Link href={workspaceHref} className={styles.lockedCta}>
-              Back to the project
+              Back to the workspace
             </Link>
           </div>
         </main>
