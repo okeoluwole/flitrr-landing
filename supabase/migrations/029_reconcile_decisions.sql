@@ -51,8 +51,16 @@
 -- and is already applied to the live database.
 --
 -- Idempotent: the enum create is guarded, the table and indexes use
--- IF NOT EXISTS, and the policies are guarded, so re-running is safe. Apply
--- this in the Supabase SQL editor before testing.
+-- IF NOT EXISTS, and the policies are guarded, so re-running is safe.
+--
+-- APPLIED to the live flitrr-app database on 2026-07-24, at Olu's direction,
+-- ahead of the end-to-end walkthrough. Verified after the apply: the enum
+-- carries its five values, the table carries its 16 columns, 4 foreign keys
+-- and 5 CHECK constraints, row level security is on with SELECT and INSERT
+-- policies only, and the two guard CHECKs were confirmed against real rows
+-- (a kept date with no reason and an amend with no date were both rejected;
+-- a valid attestation was accepted, then removed). The table is empty, and
+-- the apply raised no new security advisory.
 -- ========================================================================
 
 -- The recorded outcome of a decision on one flagged date. See THE FIVE
