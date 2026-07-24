@@ -1303,6 +1303,18 @@
   margin-bottom: 0.6rem;
 }
 
+/* Shown only where a stage's date window is not the strict sequential one: a
+   stage that runs alongside the others, or one already complete. */
+.stageWindowNote {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--app-ink-secondary);
+  max-width: 60ch;
+  margin: -0.2rem 0 0.7rem;
+}
+
 .milestoneList {
   list-style: none;
   display: flex;

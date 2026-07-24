@@ -5,6 +5,8 @@ import { resolveProjectAccess } from '../../../../../lib/team/access';
 import DashboardShell from '../../../../components/DashboardShell';
 import { loadProgrammeChoices } from '../../components/programmeChoices';
 import { loadCurrentProgrammeBaseline } from '../../components/programmeBaselineStore';
+import { PROGRAMME_TEMPLATE } from '../../../../../lib/engine/programmeTemplate.js';
+import { deriveStageStates } from '../../../../../lib/engine/stageStates.js';
 import ProgrammeSetup from './ProgrammeSetup';
 import styles from './ProgrammeSetup.module.css';
 
@@ -20,7 +22,13 @@ import styles from './ProgrammeSetup.module.css';
  *   - the project start date (projects.start_date), the anchor the Brief's
  *     advised dates already derive from, and the anchor the reality check needs;
  *   - the developer's hand-set programme choices (loadProgrammeChoices, the
- *     gates and headline milestones the developer dated during initiation).
+ *     gates and headline milestones the developer dated during initiation);
+ *   - the two baseline values the stage states derive from, the project country
+ *     (projects.country) and the funding structure
+ *     (project_budget.funding_structure_type). The states are derived here, on
+ *     the server, so the reality check and the assembly measure a concurrent
+ *     stage from the same window start the Brief's Step 7 did. Plain data, so
+ *     they cross to the client component as they are.
  *
  * It reads only. Nothing here writes to the database: no resolutions, no agreed
  * dates, no v1. v1 is produced at lock, in Phase 2. Reachability mirrors the
@@ -106,7 +114,7 @@ export default async function ProgrammeSetupPage({ searchParams }) {
   const [{ data: project }, { data: brief }] = await Promise.all([
     supabase
       .from('projects')
-      .select('id, name, start_date, target_completion_date')
+      .select('id, name, start_date, target_completion_date, country')
       .eq('id', projectParam)
       .maybeSingle(),
     supabase
@@ -164,15 +172,35 @@ export default async function ProgrammeSetupPage({ searchParams }) {
   // target before any lock is allowed.
   // Reads only: this server component never writes. The lock is a confirmed
   // action in the client, written through the store.
-  const [{ choices }, { data: objectives }, { baseline: currentBaseline }] =
-    await Promise.all([
-      loadProgrammeChoices(supabase, project.id),
-      supabase
-        .from('project_objectives')
-        .select('id, objective_type, classification')
-        .eq('project_id', project.id),
-      loadCurrentProgrammeBaseline(supabase, project.id),
-    ]);
+  const [
+    { choices },
+    { data: objectives },
+    { baseline: currentBaseline },
+    { data: budget },
+  ] = await Promise.all([
+    loadProgrammeChoices(supabase, project.id),
+    supabase
+      .from('project_objectives')
+      .select('id, objective_type, classification')
+      .eq('project_id', project.id),
+    loadCurrentProgrammeBaseline(supabase, project.id),
+    // maybeSingle: a project predating migration 015 has no seeded budget row,
+    // which is not an error. No funding structure simply triggers nothing.
+    supabase
+      .from('project_budget')
+      .select('funding_structure_type')
+      .eq('project_id', project.id)
+      .maybeSingle(),
+  ]);
+
+  // The stage states, read off the baseline: Sales and Disposal runs concurrent
+  // for an off-plan or Nigeria scheme, so its window opens at sales launch
+  // rather than at the completion gate. Derived once here and threaded into
+  // both engines, so set-up measures the stage exactly as Step 7 did.
+  const stageStates = deriveStageStates(PROGRAMME_TEMPLATE, {
+    country: project.country,
+    fundingStructureType: budget?.funding_structure_type,
+  });
 
   // The already-locked record, if a current baseline exists, with the locker's
   // name resolved for the read-only state. lockerName for a fresh lock is the
@@ -208,6 +236,7 @@ export default async function ProgrammeSetupPage({ searchParams }) {
         projectName={project.name}
         workspaceHref={workspaceHref}
         projectStart={project.start_date}
+        stageStates={stageStates}
         choices={choices ?? { stages: [] }}
         projectId={project.id}
         objectives={objectives ?? []}

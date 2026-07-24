@@ -4,6 +4,7 @@ import { PROGRAMME_TEMPLATE } from '../../../../lib/engine/programmeTemplate.js'
 import { deriveRollingGateDates } from '../../../../lib/engine/programmeSchedule.js';
 import { deriveMilestoneView } from '../../../../lib/engine/programmeMilestones.js';
 import { CRITICALITY } from '../../../../lib/engine/criticality.js';
+import { STAGE_STATE } from '../../../../lib/engine/stageStates.js';
 
 /**
  * Step 7, Programme (live step 7). The lifecycle baseline the Programme
@@ -22,10 +23,20 @@ import { CRITICALITY } from '../../../../lib/engine/criticality.js';
  * disabled until the previous gate is given a date or marked not applicable. The
  * open gate shows a rolling advised date, a one-tap suggestion the developer can
  * accept or override with their own date. The advised date carries a light,
- * honest basis hint: a typical span in weeks, a curated estimate, not a
- * statutory figure. The advised date is derived in render
+ * honest basis hint that names BOTH halves of its arithmetic: the date it counts
+ * from and the typical span in weeks it adds, a curated estimate, not a
+ * statutory figure. Both are read off the one object the engine returns
+ * (anchorDate and spanWeeks beside advisedDate), so the hint can never cite a
+ * basis the suggestion did not use. The advised date is derived in render
  * (deriveRollingGateDates) and never stored; only the chosen date and the N/A
  * flag are persisted.
+ *
+ * Stage windows follow the stage-state model (lib/engine/stageStates.js), passed
+ * in as `stageStates` and derived by the wizard from the baseline. Stages 0 to 6
+ * are strictly sequential. Stage 7 becomes concurrent for an off-plan or Nigeria
+ * scheme, which widens its milestone window to open at sales launch rather than
+ * at the completion gate; the stage says so in plain words above its milestones.
+ * No toggle: the state is read from the baseline, never chosen here.
  *
  * Controlled and presentational. `gates` is the eight stage-gate choice rows in
  * stage order (each { stage, target_date, target_na, milestones }); `projectStart`
@@ -81,6 +92,42 @@ function advisedDisplay(date) {
   });
 }
 
+// Two dates are the same instant. Used to tell the first open gate (anchored on
+// the project start) from a later one (anchored on the gate before it), so the
+// hint names the right thing.
+function sameInstant(a, b) {
+  return a != null && b != null && a.getTime() === b.getTime();
+}
+
+/**
+ * The basis hint under an advised date: what it counted from, and what it added.
+ * Both halves come from the same engine object as the date itself, so a reader
+ * can check the arithmetic and always find it holds.
+ */
+function advisedBasis(meta, projectStart) {
+  const from = sameInstant(meta.anchorDate, projectStart)
+    ? 'the project start'
+    : 'the previous gate';
+  return `About ${meta.spanWeeks} weeks from ${from}, ${advisedDisplay(
+    meta.anchorDate
+  )}. A typical span for this stage, adjust as needed.`;
+}
+
+// The plain-words note above a stage's milestones when its window is not the
+// strict one. A concurrent stage says where its window opens; a stage already
+// complete says its dates are a record. A sequential stage says nothing, which
+// is the silent norm.
+function stageWindowNote(meta) {
+  if (meta?.state === STAGE_STATE.CONCURRENT) {
+    const label = meta.windowStartLabel ?? 'the start of this stage';
+    return `This stage runs alongside the rest of the programme, so its dates can fall any time from ${label} onwards.`;
+  }
+  if (meta?.state === STAGE_STATE.COMPLETE) {
+    return 'This stage is already complete, so these dates record what happened.';
+  }
+  return null;
+}
+
 // Objective display name lookup, keyed by objective_type. The template's `serves`
 // is the objective_type identifier; this resolves the human label for display
 // (the single source of names is objectiveMeta.js).
@@ -99,6 +146,7 @@ export default function StepProgramme({
   gates,
   projectStart,
   objectives,
+  stageStates,
   onGateDateChange,
   onGateNaToggle,
   onMilestoneDateChange,
@@ -106,9 +154,12 @@ export default function StepProgramme({
 }) {
   // Roll the advised dates from the project start and the choices so far. Pure
   // and derived: nothing here is persisted.
-  const rolling = deriveRollingGateDates(projectStart, PROGRAMME_TEMPLATE, {
-    stages: gates,
-  });
+  const rolling = deriveRollingGateDates(
+    projectStart,
+    PROGRAMME_TEMPLATE,
+    { stages: gates },
+    stageStates
+  );
   const metaByStage = new Map(rolling.stages.map((s) => [s.stage, s]));
 
   // The milestone view: per stage, the template milestones with their derived
@@ -119,7 +170,8 @@ export default function StepProgramme({
     PROGRAMME_TEMPLATE,
     { stages: gates },
     objectives,
-    projectStart
+    projectStart,
+    stageStates
   );
   const milestoneStages = milestoneView.stages.filter((s) => s.applicable);
 
@@ -199,8 +251,7 @@ export default function StepProgramme({
                     Use advised date, {advisedDisplay(advisedDate)}
                   </button>
                   <span className={styles.suggestHint}>
-                    About {meta.gateWeeks} weeks, a typical span for this stage.
-                    Adjust as needed.
+                    {advisedBasis(meta, rolling.projectStart)}
                   </span>
                 </div>
               )}
@@ -227,11 +278,17 @@ export default function StepProgramme({
               set.
             </p>
           ) : (
-            milestoneStages.map((stage) => (
+            milestoneStages.map((stage) => {
+              const windowNote = stageWindowNote(metaByStage.get(stage.stage));
+              return (
               <div key={stage.stage} className={styles.milestoneStage}>
                 <p className={styles.milestoneStageLabel}>
                   Stage {stage.stage}: {stage.name}
                 </p>
+
+                {windowNote && (
+                  <p className={styles.stageWindowNote}>{windowNote}</p>
+                )}
 
                 <ul className={styles.milestoneList}>
                   {stage.milestones.map((m) => {
@@ -336,7 +393,8 @@ export default function StepProgramme({
                   </p>
                 ))}
               </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>

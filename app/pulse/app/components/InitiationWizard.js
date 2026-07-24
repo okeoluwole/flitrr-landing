@@ -25,6 +25,8 @@ import {
   getMilestoneChoice,
   setMilestoneChoice,
 } from './programmeChoices';
+import { PROGRAMME_TEMPLATE } from '../../../../lib/engine/programmeTemplate.js';
+import { deriveStageStates } from '../../../../lib/engine/stageStates.js';
 import styles from './InitiationWizard.module.css';
 
 /**
@@ -1898,6 +1900,18 @@ export default function InitiationWizard({
     );
   };
 
+  // The stage states Step 7's windows read, derived from the baseline the
+  // wizard already holds: the Step 1 country and the Step 6 funding structure.
+  // No toggle anywhere, by design (principle 6, tailoring within discipline):
+  // an off-plan or Nigeria scheme makes Sales and Disposal concurrent, and the
+  // developer cannot relax the gate logic by hand. Derived in render like the
+  // wizard's other reads, and never stored: it is a reading of the baseline,
+  // not a new fact about the project.
+  const stageStates = deriveStageStates(PROGRAMME_TEMPLATE, {
+    country: def.country,
+    fundingStructureType: financial?.funding_structure_type,
+  });
+
   const renderStep = () => {
     if (step === 1) {
       return <StepProjectDefinition values={def} onChange={onDefChange} />;
@@ -2019,6 +2033,7 @@ export default function InitiationWizard({
           gates={gates}
           projectStart={def.start_date}
           objectives={objectives}
+          stageStates={stageStates}
           onGateDateChange={onGateDateChange}
           onGateNaToggle={onGateNaToggle}
           onMilestoneDateChange={onMilestoneDateChange}

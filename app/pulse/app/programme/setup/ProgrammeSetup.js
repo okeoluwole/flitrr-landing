@@ -521,6 +521,7 @@ export default function ProgrammeSetup({
   projectName,
   workspaceHref,
   projectStart,
+  stageStates = null,
   choices,
   projectId,
   objectives,
@@ -534,9 +535,15 @@ export default function ProgrammeSetup({
   adminContact = null,
 }) {
   // The reality check, run once over the loaded inputs. Pure and deterministic.
+  // The stage states come from the server, derived off the baseline, so a stage
+  // that runs concurrent is measured from its window start here exactly as the
+  // Brief's Step 7 measured it.
   const realityCheck = useMemo(
-    () => deriveRealityCheck(projectStart, PROGRAMME_TEMPLATE, choices),
-    [projectStart, choices]
+    () =>
+      deriveRealityCheck(projectStart, PROGRAMME_TEMPLATE, choices, {
+        stageStates,
+      }),
+    [projectStart, choices, stageStates]
   );
   const flagged = useMemo(() => flaggedItems(realityCheck), [realityCheck]);
   const summary = useMemo(() => reconcileSummary(realityCheck), [realityCheck]);
@@ -576,9 +583,10 @@ export default function ProgrammeSetup({
       PROGRAMME_TEMPLATE,
       choices,
       resolutions,
-      objectives
+      objectives,
+      { stageStates }
     );
-  }, [projectStart, choices, resolutions, objectives]);
+  }, [projectStart, choices, resolutions, objectives, stageStates]);
 
   // The lock-time reconciliation: v1 against the locked Brief's record set
   // (falling back to the live choices for a Brief locked before the record set
