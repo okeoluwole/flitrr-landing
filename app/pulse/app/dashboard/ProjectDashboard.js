@@ -1,30 +1,20 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import Link from 'next/link';
-import { deriveSeverity } from '../../../../lib/engine/severity';
-import { HEALTH_STATES } from '../../../../lib/engine/objectiveHealth';
-import { STATUS_OPTIONS as RISK_STATUS_OPTIONS } from '../risk/riskModel';
-import { STATUS_OPTIONS as ACTION_STATUS_OPTIONS } from '../actions/actionModel';
+import { LADDER_STATUSES } from '../../../../lib/engine/objectiveLadder';
 import { deriveDashboard } from './dashboardModel';
 import {
   PAGE_TITLE,
   PAGE_SUB,
-  GROUP_LINKS,
-  MILESTONE_FLAG_WORDS,
-  objectiveName,
-  classificationWord,
-  stateLabel,
-  stateSentence,
+  ladderStatusLabel,
   supportingLines,
   factStage,
   factComplete,
   factForecast,
   factGate,
-  reasonLine,
   dateLine,
   driftLine,
-  formatDate,
   ATTENTION_HEADING,
   ATTENTION_EMPTY,
   attentionTag,
@@ -34,253 +24,127 @@ import {
 import styles from './ProjectDashboard.module.css';
 
 /**
- * ProjectDashboard (M9.2 Bands 1 and 2, M9.3 Band 3). The objective lens
- * rendered: Band 1 is the read (the state sentence, up to two supporting
- * lines, and four facts), Band 2 is objective health, five rows organised
- * protected block first, each expanding IN PLACE to list every item tagged to
- * that objective across the three modules. Band 3 is "what needs you now", the
- * one ranked, deduplicated attention list across all three modules, silent
- * (one calm line, no list frame) when nothing is flagged.
+ * ProjectDashboard (Note 20): the cockpit, and after set-up the project's
+ * landing page. One question at a glance: are my objectives being met, and
+ * what needs me now.
+ *
+ * THE BANDS. A summary strip (stage, percent complete, forecast against
+ * target, next gate: the instrument row, mono numerals over hairlines, not a
+ * card). Then the hero: objective health on the four-rung ladder plus the
+ * honest Not scored state, the protected block leading, each row carrying
+ * its status and its cited driver and drilling into the module that acts on
+ * it. Then the needs-you-now queue, capped to the top five as pointers into
+ * the modules. Then the module rail: the dashboard absorbs the hub's role,
+ * so Brief, Programme, Action Log and Risk register are reached from here.
  *
  * READ-ONLY, WHOLLY. No write action exists anywhere on this page: every
- * interaction is either the in-place expansion or a navigation link (Band 2's
- * one-per-group links, Band 3's whole-row deep links) into the module that
- * owns the items. The dashboard routes, it does not act.
+ * interaction is a navigation link into the module that owns the work. The
+ * cockpit points; the modules act. That is also why no full item lists
+ * render here: the same risks used to appear as lists on three surfaces,
+ * and this surface now carries statuses and pointers only.
+ *
+ * COLOUR IS TIED TO THE LADDER and nothing else. Compromised, breach in
+ * fact, is the only red spend (the danger token). At risk and Slipping
+ * share the amber voice, separated by weight. Healthy is a quiet word:
+ * words carry good news, colour carries bad. Not scored is the dashed
+ * neutral, blindness reported, never coloured.
  *
  * Everything rendered comes from two places: deriveDashboard (the display
  * model over the engines) and dashboardRead (the copy sheet). This component
  * holds no derivation and no sentence of its own.
- *
- * THE HIERARCHY (M9.2b). The state is the news: it changes every day and is
- * the only reason the page exists. Classification is context: set once at
- * initiation, it never moves, so it renders as a small dim word beside the
- * objective name, never as a chip (the Risk register and the Action Log keep
- * CriticalityChip, because there criticality IS the news about the item).
- * The state renders twice on a row: as the left edge, one vertical line the
- * eye scans down the band so the worst row finds you without reading a word,
- * and as the row's loud label. Red and amber are separated by WEIGHT, never
- * by a second hue (a bar versus a hairline, filled versus outlined): amber
- * stays the one colour spend, and green spends nothing, because words carry
- * good news and colour carries bad. Band 1's read card takes the same edge
- * grammar, heavier: the project is the parent the objectives nest beneath.
  */
 
-// The row's presentation classes, keyed by the engine's colour, which maps
-// one-to-one onto the ladder rungs: red = Compromised/Exhausted, amber =
-// Under pressure/Absorbing, green = Holding, neutral = Not scored.
+// The row's presentation classes, keyed by ladder status.
 const ROW_EDGE_CLASS = {
-  green: null,
-  amber: 'rowEdgeLine',
-  red: 'rowEdgeBar',
-  neutral: 'rowEdgeDashed',
+  [LADDER_STATUSES.HEALTHY]: null,
+  [LADDER_STATUSES.AT_RISK]: 'rowEdgeThin',
+  [LADDER_STATUSES.SLIPPING]: 'rowEdgeLine',
+  [LADDER_STATUSES.COMPROMISED]: 'rowEdgeBar',
+  [LADDER_STATUSES.NOT_SCORED]: 'rowEdgeDashed',
 };
 
-const STATE_CLASS = {
-  green: 'stateQuiet',
-  amber: 'stateOutlined',
-  red: 'stateFilled',
-  neutral: 'stateDashed',
+const STATUS_CLASS = {
+  [LADDER_STATUSES.HEALTHY]: 'statusQuiet',
+  [LADDER_STATUSES.AT_RISK]: 'statusOutlinedDim',
+  [LADDER_STATUSES.SLIPPING]: 'statusOutlined',
+  [LADDER_STATUSES.COMPROMISED]: 'statusDanger',
+  [LADDER_STATUSES.NOT_SCORED]: 'statusDashed',
 };
 
-// Band 1's read card: the same edge grammar as the rows, heavier. Green is
-// deliberately absent: a green project renders NO edge.
-const CARD_EDGE_CLASS = {
-  green: null,
-  amber: 'cardEdgeLine',
-  red: 'cardEdgeBar',
-  neutral: 'cardEdgeDashed',
-};
-
-const SEVERITY_CLASS = {
-  serious: 'sevSerious',
-  moderate: 'sevModerate',
-  minor: 'sevMinor',
-  unscored: 'sevUnscored',
-};
-
-function labelFor(options, value) {
-  return options.find((o) => o.value === value)?.label ?? value;
+function Chevron({ className }) {
+  return (
+    <svg
+      className={className}
+      width="14"
+      height="14"
+      viewBox="0 0 14 14"
+      aria-hidden="true"
+    >
+      <path
+        d="M5 3l4 4-4 4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
-// One expandable Band 2 row. The header button toggles the expansion in
-// place; no new route. Protected rows carry full visual weight, flexible
-// rows are quieter: proportional monitoring rendered in typography.
-function ObjectiveRow({ row, hrefs }) {
-  const [open, setOpen] = useState(false);
+// One ladder row. The status is the news and owns the row's colour; the
+// driver is the cited fact beneath the name. A row with a module to act in
+// is one whole-row link into it; a healthy row has nothing to act on and
+// stays static.
+function LadderRow({ row, healthRow, hrefs }) {
+  const edge = ROW_EDGE_CLASS[row.status];
+  const date =
+    row.trigger.key === 'forecast_past_target' ? null : dateLine(healthRow);
+  const drift = driftLine(healthRow);
 
-  const name = objectiveName(row.type);
-  const reason = reasonLine(row);
-  const date = dateLine(row);
-  const drift = driftLine(row);
-  const notScored = row.state === HEALTH_STATES.NOT_SCORED;
-
-  const { risks, actions, milestones } = row.items;
-  const hasItems =
-    risks.length > 0 || actions.length > 0 || milestones.length > 0;
-
-  // A row with nothing tagged to it has nothing to expand: the header stays
-  // a plain heading and the Not scored body link carries the routing.
-  const headContent = (
+  const body = (
     <>
-      <span className={styles.rowTags}>
-        <span className={styles.rowName}>{name}</span>
-        <span className={styles.rowClass}>{classificationWord(row)}</span>
+      <span className={styles.ladderMain}>
+        <span className={styles.ladderName}>{row.name}</span>
+        <span className={styles.ladderDriver}>{row.driver}</span>
+        {date && <span className={styles.ladderDate}>{date}</span>}
+        {drift && <span className={styles.ladderDrift}>{drift}</span>}
       </span>
-      <span className={styles.rowAside}>
+      <span className={styles.ladderAside}>
         <span
-          className={`${styles.rowState} ${styles[STATE_CLASS[row.colour]]}`}
+          className={`${styles.ladderStatus} ${styles[STATUS_CLASS[row.status]]}`}
         >
-          {stateLabel(row)}
+          {ladderStatusLabel(row)}
         </span>
-        {hasItems && (
-          <svg
-            className={`${styles.caret} ${open ? styles.caretOpen : ''}`}
-            width="12"
-            height="12"
-            viewBox="0 0 12 12"
-            aria-hidden="true"
-          >
-            <path
-              d="M2 4l4 4 4-4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        )}
+        {row.actsIn && <Chevron className={styles.ladderChevron} />}
       </span>
     </>
   );
 
-  const edge = ROW_EDGE_CLASS[row.colour];
+  const rowClass = `${styles.ladderRow} ${
+    row.isProtected ? styles.ladderProtected : styles.ladderFlexible
+  }${edge ? ` ${styles[edge]}` : ''}`;
 
+  if (row.actsIn) {
+    return (
+      <li className={rowClass}>
+        <Link href={hrefs[row.actsIn]} className={styles.ladderLink}>
+          {body}
+        </Link>
+      </li>
+    );
+  }
   return (
-    <li
-      className={`${styles.row} ${row.isProtected ? styles.rowProtected : styles.rowFlexible}${edge ? ` ${styles[edge]}` : ''}`}
-    >
-      {hasItems ? (
-        <button
-          type="button"
-          className={styles.rowHead}
-          aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
-        >
-          {headContent}
-        </button>
-      ) : (
-        <div className={`${styles.rowHead} ${styles.rowHeadStatic}`}>
-          {headContent}
-        </div>
-      )}
-
-      <div className={styles.rowBody}>
-        {reason && <p className={styles.reason}>{reason}</p>}
-        {date && <p className={styles.dateLine}>{date}</p>}
-        {drift && <p className={styles.driftLine}>{drift}</p>}
-        {notScored && (
-          <Link href={hrefs.risk} className={styles.rowLink}>
-            {GROUP_LINKS.risks}
-          </Link>
-        )}
-      </div>
-
-      {open && hasItems && (
-        <div className={styles.expansion}>
-          {risks.length > 0 && (
-            <div className={styles.group}>
-              <p className={styles.groupHead}>Risks</p>
-              <ul className={styles.itemList}>
-                {risks.map((r) => {
-                  const severity = deriveSeverity(r.likelihood, r.impact);
-                  return (
-                    <li key={r.id} className={styles.item}>
-                      <p className={styles.itemDesc}>{r.description}</p>
-                      <span className={styles.itemMeta}>
-                        <span
-                          className={`${styles.sev} ${styles[SEVERITY_CLASS[severity.key]]}`}
-                        >
-                          {severity.label}
-                        </span>
-                        <span className={styles.itemStatus}>
-                          {labelFor(RISK_STATUS_OPTIONS, r.status)}
-                        </span>
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-              <Link href={hrefs.risk} className={styles.groupLink}>
-                {GROUP_LINKS.risks}
-              </Link>
-            </div>
-          )}
-
-          {actions.length > 0 && (
-            <div className={styles.group}>
-              <p className={styles.groupHead}>Actions</p>
-              <ul className={styles.itemList}>
-                {actions.map((a) => (
-                  <li key={a.id} className={styles.item}>
-                    <p className={styles.itemDesc}>{a.description}</p>
-                    <span className={styles.itemMeta}>
-                      <span className={styles.itemStatus}>
-                        {labelFor(ACTION_STATUS_OPTIONS, a.status)}
-                      </span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <Link href={hrefs.actions} className={styles.groupLink}>
-                {GROUP_LINKS.actions}
-              </Link>
-            </div>
-          )}
-
-          {milestones.length > 0 && (
-            <div className={styles.group}>
-              <p className={styles.groupHead}>Milestones</p>
-              <ul className={styles.itemList}>
-                {milestones.map((m) => (
-                  <li key={m.key} className={styles.item}>
-                    <p className={styles.itemDesc}>{m.name}</p>
-                    <span className={styles.itemMeta}>
-                      <span className={styles.itemStatus}>
-                        Stage {m.stage}
-                      </span>
-                      {m.baselineDate && (
-                        <span className={styles.itemStatus}>
-                          {formatDate(m.baselineDate)}
-                        </span>
-                      )}
-                      {m.flag && (
-                        <span
-                          className={`${styles.msFlag} ${m.flag === 'red' ? styles.msFlagRed : styles.msFlagAmber}`}
-                        >
-                          {MILESTONE_FLAG_WORDS[m.flag]}
-                        </span>
-                      )}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <Link href={hrefs.programme} className={styles.groupLink}>
-                {GROUP_LINKS.milestones}
-              </Link>
-            </div>
-          )}
-        </div>
-      )}
+    <li className={rowClass}>
+      <div className={styles.ladderStatic}>{body}</div>
     </li>
   );
 }
 
-// One Band 3 attention row. The WHOLE row deep-links to the item in its home
-// module (a gate to the Programme, which no single module owns). Full weight
-// for protected-objective items and for a gate (which answers to all five);
+// One attention row. The WHOLE row deep-links to the item in its home
+// module. Full weight for protected-objective items and for a gate;
 // flexible-objective items are quieter, the same proportional typography as
-// Band 2. No write action: the dashboard routes, it does not act.
+// the ladder.
 function AttentionRow({ item, href }) {
   const tag = attentionTag(item);
   const reason = attentionReason(item);
@@ -299,26 +163,20 @@ function AttentionRow({ item, href }) {
             <span className={styles.attnRaised}>{item.raisedFrom}</span>
           )}
         </span>
-        <svg
-          className={styles.attnChevron}
-          width="14"
-          height="14"
-          viewBox="0 0 14 14"
-          aria-hidden="true"
-        >
-          <path
-            d="M5 3l4 4-4 4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <Chevron className={styles.attnChevron} />
       </Link>
     </li>
   );
 }
+
+// The module rail: the hub's navigation, absorbed (Note 20). Four
+// destinations, one register.
+const MODULES = [
+  { key: 'brief', title: 'Brief', desc: 'The locked baseline' },
+  { key: 'programme', title: 'Programme', desc: 'Schedule and tracking' },
+  { key: 'actions', title: 'Action Log', desc: 'What is being done' },
+  { key: 'risk', title: 'Risk register', desc: 'Threats to objectives' },
+];
 
 export default function ProjectDashboard({
   projectId,
@@ -335,6 +193,7 @@ export default function ProjectDashboard({
 }) {
   const hrefs = useMemo(
     () => ({
+      brief: `/pulse/app/initiate?project=${projectId}`,
       risk: `/pulse/app/risk?project=${projectId}`,
       actions: `/pulse/app/actions?project=${projectId}`,
       programme: `/pulse/app/programme?project=${projectId}`,
@@ -369,16 +228,21 @@ export default function ProjectDashboard({
     ]
   );
 
-  const { health, rows, facts, attention } = dashboard;
+  const { health, ladderRows, facts, attention } = dashboard;
 
-  const sentence = stateSentence(health);
+  // The health rows by id, for the Time date line and the drift notice the
+  // ladder rows do not carry themselves.
+  const healthById = useMemo(() => {
+    const map = {};
+    for (const row of health.objectives) map[row.id] = row;
+    return map;
+  }, [health]);
+
   const support = supportingLines(health, {
     hasBaseline: facts.hasBaseline,
     openRiskCount: risks.filter((r) => r.status !== 'closed').length,
     hrefs,
   });
-  const projectColour =
-    health.project.state === 'no_state' ? 'neutral' : health.project.state;
 
   const factList = [
     factStage(facts.currentStage),
@@ -387,9 +251,12 @@ export default function ProjectDashboard({
     factGate(facts.nextGate, facts.readiness, facts.hasBaseline),
   ];
 
+  const protectedRows = ladderRows.filter((r) => r.isProtected);
+  const flexibleRows = ladderRows.filter((r) => !r.isProtected);
+
   return (
     <main className={`container ${styles.page}`} id="main-content">
-      <Link href={workspaceHref} className={styles.backLink}>
+      <Link href="/pulse/app" className={styles.backLink}>
         <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
           <path
             d="M9 11L5 7l4-4"
@@ -400,22 +267,67 @@ export default function ProjectDashboard({
             strokeLinejoin="round"
           />
         </svg>
-        Back to the project
+        All projects
       </Link>
-      <p className={styles.eyebrow}>Dashboard module</p>
-      <h1 className={styles.title}>{PAGE_TITLE}</h1>
-      <p className={styles.projectName}>{projectName}</p>
-      <p className={styles.sub}>{PAGE_SUB}</p>
 
-      {/* Band 1: the read. The project state lives on the card's left edge,
-          the rows' grammar rendered heavier; a green project renders no edge
-          at all, so a green card can honestly sit above an amber-edged
-          flexible row that is absorbing pressure for it. */}
-      <section
-        className={`${styles.readBand}${CARD_EDGE_CLASS[projectColour] ? ` ${styles[CARD_EDGE_CLASS[projectColour]]}` : ''} riseIn`}
-        aria-label="The read"
-      >
-        <p className={styles.stateSentence}>{sentence}</p>
+      <header className={styles.head}>
+        <p className={styles.eyebrow}>{PAGE_TITLE}</p>
+        <h1 className={styles.title}>{projectName}</h1>
+        <p className={styles.sub}>{PAGE_SUB}</p>
+      </header>
+
+      {/* The summary strip: the instrument row. Four facts over hairlines,
+          mono numerals, not a card. */}
+      <dl className={styles.strip} aria-label="Project summary">
+        {factList.map((fact) => (
+          <div key={fact.label} className={styles.stripCell}>
+            <dt className={styles.stripLabel}>{fact.label}</dt>
+            <dd className={styles.stripBody}>
+              <span className={styles.stripValue}>{fact.value}</span>
+              {fact.detail && (
+                <span className={styles.stripDetail}>{fact.detail}</span>
+              )}
+            </dd>
+          </div>
+        ))}
+      </dl>
+
+      {/* The hero: objective health on the ladder. The protected block leads;
+          proportional monitoring rendered in structure and type. */}
+      <section aria-label="Objective health" className={styles.heroBand}>
+        <h2 className={styles.bandLabel}>Objective health</h2>
+        <div className={styles.ladderPanel}>
+          {protectedRows.length > 0 && (
+            <section aria-label="Protected objectives">
+              <h3 className={styles.ladderGroup}>Protected</h3>
+              <ul className={styles.ladder}>
+                {protectedRows.map((row) => (
+                  <LadderRow
+                    key={row.id}
+                    row={row}
+                    healthRow={healthById[row.id]}
+                    hrefs={hrefs}
+                  />
+                ))}
+              </ul>
+            </section>
+          )}
+          {flexibleRows.length > 0 && (
+            <section aria-label="Flexible objectives">
+              <h3 className={styles.ladderGroup}>Flexible</h3>
+              <ul className={styles.ladder}>
+                {flexibleRows.map((row) => (
+                  <LadderRow
+                    key={row.id}
+                    row={row}
+                    healthRow={healthById[row.id]}
+                    hrefs={hrefs}
+                  />
+                ))}
+              </ul>
+            </section>
+          )}
+        </div>
 
         {support.length > 0 && (
           <div className={styles.support}>
@@ -434,43 +346,17 @@ export default function ProjectDashboard({
             )}
           </div>
         )}
-
-        <dl className={styles.facts}>
-          {factList.map((fact) => (
-            <div key={fact.label} className={styles.fact}>
-              <dt className={styles.factLabel}>{fact.label}</dt>
-              <dd className={styles.factBody}>
-                <span className={styles.factValue}>{fact.value}</span>
-                {fact.detail && (
-                  <span className={styles.factDetail}>{fact.detail}</span>
-                )}
-              </dd>
-            </div>
-          ))}
-        </dl>
       </section>
 
-      {/* Band 2: objective health. The product. */}
-      <section aria-label="Objective health">
-        <p className={styles.bandLabel}>Objective health</p>
-        <ul className={styles.register}>
-          {rows.map((row) => (
-            <ObjectiveRow key={row.id} row={row} hrefs={hrefs} />
-          ))}
-        </ul>
-      </section>
-
-      {/* Band 3: what needs you now. The one ranked, deduplicated attention
-          list across the three modules. Silent when nothing is flagged: one
-          calm line and no list frame, because a heading over an empty list
-          reads as broken. */}
+      {/* The needs-you-now queue: capped pointers into the modules, silent
+          (one calm line, no list frame) when nothing is flagged. */}
       <section className={styles.attnBand} aria-label={ATTENTION_HEADING}>
-        <p className={styles.bandLabel}>{ATTENTION_HEADING}</p>
+        <h2 className={styles.bandLabel}>{ATTENTION_HEADING}</h2>
         {attention.total === 0 ? (
           <p className={styles.attnEmpty}>{ATTENTION_EMPTY}</p>
         ) : (
           <>
-            <ul className={styles.register}>
+            <ul className={styles.attnList}>
               {attention.items.map((item) => (
                 <AttentionRow
                   key={`${item.kind}:${item.id}`}
@@ -492,6 +378,29 @@ export default function ProjectDashboard({
           </>
         )}
       </section>
+
+      {/* The module rail: the hub's role, absorbed. */}
+      <nav className={styles.railBand} aria-label="Modules">
+        <h2 className={styles.bandLabel}>Modules</h2>
+        <ul className={styles.rail}>
+          {MODULES.map((m) => (
+            <li key={m.key} className={styles.railItem}>
+              <Link href={hrefs[m.key]} className={styles.railLink}>
+                <span className={styles.railMain}>
+                  <span className={styles.railTitle}>{m.title}</span>
+                  <span className={styles.railDesc}>{m.desc}</span>
+                </span>
+                <Chevron className={styles.railChevron} />
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <p className={styles.railFoot}>
+          <Link href={workspaceHref} className={styles.railFootLink}>
+            Open the workspace
+          </Link>
+        </p>
+      </nav>
     </main>
   );
 }

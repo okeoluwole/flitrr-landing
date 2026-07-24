@@ -27,6 +27,7 @@ import {
   DATE_VERDICTS,
   PROJECT_STATES,
 } from '../../../../lib/engine/objectiveHealth';
+import { LADDER_STATUSES } from '../../../../lib/engine/objectiveLadder';
 import { OBJECTIVE_META } from '../components/objectiveMeta';
 import { formatList } from '../components/briefFormat';
 import { ATTENTION_KINDS, ATTENTION_TRIGGERS } from './attentionModel';
@@ -74,6 +75,19 @@ const STATE_LABELS = {
   [HEALTH_STATES.EXHAUSTED]: 'Exhausted',
   [HEALTH_STATES.NOT_SCORED]: 'Not scored',
 };
+
+// The ladder's status labels (Note 20), one word or two per rung.
+export const LADDER_LABELS = {
+  [LADDER_STATUSES.HEALTHY]: 'Healthy',
+  [LADDER_STATUSES.AT_RISK]: 'At risk',
+  [LADDER_STATUSES.SLIPPING]: 'Slipping',
+  [LADDER_STATUSES.COMPROMISED]: 'Compromised',
+  [LADDER_STATUSES.NOT_SCORED]: 'Not scored',
+};
+
+export function ladderStatusLabel(row) {
+  return LADDER_LABELS[row.status] ?? row.status;
+}
 
 const NAME_BY_TYPE = Object.fromEntries(
   OBJECTIVE_META.map((o) => [o.type, o.name])
@@ -621,6 +635,39 @@ export function attentionFooter(overflow) {
  * from the same assembly the dashboard uses (health.project.state); an unknown
  * state throws rather than inventing a line.
  */
+/**
+ * The workspace tile's line from the LADDER (Note 20): the worst status
+ * across the objectives, in the ladder's own words, so the tile can never
+ * contradict the cockpit it opens. Counts inside sentences are words, per
+ * the sheet's rule.
+ */
+export function ladderTileLine(ladderRows) {
+  const rows = ladderRows ?? [];
+  const byStatus = (s) => rows.filter((r) => r.status === s);
+
+  const compromised = byStatus(LADDER_STATUSES.COMPROMISED);
+  if (compromised.length === 1)
+    return `${objectiveName(compromised[0].type)} is compromised.`;
+  if (compromised.length > 1)
+    return `${numberWord(compromised.length, true)} objectives are compromised.`;
+
+  const slipping = byStatus(LADDER_STATUSES.SLIPPING);
+  if (slipping.length === 1)
+    return `${objectiveName(slipping[0].type)} is slipping.`;
+  if (slipping.length > 1)
+    return `${numberWord(slipping.length, true)} objectives are slipping.`;
+
+  const atRisk = byStatus(LADDER_STATUSES.AT_RISK);
+  if (atRisk.length === 1)
+    return `${objectiveName(atRisk[0].type)} is at risk.`;
+  if (atRisk.length > 1)
+    return `${numberWord(atRisk.length, true)} objectives are at risk.`;
+
+  if (byStatus(LADDER_STATUSES.HEALTHY).length > 0)
+    return 'Every scored objective is healthy.';
+  return 'Nothing scored yet.';
+}
+
 export function tileStateLine(projectState) {
   switch (projectState) {
     case PROJECT_STATES.GREEN:

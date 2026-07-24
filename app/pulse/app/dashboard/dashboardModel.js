@@ -41,6 +41,10 @@ import {
   deriveObjectiveHealth,
   HEALTH_STATES,
 } from '../../../../lib/engine/objectiveHealth';
+import {
+  deriveObjectiveLadder,
+  LADDER_STATUSES,
+} from '../../../../lib/engine/objectiveLadder';
 import { gateReadiness } from '../../../../lib/engine/readiness';
 import { buildObjectiveIndex } from '../../../../lib/engine/criticality';
 import { deriveAttention } from './attentionModel';
@@ -100,6 +104,39 @@ export function orderHealthRows(objectiveRows) {
     .map((entry) => entry.row);
 }
 
+// The cockpit's ladder order within a block (Note 20): worst status first,
+// healthy beneath the degraded statuses, Not scored always last so the blind
+// spots close the block rather than burying the news.
+const LADDER_ORDER = {
+  [LADDER_STATUSES.COMPROMISED]: 0,
+  [LADDER_STATUSES.SLIPPING]: 1,
+  [LADDER_STATUSES.AT_RISK]: 2,
+  [LADDER_STATUSES.HEALTHY]: 3,
+  [LADDER_STATUSES.NOT_SCORED]: 4,
+};
+
+/**
+ * The cockpit's row order over the ladder (Note 20): the protected block
+ * first and flexible second (proportional monitoring rendered in structure),
+ * worst status first within each block, Not scored rows last, and the
+ * canonical objective order breaking ties. Stable: the ladder rows arrive in
+ * canonical order and equal keys keep it.
+ */
+export function orderLadderRows(ladderRows) {
+  return [...(ladderRows ?? [])]
+    .map((row, index) => ({ row, index }))
+    .sort((a, b) => {
+      if (a.row.isProtected !== b.row.isProtected) {
+        return a.row.isProtected ? -1 : 1;
+      }
+      const statusDiff =
+        (LADDER_ORDER[a.row.status] ?? 9) - (LADDER_ORDER[b.row.status] ?? 9);
+      if (statusDiff !== 0) return statusDiff;
+      return a.index - b.index;
+    })
+    .map((entry) => entry.row);
+}
+
 /**
  * The next gate ahead, from the frozen baseline snapshot and the met-points
  * view: the first applicable stage, in stage order, whose gate is not met.
@@ -142,6 +179,9 @@ export function nextGate(programme, metPoints) {
  *   {
  *     health,          deriveObjectiveHealth's full output
  *     rows,            health.objectives in Band 2 order
+ *     ladder,          deriveObjectiveLadder's rows (Note 20), engine order
+ *     ladderRows,      the ladder in cockpit order (protected block first,
+ *                      worst status first, Not scored last)
  *     attention,       deriveAttention's Band 3 read: { items, total,
  *                      overflow, overflowModule }
  *     facts: {
@@ -215,9 +255,16 @@ export function deriveDashboard({
     nowMs: Date.parse(todayIso),
   });
 
+  // The objective status ladder (Note 20): the cockpit's hero read, one
+  // status per objective with its cited driver, derived as a pure layer over
+  // the health engine's signals.
+  const ladder = deriveObjectiveLadder(health);
+
   return {
     health,
     rows: orderHealthRows(health.objectives),
+    ladder,
+    ladderRows: orderLadderRows(ladder),
     attention,
     facts: {
       currentStage,

@@ -19,7 +19,7 @@ import { programmeTileTarget } from '../programme/trackingModel';
 import { loadCurrentProgrammeBaseline } from '../components/programmeBaselineStore';
 import { loadMetPointsView } from '../components/programmeActualsStore';
 import { deriveDashboard } from '../dashboard/dashboardModel';
-import { PAGE_SUB, tileStateLine } from '../dashboard/dashboardRead';
+import { PAGE_SUB, ladderTileLine } from '../dashboard/dashboardRead';
 import { derivePhase, deriveLanding, PHASE_INTRO, SURFACES } from './phaseModel';
 import {
   SEQUENCE_STEPS,
@@ -406,26 +406,24 @@ export default async function WorkspacePage({ searchParams }) {
   const stepPanel = nextStep(step);
   const stepTarget = stepHref(step, project.id);
 
-  // The landing (M9.5). In Run a project opens to its dashboard, the delivery
-  // home; in Define and Plan it opens to the workspace, as now. The decision is
-  // DERIVED from the phase on every request, never stored, so it reverses for
-  // free when the Brief is reopened: an open Brief reads Define, and Define
-  // lands on the workspace. Decided here, before the heavier reads and the
-  // access resolution below, since a redirect makes all of that moot.
+  // The landing (M9.5, gate-aware since Note 20). Once the Brief is locked,
+  // the operational baseline (v1) is assembled and the gate is confirmed, a
+  // project opens to its dashboard, the delivery home; before then it opens to
+  // the workspace, whose sequence names the next step. The decision is DERIVED
+  // on every request, never stored, so it reverses for free when the Brief is
+  // reopened: an open Brief reads Define, and Define lands on the workspace.
+  // gateConfirmed comes from the project's own passed gate rows, so the
+  // decision is entry-stage independent (Note 12). Decided here, before the
+  // heavier reads and the access resolution below, since a redirect makes all
+  // of that moot.
   //
   // viewWorkspace is the anti-loop path. The dashboard back-link carries
   // ?view=workspace, an explicit request for the workspace that the redirect
   // does not fire on, so a developer in Run can always reach the modules and the
   // redirect can never bounce them straight back.
-  //
-  // The landing itself is unchanged (its rebuild is a later session), with one
-  // consistency guard: it only fires while the modules are open. A project whose
-  // baseline is locked but whose gate is not yet confirmed reads Run, and
-  // sending it to a dashboard the sequence has locked would be a dead end.
   const viewWorkspace = searchParams?.view === 'workspace';
   if (
-    modulesAreOpen &&
-    deriveLanding({ phase, viewWorkspace }) === SURFACES.DASHBOARD
+    deriveLanding({ phase, gateConfirmed, viewWorkspace }) === SURFACES.DASHBOARD
   ) {
     redirect(`/pulse/app/dashboard?project=${project.id}`);
   }
@@ -447,11 +445,12 @@ export default async function WorkspacePage({ searchParams }) {
     hasBaseline,
   });
 
-  // The dashboard tile's one live signal: the project state in words, read from
-  // the SAME assembly the dashboard uses (deriveDashboard), so the tile and the
-  // surface can never disagree. No number leaves this tile; every count lives on
-  // the dashboard, one source of truth.
-  let dashboardState = null;
+  // The dashboard tile's one live signal: the worst ladder status in words
+  // (Note 20), read from the SAME assembly the dashboard uses
+  // (deriveDashboard), so the tile and the cockpit can never disagree. No
+  // number leaves this tile; every count lives on the dashboard, one source
+  // of truth.
+  let dashboardLadder = null;
 
   // The Action Log tile's live summary (M7.2): what needs a response
   // (derived from the register by the feed's trigger rule) and what is open
@@ -503,9 +502,9 @@ export default async function WorkspacePage({ searchParams }) {
     ]);
     const { byId } = buildObjectiveIndex(objectives ?? []);
 
-    // The project state, the tile's one signal. The same call the dashboard
-    // makes over the same rows and frozen baseline; the tile reads only its
-    // state word (green, amber, red, or no_state), never recomputing anything.
+    // The ladder, the tile's one signal source. The same call the dashboard
+    // makes over the same rows and frozen baseline; the tile reads only the
+    // worst status in words, never recomputing anything.
     const dash = deriveDashboard({
       objectives: objectives ?? [],
       risks: risks ?? [],
@@ -516,7 +515,7 @@ export default async function WorkspacePage({ searchParams }) {
       targetCompletionDate: project.target_completion_date ?? null,
       currentStage: project.current_stage,
     });
-    dashboardState = dash.health.project.state;
+    dashboardLadder = dash.ladder;
 
     // The Risk tile footer (B2): the count of risks the monitor flags, the same
     // verdict the register's Needs attention panel renders, so the tile and the
@@ -566,10 +565,10 @@ export default async function WorkspacePage({ searchParams }) {
           : 'calm';
   }
 
-  // The dashboard tile copy: the project state in words once it is open, and the
-  // sequence's honest locked line until then.
+  // The dashboard tile copy: the worst ladder status in words once it is open,
+  // and the sequence's honest locked line until then.
   const dashboardTileFooter = modulesAreOpen
-    ? tileStateLine(dashboardState)
+    ? ladderTileLine(dashboardLadder)
     : lockedLine;
 
   return (

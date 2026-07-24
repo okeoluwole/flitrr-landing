@@ -1,43 +1,42 @@
 /*
- * ProjectDashboard (M9.2 Bands 1 and 2, M9.3 Band 3). Product (Instrument)
- * surface tokens only, phone first: every band holds on a narrow screen and
- * widens from there.
+ * ProjectDashboard (Note 20): the cockpit. Product (Instrument) surface
+ * tokens only, phone first: every band holds on a narrow screen and widens
+ * from there.
  *
- * THE EDGE GRAMMAR (M9.2b). The state is the news, so the state owns the
- * row's loudness: a left edge the eye scans down the band, and the loud
- * label at the row's end. One hue only, the amber spend: red and amber are
- * separated by WEIGHT, never by colour (Compromised/Exhausted a thick solid
- * bar and a filled label; Under pressure/Absorbing a hairline and an
- * outlined label). Holding renders NOTHING: words carry good news, colour
- * carries bad, and a page that spends colour on calm has nothing left to
- * spend on alarm. Not scored is the dashed neutral. Band 1's read card
- * takes the same grammar heavier (the project is the parent), and a green
- * project renders no edge at all. Classification is a small dim word beside
- * the objective name: context, not news.
+ * THE COLOUR GRAMMAR is the ladder's and nothing else. Compromised, breach
+ * in fact, is the surface's only red spend (the danger token): a solid edge
+ * and a filled status label. At risk and Slipping share the amber voice,
+ * separated by weight (Slipping a 2px edge and the bright outline, At risk a
+ * 1px edge and the dim outline). Healthy renders NOTHING: words carry good
+ * news, colour carries bad, and a page that spends colour on calm has
+ * nothing left to spend on alarm. Not scored is the dashed neutral,
+ * blindness reported, never coloured. The edges are painted, not borders,
+ * so row content never shifts with the status.
  *
- * Read-only surface: no button here writes. The only controls are the
- * in-place row expansions and navigation links, all at 44px effective
- * targets.
+ * Read-only surface: no control here writes. Every interactive element is a
+ * navigation link at a 44px effective target.
  */
 
 .page {
-  padding: 2.5rem 0 5rem;
+  padding: 2rem 0 5rem;
 }
 
 /* ------------------------------------------------------------------ */
-/* Header, the module idiom shared with the register and the log.      */
+/* Header. The project name leads: this is the project's home, not a   */
+/* module page.                                                        */
 
 .backLink {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+  min-height: 44px;
   font-family: var(--app-font-sans), sans-serif;
   font-size: var(--app-text-sm);
   font-weight: 500;
   color: var(--app-ink-secondary);
   text-decoration: none;
-  padding: 0.5rem 0;
-  margin-bottom: 1.25rem;
+  padding: 0.25rem 0;
+  margin-bottom: 0.75rem;
 }
 
 .backLink:hover {
@@ -48,6 +47,10 @@
   outline: 2px solid var(--app-focus);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+.head {
+  margin-bottom: 1.5rem;
 }
 
 .eyebrow {
@@ -67,6 +70,7 @@
   letter-spacing: -0.01em;
   color: var(--app-ink);
   margin-bottom: 0.35rem;
+  text-wrap: balance;
 }
 
 .projectName {
@@ -82,11 +86,11 @@
   font-size: var(--app-text-base);
   color: var(--app-ink-secondary);
   max-width: 44rem;
-  margin-bottom: 2rem;
 }
 
 /* ------------------------------------------------------------------ */
-/* The Brief-not-locked state.                                         */
+/* The pre-set-up state (a direct visit before the sequence opens the  */
+/* modules).                                                           */
 
 .locked {
   background: var(--app-surface);
@@ -132,59 +136,333 @@
 }
 
 /* ------------------------------------------------------------------ */
-/* Band 1: the read. A seated panel, constrained to a reading measure  */
-/* so the sentence holds a sane line length and the edge stays close   */
-/* to the content it colours.                                          */
+/* The summary strip: the instrument row. Hairlines above and below,   */
+/* mono numerals, deliberately NOT a card, so the first thing under    */
+/* the header reads as a reading from the instrument rather than       */
+/* another panel in a stack. Two cells across on the phone, four from  */
+/* 900px.                                                              */
 
-.readBand {
-  position: relative;
-  overflow: hidden;
-  max-width: 44rem;
+.strip {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid var(--app-hairline);
+  border-bottom: 1px solid var(--app-hairline);
+  margin-bottom: 2.25rem;
+}
+
+@media (min-width: 900px) {
+  .strip {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.stripCell {
+  padding: 0.9rem 1rem 0.95rem 0;
+  min-width: 0;
+}
+
+.stripCell + .stripCell {
+  padding-left: 1rem;
+  border-left: 1px solid var(--app-hairline);
+}
+
+/* On the 2x2 phone grid the third cell starts a new row: no left rule,
+   a top rule instead, carried by the row. */
+@media (max-width: 899.98px) {
+  .stripCell:nth-child(odd) {
+    padding-left: 0;
+    border-left: none;
+  }
+  .stripCell:nth-child(n + 3) {
+    border-top: 1px solid var(--app-hairline);
+  }
+}
+
+.stripLabel {
+  font-family: var(--app-font-mono), monospace;
+  font-size: var(--app-text-xs);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
+  margin-bottom: 0.35rem;
+}
+
+.stripBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.stripValue {
+  font-family: var(--app-font-mono), monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--app-text-base);
+  font-weight: 600;
+  color: var(--app-ink);
+}
+
+.stripDetail {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
+  line-height: 1.5;
+  color: var(--app-ink-secondary);
+}
+
+/* ------------------------------------------------------------------ */
+/* Band labels, shared by the three bands beneath the strip.           */
+
+.bandLabel {
+  font-family: var(--app-font-mono), monospace;
+  font-size: var(--app-text-xs);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
+  margin-bottom: 0.75rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* The hero: objective health on the ladder. One seated panel, the     */
+/* protected block leading, group captions in the mono micro voice.    */
+
+.heroBand {
+  margin-bottom: 2.25rem;
+}
+
+.ladderPanel {
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-elev-1);
-  padding: 1.25rem 1.1rem;
-  margin-bottom: 2rem;
+  overflow: hidden;
 }
 
-/* The card's edge: the rows' grammar, heavier, because the project is the
-   parent. Green renders NO edge, deliberately: a green card with no edge
-   above an amber-edged flexible row is a flexible objective absorbing
-   pressure without moving the project, the design working. */
-.cardEdgeBar::before,
-.cardEdgeLine::before,
-.cardEdgeDashed::before {
+.ladderGroup {
+  font-family: var(--app-font-mono), monospace;
+  font-size: var(--app-text-xs);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
+  background: var(--app-surface-sunken);
+  border-bottom: 1px solid var(--app-border);
+  padding: 0.45rem 1.1rem;
+}
+
+.ladderPanel section + section .ladderGroup {
+  border-top: 1px solid var(--app-border);
+}
+
+.ladder {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ladderRow {
+  position: relative;
+  border-bottom: 1px solid var(--app-border);
+}
+
+.ladder .ladderRow:last-child {
+  border-bottom: none;
+}
+
+.ladderPanel section:last-child .ladder .ladderRow:last-child {
+  border-bottom: none;
+}
+
+/* The status edges: painted, never borders, so content never shifts.
+   Compromised is the one red spend; Slipping and At risk share the amber
+   voice by weight; Not scored is the dashed neutral; Healthy paints
+   nothing. */
+.rowEdgeBar::before,
+.rowEdgeLine::before,
+.rowEdgeThin::before,
+.rowEdgeDashed::before {
   content: '';
   position: absolute;
   top: 0;
   bottom: 0;
   left: 0;
+  pointer-events: none;
 }
 
-.cardEdgeBar::before {
-  width: 6px;
-  background: var(--app-signal);
+.rowEdgeBar::before {
+  width: 4px;
+  background: var(--app-danger);
 }
 
-.cardEdgeLine::before {
+.rowEdgeLine::before {
   width: 2px;
   background: var(--app-signal);
 }
 
-.cardEdgeDashed::before {
-  width: 0;
-  border-left: 2px dashed var(--app-border-strong);
+.rowEdgeThin::before {
+  width: 1px;
+  background: var(--app-signal-border);
 }
 
-.stateSentence {
+.rowEdgeDashed::before {
+  width: 0;
+  border-left: 1px dashed var(--app-border-strong);
+}
+
+/* The row body: one whole-row link into the module that acts on the
+   status, or a static row when nothing needs acting on. */
+.ladderLink,
+.ladderStatic {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.85rem;
+  min-height: 44px;
+  padding: 0.85rem 1.1rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.ladderLink:hover {
+  background: var(--app-hover);
+}
+
+.ladderLink:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: -2px;
+}
+
+.ladderMain {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+/* Protected rows carry full visual weight; flexible rows are quieter:
+   proportional monitoring rendered in typography, not decoration. */
+.ladderName {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: var(--app-text-md);
-  font-weight: 600;
-  line-height: 1.5;
   color: var(--app-ink);
 }
 
+.ladderProtected .ladderName {
+  font-size: var(--app-text-md);
+  font-weight: 600;
+}
+
+.ladderFlexible .ladderName {
+  font-size: var(--app-text-base);
+  font-weight: 500;
+  color: var(--app-ink-secondary);
+}
+
+/* The driver: the cited fact beneath the name, always visible. The
+   glanceability lives here: name, status, why, in one look. */
+.ladderDriver {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
+  line-height: 1.5;
+  color: var(--app-ink-secondary);
+  max-width: 44rem;
+}
+
+.ladderProtected .ladderDriver {
+  color: var(--app-ink);
+}
+
+/* Healthy and Not scored rows keep the driver quiet on protected rows too:
+   calm news never outshouts bad. */
+.ladderProtected:not(.rowEdgeBar):not(.rowEdgeLine):not(.rowEdgeThin)
+  .ladderDriver {
+  color: var(--app-ink-secondary);
+}
+
+.ladderDate,
+.ladderDrift {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
+  line-height: 1.5;
+  max-width: 44rem;
+}
+
+.ladderDate {
+  color: var(--app-ink-secondary);
+}
+
+.ladderDrift {
+  color: var(--app-ink-muted);
+}
+
+.ladderAside {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex: 0 0 auto;
+  padding-top: 0.1rem;
+}
+
+/* The status label: the loud element on the row. Every treatment keeps the
+   same box so the labels align down the band. */
+.ladderStatus {
+  font-family: var(--app-font-mono), monospace;
+  font-size: var(--app-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+/* Compromised: breach in fact, the one filled label. Danger wash and
+   border with the danger ink, never amber: amber is exposure, red is
+   breach. */
+.statusDanger {
+  background: var(--app-danger-wash);
+  border-color: var(--app-danger-border);
+  color: var(--app-danger);
+}
+
+/* Slipping: the bright amber outline. */
+.statusOutlined {
+  background: transparent;
+  border-color: var(--app-signal-border);
+  color: var(--app-signal-ink);
+}
+
+/* At risk: the dim amber outline, one notch quieter. */
+.statusOutlinedDim {
+  background: transparent;
+  border-color: var(--app-signal-border-dim);
+  color: var(--app-signal-ink-dim);
+}
+
+/* Healthy: a quiet word. Colour spends nothing on calm. */
+.statusQuiet {
+  background: transparent;
+  color: var(--app-ink-secondary);
+}
+
+/* Not scored: the dashed neutral. */
+.statusDashed {
+  background: transparent;
+  border: 1px dashed var(--app-border-strong);
+  color: var(--app-ink-muted);
+}
+
+.ladderChevron {
+  flex: 0 0 auto;
+  color: var(--app-ink-muted);
+}
+
+.ladderLink:hover .ladderChevron {
+  color: var(--app-ink-secondary);
+}
+
+/* The honesty lines under the hero: the read's own blind spots, small
+   print, never dressed up. */
 .support {
   margin-top: 0.85rem;
   display: flex;
@@ -197,6 +475,7 @@
   font-size: var(--app-text-sm);
   line-height: 1.55;
   color: var(--app-ink-secondary);
+  max-width: 44rem;
 }
 
 .supportLink {
@@ -216,75 +495,24 @@
   border-radius: 4px;
 }
 
-/* The four facts: sunken display cells, one column on the phone, two-by-two
-   from 640px. */
-.facts {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1px;
-  margin-top: 1.25rem;
-  background: var(--app-border);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
-  overflow: hidden;
-}
-
-@media (min-width: 640px) {
-  .facts {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.fact {
-  background: var(--app-surface-sunken);
-  padding: 0.85rem 0.95rem;
-}
-
-.factLabel {
-  font-family: var(--app-font-mono), monospace;
-  font-size: var(--app-text-xs);
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--app-ink-muted);
-  margin-bottom: 0.35rem;
-}
-
-.factBody {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.factValue {
-  font-family: var(--app-font-mono), monospace;
-  font-variant-numeric: tabular-nums;
-  font-size: var(--app-text-base);
-  font-weight: 600;
-  color: var(--app-ink);
-}
-
-.factDetail {
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: var(--app-text-sm);
-  line-height: 1.5;
-  color: var(--app-ink-secondary);
-}
-
 /* ------------------------------------------------------------------ */
-/* Band 2: objective health. One seated register.                      */
+/* The needs-you-now queue. Capped pointers into the modules. No       */
+/* colour is spent here: the ordering (gate first, protected before    */
+/* flexible) already carries the priority.                             */
 
-.bandLabel {
-  font-family: var(--app-font-mono), monospace;
-  font-size: var(--app-text-xs);
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--app-ink-muted);
-  margin-bottom: 0.75rem;
+.attnBand {
+  margin-bottom: 2.25rem;
 }
 
-.register {
+.attnEmpty {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-base);
+  line-height: 1.6;
+  color: var(--app-ink-secondary);
+  max-width: 44rem;
+}
+
+.attnList {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -295,433 +523,6 @@
   overflow: hidden;
 }
 
-.row {
-  position: relative;
-  border-bottom: 1px solid var(--app-border);
-}
-
-.row:last-child {
-  border-bottom: none;
-}
-
-/* The state's left edge: one vertical line the eye scans down the band, so
-   the worst row finds you without reading a word. Red and amber separated by
-   weight (a bar versus a hairline), never by a second hue; Holding renders
-   nothing; Not scored is the dashed neutral. The edge is painted, not a
-   border, so row content never shifts with the state. */
-.rowEdgeBar::before,
-.rowEdgeLine::before,
-.rowEdgeDashed::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-}
-
-.rowEdgeBar::before {
-  width: 4px;
-  background: var(--app-signal);
-}
-
-.rowEdgeLine::before {
-  width: 1px;
-  background: var(--app-signal);
-}
-
-.rowEdgeDashed::before {
-  width: 0;
-  border-left: 1px dashed var(--app-border-strong);
-}
-
-.rowHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  width: 100%;
-  min-height: 44px;
-  padding: 0.9rem 1.1rem 0.15rem;
-  background: transparent;
-  border: none;
-  text-align: left;
-  cursor: pointer;
-  color: inherit;
-}
-
-.rowHeadStatic {
-  cursor: default;
-}
-
-.rowHead:focus-visible {
-  outline: 2px solid var(--app-focus);
-  outline-offset: -2px;
-}
-
-.rowTags {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-  min-width: 0;
-}
-
-/* Protected rows carry full visual weight; flexible rows are quieter.
-   Proportional monitoring rendered in typography, not decoration. */
-.rowName {
-  font-family: var(--app-font-sans), sans-serif;
-  color: var(--app-ink);
-}
-
-.rowProtected .rowName {
-  font-size: var(--app-text-md);
-  font-weight: 600;
-}
-
-.rowFlexible .rowName {
-  font-size: var(--app-text-base);
-  font-weight: 500;
-  color: var(--app-ink-secondary);
-}
-
-/* Classification, demoted: a small dim word beside the name. Set once at
-   initiation and never moved, it is context, not news, and never a chip. */
-.rowClass {
-  font-family: var(--app-font-mono), monospace;
-  font-size: var(--app-text-xs);
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--app-ink-muted);
-  white-space: nowrap;
-}
-
-.rowAside {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  flex: 0 0 auto;
-}
-
-/* The state label, the loud element on the row: it is the news. The four
-   treatments repeat the edge's weight logic: Compromised/Exhausted filled
-   (the one solid amber spend, dark ink on it), Under pressure/Absorbing
-   outlined in the amber voice, Holding a quiet word, Not scored dashed.
-   Every treatment keeps the same box so the labels align down the band. */
-.rowState {
-  font-family: var(--app-font-mono), monospace;
-  font-size: var(--app-text-xs);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  padding: 3px 10px;
-  border-radius: 999px;
-  border: 1px solid transparent;
-}
-
-.stateFilled {
-  background: var(--app-signal);
-  border-color: var(--app-signal);
-  /* Literal, not var(--app-primary-ink): the amber fill never flips, so its
-     ink must stay dark even in print, where the primary ink goes white. */
-  color: #12171c;
-}
-
-.stateOutlined {
-  background: transparent;
-  border-color: var(--app-signal-border);
-  color: var(--app-signal-ink);
-}
-
-.stateQuiet {
-  background: transparent;
-  color: var(--app-ink-secondary);
-}
-
-.stateDashed {
-  background: transparent;
-  border: 1px dashed var(--app-border-strong);
-  color: var(--app-ink-muted);
-}
-
-/* The flexible ladder's labels, one notch quieter (M9.2c): the same shapes
-   as their protected counterparts, so each ladder's internal steps still
-   read, dimmed so the whole flexible set sits below the protected set.
-   Exhausted keeps Compromised's filled treatment on the system's deeper
-   amber; Absorbing keeps Under pressure's outline in the dimmed amber
-   voice. Tinted toward the token, never alpha-faded, so the dimmed labels
-   stay comfortably legible on the dark ground and across the print flip.
-   Flexible Holding and Not scored are unchanged: the quiet rungs already
-   sit level. */
-.rowFlexible .stateFilled {
-  background: var(--app-signal-strong);
-  border-color: var(--app-signal-strong);
-}
-
-.rowFlexible .stateOutlined {
-  border-color: var(--app-signal-border-dim);
-  color: var(--app-signal-ink-dim);
-}
-
-.caret {
-  color: var(--app-ink-muted);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .caret {
-    transition: transform var(--dur-fast) var(--ease-out);
-  }
-}
-
-.caretOpen {
-  transform: rotate(180deg);
-}
-
-.rowBody {
-  padding: 0.35rem 1.1rem 0.95rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.reason {
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: var(--app-text-sm);
-  line-height: 1.55;
-  color: var(--app-ink-secondary);
-  max-width: 44rem;
-}
-
-.rowProtected .reason {
-  font-size: var(--app-text-base);
-  color: var(--app-ink);
-}
-
-.dateLine {
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: var(--app-text-sm);
-  line-height: 1.55;
-  color: var(--app-ink-secondary);
-  max-width: 44rem;
-}
-
-.driftLine {
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: var(--app-text-sm);
-  line-height: 1.55;
-  color: var(--app-ink-muted);
-  max-width: 44rem;
-}
-
-/* The Not scored row's one-tap route to the register: an inline quiet link
-   with the 44px target carried by margin compensation. */
-.rowLink {
-  display: inline-flex;
-  align-items: center;
-  align-self: flex-start;
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: var(--app-text-sm);
-  font-weight: 600;
-  color: var(--app-ink-secondary);
-  text-decoration: underline;
-  text-decoration-color: var(--app-border-strong);
-  text-underline-offset: 3px;
-  padding: 10px 0;
-  margin: -8px 0;
-}
-
-.rowLink:hover {
-  color: var(--app-ink);
-}
-
-.rowLink:focus-visible {
-  outline: 2px solid var(--app-focus);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-/* ------------------------------------------------------------------ */
-/* The expansion: in place, a sunken well under the row.               */
-
-.expansion {
-  background: var(--app-surface-sunken);
-  border-top: 1px solid var(--app-border);
-  padding: 0.9rem 1.1rem 1.1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.1rem;
-}
-
-.group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-}
-
-.groupHead {
-  font-family: var(--app-font-mono), monospace;
-  font-size: var(--app-text-xs);
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--app-ink-muted);
-}
-
-.itemList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  padding: 0.6rem 0;
-  border-bottom: 1px solid var(--app-border);
-}
-
-.item:last-child {
-  border-bottom: none;
-}
-
-@media (min-width: 640px) {
-  .item {
-    flex-direction: row;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.75rem;
-  }
-}
-
-.itemDesc {
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: var(--app-text-sm);
-  line-height: 1.5;
-  color: var(--app-ink);
-  min-width: 0;
-}
-
-.itemMeta {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  flex: 0 0 auto;
-}
-
-.itemStatus {
-  font-family: var(--app-font-mono), monospace;
-  font-size: var(--app-text-xs);
-  letter-spacing: 0.02em;
-  color: var(--app-ink-secondary);
-  white-space: nowrap;
-}
-
-/* The severity tag: the register's monochrome intensity ramp, mirrored.
-   Never amber: severity is how bad, criticality is what it threatens. */
-.sev {
-  font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  border: 1px solid transparent;
-  white-space: nowrap;
-}
-
-.sevSerious {
-  background: var(--app-ink);
-  color: var(--app-primary-ink);
-}
-
-.sevModerate {
-  background: rgba(233, 236, 238, 0.14);
-  color: var(--app-ink);
-}
-
-.sevMinor {
-  background: rgba(233, 236, 238, 0.06);
-  color: var(--app-ink-secondary);
-}
-
-.sevUnscored {
-  background: transparent;
-  border: 1px dashed var(--app-border-strong);
-  color: var(--app-ink-muted);
-}
-
-/* The milestone flag, in the house schedule words: Slipping is the bright
-   watch band, Critical slip is the criticality read and takes the amber. */
-.msFlag {
-  font-family: var(--app-font-mono), monospace;
-  font-size: var(--app-text-xs);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-}
-
-.msFlagAmber {
-  color: var(--app-ink);
-}
-
-.msFlagRed {
-  color: var(--app-signal-ink);
-}
-
-/* One link per group, never one per item. */
-.groupLink {
-  display: inline-flex;
-  align-items: center;
-  align-self: flex-start;
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: var(--app-text-sm);
-  font-weight: 600;
-  color: var(--app-ink-secondary);
-  text-decoration: underline;
-  text-decoration-color: var(--app-border-strong);
-  text-underline-offset: 3px;
-  padding: 10px 0;
-  margin: -6px 0;
-}
-
-.groupLink:hover {
-  color: var(--app-ink);
-}
-
-.groupLink:focus-visible {
-  outline: 2px solid var(--app-focus);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-/* ------------------------------------------------------------------ */
-/* Band 3: what needs you now. One ranked, deduplicated attention list */
-/* across the three modules. No colour is spent here: this band is a   */
-/* routing list, not a status read, and its ordering (gate first,      */
-/* protected before flexible) already carries the priority. Phone      */
-/* first: the row stacks its title over its meta, and the tag wraps.   */
-
-.attnBand {
-  margin-top: 2rem;
-}
-
-/* The empty state: one calm line, no list frame. Proportional monitoring is
-   silent when things are fine; a heading over an empty register would read as
-   broken, so nothing is rendered beneath this line. */
-.attnEmpty {
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: var(--app-text-base);
-  line-height: 1.6;
-  color: var(--app-ink-secondary);
-  max-width: 44rem;
-}
-
 .attnRow {
   border-bottom: 1px solid var(--app-border);
 }
@@ -730,8 +531,6 @@
   border-bottom: none;
 }
 
-/* The whole row is the deep link: a 44px target that stays a calm list row
-   until hover. */
 .attnLink {
   display: flex;
   align-items: center;
@@ -759,8 +558,6 @@
   min-width: 0;
 }
 
-/* Protected rows carry full weight, flexible rows are quieter: the same
-   proportional typography as Band 2, priority rendered in type not decoration. */
 .attnTitle {
   font-family: var(--app-font-sans), sans-serif;
   line-height: 1.45;
@@ -786,8 +583,6 @@
   min-width: 0;
 }
 
-/* The objective tag (or "Gate"): a small dim word, context beside the reason,
-   the same demoted treatment Band 2 gives classification. */
 .attnTag {
   font-family: var(--app-font-mono), monospace;
   font-size: var(--app-text-xs);
@@ -805,8 +600,6 @@
   color: var(--app-ink-secondary);
 }
 
-/* The named source of a deduped, promoted action (M7.2): the risk it replaced,
-   kept quiet as provenance. */
 .attnRaised {
   font-family: var(--app-font-sans), sans-serif;
   font-size: var(--app-text-sm);
@@ -823,8 +616,6 @@
   color: var(--app-ink-secondary);
 }
 
-/* The footer: the true overflow across all modules, linking to the module
-   holding the most of it. A tally, so digits. */
 .attnFooter {
   padding: 0.9rem 0 0;
 }
@@ -847,6 +638,109 @@
 }
 
 .attnFooterLink:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ------------------------------------------------------------------ */
+/* The module rail: the hub's navigation, absorbed. Quiet rows, one    */
+/* column on the phone, two from 640px.                                */
+
+.railBand {
+  margin-bottom: 1rem;
+}
+
+.rail {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.6rem;
+}
+
+@media (min-width: 640px) {
+  .rail {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.railLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 44px;
+  padding: 0.8rem 1rem;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  text-decoration: none;
+  color: inherit;
+}
+
+.railLink:hover {
+  background: var(--app-hover);
+  border-color: var(--app-border-strong);
+}
+
+.railLink:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+}
+
+.railMain {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.railTitle {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-base);
+  font-weight: 600;
+  color: var(--app-ink);
+}
+
+.railDesc {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
+  color: var(--app-ink-muted);
+}
+
+.railChevron {
+  flex: 0 0 auto;
+  color: var(--app-ink-muted);
+}
+
+.railLink:hover .railChevron {
+  color: var(--app-ink-secondary);
+}
+
+.railFoot {
+  margin-top: 0.85rem;
+}
+
+.railFootLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
+  font-weight: 600;
+  color: var(--app-ink-secondary);
+  text-decoration: underline;
+  text-decoration-color: var(--app-border-strong);
+  text-underline-offset: 3px;
+}
+
+.railFootLink:hover {
+  color: var(--app-ink);
+}
+
+.railFootLink:focus-visible {
   outline: 2px solid var(--app-focus);
   outline-offset: 2px;
   border-radius: 4px;
