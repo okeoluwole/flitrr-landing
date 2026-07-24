@@ -102,6 +102,10 @@ export default async function InitiatePage({ searchParams }) {
 
   let initialProject = null;
   let initialGate = null;
+  // Whether an operational baseline is already locked. The Brief's next-step
+  // block reads it (Note 13): on the Brief lock the next step is Programme
+  // set-up, and only once that baseline exists does the gate become the step.
+  let hasBaseline = false;
   if (projectParam) {
     // Guard against a malformed id, which would otherwise be a Postgres
     // type error rather than a clean "not found".
@@ -109,17 +113,25 @@ export default async function InitiatePage({ searchParams }) {
       redirect('/pulse/app');
     }
 
-    // The project row, plus the Gate 1 to 2 row (stage = 1) so the header's
-    // stage indicator can show the recorded decision once the gate has passed.
-    const [{ data: project }, { data: gateRow }] = await Promise.all([
-      supabase.from('projects').select('*').eq('id', projectParam).maybeSingle(),
-      supabase
-        .from('project_stage_gates')
-        .select('gate_status, passed_at')
-        .eq('project_id', projectParam)
-        .eq('stage', 1)
-        .maybeSingle(),
-    ]);
+    // The project row, the Gate 1 to 2 row (stage = 1) so the header's stage
+    // indicator can show the recorded decision once the gate has passed, and
+    // whether a current programme baseline exists (the sequence's second step).
+    const [{ data: project }, { data: gateRow }, { data: baselineRow }] =
+      await Promise.all([
+        supabase.from('projects').select('*').eq('id', projectParam).maybeSingle(),
+        supabase
+          .from('project_stage_gates')
+          .select('gate_status, passed_at')
+          .eq('project_id', projectParam)
+          .eq('stage', 1)
+          .maybeSingle(),
+        supabase
+          .from('programme_baselines')
+          .select('id')
+          .eq('project_id', projectParam)
+          .is('superseded_at', null)
+          .maybeSingle(),
+      ]);
 
     // Not found, or not owned (RLS filtered it out). Send them back to
     // the list rather than showing a broken wizard.
@@ -129,6 +141,7 @@ export default async function InitiatePage({ searchParams }) {
 
     initialProject = project;
     initialGate = gateRow ?? null;
+    hasBaseline = baselineRow != null;
   }
 
   return (
@@ -137,6 +150,7 @@ export default async function InitiatePage({ searchParams }) {
         userId={user.id}
         initialProject={initialProject}
         initialGate={initialGate}
+        hasBaseline={hasBaseline}
       />
     </DashboardShell>
   );

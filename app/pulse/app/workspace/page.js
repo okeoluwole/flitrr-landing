@@ -10,40 +10,55 @@ import {
   deriveResponseFeed,
   formatActionLogSummary,
 } from '../actions/actionFeed';
-import { isCritical, isDone, actionLogLockedFooter } from '../actions/actionModel';
-import { RISK_LOCKED_COPY } from '../risk/riskModel';
+import { isCritical, isDone } from '../actions/actionModel';
 import { programmeTileTarget } from '../programme/trackingModel';
 import { loadCurrentProgrammeBaseline } from '../components/programmeBaselineStore';
 import { loadMetPointsView } from '../components/programmeActualsStore';
 import { deriveDashboard } from '../dashboard/dashboardModel';
-import { PAGE_SUB, TILE_LOCKED, tileStateLine } from '../dashboard/dashboardRead';
+import { PAGE_SUB, tileStateLine } from '../dashboard/dashboardRead';
+import { derivePhase, deriveLanding, PHASE_INTRO, SURFACES } from './phaseModel';
 import {
-  derivePhase,
-  deriveLanding,
-  deriveTileStates,
-  PHASE_INTRO,
-  SURFACES,
-} from './phaseModel';
+  SEQUENCE_STEPS,
+  deriveGateConfirmed,
+  deriveSequenceStep,
+  deriveModuleStates,
+  modulesOpen,
+  moduleLockedLine,
+  nextStep,
+  stepHref,
+} from './sequenceModel';
 import styles from './Workspace.module.css';
 
 /**
- * /pulse/app/workspace - the project workspace hub.
+ * /pulse/app/workspace - the project workspace.
  *
- * A project's home: a header with its current stage, then the Brief as the
- * keystone panel and the monitoring modules as one seated register of rows.
- * The Brief (initiation) is always available; the monitoring modules unlock
- * as the project advances.
+ * A project's home: a header with its current stage, the SINGLE NEXT STEP, then
+ * the Brief as the keystone panel and the monitoring modules as one seated
+ * register of rows.
  *
- * What each tile does is read through the PHASE (M9.4, phaseModel.js): a
- * derived reading of where the project sits in its own set-up, Define then
- * Plan then Run, keyed off the Brief lock and the Programme baseline lock and
- * never off current_stage. Risk, Programme set-up, and the Dashboard (M9.3)
- * are baselining reads: they open the moment the Brief locks (from Plan on).
- * The Action Log is a delivery act and is the one tile that stays gated on the
- * Gate 1 to 2, which advances current_stage; it opens only once the gate is
- * passed, and until then carries an honest, phase-aware locked line. The
- * Dashboard tile carries the project state in words, read from the same
- * assembly the dashboard runs.
+ * THE FIXED SEQUENCE (Note 13, sequenceModel.js). After the Brief locks, this is
+ * not an open tile hub: a project runs one ordered path, Brief, then Programme
+ * set-up and the operational baseline lock, then the gate, then the modules.
+ * The workspace leads with whichever of those is current and states the whole
+ * order beneath it, so nothing about what comes next is left to inference.
+ *
+ * The three monitoring modules (Action Log, Risk register, Project dashboard)
+ * open together, on the last step. All three read the operational baseline (the
+ * module pattern: read the baseline, derive criticality from the objective
+ * served, flag proportionally), so before that baseline exists there is nothing
+ * for them to read and a module that rendered anyway would have to invent its
+ * numbers. The end-to-end test caught exactly that: "14 need your response" and
+ * a compromised banner, both before Programme set-up had run. Until they open,
+ * each carries one honest line naming the step that opens it, and no count, no
+ * alarm state and no queue is computed at all.
+ *
+ * The Programme row is not one of the three: it IS the set-up step, so it opens
+ * at the Brief lock and routes to set-up or to tracking through
+ * programmeTileTarget.
+ *
+ * The PHASE (M9.4, phaseModel.js) still derives the intro line and the landing
+ * decision from the same two locks. The sequence governs what is open; the phase
+ * governs how the workspace speaks and where a project lands.
  *
  * The Action Log row sits first (M7.2): it is the central attention home,
  * and its footer is the live read of what needs the developer, counts of
@@ -64,8 +79,6 @@ import styles from './Workspace.module.css';
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-const STAGE_2 = 2;
 
 // Lifecycle stage names (framework Section 4), for the stage chip.
 const STAGE_NAMES = {
@@ -264,6 +277,44 @@ function ModuleRow({ icon, title, desc, footer, tone = 'calm', state, href }) {
   );
 }
 
+// The sequence stated plainly, with the current step marked. The order is fixed,
+// so showing it costs one line and removes every guess about what comes next.
+const TRAIL = [
+  { step: SEQUENCE_STEPS.BRIEF, label: 'Brief' },
+  { step: SEQUENCE_STEPS.PROGRAMME_SETUP, label: 'Programme set-up' },
+  { step: SEQUENCE_STEPS.GATE, label: 'Gate' },
+  { step: SEQUENCE_STEPS.MODULES, label: 'Modules' },
+];
+
+function SequenceTrail({ step }) {
+  const nowIndex = TRAIL.findIndex((t) => t.step === step);
+  return (
+    <ol className={styles.trail}>
+      {TRAIL.map((entry, i) => (
+        <li key={entry.step} className={styles.trailStep}>
+          <span
+            className={
+              i === nowIndex
+                ? styles.trailNow
+                : i < nowIndex
+                  ? styles.trailDone
+                  : styles.trailStep
+            }
+            aria-current={i === nowIndex ? 'step' : undefined}
+          >
+            {entry.label}
+          </span>
+          {i < TRAIL.length - 1 && (
+            <span className={styles.trailSep} aria-hidden="true">
+              {' / '}
+            </span>
+          )}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 export default async function WorkspacePage({ searchParams }) {
   const supabase = await createClient();
   const {
@@ -294,24 +345,32 @@ export default async function WorkspacePage({ searchParams }) {
   };
 
   // The project (with the target completion date the dashboard state reads),
-  // its latest brief lock state (to label the Brief tile), and the current
-  // programme baseline. The full baseline is loaded, not just its id: it routes
-  // the Programme tile (present or not) and feeds the dashboard tile's state.
-  const [{ data: project }, { data: brief }, { baseline }] = await Promise.all([
-    supabase
-      .from('projects')
-      .select('id, name, current_stage, target_completion_date')
-      .eq('id', projectParam)
-      .maybeSingle(),
-    supabase
-      .from('project_briefs')
-      .select('is_locked')
-      .eq('project_id', projectParam)
-      .order('version', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-    loadCurrentProgrammeBaseline(supabase, projectParam),
-  ]);
+  // its latest brief lock state (to label the Brief tile), the current programme
+  // baseline, and the project's passed gate rows. The full baseline is loaded,
+  // not just its id: it routes the Programme tile (present or not) and feeds the
+  // dashboard tile's state. The gate rows are read as a set, by stage, so the
+  // sequence's gate check needs no stage constant of its own.
+  const [{ data: project }, { data: brief }, { baseline }, { data: passedGates }] =
+    await Promise.all([
+      supabase
+        .from('projects')
+        .select('id, name, current_stage, target_completion_date')
+        .eq('id', projectParam)
+        .maybeSingle(),
+      supabase
+        .from('project_briefs')
+        .select('is_locked')
+        .eq('project_id', projectParam)
+        .order('version', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      loadCurrentProgrammeBaseline(supabase, projectParam),
+      supabase
+        .from('project_stage_gates')
+        .select('stage')
+        .eq('project_id', projectParam)
+        .eq('gate_status', 'passed'),
+    ]);
 
   if (!project) {
     redirect('/pulse/app');
@@ -324,6 +383,25 @@ export default async function WorkspacePage({ searchParams }) {
   const hasBaseline = baseline != null;
   const phase = derivePhase({ briefLocked, hasBaseline });
 
+  // The sequence step (Note 13), derived once from the two locks and the gate
+  // decision. Stage-agnostic: deriveGateConfirmed reads the project's own passed
+  // gate rows against where it now stands, so a project adopted mid-lifecycle
+  // (Note 12) needs no change here.
+  const gateConfirmed = deriveGateConfirmed({
+    currentStage: project.current_stage,
+    passedGateStages: (passedGates ?? []).map((g) => g?.stage),
+  });
+  const step = deriveSequenceStep({
+    briefLocked,
+    baselineLocked: hasBaseline,
+    gateConfirmed,
+  });
+  const modulesAreOpen = modulesOpen(step);
+  const moduleState = deriveModuleStates(step);
+  const lockedLine = moduleLockedLine(step);
+  const stepPanel = nextStep(step);
+  const stepTarget = stepHref(step, project.id);
+
   // The landing (M9.5). In Run a project opens to its dashboard, the delivery
   // home; in Define and Plan it opens to the workspace, as now. The decision is
   // DERIVED from the phase on every request, never stored, so it reverses for
@@ -335,8 +413,16 @@ export default async function WorkspacePage({ searchParams }) {
   // ?view=workspace, an explicit request for the workspace that the redirect
   // does not fire on, so a developer in Run can always reach the modules and the
   // redirect can never bounce them straight back.
+  //
+  // The landing itself is unchanged (its rebuild is a later session), with one
+  // consistency guard: it only fires while the modules are open. A project whose
+  // baseline is locked but whose gate is not yet confirmed reads Run, and
+  // sending it to a dashboard the sequence has locked would be a dead end.
   const viewWorkspace = searchParams?.view === 'workspace';
-  if (deriveLanding({ phase, viewWorkspace }) === SURFACES.DASHBOARD) {
+  if (
+    modulesAreOpen &&
+    deriveLanding({ phase, viewWorkspace }) === SURFACES.DASHBOARD
+  ) {
     redirect(`/pulse/app/dashboard?project=${project.id}`);
   }
 
@@ -348,15 +434,10 @@ export default async function WorkspacePage({ searchParams }) {
   const stageName =
     STAGE_NAMES[project.current_stage] ?? `Stage ${project.current_stage}`;
 
-  // The tile states read through the phase derived above. Risk and the Dashboard
-  // open at the Brief lock (from Plan on). The Action Log keys on the gate, so
-  // its tile state is driven by gatePassed, never by the phase.
-  const gatePassed = project.current_stage >= STAGE_2;
-  const tileState = deriveTileStates({ phase, gatePassed });
-
   // The Programme tile routes by state: no locked Brief, locked; Brief locked
-  // but no baseline, to set-up; baseline locked, to the tracking home. It
-  // encodes the same phase logic, plus the href each state needs.
+  // but no baseline, to set-up; baseline locked, to the tracking home. It is the
+  // sequence's own step, not one of the three gated modules, so it keeps its own
+  // routing and opens at the Brief lock.
   const programmeTile = programmeTileTarget(project.id, {
     briefLocked,
     hasBaseline,
@@ -377,13 +458,14 @@ export default async function WorkspacePage({ searchParams }) {
   let riskTileFooter = 'Open';
   let riskTileTone = 'calm';
 
-  // The shared reads open once the Brief is locked (or the gate is passed, for
-  // the reopened-Brief case): the same live rows the Risk register and the
-  // Action Log read, the RAID tables the needs-a-response feed reads, and the
-  // met-points view the Programme engines read. They feed the dashboard tile's
-  // state, the Risk footer (open at the Brief lock), and the Action Log footer
-  // (open at the gate), in one pass.
-  if (briefLocked || gatePassed) {
+  // The shared reads run ONLY once the modules are open (Note 13): the same live
+  // rows the Risk register and the Action Log read, the RAID tables the
+  // needs-a-response feed reads, and the met-points view the Programme engines
+  // read. Before the operational baseline exists there is nothing to read
+  // against, so nothing is counted, nothing is assessed, and no tile can show an
+  // alarm state it cannot justify. The whole block is skipped, not just its
+  // rendering.
+  if (modulesAreOpen) {
     const raidColumns = 'id, linked_objective_id, updated_at';
     const [
       { data: actions },
@@ -432,68 +514,53 @@ export default async function WorkspacePage({ searchParams }) {
     });
     dashboardState = dash.health.project.state;
 
-    // The Risk tile footer opens with the Risk tile, at the Brief lock (from
-    // Plan on), so it is computed whenever the Brief is locked, not held to the
-    // gate. In the reopened-Brief case the block still runs (the gate is
-    // passed), but the Brief is open, so the Risk tile is locked and this read
-    // is skipped, matching the tile.
-    if (briefLocked) {
-      // The Risk tile footer (B2): the count of risks the monitor flags, the
-      // same verdict the register's Needs attention panel renders, so the tile
-      // and the register agree. assessRisks reads the clock from its caller; the
-      // server supplies it. Closed risks are never flagged, so the filter drops
-      // them.
-      const riskAttentionCount = assessRisks(
-        risks ?? [],
-        byId,
-        Date.now()
-      ).filter((v) => v.assessment.needsAttention).length;
-      riskTileFooter =
-        riskAttentionCount > 0
-          ? `${riskAttentionCount} ${riskAttentionCount === 1 ? 'risk needs' : 'risks need'} attention`
-          : 'All within their review cadence.';
-      // Cadence attention is not criticality: this read peaks at full ink.
-      riskTileTone = riskAttentionCount > 0 ? 'alert' : 'calm';
-    }
+    // The Risk tile footer (B2): the count of risks the monitor flags, the same
+    // verdict the register's Needs attention panel renders, so the tile and the
+    // register agree. assessRisks reads the clock from its caller; the server
+    // supplies it. Closed risks are never flagged, so the filter drops them.
+    const riskAttentionCount = assessRisks(risks ?? [], byId, Date.now()).filter(
+      (v) => v.assessment.needsAttention
+    ).length;
+    riskTileFooter =
+      riskAttentionCount > 0
+        ? `${riskAttentionCount} ${riskAttentionCount === 1 ? 'risk needs' : 'risks need'} attention`
+        : 'All within their review cadence.';
+    // Cadence attention is not criticality: this read peaks at full ink.
+    riskTileTone = riskAttentionCount > 0 ? 'alert' : 'calm';
 
-    // The Action Log tile footer stays on the gate: it is a delivery act, so it
-    // is computed only once the gate is passed and the log is open.
-    if (gatePassed) {
-      // Criticality is derived live from the linked objective (A2), so the tile
-      // counts critical the same way the log does, override included. The
-      // needs-a-response count is the full feed (risks plus RAID, A5).
-      const needsResponseCount = deriveResponseFeed({
-        risks: risks ?? [],
-        assumptions: assumptions ?? [],
-        constraints: constraints ?? [],
-        dependencies: dependencies ?? [],
-        actions: actions ?? [],
-        objectivesById: byId,
-      }).length;
-      const openCriticalCount = (actions ?? []).filter(
-        (a) => !isDone(a) && isCritical(a, byId)
-      ).length;
-      actionLogFooter = formatActionLogSummary(
-        needsResponseCount,
-        openCriticalCount
-      );
-      // The read's tone: amber is spent on open critical actions only (the one
-      // criticality read on this screen); a needed response steps up to ink.
-      actionLogTone =
-        openCriticalCount > 0
-          ? 'critical'
-          : needsResponseCount > 0
-            ? 'alert'
-            : 'calm';
-    }
+    // Criticality is derived live from the linked objective (A2), so the tile
+    // counts critical the same way the log does, override included. The
+    // needs-a-response count is the full feed (risks plus RAID, A5).
+    const needsResponseCount = deriveResponseFeed({
+      risks: risks ?? [],
+      assumptions: assumptions ?? [],
+      constraints: constraints ?? [],
+      dependencies: dependencies ?? [],
+      actions: actions ?? [],
+      objectivesById: byId,
+    }).length;
+    const openCriticalCount = (actions ?? []).filter(
+      (a) => !isDone(a) && isCritical(a, byId)
+    ).length;
+    actionLogFooter = formatActionLogSummary(
+      needsResponseCount,
+      openCriticalCount
+    );
+    // The read's tone: amber is spent on open critical actions only (the one
+    // criticality read on this screen); a needed response steps up to ink.
+    actionLogTone =
+      openCriticalCount > 0
+        ? 'critical'
+        : needsResponseCount > 0
+          ? 'alert'
+          : 'calm';
   }
 
-  // The dashboard tile copy: locked in Define (it reads the lock line), open
-  // from Plan on, when it carries the project state in words. Its state comes
-  // through the phase like the others; the footer follows that state.
-  const dashboardTileState = tileState.dashboard;
-  const dashboardTileFooter =
-    dashboardTileState === 'open' ? tileStateLine(dashboardState) : TILE_LOCKED;
+  // The dashboard tile copy: the project state in words once it is open, and the
+  // sequence's honest locked line until then.
+  const dashboardTileFooter = modulesAreOpen
+    ? tileStateLine(dashboardState)
+    : lockedLine;
 
   return (
     <DashboardShell user={navUser}>
@@ -522,6 +589,36 @@ export default async function WorkspacePage({ searchParams }) {
           </div>
         )}
         <p className={styles.sub}>{PHASE_INTRO[phase]}</p>
+
+        {/* The single next step (Note 13). A project runs a fixed path, so the
+            workspace names the one thing to do now and states the whole order
+            beneath it. Absent on the last step, when the sequence is complete
+            and the workspace is the launcher it always was. */}
+        {stepPanel && stepTarget && (
+          <>
+            <Link href={stepTarget} className={styles.nextStep}>
+              <div className={styles.nextStepMain}>
+                <p className={styles.nextStepEyebrow}>{stepPanel.eyebrow}</p>
+                <h2 className={styles.nextStepTitle}>{stepPanel.title}</h2>
+                <p className={styles.nextStepBody}>{stepPanel.body}</p>
+              </div>
+              <span className={styles.nextStepCta}>
+                {stepPanel.cta}
+                <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+                  <path
+                    d="M5 3l4 4-4 4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+            </Link>
+            <SequenceTrail step={step} />
+          </>
+        )}
 
         {/* The Brief is the keystone: it creates the baseline every other
             module reads, so it leads as the featured panel. */}
@@ -570,13 +667,9 @@ export default async function WorkspacePage({ searchParams }) {
               icon={<ActionLogIcon />}
               title="Action Log"
               desc="Log and track the critical actions you are working on."
-              footer={
-                tileState.actionLog === 'open'
-                  ? actionLogFooter
-                  : actionLogLockedFooter(briefLocked)
-              }
-              tone={tileState.actionLog === 'open' ? actionLogTone : 'calm'}
-              state={tileState.actionLog}
+              footer={modulesAreOpen ? actionLogFooter : lockedLine}
+              tone={modulesAreOpen ? actionLogTone : 'calm'}
+              state={moduleState.actionLog}
               href={`/pulse/app/actions?project=${project.id}`}
             />
           </li>
@@ -585,9 +678,9 @@ export default async function WorkspacePage({ searchParams }) {
               icon={<RiskIcon />}
               title="Risk register"
               desc="Monitor, score and manage the risks to your objectives."
-              footer={tileState.risk === 'open' ? riskTileFooter : RISK_LOCKED_COPY}
-              tone={tileState.risk === 'open' ? riskTileTone : 'calm'}
-              state={tileState.risk}
+              footer={modulesAreOpen ? riskTileFooter : lockedLine}
+              tone={modulesAreOpen ? riskTileTone : 'calm'}
+              state={moduleState.risk}
               href={`/pulse/app/risk?project=${project.id}`}
             />
           </li>
@@ -608,7 +701,7 @@ export default async function WorkspacePage({ searchParams }) {
               desc={PAGE_SUB}
               footer={dashboardTileFooter}
               tone="calm"
-              state={dashboardTileState}
+              state={moduleState.dashboard}
               href={`/pulse/app/dashboard?project=${project.id}`}
             />
           </li>

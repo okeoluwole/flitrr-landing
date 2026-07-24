@@ -46,11 +46,10 @@ export const IMPACT_OPTIONS = [
   { value: 'high', label: 'Severe', level: 3 },
 ];
 
-// The locked-state copy, the one string shared by the workspace Risk tile and
-// the Risk page's own guard so the two can never disagree (M9.4). Risk re-gates
-// on the Brief lock: it is a baselining act and opens the moment the Brief
-// locks, not at the later gate.
-export const RISK_LOCKED_COPY = 'Risk monitoring opens once you lock your Brief.';
+// The register's locked-state copy is no longer this module's (Note 13). All
+// three monitoring modules are gated by the same fixed sequence and share one
+// honest line, workspace/sequenceModel.js moduleLockedLine, which the tile and
+// the page's own guard both read.
 
 // Register status (risk_register_status enum).
 export const STATUS_OPTIONS = [

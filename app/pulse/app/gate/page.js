@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { createClient } from '../../../../lib/supabase/server';
 import { resolveProjectAccess } from '../../../../lib/team/access';
 import DashboardShell from '../../../components/DashboardShell';
+import { loadCurrentProgrammeBaseline } from '../components/programmeBaselineStore';
 import GateReview from './GateReview';
 import styles from './GateReview.module.css';
 
@@ -22,9 +23,19 @@ import styles from './GateReview.module.css';
  *                                   the same determination the brief baked at
  *                                   lock. No second calculation is made here.
  *
- * Reachability mirrors the entry point on the brief: the gate is only
- * available once a baseline is locked. A direct visit before lock, or to a
+ * Reachability follows the fixed sequence (Note 13). The gate now comes AFTER
+ * Programme set-up: the Brief must be locked AND the operational baseline must
+ * be locked before it opens. That is not sequencing for its own sake. A gate has
+ * two parts, and the second is the objective lens: do the classified objectives
+ * remain achievable, and has anything put a non-negotiable objective at risk.
+ * That question cannot be answered honestly on unreconciled dates. Set-up is
+ * what turns the Brief's targets into an operational baseline, so the lens is
+ * only credible once it has run. A direct visit before either lock, or to a
  * missing or non-owned project, falls back gracefully rather than erroring.
+ *
+ * Only the gate's POSITION moves here. Its checklist, the Named authority
+ * reconciliation and the no-go path are a later session, and its content is
+ * untouched by this change.
  */
 
 const UUID_RE =
@@ -84,9 +95,10 @@ export default async function GatePage({ searchParams }) {
   };
 
   // The project (live funding structure + current stage), the latest brief row
-  // (for the lock state and the baked over-constraint state), and the Gate 1
-  // to 2 row (for the recorded decision). RLS scopes all three to the owner.
-  const [{ data: project }, { data: brief }, { data: gateRow }] =
+  // (for the lock state and the baked over-constraint state), the Gate 1 to 2
+  // row (for the recorded decision), and the current programme baseline (the
+  // operational baseline the gate now comes after). RLS scopes all four.
+  const [{ data: project }, { data: brief }, { data: gateRow }, { baseline }] =
     await Promise.all([
       supabase
         .from('projects')
@@ -106,6 +118,7 @@ export default async function GatePage({ searchParams }) {
         .eq('project_id', projectParam)
         .eq('stage', GATE_FROM_STAGE)
         .maybeSingle(),
+      loadCurrentProgrammeBaseline(supabase, projectParam),
     ]);
 
   // Not found, or not owned (RLS filtered it out).
@@ -114,17 +127,23 @@ export default async function GatePage({ searchParams }) {
   }
 
   const briefHref = `/pulse/app/initiate?project=${project.id}`;
+  const setupHref = `/pulse/app/programme/setup?project=${project.id}`;
   const locked = brief?.is_locked === true;
+  const baselineLocked = baseline != null;
   const alreadyPassed =
     project.current_stage >= STAGE_2 || gateRow?.gate_status === 'passed';
 
-  // Pre-lock (and not already advanced): the gate is not yet reachable. Mirror
-  // the disabled entry point's message and point back to the brief to lock.
-  if (!locked && !alreadyPassed) {
+  // Not yet reachable on the sequence (and not already advanced): the gate comes
+  // after the Brief lock AND after Programme set-up. Say which step is still
+  // outstanding and point at it, rather than showing a checklist that cannot be
+  // answered honestly yet.
+  const notReady = !alreadyPassed && (!locked || !baselineLocked);
+  if (notReady) {
+    const target = locked ? setupHref : briefHref;
     return (
       <DashboardShell user={navUser}>
         <main className={`container ${styles.page}`} id="main-content">
-          <Link href={briefHref} className={styles.backLink}>
+          <Link href={target} className={styles.backLink}>
             <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
               <path
                 d="M9 11L5 7l4-4"
@@ -135,7 +154,7 @@ export default async function GatePage({ searchParams }) {
                 strokeLinejoin="round"
               />
             </svg>
-            Back to the brief
+            {locked ? 'Back to Programme set-up' : 'Back to the brief'}
           </Link>
           <p className={styles.eyebrow}>Stage 1 to 2 gate</p>
           <h1 className={styles.title}>
@@ -143,10 +162,12 @@ export default async function GatePage({ searchParams }) {
           </h1>
           <div className={styles.notAvailable}>
             <p className={styles.notAvailableText}>
-              Lock the Brief to open the Stage 1 to 2 gate.
+              {locked
+                ? 'Lock your operational baseline in Programme set-up to open the Stage 1 to 2 gate. The gate asks whether your objectives remain achievable, and that needs reconciled dates.'
+                : 'Lock the Brief, then run Programme set-up, to open the Stage 1 to 2 gate.'}
             </p>
-            <Link href={briefHref} className={styles.notAvailableCta}>
-              Go to the Brief
+            <Link href={target} className={styles.notAvailableCta}>
+              {locked ? 'Go to Programme set-up' : 'Go to the Brief'}
             </Link>
           </div>
         </main>

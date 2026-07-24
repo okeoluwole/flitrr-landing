@@ -32,7 +32,7 @@ import {
  */
 
 const T = PROGRAMME_TEMPLATE;
-const { ACCEPTED, KEPT, VERIFIED } = RECONCILE_DECISIONS;
+const { ACCEPTED, KEPT, AMENDED, VERIFIED, DEFERRED } = RECONCILE_DECISIONS;
 const START = new Date(Date.UTC(2026, 0, 5)); // 2026-01-05, a Monday
 const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
 
@@ -111,16 +111,18 @@ describe('only flagged items are selected', () => {
   });
 });
 
-describe('a propose offers accept and keep', () => {
+describe('a propose offers accept, keep and amend', () => {
   // Stage 0 gate at 31 weeks: band 10 to 30, so propose. Recommended back to the
   // activity-sum typical (12 + 8 = 20 weeks); advised is the gateWeeks date (12
   // weeks). Developer date 31 weeks. All three differ, so the choices are clear.
   const r = deriveRealityCheck(START, T, makeChoices({ 0: { gate: w(31) } }));
   const item = gate(r, 0);
 
-  it('permits exactly accepted and kept', () => {
+  // Note 14 widened the grammar: the recommendation card keeps its two even
+  // choices and gains the amend, for when neither offered date is right.
+  it('permits exactly accepted, kept and amended', () => {
     expect(item.tier).toBe(RECONCILE_TIERS.PROPOSE);
-    expect(allowedDecisions(item)).toEqual([ACCEPTED, KEPT]);
+    expect(allowedDecisions(item)).toEqual([ACCEPTED, KEPT, AMENDED]);
   });
 
   it('accept agrees the recommended date, not the advised date and not the developer date', () => {
@@ -155,7 +157,7 @@ describe('a propose offers accept and keep', () => {
   });
 });
 
-describe('a force offers accept only', () => {
+describe('a force offers accept or a floor-compliant amend, never a keep', () => {
   // Stage 3 gate below a confirmed 20 week floor: force. The only fixture that
   // produces a force in the region-neutral data is a supplied, breached floor.
   const r = deriveRealityCheck(START, T, makeChoices({ 3: { gate: w(36) } }), {
@@ -168,8 +170,10 @@ describe('a force offers accept only', () => {
     expect(item.recommendedDate).not.toBeNull();
   });
 
-  it('permits accepted only, never kept', () => {
-    expect(allowedDecisions(item)).toEqual([ACCEPTED]);
+  // The hard-floor mechanic survives the Note 14 widening untouched: a force can
+  // never be KEPT, and an amend below the floor is refused just as a keep is.
+  it('permits accepted and amended, never kept', () => {
+    expect(allowedDecisions(item)).toEqual([ACCEPTED, AMENDED]);
     expect(isDecisionValid(item, { decision: KEPT, note: 'I would rather keep mine.' })).toBe(false);
   });
 
@@ -194,8 +198,11 @@ describe('a flag_verify is acknowledged, keeps the developer date, and does not 
     expect(item.recommendedDate).toBeNull();
   });
 
-  it('permits verified only, and verified keeps the developer date', () => {
-    expect(allowedDecisions(item)).toEqual([VERIFIED]);
+  // Note 14: the card is no longer attest-only. It can never be ACCEPTED (there
+  // is no jurisdictional number to accept), but it now ends in one of three
+  // recorded decisions rather than a single checkbox.
+  it('permits verified, amended and deferred, and verified keeps the developer date', () => {
+    expect(allowedDecisions(item)).toEqual([VERIFIED, AMENDED, DEFERRED]);
     expect(sameDay(agreedDate(item, VERIFIED), item.developerDate)).toBe(true);
   });
 
@@ -347,9 +354,9 @@ describe('a milestone propose is handled the same way as a gate propose', () => 
   );
   const item = milestone(r, 0, 'heads_of_terms');
 
-  it('offers accept and keep, accept agreeing the recommended offset', () => {
+  it('offers accept, keep and amend, accept agreeing the recommended offset', () => {
     expect(item.kind).toBe('milestone');
-    expect(allowedDecisions(item)).toEqual([ACCEPTED, KEPT]);
+    expect(allowedDecisions(item)).toEqual([ACCEPTED, KEPT, AMENDED]);
     expect(sameDay(agreedDate(item, ACCEPTED), item.recommendedDate)).toBe(true);
     expect(sameDay(agreedDate(item, KEPT), item.developerDate)).toBe(true);
   });
@@ -364,12 +371,13 @@ describe('a milestone propose is handled the same way as a gate propose', () => 
 });
 
 describe('initialDecisions seeds no default selection', () => {
-  it('gives every flagged item a null decision and an empty note, and nothing for within_norm', () => {
+  it('gives every flagged item a null decision, an empty note and no amended date, and nothing for within_norm', () => {
     const decisions = initialDecisions(FOUR_TIERS);
+    const blank = { decision: null, note: '', amendedDate: '' };
     expect(Object.keys(decisions).sort()).toEqual(['gate_3', 'gate_5', 'gate_7']);
-    expect(decisions.gate_3).toEqual({ decision: null, note: '' });
-    expect(decisions.gate_5).toEqual({ decision: null, note: '' });
-    expect(decisions.gate_7).toEqual({ decision: null, note: '' });
+    expect(decisions.gate_3).toEqual(blank);
+    expect(decisions.gate_5).toEqual(blank);
+    expect(decisions.gate_7).toEqual(blank);
     expect(decisions.gate_0).toBeUndefined();
   });
 

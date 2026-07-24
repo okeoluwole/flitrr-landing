@@ -4,22 +4,20 @@ import {
   SURFACES,
   derivePhase,
   deriveLanding,
-  deriveTileStates,
   PHASE_INTRO,
 } from '../app/pulse/app/workspace/phaseModel.js';
 import { programmeTileTarget } from '../app/pulse/app/programme/trackingModel.js';
-import { actionLogLockedFooter } from '../app/pulse/app/actions/actionModel.js';
-import { RISK_LOCKED_COPY } from '../app/pulse/app/risk/riskModel.js';
 
 /**
  * The workspace phase model (M9.4). Proves the one place the phase is derived
  * from the two locks (never current_stage, never stored), the reopened-Brief
- * case reads Define, and every tile reads its state through that phase, with
- * the Action Log the one exception: it keys on the gate, independent of the
- * phase, so run-before-gate comes out locked while plan-after-gate comes out
- * open. Programme is checked through its own programmeTileTarget, which encodes
- * the same phase logic. The two shared locked strings are checked so the tile
- * and page copy can be trusted to match their guards.
+ * case reads Define, and the landing decision that follows from it. Programme is
+ * checked through its own programmeTileTarget, which encodes the same phase
+ * logic.
+ *
+ * What each MODULE tile does is no longer the phase's (Note 13): the three
+ * monitoring modules are gated by the fixed sequence and are covered in
+ * sequenceModel.test.js.
  */
 
 // The six reachable (phase, gatePassed) states, each a real workspace state the
@@ -104,49 +102,6 @@ describe('deriveLanding: the phase decides the surface, derived not stored (M9.5
   });
 });
 
-describe('deriveTileStates: Risk and the Dashboard open at the Brief lock', () => {
-  it('locks Risk in Define and opens it from Plan on', () => {
-    expect(deriveTileStates({ phase: PHASES.DEFINE, gatePassed: false }).risk).toBe('locked');
-    expect(deriveTileStates({ phase: PHASES.DEFINE, gatePassed: true }).risk).toBe('locked');
-    expect(deriveTileStates({ phase: PHASES.PLAN, gatePassed: false }).risk).toBe('open');
-    expect(deriveTileStates({ phase: PHASES.RUN, gatePassed: false }).risk).toBe('open');
-  });
-
-  it('locks the Dashboard in Define and opens it from Plan on', () => {
-    expect(deriveTileStates({ phase: PHASES.DEFINE, gatePassed: false }).dashboard).toBe('locked');
-    expect(deriveTileStates({ phase: PHASES.PLAN, gatePassed: false }).dashboard).toBe('open');
-    expect(deriveTileStates({ phase: PHASES.RUN, gatePassed: true }).dashboard).toBe('open');
-  });
-});
-
-describe('deriveTileStates: the Action Log keys on the gate, not the phase', () => {
-  it('opens with the gate and locks without it, in every phase', () => {
-    // The independence, stated as a test: for every phase, the Action Log's
-    // state is exactly gatePassed. It never moves with the locks.
-    for (const phase of Object.values(PHASES)) {
-      expect(deriveTileStates({ phase, gatePassed: true }).actionLog).toBe('open');
-      expect(deriveTileStates({ phase, gatePassed: false }).actionLog).toBe('locked');
-    }
-  });
-
-  it('locks in run-before-gate and opens in plan-after-gate: the gate drives it', () => {
-    // Run with both locks but the gate not passed: the Action Log is still
-    // locked, because it answers to the gate alone.
-    expect(deriveTileStates({ phase: PHASES.RUN, gatePassed: false }).actionLog).toBe('locked');
-    // Plan with the gate passed but no baseline: the Action Log is open, again
-    // because the gate, not the phase, decides.
-    expect(deriveTileStates({ phase: PHASES.PLAN, gatePassed: true }).actionLog).toBe('open');
-  });
-
-  it('does not drag Risk or the Dashboard open when only the gate is passed', () => {
-    // Reopened Brief after the gate: gate passed, but the Brief is open, so
-    // Risk and the Dashboard are locked while the Action Log is open. The gate
-    // opens the Action Log, nothing else.
-    const s = deriveTileStates({ phase: PHASES.DEFINE, gatePassed: true });
-    expect(s).toEqual({ risk: 'locked', dashboard: 'locked', actionLog: 'open' });
-  });
-});
-
 describe('Programme tile (programmeTileTarget): open from Plan onward', () => {
   const PID = '00000000-0000-4000-8000-000000000000';
 
@@ -160,23 +115,6 @@ describe('Programme tile (programmeTileTarget): open from Plan onward', () => {
   });
 });
 
-describe('the shared locked copy: tile and page cannot disagree', () => {
-  it('Risk locked copy names the Brief lock, the gate Risk now opens on', () => {
-    expect(RISK_LOCKED_COPY).toBe('Risk monitoring opens once you lock your Brief.');
-  });
-
-  it('Action Log locked footer names the Brief lock in Define, the gate alone after it', () => {
-    // Define (Brief not locked): both the lock and the gate are still ahead.
-    expect(actionLogLockedFooter(false)).toBe(
-      'Opens once you lock your Brief and pass the gate into Stage 2.'
-    );
-    // Plan and gate-not-passed Run (Brief locked): only the gate remains.
-    expect(actionLogLockedFooter(true)).toBe(
-      'Pass the gate into Stage 2 to start logging actions.'
-    );
-  });
-});
-
 describe('the intro line follows the phase', () => {
   it('gives one non-empty line per phase', () => {
     for (const phase of Object.values(PHASES)) {
@@ -185,17 +123,11 @@ describe('the intro line follows the phase', () => {
     }
   });
 
-  it('carries no em or en dash, in any of the M9.4 strings', () => {
+  it('carries no em or en dash', () => {
     // The standing Flitrr rule: never an em or en dash in copy. Guard the copy
-    // this sub-step adds so a later edit cannot slip one in unseen.
-    const strings = [
-      ...Object.values(PHASE_INTRO),
-      RISK_LOCKED_COPY,
-      actionLogLockedFooter(false),
-      actionLogLockedFooter(true),
-    ];
-    for (const s of strings) {
-      expect(s).not.toMatch(/[–—]/);
+    // so a later edit cannot slip one in unseen.
+    for (const line of Object.values(PHASE_INTRO)) {
+      expect(line).not.toMatch(/[–—]/);
     }
   });
 });

@@ -62,6 +62,7 @@ export default function StepGeneratedBrief({
   financial,
   gates,
   currentStage = 1,
+  hasBaseline = false,
   persistAllSteps = null,
 }) {
   const [lens, setLens] = useState(DEFAULT_LENS);
@@ -146,6 +147,37 @@ export default function StepGeneratedBrief({
   // that point the baseline is committed: unlock is blocked (a re-baseline is
   // not yet built), and the gate entry point opens the recorded decision.
   const postGate = currentStage >= 2;
+
+  // The one next step this screen offers (Note 13). The Brief no longer points
+  // straight at the gate on lock: the sequence runs Brief, then Programme
+  // set-up, then the gate, so on lock the next step is set-up.
+  const nextStepPanel = !locked
+    ? {
+        title: 'Next: Programme set-up',
+        note: 'Lock the Brief to begin Programme set-up.',
+        cta: 'Start Programme set-up',
+        href: null,
+      }
+    : postGate
+      ? {
+          title: 'Stage 1 to 2 gate',
+          note: 'Gate passed. This project is at Stage 2: Consultant Appointment.',
+          cta: 'View the Stage 1 to 2 gate decision',
+          href: `/pulse/app/gate?project=${projectId}`,
+        }
+      : hasBaseline
+        ? {
+            title: 'Next: the Stage 1 to 2 gate',
+            note: 'Your operational baseline is locked, so the objective lens can be answered. Confirm the gate to advance to Stage 2.',
+            cta: 'Open the Stage 1 to 2 gate',
+            href: `/pulse/app/gate?project=${projectId}`,
+          }
+        : {
+            title: 'Next: Programme set-up',
+            note: 'The baseline is locked. Reconcile your dates and lock the operational baseline, then the Stage 1 to 2 gate opens.',
+            cta: 'Start Programme set-up',
+            href: `/pulse/app/programme/setup?project=${projectId}`,
+          };
 
   // What renders: the locked snapshot when locked, otherwise the live model.
   const model = locked ? briefRow.content : liveModel;
@@ -383,35 +415,27 @@ export default function StepGeneratedBrief({
         </div>
       </div>
 
-      {/* Stage 1 to 2 gate entry point. Sits with the lock controls. Disabled
-          until the baseline is locked; active once it is; and a link to the
-          recorded decision once the gate has passed. */}
+      {/* The next step on the fixed sequence (Note 13). Sits with the lock
+          controls. Before the lock it is disabled and says so. On lock, the next
+          step is Programme set-up, not the gate: the gate's objective lens can
+          only be answered honestly with reconciled dates in hand, so set-up
+          comes first. Once the baseline is locked the gate is the next step, and
+          once it has passed this becomes a link to the recorded decision. */}
       <div className={styles.gateEntry}>
         <div className={styles.gateEntryText}>
-          <span className={styles.gateEntryTitle}>Stage 1 to 2 gate</span>
-          <span className={styles.gateEntryNote}>
-            {!locked
-              ? 'Lock the Brief to open the Stage 1 to 2 gate.'
-              : postGate
-                ? 'Gate passed. This project is at Stage 2: Consultant Appointment.'
-                : 'The baseline is locked. Open the gate to advance to Stage 2.'}
-          </span>
+          <span className={styles.gateEntryTitle}>{nextStepPanel.title}</span>
+          <span className={styles.gateEntryNote}>{nextStepPanel.note}</span>
         </div>
-        {locked ? (
-          <Link
-            href={`/pulse/app/gate?project=${projectId}`}
-            className={styles.gateEntryBtn}
-          >
-            {postGate
-              ? 'View the Stage 1 to 2 gate decision'
-              : 'Open the Stage 1 to 2 gate'}
+        {nextStepPanel.href ? (
+          <Link href={nextStepPanel.href} className={styles.gateEntryBtn}>
+            {nextStepPanel.cta}
           </Link>
         ) : (
           <span
             className={`${styles.gateEntryBtn} ${styles.gateEntryBtnDisabled}`}
             aria-disabled="true"
           >
-            Open the Stage 1 to 2 gate
+            {nextStepPanel.cta}
           </span>
         )}
       </div>

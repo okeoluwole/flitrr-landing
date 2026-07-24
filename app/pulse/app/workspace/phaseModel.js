@@ -77,32 +77,14 @@ export function deriveLanding({ phase, viewWorkspace = false }) {
   return phase === PHASES.RUN ? SURFACES.DASHBOARD : SURFACES.WORKSPACE;
 }
 
-/**
- * The tile-state mapping: every workspace tile reads its state THROUGH the
- * phase, in one place, rather than through its own inline booleans.
- *
- * Risk and the Dashboard are baselining reads. They open when the Brief locks,
- * so they are locked in Define and open from Plan on.
- *
- * The Action Log is a delivery act and keys on the GATE, never the phase. It
- * stays locked through Plan and through gate-not-passed Run, and opens only
- * once the gate is passed, whatever the phase. gatePassed is taken separately
- * for exactly this reason: the Action Log's state must not move with the locks.
- *
- * Programme is not here: its tile needs routing (set-up versus tracking), not
- * just a state word, so it keeps its own programmeTileTarget, which encodes the
- * same phase logic and opens from Plan on, in step with these.
- *
- * Returns each state in the tile's own vocabulary, 'open' or 'locked'.
+/*
+ * The tile-state mapping that used to live here is superseded by the fixed
+ * sequence (Note 13, workspace/sequenceModel.js deriveModuleStates). The three
+ * monitoring modules no longer open at different moments: all three read the
+ * operational baseline, so all three open together once it is locked and the
+ * gate is confirmed. The phase still governs how the workspace SPEAKS (the
+ * intro line) and where a project LANDS; what is open is the sequence's.
  */
-export function deriveTileStates({ phase, gatePassed }) {
-  const opensAtBriefLock = phase !== PHASES.DEFINE;
-  return {
-    risk: opensAtBriefLock ? 'open' : 'locked',
-    dashboard: opensAtBriefLock ? 'open' : 'locked',
-    actionLog: gatePassed ? 'open' : 'locked',
-  };
-}
 
 /**
  * The workspace intro line, one per phase, so the guidance speaks to where the

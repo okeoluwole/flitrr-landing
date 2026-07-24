@@ -75,24 +75,10 @@ export const OUTCOME_OPTIONS = [
   { value: 'not_delivered', label: 'Not delivered' },
 ];
 
-/**
- * The Action Log's locked-state footer (M9.4), the one string shared by the
- * workspace Action Log tile and the Action Log page's own guard so the two can
- * never disagree. Unlike Risk, the Action Log is a DELIVERY act and stays gated
- * on the Gate 1 to 2, never re-gated on the Brief lock; only this copy moves
- * with the locks, to tell the truth about what still opens it.
- *
- * It is only ever shown while the gate is not passed, so briefLocked is the
- * whole discriminator: in Define both the lock and the gate are still ahead; in
- * Plan and in gate-not-passed Run the Brief is locked and only the gate remains,
- * so the line becomes a nudge toward that one deliberate step. It never reads as
- * a dead or "coming soon" state.
- */
-export function actionLogLockedFooter(briefLocked) {
-  return briefLocked
-    ? 'Pass the gate into Stage 2 to start logging actions.'
-    : 'Opens once you lock your Brief and pass the gate into Stage 2.';
-}
+// The log's locked-state copy is no longer this module's (Note 13). All three
+// monitoring modules are gated by the same fixed sequence and share one honest
+// line, workspace/sequenceModel.js moduleLockedLine, which the tile and the
+// page's own guard both read.
 
 /**
  * Index objectives by id so the derivation can read the linked objective's

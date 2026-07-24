@@ -6,18 +6,26 @@ import { createClient } from '../../../../../lib/supabase/client';
 import { PROGRAMME_TEMPLATE } from '../../../../../lib/engine/programmeTemplate.js';
 import { deriveRealityCheck } from '../../../../../lib/engine/programmeRealityCheck.js';
 import { assembleProgramme } from '../../../../../lib/engine/programmeAssembly.js';
+import { buildObjectiveIndex } from '../../../../../lib/engine/criticality.js';
 import { OBJECTIVE_META } from '../../components/objectiveMeta';
 import { writeProgrammeBaseline } from '../../components/programmeBaselineStore';
 import {
   RECONCILE_DECISIONS,
   flaggedItems,
-  allowedDecisions,
-  agreedDate,
   canProceed,
+  checkAmendedDate,
   initialDecisions,
   reconcileSummary,
   buildResolutions,
+  proceedBlockers,
+  blockerLine,
+  firstBlockingKey,
+  toDateInputValue,
 } from './reconcileModel';
+import {
+  recordReconcileDecisions,
+  describeDecision,
+} from './reconcileDecisionStore';
 import {
   REVIEW_PHASES,
   initialReviewPhase,
@@ -76,10 +84,15 @@ import styles from './ProgrammeSetup.module.css';
  * never claims the programme is locked.
  */
 
-const { ACCEPTED, KEPT, VERIFIED } = RECONCILE_DECISIONS;
+const { ACCEPTED, KEPT, AMENDED, VERIFIED, DEFERRED } = RECONCILE_DECISIONS;
 
 const LOCK_ERROR =
   'We could not lock the programme. Please check your connection and try again, or email hello@flitrr.com.';
+
+// A decision that cannot be recorded must not pass silently: that is the whole
+// point of the grammar. The proceed is held and the developer can try again.
+const DECISION_ERROR =
+  'We could not record your decisions, so set-up did not continue. Please check your connection and try again, or email hello@flitrr.com.';
 
 const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
 
@@ -132,6 +145,12 @@ function deltaLabel(developerDate, recommendedDate) {
 
 const KIND_LABEL = { gate: 'Gate', milestone: 'Milestone' };
 
+// The DOM id a flagged card carries, so the footer's named blocker can scroll to
+// the first gap. Point keys are already unique across a reality check.
+function cardDomId(key) {
+  return `reconcile-${key}`;
+}
+
 const TIER_CHIP = {
   propose: 'Tight against typical',
   force: 'Below a hard floor',
@@ -168,32 +187,91 @@ function DatesBlock({ item }) {
   );
 }
 
-// The propose controls: accept or keep, presented evenly with no default. Keep
-// reveals a required reason, because a kept divergence is recorded as a risk.
-function ProposeControls({ item, state, onDecide, onNote }) {
-  const acceptLabel = formatDate(item.recommendedDate);
-  const keepLabel = formatDate(item.developerDate);
+// One decision option. Even-handed with its siblings: no default selection, no
+// visual nudge toward one answer, the chosen one taking the bright fill.
+function Choice({ selected, lead, sub, onClick, wide = false }) {
+  return (
+    <button
+      type="button"
+      className={`${styles.choice} ${wide ? styles.choiceForce : ''} ${
+        selected ? styles.choiceSelected : ''
+      }`}
+      aria-pressed={selected}
+      onClick={onClick}
+    >
+      <span className={styles.choiceLead}>{lead}</span>
+      {sub && <span className={styles.choiceSub}>{sub}</span>}
+    </button>
+  );
+}
+
+// The amend field (Note 14), shown once amend is chosen: the operational date
+// the developer sets, and an optional line on why. It never touches the locked
+// Brief; the gap between this date and the Brief's is recorded as a variance.
+function AmendField({ item, state, onAmendDate, onNote }) {
+  const check = checkAmendedDate(item, state);
+  return (
+    <>
+      <label className={styles.amendField}>
+        <span className={styles.reasonLabel}>
+          The date to work to
+          <span className={styles.reasonRequired}> Required</span>
+        </span>
+        <input
+          type="date"
+          className={styles.dateInput}
+          value={state.amendedDate ?? ''}
+          onChange={(e) => onAmendDate(e.target.value)}
+        />
+        {check.reason === 'below_floor' && (
+          <span className={styles.amendWarn} role="alert">
+            This is still below the confirmed requirement of{' '}
+            {formatDate(item.recommendedDate)}. Set a date on or after it.
+          </span>
+        )}
+      </label>
+      <label className={styles.reasonField}>
+        <span className={styles.reasonLabel}>
+          Why this date?
+          <span className={styles.reasonOptional}> Optional</span>
+        </span>
+        <textarea
+          className={styles.reasonInput}
+          rows={2}
+          value={state.note}
+          onChange={(e) => onNote(e.target.value)}
+          placeholder="Recorded with the decision, as a variance from your Brief."
+        />
+      </label>
+    </>
+  );
+}
+
+// The propose controls: accept, keep, or amend, presented evenly with no
+// default. Keep reveals a required reason, because a kept divergence is recorded
+// as a risk. Amend is the third answer, for when neither offered date is right.
+function ProposeControls({ item, state, onDecide, onNote, onAmendDate }) {
   return (
     <div className={styles.controls}>
       <div className={styles.choices} role="group" aria-label="Choose a date">
-        <button
-          type="button"
-          className={`${styles.choice} ${state.decision === ACCEPTED ? styles.choiceSelected : ''}`}
-          aria-pressed={state.decision === ACCEPTED}
+        <Choice
+          selected={state.decision === ACCEPTED}
+          lead="Accept the recommendation"
+          sub={formatDate(item.recommendedDate)}
           onClick={() => onDecide(ACCEPTED)}
-        >
-          <span className={styles.choiceLead}>Accept the recommendation</span>
-          <span className={styles.choiceSub}>{acceptLabel}</span>
-        </button>
-        <button
-          type="button"
-          className={`${styles.choice} ${state.decision === KEPT ? styles.choiceSelected : ''}`}
-          aria-pressed={state.decision === KEPT}
+        />
+        <Choice
+          selected={state.decision === KEPT}
+          lead="Keep your date"
+          sub={formatDate(item.developerDate)}
           onClick={() => onDecide(KEPT)}
-        >
-          <span className={styles.choiceLead}>Keep your date</span>
-          <span className={styles.choiceSub}>{keepLabel}</span>
-        </button>
+        />
+        <Choice
+          selected={state.decision === AMENDED}
+          lead="Amend the date"
+          sub="Neither of these is right"
+          onClick={() => onDecide(AMENDED)}
+        />
       </div>
       {state.decision === KEPT && (
         <label className={styles.reasonField}>
@@ -210,52 +288,91 @@ function ProposeControls({ item, state, onDecide, onNote }) {
           />
         </label>
       )}
+      {state.decision === AMENDED && (
+        <AmendField
+          item={item}
+          state={state}
+          onAmendDate={onAmendDate}
+          onNote={onNote}
+        />
+      )}
     </div>
   );
 }
 
-// The force controls: accept only. A breached hard floor cannot be kept and
-// must be corrected, so there is a single accept and a plain statement of why.
-function ForceControls({ item, state, onDecide }) {
-  const acceptLabel = formatDate(item.recommendedDate);
+// The force controls: accept the compliant date, or amend to another date that
+// still clears the floor. A breached hard floor can never be KEPT, and an amend
+// below the floor is refused, so the mechanic is untouched by the widening.
+function ForceControls({ item, state, onDecide, onNote, onAmendDate }) {
   return (
     <div className={styles.controls}>
       <p className={styles.forceNote}>
         This date falls below a confirmed requirement, so it cannot be kept. Move
-        it to the compliant date to continue.
+        it to the compliant date, or set your own date on or after it.
       </p>
-      <button
-        type="button"
-        className={`${styles.choice} ${styles.choiceForce} ${state.decision === ACCEPTED ? styles.choiceSelected : ''}`}
-        aria-pressed={state.decision === ACCEPTED}
-        onClick={() => onDecide(ACCEPTED)}
-      >
-        <span className={styles.choiceLead}>Move to the compliant date</span>
-        <span className={styles.choiceSub}>{acceptLabel}</span>
-      </button>
+      <div className={styles.choices} role="group" aria-label="Choose a date">
+        <Choice
+          selected={state.decision === ACCEPTED}
+          lead="Move to the compliant date"
+          sub={formatDate(item.recommendedDate)}
+          onClick={() => onDecide(ACCEPTED)}
+          wide
+        />
+        <Choice
+          selected={state.decision === AMENDED}
+          lead="Amend the date"
+          sub="A later date of your own"
+          onClick={() => onDecide(AMENDED)}
+          wide
+        />
+      </div>
+      {state.decision === AMENDED && (
+        <AmendField
+          item={item}
+          state={state}
+          onAmendDate={onAmendDate}
+          onNote={onNote}
+        />
+      )}
     </div>
   );
 }
 
-// The flag_verify controls: acknowledge you have checked the date against your
-// jurisdiction. It keeps your own date, takes an optional note, and never blocks
-// like a force does.
-function VerifyControls({ state, onDecide, onNote }) {
-  const acknowledged = state.decision === VERIFIED;
+// The flag_verify controls (Note 14). PULSE refuses to invent a jurisdictional
+// number here, so there is no recommendation to accept, but the card still ends
+// in a recorded decision, one of three:
+//   Confirm      the attestation, with who and when on the record
+//   Amend        the check found a different date, so set it
+//   Verify later the flow proceeds on your date and an open verification action
+//                is raised on the Action Log, so nothing is waved through
+function VerifyControls({ item, state, onDecide, onNote, onAmendDate }) {
   return (
     <div className={styles.controls}>
-      <label className={styles.verifyCheck}>
-        <input
-          type="checkbox"
-          className={styles.verifyBox}
-          checked={acknowledged}
-          onChange={(e) => onDecide(e.target.checked ? VERIFIED : null)}
+      <div
+        className={styles.choices}
+        role="group"
+        aria-label="Record your decision"
+      >
+        <Choice
+          selected={state.decision === VERIFIED}
+          lead="Confirm, verified locally"
+          sub={formatDate(item.developerDate)}
+          onClick={() => onDecide(VERIFIED)}
         />
-        <span className={styles.verifyLabel}>
-          I have checked this date against my jurisdiction.
-        </span>
-      </label>
-      {acknowledged && (
+        <Choice
+          selected={state.decision === AMENDED}
+          lead="Amend the date"
+          sub="The check found a different date"
+          onClick={() => onDecide(AMENDED)}
+        />
+        <Choice
+          selected={state.decision === DEFERRED}
+          lead="Verify later"
+          sub="Proceed and check this after"
+          onClick={() => onDecide(DEFERRED)}
+        />
+      </div>
+      {state.decision === VERIFIED && (
         <label className={styles.reasonField}>
           <span className={styles.reasonLabel}>
             Note
@@ -270,20 +387,38 @@ function VerifyControls({ state, onDecide, onNote }) {
           />
         </label>
       )}
+      {state.decision === AMENDED && (
+        <AmendField
+          item={item}
+          state={state}
+          onAmendDate={onAmendDate}
+          onNote={onNote}
+        />
+      )}
+      {state.decision === DEFERRED && (
+        <p className={styles.deferNote}>
+          Set-up continues on your own date. An open action to verify it is added
+          to your Action Log, so the check is tracked, not lost.
+        </p>
+      )}
     </div>
   );
 }
 
 // One flagged item as a card: its identity, its dates, the reason, and the
-// tier's decision controls.
-function ReconcileCard({ item, state, onDecide, onNote }) {
+// tier's decision controls. The card carries the item's key as its DOM id so the
+// footer's named blocker can jump straight to the first undecided one.
+function ReconcileCard({ item, state, onDecide, onNote, onAmendDate }) {
   const isForce = item.tier === 'force';
   const kindLabel = KIND_LABEL[item.kind] ?? item.kind;
   const servesType = item.kind === 'milestone' ? SERVES_BY_KEY[item.key] : null;
   const servesName = servesType ? OBJECTIVE_NAME[servesType] : null;
 
   return (
-    <article className={`${styles.card} ${isForce ? styles.cardCritical : ''}`}>
+    <article
+      id={cardDomId(item.key)}
+      className={`${styles.card} ${isForce ? styles.cardCritical : ''}`}
+    >
       <div className={styles.cardTop}>
         <div>
           <h2 className={styles.cardName}>{item.name}</h2>
@@ -309,15 +444,50 @@ function ReconcileCard({ item, state, onDecide, onNote }) {
           state={state}
           onDecide={onDecide}
           onNote={onNote}
+          onAmendDate={onAmendDate}
         />
       )}
       {item.tier === 'force' && (
-        <ForceControls item={item} state={state} onDecide={onDecide} />
+        <ForceControls
+          item={item}
+          state={state}
+          onDecide={onDecide}
+          onNote={onNote}
+          onAmendDate={onAmendDate}
+        />
       )}
       {item.tier === 'flag_verify' && (
-        <VerifyControls state={state} onDecide={onDecide} onNote={onNote} />
+        <VerifyControls
+          item={item}
+          state={state}
+          onDecide={onDecide}
+          onNote={onNote}
+          onAmendDate={onAmendDate}
+        />
       )}
     </article>
+  );
+}
+
+/**
+ * The named blocker beside a disabled action (Note 14). In test, a selected
+ * "Keep your date" with an empty reason rendered the proceed button dead with no
+ * indication of what was missing, which read as "keeping your date is not
+ * allowed". The fix is the affordance, not the mechanic: the gap is named, and
+ * where the caller supplies a target the developer can jump straight to it.
+ * Renders nothing when nothing is blocking.
+ */
+function BlockerHint({ line, onJump }) {
+  if (!line) return null;
+  return (
+    <span className={styles.blockerLine} role="status">
+      <span>{line}</span>
+      {onJump && (
+        <button type="button" className={styles.blockerJump} onClick={onJump}>
+          Go to the first one
+        </button>
+      )}
+    </span>
   );
 }
 
@@ -548,6 +718,24 @@ export default function ProgrammeSetup({
   const flagged = useMemo(() => flaggedItems(realityCheck), [realityCheck]);
   const summary = useMemo(() => reconcileSummary(realityCheck), [realityCheck]);
 
+  // The objective index the decision records read: the id per objective type,
+  // for linking a verification action to the objective its point serves, and the
+  // kernel's by-id index, so the action's stamped criticality is the cascade
+  // value rather than an invented one.
+  const objectiveIdByType = useMemo(
+    () =>
+      Object.fromEntries(
+        (objectives ?? [])
+          .filter((o) => o?.id != null && o?.objective_type != null)
+          .map((o) => [o.objective_type, o.id])
+      ),
+    [objectives]
+  );
+  const objectivesById = useMemo(
+    () => buildObjectiveIndex(objectives ?? []).byId,
+    [objectives]
+  );
+
   const supabase = createClient();
 
   // This screen locks v1 only. When a current baseline already exists the lock is
@@ -565,6 +753,10 @@ export default function ProgrammeSetup({
   const [resolutions, setResolutions] = useState(
     realityCheck.anyFlagged ? null : []
   );
+  // The decision write (Note 14): in flight, and its failure. Held here rather
+  // than inside the proceed so the footer can disable and explain together.
+  const [recording, setRecording] = useState(false);
+  const [decisionError, setDecisionError] = useState(null);
   // The two-step lock: confirming reveals the consequence and the final confirm.
   const [confirming, setConfirming] = useState(false);
   const [locking, setLocking] = useState(false);
@@ -619,12 +811,49 @@ export default function ProgrammeSetup({
       ...prev,
       [key]: { ...prev[key], note },
     }));
+  const setAmendedDate = (key, amendedDate) =>
+    setDecisions((prev) => ({
+      ...prev,
+      [key]: { ...prev[key], amendedDate },
+    }));
 
   const ready = canProceed(realityCheck, decisions);
+  const blockers = proceedBlockers(realityCheck, decisions);
+  const blockerText = blockerLine(blockers);
 
-  const handleProceed = () => {
-    if (!ready) return;
-    setResolutions(buildResolutions(realityCheck, decisions));
+  // Move the developer to the first gap rather than leaving them to hunt for it.
+  const jumpToFirstGap = () => {
+    const key = firstBlockingKey(realityCheck, decisions);
+    if (key == null || typeof document === 'undefined') return;
+    document
+      .getElementById(cardDomId(key))
+      ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  };
+
+  // The proceed. The decisions are RECORDED before the flow moves on: a
+  // baseline-setting decision that leaves no trace is the silent omission Note
+  // 14 exists to close, so a failed write holds the proceed rather than passing
+  // through. A deferral raises its open verification action in the same call.
+  const handleProceed = async () => {
+    if (!ready || recording) return;
+    const resolved = buildResolutions(realityCheck, decisions);
+    setRecording(true);
+    setDecisionError(null);
+    const { error } = await recordReconcileDecisions(supabase, {
+      projectId,
+      sourceBriefId,
+      decidedBy: userId,
+      resolutions: resolved,
+      objectiveIdFor: (resolution) =>
+        objectiveIdByType[SERVES_BY_KEY[resolution.key]] ?? null,
+      objectivesById,
+    });
+    setRecording(false);
+    if (error) {
+      setDecisionError(DECISION_ERROR);
+      return;
+    }
+    setResolutions(resolved);
     setPhase(REVIEW_PHASES.REVIEW);
   };
 
@@ -640,7 +869,12 @@ export default function ProgrammeSetup({
     // The frozen v1 carries its own proof: the reconciliation result, the
     // disclosed derivations, and any accepted completion breach as the
     // recorded decision.
-    const finalised = finaliseProgrammeForLock(assembled, reconciliation, breachAccepted);
+    const finalised = finaliseProgrammeForLock(
+      assembled,
+      reconciliation,
+      breachAccepted,
+      resolutions ?? []
+    );
     const result = await writeProgrammeBaseline(
       supabase,
       buildBaselineLockArgs({ assembled: finalised, projectId, sourceBriefId, lockedBy: userId })
@@ -798,6 +1032,28 @@ export default function ProgrammeSetup({
           ))}
         </div>
 
+        {/* The recorded decisions (Note 14). Every answer given at Reconcile
+            dates, named before the lock, so the developer locks knowing exactly
+            what was decided and on what basis. The same set is frozen into v1,
+            so the baseline carries its own approvals trail. */}
+        {resolutions && resolutions.length > 0 && (
+          <div className={styles.recon}>
+            <p className={styles.reconLead}>
+              <CheckIcon />
+              {resolutions.length === 1
+                ? '1 decision recorded against your Brief, with who decided and when.'
+                : `${resolutions.length} decisions recorded against your Brief, with who decided and when.`}
+            </p>
+            <ul className={styles.reconList}>
+              {resolutions.map((res) => (
+                <li key={`decision:${res.key}`} className={styles.reconItem}>
+                  {describeDecision(res)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {reconciliation && (
           <div
             className={`${styles.recon} ${
@@ -951,15 +1207,19 @@ export default function ProgrammeSetup({
                   Back to reconcile
                 </button>
               )}
-              {!guard.allowed && (
-                <span className={styles.proceedHint}>
-                  {guard.reason === 'differences'
-                    ? 'Resolve the named differences to lock.'
-                    : guard.reason === 'breach_not_accepted'
-                      ? 'Accept the completion breach above, or revisit your dates, to lock.'
-                      : 'The reconciliation check has not run.'}
-                </span>
-              )}
+              {/* The same named-blocker affordance the reconcile footer uses:
+                  a disabled action always says what is missing. */}
+              <BlockerHint
+                line={
+                  guard.allowed
+                    ? null
+                    : guard.reason === 'differences'
+                      ? 'Resolve the named differences above to lock.'
+                      : guard.reason === 'breach_not_accepted'
+                        ? 'Accept the completion breach above, or revisit your dates, to lock.'
+                        : 'The reconciliation check has not run.'
+                }
+              />
               <button
                 type="button"
                 className={styles.proceedBtn}
@@ -1001,9 +1261,11 @@ export default function ProgrammeSetup({
         before set-up continues. Review each one below.
       </p>
       <p className={styles.subnote}>
-        Keeping your own date is fine. It records a risk on the log, so the
-        optimism is tracked, not hidden. The rest of your dates sit within
-        normal ranges and are not shown here.
+        Every answer is recorded against your Brief, with who decided and when.
+        Keeping your own date is fine: it records a risk on the log, so the
+        optimism is tracked, not hidden. Amending sets the date you will work to
+        and records the variance; your locked Brief is never rewritten. The rest
+        of your dates sit within normal ranges and are not shown here.
       </p>
 
       <div className={styles.cards}>
@@ -1014,6 +1276,7 @@ export default function ProgrammeSetup({
             state={decisions[item.key]}
             onDecide={(decision) => setDecision(item.key, decision)}
             onNote={(note) => setNote(item.key, note)}
+            onAmendDate={(date) => setAmendedDate(item.key, date)}
           />
         ))}
       </div>
@@ -1028,19 +1291,22 @@ export default function ProgrammeSetup({
             ? 'a hard floor must be corrected'
             : 'no hard floors breached'}
         </p>
+
+        {decisionError && (
+          <p className={styles.error} role="alert">
+            {decisionError}
+          </p>
+        )}
+
         <div className={styles.footerActions}>
-          {!ready && (
-            <span className={styles.proceedHint}>
-              Decide every flagged date to continue.
-            </span>
-          )}
+          <BlockerHint line={blockerText} onJump={jumpToFirstGap} />
           <button
             type="button"
             className={styles.proceedBtn}
             onClick={handleProceed}
-            disabled={!ready}
+            disabled={!ready || recording}
           >
-            Assemble programme
+            {recording ? 'Recording…' : 'Assemble programme'}
           </button>
         </div>
       </div>

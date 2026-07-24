@@ -90,6 +90,139 @@
 
 /* ── The Brief: the keystone, featured ───── */
 
+/* ── The next step (Note 13) ──────────────────────
+   After the Brief locks a project runs a fixed path, so the workspace leads
+   with the ONE step that is current rather than a field of equal tiles. The
+   panel takes the bright fill because it is the single thing to do; the trail
+   beneath it shows where that step sits in the sequence. */
+
+.nextStep {
+  display: flex;
+  align-items: center;
+  gap: 1.35rem;
+  background: var(--app-surface-raised);
+  border: 1px solid var(--app-border-strong);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-elev-1);
+  padding: 1.45rem 1.6rem;
+  text-decoration: none;
+  margin-bottom: 0.85rem;
+  transition: border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+
+.nextStep:hover {
+  background: var(--app-surface);
+  border-color: var(--app-ink-muted);
+}
+
+.nextStep:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+}
+
+.nextStepMain {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.nextStepEyebrow {
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
+  margin: 0;
+}
+
+.nextStepTitle {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 1.1875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--app-ink);
+  margin: 0;
+}
+
+.nextStepBody {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--app-ink-secondary);
+  max-width: 54ch;
+  margin: 0;
+}
+
+.nextStepCta {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--app-primary-ink);
+  background: var(--app-primary);
+  border-radius: var(--app-radius-sm);
+  padding: 0.6rem 1.05rem;
+  white-space: nowrap;
+}
+
+.nextStep:hover .nextStepCta {
+  background: var(--app-primary-hover);
+}
+
+/* The sequence itself, stated plainly so the order is never a surprise. */
+.trail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.45rem;
+  list-style: none;
+  margin: 0 0 2.25rem;
+  padding: 0;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.trailStep {
+  color: var(--app-ink-muted);
+}
+
+.trailDone {
+  color: var(--app-ink-secondary);
+}
+
+.trailNow {
+  color: var(--app-ink);
+}
+
+.trailSep {
+  color: var(--app-ink-muted);
+  opacity: 0.6;
+}
+
+@media (max-width: 34rem) {
+  .nextStep {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .nextStepCta {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 .featured {
   display: flex;
   align-items: center;

@@ -250,8 +250,20 @@ export function lockGuard(reconciliation, breachAccepted = false) {
  * point is touched; this only attaches the record of what was checked and
  * what was decided. The lock timestamp is the row's locked_at, so nothing
  * here reads a clock.
+ *
+ * THE RECONCILE DECISION SET rides with it (Note 14). Every decision taken on a
+ * flagged date is already recorded in project_reconcile_decisions as governance
+ * history; freezing the same set into v1 means the baseline carries its own
+ * approvals trail, so reading the frozen programme tells you not only what was
+ * agreed but on what decision. The resolutions are passed in exactly as
+ * buildResolutions produced them, with nothing re-derived.
  */
-export function finaliseProgrammeForLock(assembled, reconciliation, breachAccepted = false) {
+export function finaliseProgrammeForLock(
+  assembled,
+  reconciliation,
+  breachAccepted = false,
+  resolutions = null
+) {
   if (reconciliation == null) return assembled;
   const completion = reconciliation.completion ?? {};
   const finalised = {
@@ -260,6 +272,7 @@ export function finaliseProgrammeForLock(assembled, reconciliation, breachAccept
       source: reconciliation.source ?? null,
       differences: reconciliation.differences ?? [],
       derivations: reconciliation.derivations ?? [],
+      decisions: resolutions ?? [],
       completion: {
         baselineCompletionDate: completion.baselineCompletionDate ?? null,
         targetCompletionDate: completion.targetCompletionDate ?? null,

@@ -419,6 +419,58 @@
   border-color: var(--app-border-strong);
 }
 
+/* ── Amend control (Note 14) ──
+   The third answer on every flagged date: neither offered date is right, so the
+   developer sets the operational one. The field sits inside the decision block
+   and reads as an input, not an alert: an amend is a normal governed outcome. */
+
+.amendField {
+  display: block;
+  margin-top: 0.85rem;
+}
+
+.dateInput {
+  min-height: 44px;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--app-ink);
+  background: var(--app-surface-sunken);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-sm);
+  padding: 0.55rem 0.7rem;
+}
+
+.dateInput:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 1px;
+  border-color: var(--app-border-strong);
+}
+
+/* The floor refusal on an amended force date. Full ink, never amber: a
+   requirement is not criticality. */
+.amendWarn {
+  display: block;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--app-ink);
+  font-weight: 600;
+  margin-top: 0.5rem;
+  max-width: 56ch;
+}
+
+/* The deferral's plain statement of what it costs: the flow proceeds, and the
+   check is owed on the Action Log. */
+.deferNote {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--app-ink-secondary);
+  margin-top: 0.6rem;
+  max-width: 56ch;
+}
+
 /* ── Verify control ── */
 
 .verifyCheck {
@@ -488,6 +540,38 @@
   font-family: var(--app-font-sans), sans-serif;
   font-size: 0.8125rem;
   color: var(--app-ink-secondary);
+}
+
+/* The named blocker beside a disabled action (Note 14). A disabled button with
+   no stated reason reads as a refusal, so the gap is named in full ink and the
+   jump link takes the developer to it. */
+.blockerLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--app-ink);
+}
+
+.blockerJump {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--app-ink);
+  background: none;
+  border: none;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.blockerJump:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
 }
 
 .proceedBtn {

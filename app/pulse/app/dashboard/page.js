@@ -4,7 +4,8 @@ import { createClient } from '../../../../lib/supabase/server';
 import DashboardShell from '../../../components/DashboardShell';
 import { loadCurrentProgrammeBaseline } from '../components/programmeBaselineStore';
 import { loadMetPointsView } from '../components/programmeActualsStore';
-import { PAGE_TITLE, PAGE_SUB, BRIEF_NOT_LOCKED } from './dashboardRead';
+import { PAGE_TITLE, PAGE_SUB } from './dashboardRead';
+import { readSequence } from '../components/sequenceRead';
 import ProjectDashboard from './ProjectDashboard';
 import styles from './ProjectDashboard.module.css';
 
@@ -33,9 +34,14 @@ import styles from './ProjectDashboard.module.css';
  * clock. The tolerance is the Programme surface's default, resolved inside
  * the display model; the dashboard has no dial of its own.
  *
- * Brief not locked: the page does not open. The objectives are set in the
- * Brief, and this page reads through them, so without a locked Brief there
- * is no lens to read.
+ * Availability follows the fixed sequence (Note 13): the dashboard is one of
+ * the three monitoring modules, and all three open together, once Programme
+ * set-up has locked the operational baseline and the gate has been confirmed.
+ * The objectives are set in the Brief and this page reads through them, but the
+ * facts it states about them come from the operational baseline, so a dashboard
+ * rendered before that baseline exists would state a project condition it has
+ * no basis for. A direct visit before then shows the sequence's honest line,
+ * the same string the workspace tile carries.
  */
 
 const UUID_RE =
@@ -70,25 +76,20 @@ export default async function DashboardPage({ searchParams }) {
     full_name: profile?.full_name ?? null,
   };
 
-  const [{ data: project }, { data: brief }] = await Promise.all([
-    supabase
-      .from('projects')
-      .select('id, name, current_stage, target_completion_date')
-      .eq('id', projectParam)
-      .maybeSingle(),
-    supabase
-      .from('project_briefs')
-      .select('is_locked')
-      .eq('project_id', projectParam)
-      .order('version', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-  ]);
+  const { data: project } = await supabase
+    .from('projects')
+    .select('id, name, current_stage, target_completion_date')
+    .eq('id', projectParam)
+    .maybeSingle();
 
   // Not found, or not visible (RLS filtered it out).
   if (!project) {
     redirect('/pulse/app');
   }
+
+  // Where the project sits on the fixed path (Note 13), the same derivation the
+  // workspace tile uses.
+  const sequence = await readSequence(supabase, project.id, project.current_stage);
 
   // Back to the project reaches the WORKSPACE (the route to the modules), and
   // carries ?view=workspace (M9.5). In Run a bare workspace open redirects to
@@ -119,19 +120,17 @@ export default async function DashboardPage({ searchParams }) {
     </>
   );
 
-  // Brief not locked: the page does not open.
-  if (brief?.is_locked !== true) {
+  // The sequence gate (Note 13): the three monitoring modules open together,
+  // once the operational baseline is locked and the gate is confirmed.
+  if (!sequence.modulesOpen) {
     return (
       <DashboardShell user={navUser}>
         <main className={`container ${styles.page}`} id="main-content">
           {Header}
           <div className={styles.locked}>
-            <p className={styles.lockedText}>{BRIEF_NOT_LOCKED}</p>
-            <Link
-              href={`/pulse/app/initiate?project=${project.id}`}
-              className={styles.lockedCta}
-            >
-              Go to the Brief
+            <p className={styles.lockedText}>{sequence.lockedLine}</p>
+            <Link href={workspaceHref} className={styles.lockedCta}>
+              Back to the workspace
             </Link>
           </div>
         </main>

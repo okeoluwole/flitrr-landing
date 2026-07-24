@@ -37,8 +37,9 @@ import { ATTENTION_KINDS, ATTENTION_TRIGGERS } from './attentionModel';
 export const PAGE_TITLE = 'Project dashboard';
 export const PAGE_SUB =
   'Where the project stands against the objectives you set.';
-export const BRIEF_NOT_LOCKED =
-  'Lock your Brief to open the dashboard. Your objectives are set in the Brief, and this page reads through them.';
+// The page's locked-state copy is no longer this module's (Note 13): all three
+// monitoring modules share one line, workspace/sequenceModel.js
+// moduleLockedLine.
 
 // Lifecycle stage names (framework Section 4), for Band 1's stage fact.
 export const STAGE_NAMES = {
@@ -614,9 +615,6 @@ export function attentionFooter(overflow) {
 // carries a single live signal, the project state in words, no colour and no
 // counts (every number lives on the dashboard, one source of truth). The
 // heading and line reuse the page's own (PAGE_TITLE, PAGE_SUB).
-
-// Section 2.2: before the Brief is locked the tile does not open.
-export const TILE_LOCKED = 'Lock your Brief to open the dashboard.';
 
 /**
  * Section 2.1: the project state in words, the tile's one live signal. Read

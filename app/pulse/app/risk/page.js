@@ -6,7 +6,7 @@ import DashboardShell from '../../../components/DashboardShell';
 import { OBJECTIVE_META } from '../components/objectiveMeta';
 import { deriveProposals } from '../../../../lib/playbook/playbookModel';
 import RiskRegister from './RiskRegister';
-import { RISK_LOCKED_COPY } from './riskModel';
+import { readSequence } from '../components/sequenceRead';
 import styles from './RiskRegister.module.css';
 
 /**
@@ -23,11 +23,14 @@ import styles from './RiskRegister.module.css';
  * accepted play becomes an ordinary project_risks row (not yet reviewed) and
  * behaves as any risk from there.
  *
- * Availability re-gates on the Brief lock (M9.4): Risk is a baselining act, so
- * the register opens the moment the Brief locks, in the Plan phase, ahead of
- * the Gate 1 to 2. A direct visit before the Brief is locked shows the
- * lock-your-Brief note rather than the register. The workspace tile and this
- * guard share one string (riskModel.RISK_LOCKED_COPY) so they cannot disagree.
+ * Availability follows the fixed sequence (Note 13): the register is one of the
+ * three monitoring modules, and all three open together, once Programme set-up
+ * has locked the operational baseline and the gate has been confirmed. That is
+ * the module pattern made structural: a monitoring module reads the baseline,
+ * so before the baseline exists there is nothing to read and any count it showed
+ * would be invented. A direct visit before then shows the sequence's own honest
+ * line, the same string the workspace tile carries (sequenceRead), so the tile
+ * and this guard can never disagree.
  */
 
 const UUID_RE =
@@ -66,30 +69,22 @@ export default async function RiskPage({ searchParams }) {
     full_name: profile?.full_name ?? null,
   };
 
-  // The project, and its latest brief lock state (the gate this register now
-  // opens on). current_stage is still read: the playbook query below is keyed
-  // on it. Fetched together; the null-check on the project follows.
-  const [{ data: project }, { data: brief }] = await Promise.all([
-    supabase
-      .from('projects')
-      .select('id, name, current_stage')
-      .eq('id', projectParam)
-      .maybeSingle(),
-    supabase
-      .from('project_briefs')
-      .select('is_locked')
-      .eq('project_id', projectParam)
-      .order('version', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-  ]);
+  // The project. current_stage is read for the playbook query below, and it is
+  // also what the sequence read measures the gate decision against.
+  const { data: project } = await supabase
+    .from('projects')
+    .select('id, name, current_stage')
+    .eq('id', projectParam)
+    .maybeSingle();
 
   // Not found, or not owned (RLS filtered it out).
   if (!project) {
     redirect('/pulse/app');
   }
 
-  const briefLocked = brief?.is_locked === true;
+  // Where the project sits on the fixed path (Note 13). The same derivation the
+  // workspace tile uses.
+  const sequence = await readSequence(supabase, project.id, project.current_stage);
 
   // Back to the workspace launcher, carrying view=workspace so in Run it reaches
   // the launcher (to hop to another module) instead of being redirected to the
@@ -117,16 +112,16 @@ export default async function RiskPage({ searchParams }) {
     </>
   );
 
-  // The Brief-lock gate (M9.4): Risk is a baselining act, so the register opens
-  // the moment the Brief locks, not at the later Gate 1 to 2. Before the lock,
-  // show the note (the one string the workspace tile shows too).
-  if (!briefLocked) {
+  // The sequence gate (Note 13): the three monitoring modules open together,
+  // once the operational baseline is locked and the gate is confirmed. Until
+  // then, show the sequence's honest line, the one the workspace tile shows too.
+  if (!sequence.modulesOpen) {
     return (
       <DashboardShell user={navUser}>
         <main className={`container ${styles.page}`} id="main-content">
           {Header}
           <div className={styles.locked}>
-            <p className={styles.lockedText}>{RISK_LOCKED_COPY}</p>
+            <p className={styles.lockedText}>{sequence.lockedLine}</p>
             <Link href={workspaceHref} className={styles.lockedCta}>
               Back to the workspace
             </Link>

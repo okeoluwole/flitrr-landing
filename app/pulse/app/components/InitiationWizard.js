@@ -495,6 +495,7 @@ export default function InitiationWizard({
   userId,
   initialProject,
   initialGate = null,
+  hasBaseline = false,
 }) {
   const supabase = createClient();
 
@@ -2117,6 +2118,7 @@ export default function InitiationWizard({
           financial={financial}
           gates={gates}
           currentStage={currentStage}
+          hasBaseline={hasBaseline}
           persistAllSteps={persistAllSteps}
         />
       );

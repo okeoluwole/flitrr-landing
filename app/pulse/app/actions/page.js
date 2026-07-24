@@ -7,7 +7,7 @@ import { OBJECTIVE_META } from '../components/objectiveMeta';
 import { deriveProposals } from '../../../../lib/playbook/playbookModel';
 import { buildObjectiveIndex } from '../../../../lib/engine/criticality';
 import ActionLog from './ActionLog';
-import { actionLogLockedFooter } from './actionModel';
+import { readSequence } from '../components/sequenceRead';
 import styles from './ActionLog.module.css';
 
 /**
@@ -24,18 +24,18 @@ import styles from './ActionLog.module.css';
  * standard by the project's own objective classification, accepted into the
  * log or dismissed with one tap. The notification layer is M7.3.
  *
- * Availability stays on the Gate 1 to 2 (M9.4): the Action Log is a delivery
- * act, gated on current_stage being Stage 2 or beyond, and is deliberately NOT
- * re-gated on the Brief lock the way Risk now is. A direct visit before the
- * gate shows a phase-aware note (actionLogLockedFooter) that tells the truth
- * about what still opens it, naming the Brief lock too when that is still
- * ahead, rather than the log.
+ * Availability follows the fixed sequence (Note 13): the Action Log is one of
+ * the three monitoring modules, and all three open together, once Programme
+ * set-up has locked the operational baseline and the gate has been confirmed.
+ * The log reads the baseline like its siblings, and its needs-your-response
+ * band would otherwise compute a queue against a baseline that does not exist:
+ * the end-to-end test saw exactly that, "14 need your response" before set-up
+ * had ever run. A direct visit before then shows the sequence's honest line,
+ * the same string the workspace tile carries.
  */
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-const STAGE_2 = 2;
 
 const NAME_BY_TYPE = Object.fromEntries(
   OBJECTIVE_META.map((o) => [o.type, o.name])
@@ -107,27 +107,17 @@ export default async function ActionsPage({ searchParams }) {
     </>
   );
 
-  // The gate still governs the Action Log: it stays on the Gate 1 to 2, not
-  // re-gated on the Brief lock. Below the gate, show the note. Only the copy is
-  // phase-aware now (M9.4): it names the Brief lock too when that is still
-  // ahead, so the brief lock state is read here, on the locked path only.
-  if (project.current_stage < STAGE_2) {
-    const { data: brief } = await supabase
-      .from('project_briefs')
-      .select('is_locked')
-      .eq('project_id', project.id)
-      .order('version', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const briefLocked = brief?.is_locked === true;
+  // The sequence gate (Note 13): the three monitoring modules open together,
+  // once the operational baseline is locked and the gate is confirmed. Until
+  // then, show the sequence's honest line naming the step that opens it.
+  const sequence = await readSequence(supabase, project.id, project.current_stage);
+  if (!sequence.modulesOpen) {
     return (
       <DashboardShell user={navUser}>
         <main className={`container ${styles.page}`} id="main-content">
           {Header}
           <div className={styles.locked}>
-            <p className={styles.lockedText}>
-              {actionLogLockedFooter(briefLocked)}
-            </p>
+            <p className={styles.lockedText}>{sequence.lockedLine}</p>
             <Link href={workspaceHref} className={styles.lockedCta}>
               Back to the workspace
             </Link>
