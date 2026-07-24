@@ -19,6 +19,7 @@ import {
   sortActions,
   gateReadiness,
   provenanceLabel,
+  objectiveRelation,
 } from './actionModel';
 import {
   deriveResponseFeed,
@@ -26,30 +27,63 @@ import {
   buildTrackedActionFromRaid,
 } from './actionFeed';
 import {
+  itemKey,
+  recordTriageDecision,
+  TRIAGE_DECISIONS,
+  TRIAGE_SURFACES,
+} from './triageDecisionStore';
+import {
   splitProposals,
   buildActionFromPlay,
+  confirmedPlayCriticality,
 } from '../../../../lib/playbook/playbookModel';
+import { severityLegend } from '../../../../lib/engine/severity';
 import ViewOnlyBadge from '../components/ViewOnlyBadge';
 import CriticalityChip from '../components/CriticalityChip';
 import styles from './ActionLog.module.css';
 
 /**
- * ActionLog (M7.1 + M7.2) - the central attention home. The
- * needs-your-response band at the top holds the risk and RAID items that need a
- * response, computed live (actionFeed.js); below it, the tracked list: the
- * project's actions critical-first, with an inline add flow, one-tap status,
- * editing, and delete behind a confirm. Criticality is derived live from the
- * linked objective, with a constrained downward override. A gate-readiness
- * panel (A3) surfaces the open actions bearing on the current stage's gate, and
- * a closed action captures its outcome and any variance (A7), the
- * lessons-learnt input.
+ * ActionLog (M7.1 + M7.2) - the central attention home. The triage queue at the
+ * top holds the Critical risk and RAID items from the developer's own Brief,
+ * computed live (actionFeed.js); below it, the tracked list: the project's
+ * actions critical-first, with an inline add flow, one-tap status, editing, and
+ * delete behind a confirm. Criticality is derived live from the linked
+ * objective, with a constrained downward override. A gate-readiness panel (A3)
+ * surfaces the open actions bearing on the current stage's gate, and a closed
+ * action captures its outcome and any variance (A7), the lessons-learnt input.
  *
- * The band's items are suggestions awaiting a response, never rows: Track
- * this promotes one into a real tracked action in the same interaction (the
- * dedupe then suppresses the item), and Review in register navigates to the
- * risk, because risk status changes happen there, not here. The band
- * recomputes from local state, so promoting, deleting, or completing a
- * tracked action moves the item out of or back into the band immediately.
+ * The queue's items are suggestions awaiting a decision, never rows: Track this
+ * promotes one into a real tracked action in the same interaction (the dedupe
+ * then suppresses the item), Review in register navigates to the risk, because
+ * risk status changes happen there, and Dismiss declines it with a recorded
+ * reason. The queue recomputes from local state, so promoting, deleting, or
+ * completing a tracked action moves the item out of or back into it
+ * immediately.
+ *
+ * WHAT NOTE 18 CHANGED, AND WHAT IT DID NOT. The end-to-end test confirmed the
+ * fourteen queued items are exactly the Critical RAID items in the locked Brief:
+ * the selection was right. The presentation was not. Four things changed here,
+ * none of them touching what is selected or how criticality is derived:
+ *
+ *   PROVENANCE. Every card states its origin and the document it came out of,
+ *   and links to it. The old label read "This project" on every card, which is
+ *   true of everything on the screen and so tells the developer nothing.
+ *
+ *   TRIAGE, NOT ALARM. The queue is headed as what it is, the Critical items
+ *   from the Brief arriving to be sorted, rather than as fourteen demands. The
+ *   count is unchanged; the claim it makes is not.
+ *
+ *   AN HONEST SUGGESTION. A PULSE Suggests play wears no criticality chip while
+ *   the developer has not yet agreed which objective it serves, because
+ *   criticality is derived from that link and there was no link to derive from.
+ *   Add to log confirms the link first; the criticality then follows it,
+ *   read-only. A RAID-derived card keeps the criticality it already derived,
+ *   because that link is real.
+ *
+ *   A DECLINE PATH. Every queued item can now end in a recorded decision, a
+ *   dismiss carrying a one-line reason with who and when, reusing the pattern
+ *   the reconcile decisions set (triageDecisionStore.js). Before this the only
+ *   two responses both created work, so saying no left no trace.
  *
  * Criticality is LIVE (A2): an action inherits the classification of the
  * objective it serves, read from that objective's current state, so the log
@@ -88,6 +122,19 @@ const DISMISS_PLAY_ERROR =
   'We could not dismiss that suggestion. Please check your connection and try again.';
 
 const OVERRIDE_REASON_PLACEHOLDER = 'Why reduce this to standard?';
+const DISMISS_REASON_PLACEHOLDER = 'Why are you setting this aside?';
+
+const DISMISS_ERROR =
+  'We could not record that decision. Please check your connection and try again.';
+
+// The triage queue's own copy (Note 18). The heading says what the queue holds
+// and where it came from, so a correctly completed initiation is not greeted by
+// an alarm; the legend under it makes the severity band readable rather than
+// asserted.
+const TRIAGE_HEADING = 'Critical items from your brief, awaiting triage';
+const TRIAGE_QUIET = 'Nothing from your brief is waiting to be triaged.';
+
+const LEGEND = severityLegend();
 
 // The read-only line shown to a member where the inline add flow sits for an
 // admin. One sparse line at the genuine action point, never greyed controls.
@@ -125,6 +172,59 @@ function formatLogged(iso) {
     year: 'numeric',
     timeZone: 'UTC',
   });
+}
+
+// The severity band chip's class per band (Note 18). The queue used to show a
+// chip only when a risk scored Serious, so Worth watching and Minor read as no
+// severity at all and the developer could not tell an unscored item from a mild
+// one. Every scored risk now states its band, and the bands step down in weight
+// rather than in presence. Severity stays monochrome: amber is criticality only.
+const SEVERITY_CLASS = {
+  serious: 'chipSerious',
+  moderate: 'chipModerate',
+  minor: 'chipMinor',
+  unscored: 'chipUnscored',
+};
+
+function SeverityTag({ severity }) {
+  if (!severity) return null;
+  return (
+    <span className={`${styles.chip} ${styles[SEVERITY_CLASS[severity.key]]}`}>
+      {severity.label}
+    </span>
+  );
+}
+
+// The legend that makes the bands readable: the rule, then each band with the
+// score range it covers. Derived from the engine (severityLegend), so it can
+// never drift from the derivation it explains.
+function SeverityLegend() {
+  return (
+    <p className={styles.legend}>
+      <span className={styles.legendLead}>{LEGEND.lead}</span>
+      {LEGEND.bands.map((b) => (
+        <span key={b.key} className={styles.legendBand}>
+          {b.label} {b.range}
+        </span>
+      ))}
+    </p>
+  );
+}
+
+/**
+ * The read-only criticality line shown wherever criticality is about to be set
+ * (Note 18): the add flow, and the Add to log confirmation. It states the value
+ * AND where it came from, because criticality is derived from the objective an
+ * item serves and is never entered by hand. "No objective" stays a permitted
+ * answer; it derives Standard, which is what the column has always stored for
+ * an unlinked item.
+ */
+function inheritedCriticalityLine(criticality, objectiveName, alwaysCritical) {
+  if (alwaysCritical) return 'Critical on every project at this stage.';
+  const label = criticality === 'critical' ? 'Critical' : 'Standard';
+  return objectiveName
+    ? `${label}, inherited from ${objectiveName}.`
+    : 'Standard. No objective linked.';
 }
 
 // A plain-language segmented control. One option active, single select.
@@ -173,6 +273,9 @@ export default function ActionLog({
   projectName,
   workspaceHref,
   registerHref,
+  briefHref,
+  userId = null,
+  dismissedKeys = [],
   currentStage,
   initialActions,
   objectives,
@@ -187,6 +290,13 @@ export default function ActionLog({
   const supabase = createClient();
   const [actions, setActions] = useState(initialActions);
 
+  // The items already declined (Note 18). Seeded from the recorded decisions
+  // the server read, and added to as the developer dismisses more, so an item
+  // leaves the queue in the same interaction that records why.
+  const [dismissed, setDismissed] = useState(() => new Set(dismissedKeys));
+  const [dismissingKey, setDismissingKey] = useState(null);
+  const [dismissReason, setDismissReason] = useState('');
+
   // Objectives indexed by id, so criticality is derived live from the linked
   // objective (A2). Stable for the life of the page.
   const byId = useMemo(() => objectivesById(objectives), [objectives]);
@@ -200,6 +310,12 @@ export default function ActionLog({
   const [actedPlayIds, setActedPlayIds] = useState(() => new Set());
   const [actingPlayId, setActingPlayId] = useState(null);
   const [showAllPlays, setShowAllPlays] = useState(false);
+
+  // The Add to log confirmation (Note 18): the play whose objective link the
+  // developer is confirming, and the objective they have chosen. Criticality is
+  // never chosen here; it derives from this link and is shown read-only.
+  const [confirmingPlayId, setConfirmingPlayId] = useState(null);
+  const [playObjectiveId, setPlayObjectiveId] = useState('');
 
   // The inline add flow.
   const [draftDescription, setDraftDescription] = useState('');
@@ -255,6 +371,7 @@ export default function ActionLog({
     dependencies,
     actions,
     objectivesById: byId,
+    dismissed,
   });
 
   // The live suggestions: the server's proposals minus the ones acted on
@@ -333,22 +450,111 @@ export default function ActionLog({
       setError(TRACK_ERROR);
     } else {
       setActions((as) => [data, ...as]);
+      // The action is the work; this is the record that a decision was taken on
+      // this item, by whom and when. Recorded after the insert so the action id
+      // can ride onto it, the order recordReconcileDecisions uses.
+      await recordTriageDecision(supabase, {
+        projectId,
+        itemKind: entry.kind,
+        itemId: entry.row.id,
+        itemName: entry.row.description ?? null,
+        surface: TRIAGE_SURFACES.ACTION_LOG,
+        decision: TRIAGE_DECISIONS.TRACKED,
+        createdActionId: data.id,
+        decidedBy: userId,
+      });
     }
     setPromotingId(null);
   };
 
-  // Add to log (M7.4): accept a suggested play. The tracked action lands
-  // and the suggestion leaves the band in the same interaction; the state
-  // row is what keeps it gone on the next visit. One at a time, like
-  // promotion.
+  // Dismiss (Note 18): the decline path. The item leaves the queue and the
+  // reason, the decider and the timestamp are recorded, so a considered
+  // rejection is a governance record rather than a disappearance. The reason is
+  // required, so this is only reached with a non-empty one, and the write is
+  // awaited: a decline that did not persist must not silently empty the queue.
+  const dismissItem = async (entry) => {
+    const reason = dismissReason.trim();
+    if (!reason || promotingId) return;
+    const key = itemKey(entry.kind, entry.row.id);
+    setPromotingId(entry.row.id);
+    setError(null);
+
+    const { error: recErr } = await recordTriageDecision(supabase, {
+      projectId,
+      itemKind: entry.kind,
+      itemId: entry.row.id,
+      itemName: entry.row.description ?? null,
+      surface: TRIAGE_SURFACES.ACTION_LOG,
+      decision: TRIAGE_DECISIONS.DISMISSED,
+      reason,
+      decidedBy: userId,
+    });
+
+    if (recErr) {
+      setError(DISMISS_ERROR);
+    } else {
+      setDismissed((keys) => new Set(keys).add(key));
+      setDismissingKey(null);
+      setDismissReason('');
+    }
+    setPromotingId(null);
+  };
+
+  // Only one inline flow is ever open, so opening a decline closes any
+  // suggestion confirmation on the same screen.
+  const startDismiss = (entry) => {
+    setConfirmingPlayId(null);
+    setDismissReason('');
+    setDismissingKey(itemKey(entry.kind, entry.row.id));
+  };
+
+  const cancelDismiss = () => {
+    setDismissingKey(null);
+    setDismissReason('');
+  };
+
+  // Add to log opens the confirmation (Note 18) rather than writing straight
+  // away: the objective link is the developer's to agree, and criticality
+  // derives from it. The play's own objective is offered as the default,
+  // because that is what selected the play, but it is a default and not a
+  // decision already taken on their behalf.
+  const startAddPlay = (suggestion) => {
+    setDismissingKey(null);
+    setPlayObjectiveId(suggestion.linkedObjectiveId ?? '');
+    setConfirmingPlayId(suggestion.playId);
+  };
+
+  const cancelAddPlay = () => {
+    setConfirmingPlayId(null);
+    setPlayObjectiveId('');
+  };
+
+  // Add to log (M7.4, confirmed under Note 18): accept a suggested play. The
+  // tracked action lands with the objective the developer confirmed and the
+  // criticality that derives from it, the suggestion leaves the band in the
+  // same interaction, and the decision is recorded with who and when. The
+  // playbook state row is what keeps it gone on the next visit; the decision row
+  // is the trail beside it. One at a time, like promotion.
   const acceptPlay = async (suggestion) => {
     if (actingPlayId) return;
     setActingPlayId(suggestion.playId);
     setError(null);
 
+    const linkedObjectiveId = playObjectiveId || null;
+    const criticality = confirmedPlayCriticality(
+      suggestion,
+      linkedObjectiveId,
+      (id) => cascadeCriticality(id, objectives)
+    );
+
     const { data, error: insErr } = await supabase
       .from('project_actions')
-      .insert(buildActionFromPlay(suggestion, projectId))
+      .insert(
+        buildActionFromPlay(suggestion, projectId, {
+          linkedObjectiveId,
+          criticality,
+        })
+      )
       .select(ACTION_COLUMNS)
       .single();
 
@@ -370,15 +576,31 @@ export default function ActionLog({
     // leaving the developer guessing why the suggestion may return later.
     if (stateErr) setError(SAVE_ERROR);
 
+    await recordTriageDecision(supabase, {
+      projectId,
+      itemKind: 'play',
+      itemId: suggestion.playId,
+      itemName: suggestion.title ?? null,
+      surface: TRIAGE_SURFACES.ACTION_LOG,
+      decision: TRIAGE_DECISIONS.ADDED,
+      createdActionId: data.id,
+      decidedBy: userId,
+    });
+
     setActions((as) => [data, ...as]);
     setActedPlayIds((ids) => new Set(ids).add(suggestion.playId));
+    setConfirmingPlayId(null);
+    setPlayObjectiveId('');
     setActingPlayId(null);
   };
 
-  // Dismiss (M7.4): records dismissed for this project. Dismissed stays
-  // dismissed; no re-nagging.
+  // Dismiss (M7.4, recorded under Note 18): records dismissed for this project,
+  // with the reason, the decider and the timestamp. Dismissed stays dismissed;
+  // no re-nagging. Declining curated knowledge is a judgement about this
+  // project, so it is recorded as one.
   const dismissPlay = async (suggestion) => {
-    if (actingPlayId) return;
+    const reason = dismissReason.trim();
+    if (!reason || actingPlayId) return;
     setActingPlayId(suggestion.playId);
     setError(null);
 
@@ -392,10 +614,32 @@ export default function ActionLog({
 
     if (stateErr) {
       setError(DISMISS_PLAY_ERROR);
-    } else {
-      setActedPlayIds((ids) => new Set(ids).add(suggestion.playId));
+      setActingPlayId(null);
+      return;
     }
+
+    const { error: recErr } = await recordTriageDecision(supabase, {
+      projectId,
+      itemKind: 'play',
+      itemId: suggestion.playId,
+      itemName: suggestion.title ?? null,
+      surface: TRIAGE_SURFACES.ACTION_LOG,
+      decision: TRIAGE_DECISIONS.DISMISSED,
+      reason,
+      decidedBy: userId,
+    });
+    if (recErr) setError(DISMISS_ERROR);
+
+    setActedPlayIds((ids) => new Set(ids).add(suggestion.playId));
+    setDismissingKey(null);
+    setDismissReason('');
     setActingPlayId(null);
+  };
+
+  const startDismissPlay = (suggestion) => {
+    setConfirmingPlayId(null);
+    setDismissReason('');
+    setDismissingKey(itemKey('play', suggestion.playId));
   };
 
   // Optimistic write: apply locally, persist, revert on failure. Status,
@@ -529,16 +773,26 @@ export default function ActionLog({
   const objectiveName = (id) =>
     id ? objectives.find((o) => o.id === id)?.name ?? null : null;
 
-  // One pushed item in the needs-your-response band (A5): a risk or a RAID
-  // item (assumption, constraint, dependency). Its description, the objective
-  // it bears on, why it surfaced as plain chips, its provenance, and Track this
-  // (plus Review in register for a risk, which keeps its own controls there).
-  // Unmistakably a suggestion, never mixed with tracked actions.
+  // One queued item (A5, reworked under Note 18): a risk or a RAID item
+  // (assumption, constraint, dependency) from the Brief, awaiting triage.
+  //
+  // It states what it is, how it relates to the objective it is linked to
+  // (a risk THREATENS, a RAID item BEARS ON; "vs Cost" said neither), the
+  // severity band where one is scored, and its provenance as a link straight to
+  // the source item, so the developer can go and read it before deciding. Then
+  // the three responses: track it, review it in the register, or decline it
+  // with a recorded reason. Unmistakably a queued suggestion, never mixed with
+  // tracked actions.
   const renderPushItem = (entry) => {
-    const { kind, row, reasons } = entry;
+    const { kind, row, reasons, severity } = entry;
     const isRisk = kind === 'risk';
     const linkedName = objectiveName(row.linked_objective_id);
     const promoting = promotingId === row.id;
+    const key = itemKey(kind, row.id);
+    const dismissingThis = dismissingKey === key;
+    // The source item itself: a risk lives in the register, a RAID item in the
+    // Brief that captured it.
+    const sourceHref = isRisk ? `${registerHref}#risk-${row.id}` : briefHref;
 
     return (
       <article
@@ -548,98 +802,243 @@ export default function ActionLog({
         }`}
       >
         <div className={styles.pushTags}>
+          {/* A queued item keeps the criticality it has already derived: its
+              objective link is real, unlike a suggestion's. */}
           {reasons.critical && (
             <span className={`${styles.chip} ${styles.chipCritical}`}>
               Critical
             </span>
           )}
-          {reasons.serious && (
-            <span className={`${styles.chip} ${styles.chipSerious}`}>
-              Serious
-            </span>
-          )}
+          <SeverityTag severity={severity} />
           {!isRisk && <span className={styles.kind}>{KIND_LABEL[kind]}</span>}
           <span className={styles.objective}>
-            {linkedName ? `vs ${linkedName}` : 'Unlinked'}
+            {objectiveRelation(kind, linkedName)}
           </span>
-          <span className={styles.provenance}>{provenanceLabel(kind)}</span>
         </div>
         <p className={styles.pushName}>{row.description}</p>
-        {/* Track this promotes a feed item into a tracked action (a write), so
-            it is admin only. Review in register is read-only navigation and
-            stays for everyone. The row shows no action bar when neither
-            applies. */}
+        <Link
+          href={sourceHref}
+          className={styles.fromRisk}
+          aria-label={`${provenanceLabel(kind)}: open ${row.description}`}
+        >
+          {provenanceLabel(kind)}
+        </Link>
+        {/* Track this and Dismiss both write, so they are admin only. Review in
+            register is read-only navigation and stays for everyone. The row
+            shows no action bar when neither applies. */}
         {(canEdit || isRisk) && (
-          <div className={styles.pushActions}>
-            {canEdit && (
+          <>
+            {dismissingThis ? (
+              <div className={styles.triageForm}>
+                <input
+                  type="text"
+                  className={styles.input}
+                  value={dismissReason}
+                  onChange={(e) => setDismissReason(e.target.value)}
+                  placeholder={DISMISS_REASON_PLACEHOLDER}
+                  aria-label={`Reason for dismissing ${row.description}`}
+                  autoComplete="off"
+                  maxLength={200}
+                />
+                <div className={styles.pushActions}>
+                  <button
+                    type="button"
+                    className={styles.primaryBtn}
+                    onClick={() => dismissItem(entry)}
+                    disabled={dismissReason.trim() === '' || promotingId !== null}
+                  >
+                    {promoting ? 'Recording' : 'Dismiss'}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.ghostBtn}
+                    onClick={cancelDismiss}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.pushActions}>
+                {canEdit && (
+                  <button
+                    type="button"
+                    className={styles.primaryBtn}
+                    onClick={() => trackItem(entry)}
+                    disabled={promotingId !== null}
+                    aria-label={`Track this: ${row.description}`}
+                  >
+                    {promoting ? 'Tracking' : 'Track this'}
+                  </button>
+                )}
+                {isRisk && (
+                  <Link
+                    href={`${registerHref}#risk-${row.id}`}
+                    className={styles.ghostBtn}
+                    aria-label={`Review ${row.description} in the register`}
+                  >
+                    Review in register
+                  </Link>
+                )}
+                {canEdit && (
+                  <button
+                    type="button"
+                    className={styles.footBtn}
+                    onClick={() => startDismiss(entry)}
+                    disabled={promotingId !== null}
+                    aria-label={`Dismiss: ${row.description}`}
+                  >
+                    Dismiss
+                  </button>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </article>
+    );
+  };
+
+  // One suggested play in the PULSE suggests band (M7.4, reworked under Note
+  // 18): the title, the why line in full (the why is the knowledge transfer;
+  // never truncated), the basis on which it was selected, and the two
+  // responses.
+  //
+  // IT WEARS NO CRITICALITY CHIP. Criticality is derived from the objective an
+  // item serves, and a suggestion serves none yet: the developer has not agreed
+  // to take it on. The chip it used to carry was classifying an item that did
+  // not exist. Add to log confirms the link first, and the criticality follows
+  // it, read-only. What the card does say is its BASIS, which is the honest
+  // version of what the chip was gesturing at: the stage it belongs to, and the
+  // objective classification that put it in front of this developer.
+  const renderPlaySuggestion = (s) => {
+    const acting = actingPlayId === s.playId;
+    const confirming = confirmingPlayId === s.playId;
+    const dismissingThis = dismissingKey === itemKey('play', s.playId);
+    const confirmedCriticality = confirmedPlayCriticality(
+      s,
+      playObjectiveId || null,
+      (id) => cascadeCriticality(id, objectives)
+    );
+
+    return (
+      <article key={s.playId} className={styles.pushItem}>
+        <p className={styles.playTitle}>{s.title}</p>
+        <p className={styles.why}>{s.why}</p>
+        <p className={styles.basis}>{s.basis}</p>
+
+        {confirming ? (
+          <div className={styles.triageForm}>
+            <span className={styles.controlLabel}>
+              Which objective does this serve?
+            </span>
+            <ObjectiveSelect
+              value={playObjectiveId}
+              onChange={setPlayObjectiveId}
+              objectives={objectives}
+              ariaLabel={`Objective served by ${s.title}`}
+            />
+            <p className={styles.critCaption}>
+              {inheritedCriticalityLine(
+                confirmedCriticality,
+                objectiveName(playObjectiveId || null),
+                s.alwaysCritical
+              )}
+            </p>
+            <div className={styles.pushActions}>
               <button
                 type="button"
                 className={styles.primaryBtn}
-                onClick={() => trackItem(entry)}
-                disabled={promotingId !== null}
-                aria-label={`Track this: ${row.description}`}
+                onClick={() => acceptPlay(s)}
+                disabled={actingPlayId !== null}
               >
-                {promoting ? 'Tracking' : 'Track this'}
+                {acting ? 'Adding' : 'Add to log'}
               </button>
-            )}
-            {isRisk && (
-              <Link
-                href={`${registerHref}#risk-${row.id}`}
+              <button
+                type="button"
                 className={styles.ghostBtn}
-                aria-label={`Review ${row.description} in the register`}
+                onClick={cancelAddPlay}
               >
-                Review in register
-              </Link>
-            )}
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : dismissingThis ? (
+          <div className={styles.triageForm}>
+            <input
+              type="text"
+              className={styles.input}
+              value={dismissReason}
+              onChange={(e) => setDismissReason(e.target.value)}
+              placeholder={DISMISS_REASON_PLACEHOLDER}
+              aria-label={`Reason for dismissing ${s.title}`}
+              autoComplete="off"
+              maxLength={200}
+            />
+            <div className={styles.pushActions}>
+              <button
+                type="button"
+                className={styles.primaryBtn}
+                onClick={() => dismissPlay(s)}
+                disabled={dismissReason.trim() === '' || actingPlayId !== null}
+              >
+                {acting ? 'Recording' : 'Dismiss'}
+              </button>
+              <button
+                type="button"
+                className={styles.ghostBtn}
+                onClick={cancelDismiss}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className={styles.pushActions}>
+            <button
+              type="button"
+              className={styles.primaryBtn}
+              onClick={() => startAddPlay(s)}
+              disabled={actingPlayId !== null}
+              aria-label={`Add to log: ${s.title}`}
+            >
+              Add to log
+            </button>
+            <button
+              type="button"
+              className={styles.ghostBtn}
+              onClick={() => startDismissPlay(s)}
+              disabled={actingPlayId !== null}
+              aria-label={`Dismiss: ${s.title}`}
+            >
+              Dismiss
+            </button>
           </div>
         )}
       </article>
     );
   };
 
-  // One suggested play in the PULSE suggests band (M7.4): the title, the
-  // why line in full (the why is the knowledge transfer; never truncated),
-  // a Critical chip when this project's classification derives it critical,
-  // and the two one-tap responses.
-  const renderPlaySuggestion = (s) => {
-    const acting = actingPlayId === s.playId;
-
-    return (
-      <article key={s.playId} className={styles.pushItem}>
-        <div className={styles.pushTags}>
-          {s.criticality === 'critical' && (
-            <span className={`${styles.chip} ${styles.chipCritical}`}>
-              Critical
-            </span>
-          )}
-          <span className={styles.provenance}>
-            {provenanceLabel('playbook')}
-          </span>
-        </div>
-        <p className={styles.playTitle}>{s.title}</p>
-        <p className={styles.why}>{s.why}</p>
-        <div className={styles.pushActions}>
-          <button
-            type="button"
-            className={styles.primaryBtn}
-            onClick={() => acceptPlay(s)}
-            disabled={actingPlayId !== null}
-            aria-label={`Add to log: ${s.title}`}
-          >
-            {acting ? 'Adding' : 'Add to log'}
-          </button>
-          <button
-            type="button"
-            className={styles.ghostBtn}
-            onClick={() => dismissPlay(s)}
-            disabled={actingPlayId !== null}
-            aria-label={`Dismiss: ${s.title}`}
-          >
-            Dismiss
-          </button>
-        </div>
-      </article>
-    );
+  // A tracked action's provenance tag (Note 18): where it came from, stated the
+  // same way on the interactive card and the read-only one, so the two can
+  // never drift. A risk-raised action links back to the risk in the register; a
+  // RAID, playbook or programme-raised action names its origin. A hand-logged
+  // action has no engine provenance to state and shows nothing.
+  const renderSourceTag = (a) => {
+    const label = provenanceLabel(a.source);
+    if (!label) return null;
+    if (a.source === 'risk') {
+      return (
+        <Link
+          href={a.source_id ? `${registerHref}#risk-${a.source_id}` : registerHref}
+          className={styles.fromRisk}
+          title="Raised from a risk in your register"
+        >
+          {label}
+        </Link>
+      );
+    }
+    return <span className={styles.provenance}>{label}</span>;
   };
 
   // The criticality detail under an action: the derivation in plain language
@@ -648,12 +1047,17 @@ export default function ActionLog({
   const renderCritDetail = (a, { overridden, critical, unlinked, linkedName }) => {
     const overriding = overridingId === a.id;
 
-    // Unlinked: the link is the only lever, so point at it.
+    // Unlinked: the link is the only lever, so point at it. The caption says
+    // where the action stands TODAY as well as what would change it (Note 18):
+    // "No objective" is a permitted answer and holds at Standard, which is what
+    // the criticality column has always stored for an unlinked item. Saying only
+    // "link an objective to set this" implied it had no criticality at all.
     if (unlinked) {
       return (
         <div className={styles.critDetail}>
           <p className={styles.critCaption}>
-            Link an objective to set this action's criticality.
+            No objective linked, so this holds at Standard. Link one to derive
+            its criticality.
           </p>
           <button
             type="button"
@@ -769,31 +1173,7 @@ export default function ActionLog({
             {linkedName && (
               <span className={styles.objective}>for {linkedName}</span>
             )}
-            {a.source === 'risk' && (
-              <Link
-                href={
-                  a.source_id
-                    ? `${registerHref}#risk-${a.source_id}`
-                    : registerHref
-                }
-                className={styles.fromRisk}
-                title="Raised from a risk in your register"
-              >
-                {provenanceLabel('risk')}
-              </Link>
-            )}
-            {a.source === 'playbook' && (
-              <span className={styles.provenance}>
-                {provenanceLabel('playbook')}
-              </span>
-            )}
-            {(a.source === 'assumption' ||
-              a.source === 'constraint' ||
-              a.source === 'dependency') && (
-              <span className={styles.provenance}>
-                {provenanceLabel(a.source)}
-              </span>
-            )}
+            {renderSourceTag(a)}
           </div>
         </div>
 
@@ -971,31 +1351,7 @@ export default function ActionLog({
             {linkedName && (
               <span className={styles.objective}>for {linkedName}</span>
             )}
-            {a.source === 'risk' && (
-              <Link
-                href={
-                  a.source_id
-                    ? `${registerHref}#risk-${a.source_id}`
-                    : registerHref
-                }
-                className={styles.fromRisk}
-                title="Raised from a risk in your register"
-              >
-                {provenanceLabel('risk')}
-              </Link>
-            )}
-            {a.source === 'playbook' && (
-              <span className={styles.provenance}>
-                {provenanceLabel('playbook')}
-              </span>
-            )}
-            {(a.source === 'assumption' ||
-              a.source === 'constraint' ||
-              a.source === 'dependency') && (
-              <span className={styles.provenance}>
-                {provenanceLabel(a.source)}
-              </span>
-            )}
+            {renderSourceTag(a)}
           </div>
         </div>
 
@@ -1080,22 +1436,29 @@ export default function ActionLog({
         </div>
       )}
 
-      {/* The needs-your-response band (M7.2): pushed items derived live
-          from the register. When nothing qualifies it collapses to one calm
-          line. Quiet is a feature. */}
+      {/* The triage queue (M7.2, reframed under Note 18): the Critical items
+          the developer wrote into their own Brief, derived live, arriving to be
+          sorted. The heading says exactly that, because the same list under
+          "Needs your response" read as a list of failures on a project where
+          nothing had yet gone wrong. When nothing qualifies it collapses to one
+          calm line. Quiet is a feature. */}
       {needsResponse.length > 0 ? (
-        <section className={styles.band} aria-labelledby="needs-response">
-          <h2 id="needs-response" className={styles.bandHeading}>
-            Needs your response
+        <section className={styles.band} aria-labelledby="triage-queue">
+          <h2 id="triage-queue" className={styles.bandHeading}>
+            {TRIAGE_HEADING}
           </h2>
+          <p className={styles.bandIntro}>
+            {needsResponse.length}{' '}
+            {needsResponse.length === 1 ? 'item' : 'items'} to sort. Track what
+            you will act on, or dismiss it with a reason.
+          </p>
+          <SeverityLegend />
           <div className={styles.bandList}>
             {needsResponse.map(renderPushItem)}
           </div>
         </section>
       ) : (
-        <p className={styles.bandQuiet}>
-          Nothing needs your response right now.
-        </p>
+        <p className={styles.bandQuiet}>{TRIAGE_QUIET}</p>
       )}
 
       {/* The PULSE suggests band (M7.4), below needs-your-response:
@@ -1234,11 +1597,23 @@ export default function ActionLog({
             autoComplete="off"
             maxLength={200}
           />
-          {draftCriticality === 'critical' && (
-            <span className={`${styles.addHint} riseInSm`}>
-              Logs as critical
-            </span>
-          )}
+          {/* The criticality this will log at, read-only (Note 18). It is
+              derived from the objective link and is never chosen here, so the
+              form states it rather than offering it. "No objective" stays a
+              permitted answer and derives Standard; linking one derives it per
+              the cascade. It used to appear only when the answer was Critical,
+              which left the developer to infer the rest. */}
+          <span
+            className={`${styles.addHint} ${
+              draftCriticality === 'critical' ? styles.addHintCritical : ''
+            }`}
+          >
+            {inheritedCriticalityLine(
+              draftCriticality,
+              objectiveName(draftObjectiveId || null),
+              false
+            )}
+          </span>
           <button
             type="button"
             className={`${styles.primaryBtn} ${styles.addBtn}`}

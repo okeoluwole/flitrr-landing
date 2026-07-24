@@ -213,21 +213,108 @@
   border-radius: 2px;
 }
 
-/* Why the monitor flagged it, in plain words: one line per fired trigger. */
-.attnReasons {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.attnReason {
+/* Why the monitor flagged it, in plain words. ONE line now, not a list (Note
+   19.2): the single most actionable fact, chosen by registerRead.statusLine.
+   Three bullets saying one thing trained the eye to skip the panel. */
+.attnStatus {
   font-family: var(--app-font-sans), sans-serif;
   font-size: var(--app-text-sm);
   line-height: 1.5;
   color: var(--app-ink-secondary);
+  margin: 0;
+}
+
+/* The recorded escalation (Note 19.1), rendered ONLY from a real band-raising
+   event in project_risk_events. It is a claim about the past, so it reads as
+   quiet evidence under the status line rather than as another alert. */
+.attnEscalation {
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--app-ink-muted);
+  margin: 0.3rem 0 0;
+}
+
+/* The queue's lead line: how many risks, awaiting what, and where they came
+   from. Sits under the mono group title in the reading voice. */
+.bandIntro {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--app-ink-secondary);
+  margin: -0.4rem 0 0.7rem;
+}
+
+/* The severity legend: the derivation stated once, so the bands read rather
+   than have to be learned. A quiet mono strip that wraps. */
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.01em;
+  color: var(--app-ink-muted);
+  margin: 0 0 0.9rem;
+}
+
+.legendLead {
+  color: var(--app-ink-secondary);
+}
+
+.legendBand {
+  white-space: nowrap;
+}
+
+/* Where a risk came from (migration 032): the Brief, or the playbook. Quiet
+   metadata in the instrument voice, never amber. */
+.provenance {
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: var(--app-ink-secondary);
+}
+
+/* The basis a suggestion was selected on, and the read-only criticality the
+   confirmation derives. The same quiet register as provenance. */
+.basis {
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--app-ink-muted);
+  margin: 0 0 0.85rem;
+}
+
+/* The inline triage form: the objective confirmation before a suggestion is
+   accepted, or the decline reason. It replaces the action row in place, so the
+   decision is taken where the item is, without a dialog. */
+.triageForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.2rem;
+}
+
+/* The objective link select in the confirmation, matching the note input's
+   frame so the confirm step reads as part of the card. */
+.select {
+  width: 100%;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
+  color: var(--app-ink);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  padding: 0.6rem 0.7rem;
+  min-height: 44px;
+}
+
+.select:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+  border-color: var(--app-border-strong);
 }
 
 /* The collapsed state: one calm line. Quiet is a feature. */

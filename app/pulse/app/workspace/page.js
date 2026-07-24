@@ -10,6 +10,10 @@ import {
   deriveResponseFeed,
   formatActionLogSummary,
 } from '../actions/actionFeed';
+import {
+  loadTriageDecisions,
+  dismissedItemKeys,
+} from '../actions/triageDecisionStore';
 import { isCritical, isDone } from '../actions/actionModel';
 import { programmeTileTarget } from '../programme/trackingModel';
 import { loadCurrentProgrammeBaseline } from '../components/programmeBaselineStore';
@@ -529,29 +533,35 @@ export default async function WorkspacePage({ searchParams }) {
     riskTileTone = riskAttentionCount > 0 ? 'alert' : 'calm';
 
     // Criticality is derived live from the linked objective (A2), so the tile
-    // counts critical the same way the log does, override included. The
-    // needs-a-response count is the full feed (risks plus RAID, A5).
-    const needsResponseCount = deriveResponseFeed({
+    // counts critical the same way the log does, override included. The triage
+    // count is the full queue (risks plus RAID, A5), minus the items the
+    // developer has explicitly declined (Note 18): the tile and the log read
+    // one queue, so a dismissed item cannot linger in the tile's count after it
+    // has left the log.
+    const { decisions: triageDecisions } = await loadTriageDecisions(
+      supabase,
+      project.id
+    );
+    const triageCount = deriveResponseFeed({
       risks: risks ?? [],
       assumptions: assumptions ?? [],
       constraints: constraints ?? [],
       dependencies: dependencies ?? [],
       actions: actions ?? [],
       objectivesById: byId,
+      dismissed: dismissedItemKeys(triageDecisions ?? []),
     }).length;
     const openCriticalCount = (actions ?? []).filter(
       (a) => !isDone(a) && isCritical(a, byId)
     ).length;
-    actionLogFooter = formatActionLogSummary(
-      needsResponseCount,
-      openCriticalCount
-    );
+    actionLogFooter = formatActionLogSummary(triageCount, openCriticalCount);
     // The read's tone: amber is spent on open critical actions only (the one
-    // criticality read on this screen); a needed response steps up to ink.
+    // criticality read on this screen); a queue waiting to be sorted steps up
+    // to ink.
     actionLogTone =
       openCriticalCount > 0
         ? 'critical'
-        : needsResponseCount > 0
+        : triageCount > 0
           ? 'alert'
           : 'calm';
   }

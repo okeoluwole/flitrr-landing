@@ -168,7 +168,10 @@ describe('accepted-play row construction', () => {
     });
   });
 
-  it('builds the register row: medium and medium, no review stamp, no source columns', () => {
+  // Note 19 (migration 032) adds the source columns: a risk that arrived from a
+  // play is recorded as such, so the register's queue can state its provenance
+  // rather than assume every risk came out of the Brief.
+  it('builds the register row: medium and medium, no review stamp, source recorded', () => {
     const row = buildRiskFromPlay(suggestion, 'project-1');
     expect(row).toEqual({
       project_id: 'project-1',
@@ -178,6 +181,8 @@ describe('accepted-play row construction', () => {
       criticality: 'critical',
       likelihood: 'medium',
       impact: 'medium',
+      source: 'playbook',
+      source_id: 'play-9',
     });
     // last_reviewed_at and status are deliberately absent: the row takes
     // the table defaults (null, watching) so it surfaces as not yet

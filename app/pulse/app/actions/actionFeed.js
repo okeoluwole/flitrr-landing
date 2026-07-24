@@ -1,8 +1,16 @@
 /**
  * Action feed model (M7.2). Pure, deterministic aggregation logic for the
- * Action Log's needs-your-response band. No DB, no React, no network: every
- * input is passed in, so the same inputs always give the same items and the
- * whole module is unit-testable in isolation.
+ * Action Log's triage queue (the needs-your-response band before Note 18
+ * reframed it). No DB, no React, no network: every input is passed in, so the
+ * same inputs always give the same items and the whole module is unit-testable
+ * in isolation.
+ *
+ * NOTE 18 CHANGED THE FRAMING, NOT THE SELECTION. The end-to-end test confirmed
+ * the fourteen items this module surfaces are exactly the Critical RAID items
+ * in the developer's own Brief, which is correct. What was wrong was that a
+ * correct queue of the developer's own writing was presented as fourteen
+ * demands. The trigger rule below is untouched; what moved is the wording on the
+ * surfaces, and the decline path added to deriveResponseFeed.
  *
  * It sits beside actionModel.js and REUSES the shared derivations (deriveSeverity
  * from the engine, and the criticality kernel's deriveCriticality for live
@@ -38,6 +46,7 @@ import {
   CRITICALITY,
   deriveCriticality,
 } from '../../../../lib/engine/criticality.js';
+import { itemKey } from './triageDecisionStore.js';
 
 // Register statuses that keep a risk live in the feed. accepted and closed
 // are the developer's formal answers, so they clear the item.
@@ -180,11 +189,20 @@ function compareFeedEntries(a, b) {
 }
 
 /**
- * The full needs-your-response feed (A5): the qualifying risks (the M7.2
- * trigger) and the must-hold-threatening RAID items, as one sorted list of
- * unified entries. Each entry is { kind, row, reasons, severity, updatedAt },
- * where kind is 'risk' | 'assumption' | 'constraint' | 'dependency'. The band
- * and the workspace tile both read this, so they never disagree.
+ * The full triage queue (A5): the qualifying risks (the M7.2 trigger) and the
+ * must-hold-threatening RAID items, as one sorted list of unified entries. Each
+ * entry is { kind, row, reasons, severity, updatedAt }, where kind is 'risk' |
+ * 'assumption' | 'constraint' | 'dependency'. The queue and the workspace tile
+ * both read this, so they never disagree.
+ *
+ * THE DECLINE PATH (Note 18). `dismissed` is the set of item keys the developer
+ * has explicitly declined, from triageDecisionStore.dismissedItemKeys, and those
+ * items leave the queue. Nothing else about selection changes: an item still
+ * qualifies exactly as it did, and a decline is the developer's recorded
+ * judgement rather than a rule of the engine. Before this there were only two
+ * responses, both of which created work, so an item that had been considered and
+ * rejected was indistinguishable from one never opened and the queue could only
+ * grow. Pass nothing and the queue behaves exactly as it always did.
  */
 export function deriveResponseFeed({
   risks,
@@ -193,6 +211,7 @@ export function deriveResponseFeed({
   dependencies,
   actions,
   objectivesById,
+  dismissed,
 }) {
   const entries = [];
   for (const { risk, reasons, severity } of deriveRiskItems(
@@ -218,7 +237,11 @@ export function deriveResponseFeed({
       entries.push(entry);
     }
   }
-  return entries.sort(compareFeedEntries);
+  const declined = dismissed ?? null;
+  const kept = declined
+    ? entries.filter((e) => !declined.has(itemKey(e.kind, e.row.id)))
+    : entries;
+  return kept.sort(compareFeedEntries);
 }
 
 /**
@@ -308,19 +331,24 @@ export function buildTrackedActionFromRaid(item, projectId, stage, kind) {
 }
 
 /**
- * The Action Log tile's live summary (M7.2 spec, A5). Counts of items
- * needing a response and open critical tracked actions, composed into one
- * calm line; the all-quiet zero state when both are zero.
- *   (2, 3) -> "2 need your response, 3 critical actions open"
- *   (1, 1) -> "1 needs your response, 1 critical action open"
+ * The Action Log tile's live summary (M7.2 spec, A5). Counts of queued items
+ * and open critical tracked actions, composed into one calm line; the all-quiet
+ * zero state when both are zero.
+ *   (2, 3) -> "2 to triage from your brief, 3 critical actions open"
+ *   (1, 1) -> "1 to triage from your brief, 1 critical action open"
  *   (0, 0) -> "All quiet. Nothing needs you right now."
+ *
+ * THE COUNT READS AS TRIAGE, NOT ALARM (Note 18). It used to say "14 need your
+ * response", which describes fourteen outstanding demands. What it was actually
+ * counting was the fourteen Critical items the developer had themselves written
+ * into their Brief, arriving to be sorted. Nothing had gone wrong, nothing was
+ * late, and the first thing the platform said about a correctly completed
+ * initiation was an alarm. The count is unchanged; what it claims is not.
  */
-export function formatActionLogSummary(needsResponseCount, openCriticalCount) {
+export function formatActionLogSummary(triageCount, openCriticalCount) {
   const parts = [];
-  if (needsResponseCount > 0) {
-    parts.push(
-      `${needsResponseCount} need${needsResponseCount === 1 ? 's' : ''} your response`
-    );
+  if (triageCount > 0) {
+    parts.push(`${triageCount} to triage from your brief`);
   }
   if (openCriticalCount > 0) {
     parts.push(

@@ -248,11 +248,86 @@
   border-color: var(--app-critical-border);
 }
 
+/* The severity bands (Note 18). Every scored item states its band now, not
+   only the Serious ones, so the three step DOWN in weight rather than in and
+   out of existence: a filled tag for Serious, an outlined one for Worth
+   watching, a hairline for Minor. All monochrome. Severity is how bad, which
+   is a separate axis from what it threatens, so it never borrows amber. */
 .chipSerious {
   padding: 0.3rem 0.6rem;
   border-radius: 4px;
   background: var(--app-ink);
   color: var(--app-primary-ink);
+}
+
+.chipModerate {
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--app-ink);
+  border-color: var(--app-border-strong);
+}
+
+.chipMinor,
+.chipUnscored {
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--app-ink-secondary);
+  border-color: var(--app-border);
+}
+
+/* The queue's own lead line: how many items, and what to do with them. It
+   sits under the heading in the reading voice, not the mono group-title one. */
+.bandIntro {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--app-ink-secondary);
+  margin: -0.4rem 0 0.7rem;
+}
+
+/* The severity legend: the derivation stated once, so the bands above read
+   rather than have to be learned. A quiet mono strip that wraps. */
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.01em;
+  color: var(--app-ink-muted);
+  margin: 0 0 0.9rem;
+}
+
+.legendLead {
+  color: var(--app-ink-secondary);
+}
+
+.legendBand {
+  white-space: nowrap;
+}
+
+/* The basis a suggestion was selected on (Note 18): the stage it belongs to
+   and the objective classification that surfaced it. Quiet metadata, in the
+   same voice as provenance, never amber. */
+.basis {
+  font-family: var(--app-font-mono), monospace;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--app-ink-muted);
+  margin: 0 0 0.85rem;
+}
+
+/* The inline triage form: the decline reason, or the objective confirmation
+   before a suggestion is accepted. It replaces the action row in place, so the
+   decision is taken where the item is, without a dialog. */
+.triageForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.2rem;
 }
 
 /* The collapsed state: one calm line. Quiet is a feature. */
@@ -539,14 +614,22 @@
   border-color: var(--app-border-strong);
 }
 
-/* The cascade made visible: what the link will log the action as. The one
-   amber moment in the add flow, rendered only when it means critical, in
-   the same pill the card will wear. */
+/* The cascade made visible: what the link will log the action as, stated
+   read-only because criticality is derived and never chosen (Note 18). It
+   renders on every state now, not only the critical one, so the quiet default
+   is a muted read; amber stays reserved for the moment it genuinely means
+   critical, in the same pill the card will wear. */
 .addHint {
   display: inline-flex;
   align-items: center;
   font-family: var(--app-font-mono), monospace;
   font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: var(--app-ink-secondary);
+}
+
+.addHintCritical {
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;

@@ -7,6 +7,7 @@ import { OBJECTIVE_META } from '../components/objectiveMeta';
 import { deriveProposals } from '../../../../lib/playbook/playbookModel';
 import { buildObjectiveIndex } from '../../../../lib/engine/criticality';
 import ActionLog from './ActionLog';
+import { loadTriageDecisions, dismissedItemKeys } from './triageDecisionStore';
 import { readSequence } from '../components/sequenceRead';
 import styles from './ActionLog.module.css';
 
@@ -213,7 +214,19 @@ export default async function ActionsPage({ searchParams }) {
     currentStage: project.current_stage,
     type: 'action',
     objectivesByType: byType,
+    nameByType: NAME_BY_TYPE,
   });
+
+  // The recorded triage decisions (Note 18, migration 031). The queue drops the
+  // items the developer has explicitly declined, so a considered rejection
+  // leaves the queue the way tracking it does: through a recorded decision. A
+  // Set does not survive the server-to-client boundary, so the keys travel as
+  // an array and the client rebuilds it.
+  const { decisions: triageDecisions } = await loadTriageDecisions(
+    supabase,
+    project.id
+  );
+  const dismissedKeys = [...dismissedItemKeys(triageDecisions ?? [])];
 
   // Resolve the viewer's edit access once (Step 3a helpers). An admin logs and
   // tracks actions as before; a member sees the log read-only with the View
@@ -227,6 +240,9 @@ export default async function ActionsPage({ searchParams }) {
         projectName={project.name}
         workspaceHref={workspaceHref}
         registerHref={`/pulse/app/risk?project=${project.id}`}
+        briefHref={`/pulse/app/initiate?project=${project.id}`}
+        userId={user.id}
+        dismissedKeys={dismissedKeys}
         currentStage={project.current_stage}
         initialActions={actions ?? []}
         objectives={objectiveOptions}

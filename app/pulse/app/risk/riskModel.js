@@ -3,10 +3,12 @@
  * server page and the client register. No AI, no state, no side effects.
  *
  * Likelihood and impact reuse the existing project_risks scale (the risk_level
- * enum: low, medium, high). The register relabels the three levels in plainer
- * language (Unlikely/Possible/Likely and Limited/Significant/Severe) but stores
- * the same values, so there is one source of truth and the Brief snapshot, the
- * wizard, and the register all read the same column.
+ * enum: low, medium, high), relabelled in plainer language
+ * (Unlikely/Possible/Likely and Limited/Significant/Severe) while storing the
+ * same values, so the Brief snapshot, the wizard, and the register all read the
+ * same column. Note 19 moved those labels down into lib/engine/severity.js and
+ * pointed the Step 8 capture at them too, so the two surfaces that write this
+ * one scale now speak one vocabulary; they are re-exported below unchanged.
  *
  * Severity is DERIVED, never stored, and now lives in the engine
  * (lib/engine/severity.js): deriveSeverity and SEVERITY_RANK are defined there
@@ -25,26 +27,22 @@
  * except where an objective was reclassified after the wizard stamped the risk.
  */
 
-import { deriveSeverity, SEVERITY_RANK } from '../../../../lib/engine/severity.js';
+import {
+  deriveSeverity,
+  SEVERITY_RANK,
+  LIKELIHOOD_OPTIONS,
+  IMPACT_OPTIONS,
+} from '../../../../lib/engine/severity.js';
 import {
   CRITICALITY,
   deriveCriticality,
 } from '../../../../lib/engine/criticality.js';
 
-// Likelihood scale: the stored risk_level value, the register's plain label,
-// and the level (1 to 3) that feeds the severity score.
-export const LIKELIHOOD_OPTIONS = [
-  { value: 'low', label: 'Unlikely', level: 1 },
-  { value: 'medium', label: 'Possible', level: 2 },
-  { value: 'high', label: 'Likely', level: 3 },
-];
-
-// Impact scale: the same stored risk_level values, relabelled for impact.
-export const IMPACT_OPTIONS = [
-  { value: 'low', label: 'Limited', level: 1 },
-  { value: 'medium', label: 'Significant', level: 2 },
-  { value: 'high', label: 'Severe', level: 3 },
-];
+// The likelihood and impact scales now live in the engine beside the severity
+// they feed (Note 19), so the Step 8 capture and this register read one set of
+// labels instead of two. Re-exported here because the register and the tests
+// import them from this model; the values are unchanged.
+export { LIKELIHOOD_OPTIONS, IMPACT_OPTIONS };
 
 // The register's locked-state copy is no longer this module's (Note 13). All
 // three monitoring modules are gated by the same fixed sequence and share one

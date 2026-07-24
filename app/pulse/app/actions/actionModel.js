@@ -152,22 +152,56 @@ export function sortActions(actions, byId) {
 }
 
 /**
- * The engine knowledge source a surfaced or engine-raised item is labelled by
- * (A4), derived from its source. Only the sources that exist today carry a
- * label: a risk or a RAID item (assumption, constraint, dependency) is an
- * observation from this project, a playbook item is a draw from PULSE's curated
- * knowledge. External reference and the network are not built, so nothing is
- * ever labelled with a source PULSE cannot stand behind, and a hand-logged
- * action (the developer's own) has no engine provenance.
+ * Where a surfaced or engine-raised item came from, in words (Note 18).
+ *
+ * This used to read "This project" on every risk and RAID item, which is a
+ * label that carries no information: the developer is looking at their project,
+ * so being told the item is from it tells them nothing they can act on. What
+ * they need is the ORIGIN and the BASIS, in enough detail to go and look: which
+ * kind of item this is, and which document it came out of. A risk points at the
+ * register it lives in; an assumption, constraint or dependency points at the
+ * Brief that holds it; a programme action points at the set-up decision that
+ * raised it.
+ *
+ * Only the sources that exist today carry a label. External reference and the
+ * network are not built, so nothing is ever labelled with a source PULSE cannot
+ * stand behind, and a hand-logged action (the developer's own) has no engine
+ * provenance to state. A playbook item's basis needs the play's stage and the
+ * objective that selected it, so it is built by playbookModel.playBasis rather
+ * than named here.
  */
 export const PROVENANCE = {
-  risk: 'This project',
-  assumption: 'This project',
-  constraint: 'This project',
-  dependency: 'This project',
-  playbook: 'Playbook library',
+  risk: "Risk, from your brief's register",
+  assumption: 'Assumption, from your brief',
+  constraint: 'Constraint, from your brief',
+  dependency: 'Dependency, from your brief',
+  playbook: "From PULSE's playbook",
+  programme: 'Raised at Programme set-up',
 };
 
 export function provenanceLabel(source) {
   return PROVENANCE[source] ?? null;
+}
+
+/**
+ * How a queued item relates to the objective it is linked to (Note 18, and
+ * Note 7 for the risk wording). The band used to say "vs Cost" for everything,
+ * which states that the two are connected without saying how. A risk THREATENS
+ * the objective it is linked to; an assumption, a constraint or a dependency
+ * BEARS ON it. Those are different relationships and the developer triages them
+ * differently, so the label says which.
+ *
+ * Returns the needs-a-link wording when there is no objective, because an
+ * unlinked item has no relationship to state.
+ */
+const RELATION_VERB = {
+  risk: 'threatens',
+  assumption: 'bears on',
+  constraint: 'bears on',
+  dependency: 'bears on',
+};
+
+export function objectiveRelation(kind, objectiveName) {
+  if (!objectiveName) return 'Needs a link';
+  return `${RELATION_VERB[kind] ?? 'bears on'} ${objectiveName}`;
 }

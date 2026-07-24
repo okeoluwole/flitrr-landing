@@ -239,22 +239,33 @@ describe('actionStage and gate readiness (A3)', () => {
 });
 
 describe('provenance label (A4)', () => {
-  it('labels the two knowledge sources that exist', () => {
-    expect(provenanceLabel('risk')).toBe('This project');
-    expect(provenanceLabel('playbook')).toBe('Playbook library');
+  // Note 18 replaced "This project" with the item's origin AND the document it
+  // came out of. "This project" was true of everything on the screen, so it
+  // told the developer nothing they could act on; these labels tell them where
+  // to go and look.
+  it('states each origin and the document it came from', () => {
+    expect(provenanceLabel('risk')).toBe("Risk, from your brief's register");
+    expect(provenanceLabel('assumption')).toBe('Assumption, from your brief');
+    expect(provenanceLabel('constraint')).toBe('Constraint, from your brief');
+    expect(provenanceLabel('dependency')).toBe('Dependency, from your brief');
   });
 
-  it('labels the RAID sources as this project (A5)', () => {
-    expect(provenanceLabel('assumption')).toBe('This project');
-    expect(provenanceLabel('constraint')).toBe('This project');
-    expect(provenanceLabel('dependency')).toBe('This project');
+  it('never labels an origin as the uninformative "This project"', () => {
+    for (const source of ['risk', 'assumption', 'constraint', 'dependency']) {
+      expect(provenanceLabel(source)).not.toBe('This project');
+    }
+  });
+
+  it('labels the curated and the programme-raised sources', () => {
+    expect(provenanceLabel('playbook')).toBe("From PULSE's playbook");
+    expect(provenanceLabel('programme')).toBe('Raised at Programme set-up');
   });
 
   it('gives a hand-logged or unbuilt source no engine provenance', () => {
-    // manual is the developer's own; programme/external/network are not
-    // labelled (the last two are not built), so PULSE never overclaims.
+    // manual is the developer's own; external and network are not built, so
+    // PULSE never overclaims a source it cannot stand behind.
     expect(provenanceLabel('manual')).toBeNull();
-    expect(provenanceLabel('programme')).toBeNull();
+    expect(provenanceLabel('external')).toBeNull();
     expect(provenanceLabel(undefined)).toBeNull();
   });
 });

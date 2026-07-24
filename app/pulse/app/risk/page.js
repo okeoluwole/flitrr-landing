@@ -136,30 +136,47 @@ export default async function RiskPage({ searchParams }) {
   // stable tiebreak under the criticality sort) plus the pairs this project
   // has already acted on. Risks oldest first, a stable base order the
   // register's sort keeps for ties.
-  const [{ data: risks }, { data: objectives }, { data: plays }, { data: playStates }] =
-    await Promise.all([
-      supabase
-        .from('project_risks')
-        .select(
-          'id, description, criticality, linked_objective_id, likelihood, impact, status, last_reviewed_at, response_note'
-        )
-        .eq('project_id', project.id)
-        .order('created_at', { ascending: true }),
-      supabase
-        .from('project_objectives')
-        .select('id, objective_type, classification')
-        .eq('project_id', project.id),
-      supabase
-        .from('playbook_plays')
-        .select('id, slug, type, stage, title, why, objective, always_critical')
-        .eq('stage', project.current_stage)
-        .eq('type', 'risk')
-        .order('slug', { ascending: true }),
-      supabase
-        .from('project_playbook_state')
-        .select('play_id')
-        .eq('project_id', project.id),
-    ]);
+  const [
+    { data: risks },
+    { data: objectives },
+    { data: plays },
+    { data: playStates },
+    { data: riskEvents },
+  ] = await Promise.all([
+    supabase
+      .from('project_risks')
+      .select(
+        'id, description, criticality, linked_objective_id, likelihood, impact, status, last_reviewed_at, response_note, source, source_id'
+      )
+      .eq('project_id', project.id)
+      .order('created_at', { ascending: true }),
+    supabase
+      .from('project_objectives')
+      .select('id, objective_type, classification')
+      .eq('project_id', project.id),
+    supabase
+      .from('playbook_plays')
+      .select('id, slug, type, stage, title, why, objective, always_critical')
+      .eq('stage', project.current_stage)
+      .eq('type', 'risk')
+      .order('slug', { ascending: true }),
+    supabase
+      .from('project_playbook_state')
+      .select('play_id')
+      .eq('project_id', project.id),
+    // The recorded changes (Note 19, migration 030). The register may claim a
+    // severity movement only from a row here that raised the band, so on a
+    // register that has recorded nothing this read comes back empty and no
+    // escalation line renders anywhere. That is the intended default, not an
+    // edge case.
+    supabase
+      .from('project_risk_events')
+      .select(
+        'id, risk_id, event_type, from_value, to_value, occurred_at, actor_id'
+      )
+      .eq('project_id', project.id)
+      .order('occurred_at', { ascending: false }),
+  ]);
 
   // Map each objective id to the name and classification the register shows
   // for "the objective it threatens".
@@ -183,7 +200,27 @@ export default async function RiskPage({ searchParams }) {
     currentStage: project.current_stage,
     type: 'risk',
     objectivesByType: byType,
+    nameByType: NAME_BY_TYPE,
   });
+
+  // The names behind the actor ids on the recorded events, so an escalation
+  // line can say WHO raised the band rather than showing a uuid or, worse,
+  // leaving the fourth fact off a sentence whose whole purpose is to be
+  // checkable. Only the actors that actually appear are looked up, and only
+  // when there are events at all, so the common case (no events) costs nothing.
+  const actorIds = [
+    ...new Set((riskEvents ?? []).map((e) => e.actor_id).filter(Boolean)),
+  ];
+  const actorNames = {};
+  if (actorIds.length > 0) {
+    const { data: actors } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('id', actorIds);
+    for (const a of actors ?? []) {
+      if (a.full_name) actorNames[a.id] = a.full_name;
+    }
+  }
 
   // The monitor (lib/engine/monitor.js) reads the clock from its caller, never
   // itself, so the server supplies it once (B2). The register derives each
@@ -204,6 +241,9 @@ export default async function RiskPage({ searchParams }) {
         initialRisks={risks ?? []}
         objectivesById={objectivesById}
         playSuggestions={playSuggestions}
+        riskEvents={riskEvents ?? []}
+        actorNames={actorNames}
+        userId={user.id}
         now={now}
         canEdit={canEdit}
         adminContact={adminContact}

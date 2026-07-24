@@ -485,17 +485,25 @@ describe('RAID promotion (A5)', () => {
 });
 
 describe('the tile summary line', () => {
+  // Note 18: the queued count reads as triage, not alarm. It counts the
+  // Critical items the developer wrote into their own Brief, arriving to be
+  // sorted; nothing is late and nothing has gone wrong.
   it('composes counts with correct plurals', () => {
     expect(formatActionLogSummary(2, 3)).toBe(
-      '2 need your response, 3 critical actions open'
+      '2 to triage from your brief, 3 critical actions open'
     );
     expect(formatActionLogSummary(1, 1)).toBe(
-      '1 needs your response, 1 critical action open'
+      '1 to triage from your brief, 1 critical action open'
     );
   });
 
+  it('never tells the developer their brief needs a response', () => {
+    expect(formatActionLogSummary(14, 0)).toBe('14 to triage from your brief');
+    expect(formatActionLogSummary(14, 0)).not.toContain('need your response');
+  });
+
   it('drops a zero part', () => {
-    expect(formatActionLogSummary(2, 0)).toBe('2 need your response');
+    expect(formatActionLogSummary(2, 0)).toBe('2 to triage from your brief');
     expect(formatActionLogSummary(0, 3)).toBe('3 critical actions open');
   });
 

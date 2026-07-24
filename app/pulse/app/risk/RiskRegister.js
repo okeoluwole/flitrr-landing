@@ -10,16 +10,32 @@ import {
   sortRisks,
   isLiveCritical,
 } from './riskModel';
-import { deriveSeverity } from '../../../../lib/engine/severity';
+import { deriveSeverity, severityLegend } from '../../../../lib/engine/severity';
+import { assessRisks } from '../../../../lib/engine/monitor';
 import {
-  assessRisks,
-  TRIGGERS,
-  ESCALATION_CONFIG,
-} from '../../../../lib/engine/monitor';
+  escalationsByRisk,
+  buildScoredEvent,
+} from '../../../../lib/engine/riskEvents';
+import {
+  statusLine,
+  escalationLine,
+  queueHeading,
+  riskProvenance,
+  isFromBrief,
+  objectiveRelation,
+  ATTENTION_QUIET,
+} from './registerRead';
 import {
   splitProposals,
   buildRiskFromPlay,
+  confirmedPlayCriticality,
 } from '../../../../lib/playbook/playbookModel';
+import { toStoredCriticality } from '../../../../lib/engine/criticality';
+import {
+  recordTriageDecision,
+  TRIAGE_DECISIONS,
+  TRIAGE_SURFACES,
+} from '../actions/triageDecisionStore';
 import ViewOnlyBadge from '../components/ViewOnlyBadge';
 import CriticalityChip from '../components/CriticalityChip';
 import styles from './RiskRegister.module.css';
@@ -44,27 +60,46 @@ import styles from './RiskRegister.module.css';
  * the Action Log's needs-your-response band. The register's own behaviour is
  * otherwise untouched.
  *
- * B2 wires the monitor in (lib/engine/monitor.js): the Needs attention panel
- * at the top renders the risks the monitor flags, each with the plain-language
- * reason mapped from the trigger it reports, its severity and its live
- * criticality. The verdicts are computed by assessRisks (unchanged from A7)
- * from the same live `risks` state that drives the list, ordered most urgent
- * first by the engine, and collapse to one calm line when nothing is flagged.
- * Proportional monitoring stays quiet when things are fine; it does not nag.
+ * B2 wires the monitor in (lib/engine/monitor.js): the first-review queue at
+ * the top renders the risks the monitor flags, each with its severity and its
+ * live criticality. The verdicts are computed by assessRisks (unchanged from
+ * A7) from the same live `risks` state that drives the list, ordered most
+ * urgent first by the engine, and collapse to one calm line when nothing is
+ * flagged. Proportional monitoring stays quiet when things are fine; it does
+ * not nag.
  *
- * Still out of scope (a later step): the posture read and the starter
- * proposal. B2 only computes and renders the monitor's verdicts; it does not
- * change the triggers, the windows, or ESCALATION_CONFIG.
+ * WHAT NOTE 19 CHANGED, AND WHAT IT DID NOT. No derivation moved. The triggers,
+ * the windows, ESCALATION_CONFIG, the severity bands and the criticality kernel
+ * are all exactly as they were, and the six assessments still match the Brief's
+ * matrix. Three things about the telling changed:
+ *
+ *   THE NARRATIVE IS EVENT-SOURCED. Five of six cards read "Severity has
+ *   escalated." on a register that had never been reviewed and recorded no
+ *   change at all. That sentence came from a LEVEL trigger worded as a CHANGE.
+ *   The level is still worth saying and is now said as a level; the escalation
+ *   sentence renders only from a recorded band-raising event in
+ *   project_risk_events, citing from, to, when and who. On the seeded register
+ *   it renders nowhere, which is the correct answer.
+ *
+ *   ONE STATUS LINE PER CARD. The panel stacked every fired trigger as its own
+ *   bullet, so three lines said one thing. registerRead.statusLine picks the
+ *   single most actionable fact. The panel is headed as what it is, a queue of
+ *   risks awaiting first review, with the provenance of what is in it.
+ *
+ *   AN HONEST SUGGESTION. A play wears no criticality chip until the developer
+ *   confirms the objective it threatens, because criticality derives from that
+ *   link; it states its basis instead. Add to register and Dismiss both record
+ *   a decision with who and when.
+ *
+ * The assessment card itself is deliberately untouched: the two questions, the
+ * status vocabulary and the one-line Response are the reference interaction,
+ * preserved for the later design sweep.
  */
 
 const LIKELIHOOD_QUESTION = 'How likely is this, really?';
 const IMPACT_QUESTION = 'If it happened, how bad?';
 const NOTE_PLACEHOLDER = 'Add a one-line response.';
-
-// The Needs attention panel's collapsed state (B2): one calm line when the
-// monitor flags nothing. Proportional monitoring stays silent when things are
-// fine.
-const ATTENTION_QUIET = 'All risks are within their review cadence.';
+const DISMISS_REASON_PLACEHOLDER = 'Why are you setting this aside?';
 
 const SAVE_ERROR =
   'We could not save that change. Please check your connection and try again.';
@@ -76,7 +111,9 @@ const DISMISS_PLAY_ERROR =
 // The columns the page select returns; an accepted suggestion's returning
 // row carries the same shape so it renders as any other risk card.
 const RISK_COLUMNS =
-  'id, description, criticality, linked_objective_id, likelihood, impact, status, last_reviewed_at, response_note';
+  'id, description, criticality, linked_objective_id, likelihood, impact, status, last_reviewed_at, response_note, source, source_id';
+
+const LEGEND = severityLegend();
 
 const SEVERITY_CLASS = {
   serious: 'sevSerious',
@@ -106,42 +143,31 @@ function formatReviewed(iso) {
   });
 }
 
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
+// The status line and the escalation sentence both live in registerRead.js, so
+// the copy is pure and unit-testable rather than only reviewable by eye. The
+// band label map is passed to escalationLine, keeping display strings out of
+// the engine.
+const BAND_LABEL = {
+  serious: 'Serious',
+  moderate: 'Worth watching',
+  minor: 'Minor',
+  unscored: 'Not yet scored',
+};
 
-// The went-stale reason, parameterised by how many days past its review window
-// the risk has gone. The window comes from ESCALATION_CONFIG (read only, never
-// hardcoded here), keyed by the live criticality the monitor derived: 14 days
-// for critical, 30 for standard. now is the clock the server supplied.
-function overdueReason(assessment, risk, now) {
-  const cfg = ESCALATION_CONFIG.byCriticality[assessment.effectiveCriticality];
-  const reviewedAt = risk.last_reviewed_at
-    ? Date.parse(risk.last_reviewed_at)
-    : NaN;
-  if (!cfg || Number.isNaN(reviewedAt)) return 'Overdue for review.';
-  const ageDays = (now - reviewedAt) / MS_PER_DAY;
-  const overdueBy = Math.max(1, Math.round(ageDays - cfg.reviewWindowDays));
-  return `Overdue for review by ${overdueBy} day${overdueBy === 1 ? '' : 's'}.`;
-}
-
-// Plain-language reasons for one verdict, mapped from the triggers the monitor
-// reports (lib/engine/monitor.js). The wording matches the register's own
-// vocabulary: Response is the one-line response field, reviewed the review
-// stamp shown on each card. B2 renders these; it does not change the triggers.
-function attentionReasons(assessment, risk, now) {
-  const reasons = [];
-  if (assessment.needsLink) reasons.push('Needs a link to an objective.');
-  for (const trigger of assessment.firedTriggers) {
-    if (trigger === TRIGGERS.ESCALATED_SEVERITY) {
-      reasons.push('Severity has escalated.');
-    } else if (trigger === TRIGGERS.CRITICAL_UNMANAGED) {
-      reasons.push('Critical, with no response yet.');
-    } else if (trigger === TRIGGERS.WENT_STALE) {
-      reasons.push(overdueReason(assessment, risk, now));
-    } else if (trigger === TRIGGERS.NOT_YET_ENGAGED) {
-      reasons.push('Not yet reviewed.');
-    }
-  }
-  return reasons;
+// The severity legend: the derivation stated once, so the bands read rather
+// than have to be learned. Built from the engine, so it cannot drift from the
+// rule it explains.
+function SeverityLegend() {
+  return (
+    <p className={styles.legend}>
+      <span className={styles.legendLead}>{LEGEND.lead}</span>
+      {LEGEND.bands.map((b) => (
+        <span key={b.key} className={styles.legendBand}>
+          {b.label} {b.range}
+        </span>
+      ))}
+    </p>
+  );
 }
 
 // A plain-language segmented control. One option active, single select.
@@ -171,6 +197,46 @@ function SeverityChip({ severity }) {
   );
 }
 
+/**
+ * The objective link select for the Add to register confirmation. Each option
+ * carries the objective's classification, so the developer sees at the moment
+ * of linking what the cascade will make of it. The same idiom the Action Log
+ * uses, so confirming a suggestion reads the same on both surfaces.
+ */
+function ObjectiveSelect({ value, onChange, options, ariaLabel }) {
+  return (
+    <select
+      className={styles.select}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      aria-label={ariaLabel}
+    >
+      <option value="">No objective</option>
+      {options.map((o) => (
+        <option key={o.id} value={o.id}>
+          {o.name}
+          {o.classification === 'non_negotiable'
+            ? ' (Non-negotiable)'
+            : ' (Flexible)'}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+/**
+ * The read-only criticality line in the Add to register confirmation (Note 19.3).
+ * Criticality is derived from the objective a risk threatens and is never
+ * chosen, so the confirmation states it rather than offering it.
+ */
+function inheritedCriticalityLine(criticality, objectiveName, alwaysCritical) {
+  if (alwaysCritical) return 'Critical on every project at this stage.';
+  const label = criticality === 'critical' ? 'Critical' : 'Standard';
+  return objectiveName
+    ? `${label}, inherited from ${objectiveName}.`
+    : 'Standard. No objective linked.';
+}
+
 export default function RiskRegister({
   projectId,
   projectName,
@@ -178,12 +244,22 @@ export default function RiskRegister({
   initialRisks,
   objectivesById,
   playSuggestions,
+  riskEvents = [],
+  actorNames = {},
+  userId = null,
   now,
   canEdit = true,
   adminContact = null,
 }) {
   const supabase = createClient();
   const [risks, setRisks] = useState(initialRisks);
+
+  // The recorded changes (Note 19). Seeded from the server read and appended to
+  // as the developer rescores, so an escalation shows on the card in the same
+  // interaction that recorded it. A register that has recorded nothing holds an
+  // empty list, and no escalation line renders anywhere.
+  const [events, setEvents] = useState(riskEvents);
+  const escalations = escalationsByRisk(events);
   const [noteDrafts, setNoteDrafts] = useState(() =>
     Object.fromEntries(initialRisks.map((r) => [r.id, r.response_note ?? '']))
   );
@@ -195,6 +271,14 @@ export default function RiskRegister({
   const [actedPlayIds, setActedPlayIds] = useState(() => new Set());
   const [actingPlayId, setActingPlayId] = useState(null);
   const [showAllPlays, setShowAllPlays] = useState(false);
+
+  // The Add to register confirmation and the Dismiss reason (Note 18's grammar,
+  // applied here by Note 19.3). Criticality is never chosen in the confirm step;
+  // it derives from the objective the developer agrees the play threatens.
+  const [confirmingPlayId, setConfirmingPlayId] = useState(null);
+  const [playObjectiveId, setPlayObjectiveId] = useState('');
+  const [dismissingPlayId, setDismissingPlayId] = useState(null);
+  const [dismissReason, setDismissReason] = useState('');
 
   const livePlays = (playSuggestions ?? []).filter(
     (s) => !actedPlayIds.has(s.playId)
@@ -228,6 +312,29 @@ export default function RiskRegister({
     (v) => v.assessment.needsAttention
   );
 
+  // What the queue actually holds, for its heading (Note 19.2). Both counts are
+  // read off the queue itself rather than assumed: how many are waiting on a
+  // first review, and how many came out of the Brief (migration 032). A
+  // first-run register is six Brief risks nobody has looked at yet, which is a
+  // queue to work through, not six problems.
+  const awaitingFirstReview = needsAttention.filter(
+    (v) => !v.risk.last_reviewed_at
+  ).length;
+  const queueFromBrief = needsAttention.filter((v) => isFromBrief(v.risk)).length;
+  const queueLine = queueHeading({
+    total: needsAttention.length,
+    awaitingFirstReview,
+    fromBrief: queueFromBrief,
+  });
+
+  // The objectives a suggestion can be linked to, in the shape the confirm
+  // step's select needs, from the index the page already built.
+  const objectiveOptions = Object.entries(objectivesById).map(([id, o]) => ({
+    id,
+    name: o.name,
+    classification: o.classification,
+  }));
+
   // Optimistic write: apply locally, stamp last_reviewed_at, persist, revert
   // on failure. Every action routes through here so the review stamp is never
   // forgotten.
@@ -249,8 +356,43 @@ export default function RiskRegister({
     }
   };
 
-  const setLikelihood = (id, value) => applyUpdate(id, { likelihood: value });
-  const setImpact = (id, value) => applyUpdate(id, { impact: value });
+  /**
+   * Rescoring (Note 19). The score is saved as before, and if the change moved
+   * the severity BAND an event is appended recording the move, with who and
+   * when. That row is the only thing that can ever make the register say a risk
+   * escalated, which is why the write exists: before it, nothing in the system
+   * recorded a change, and the sentence claiming one was rendered from a level
+   * test. A rescore that leaves the band where it was writes no event, because
+   * there is no movement to record.
+   *
+   * The event is written after the score lands and is deliberately not reverted
+   * with it: the log is append-only, and a failed score simply leaves no event,
+   * since buildScoredEvent is fed the state the update actually applied.
+   */
+  const rescore = async (id, patch) => {
+    const before = risks.find((r) => r.id === id);
+    if (!before) return;
+    await applyUpdate(id, patch);
+
+    const event = buildScoredEvent({
+      projectId,
+      riskId: id,
+      before,
+      after: { ...before, ...patch },
+      actorId: userId,
+    });
+    if (!event) return;
+
+    const { data, error: evtErr } = await supabase
+      .from('project_risk_events')
+      .insert(event)
+      .select('id, risk_id, event_type, from_value, to_value, occurred_at, actor_id')
+      .single();
+    if (!evtErr && data) setEvents((es) => [data, ...es]);
+  };
+
+  const setLikelihood = (id, value) => rescore(id, { likelihood: value });
+  const setImpact = (id, value) => rescore(id, { impact: value });
   const setStatus = (id, value) => applyUpdate(id, { status: value });
 
   const onNoteChange = (id, value) =>
@@ -262,19 +404,59 @@ export default function RiskRegister({
     applyUpdate(id, { response_note: clean === '' ? null : clean });
   };
 
-  // Add to register (M7.4): accept a suggested risk play. The new row lands
-  // at the register's default convention (medium and medium, watching, not
-  // yet reviewed) and the suggestion leaves the area in the same
-  // interaction. Deliberately NOT routed through applyUpdate: accepting a
-  // suggestion is not a review, so last_reviewed_at stays null.
+  // Add to register opens the confirmation (Note 19.3) rather than writing
+  // straight away: which objective the risk threatens is the developer's call,
+  // and criticality derives from it. The play's own objective is the default,
+  // because that is what selected it, but it is a default and not a decision
+  // already taken for them.
+  const startAddPlay = (suggestion) => {
+    setDismissingPlayId(null);
+    setPlayObjectiveId(suggestion.linkedObjectiveId ?? '');
+    setConfirmingPlayId(suggestion.playId);
+  };
+
+  const cancelAddPlay = () => {
+    setConfirmingPlayId(null);
+    setPlayObjectiveId('');
+  };
+
+  const startDismissPlay = (suggestion) => {
+    setConfirmingPlayId(null);
+    setDismissReason('');
+    setDismissingPlayId(suggestion.playId);
+  };
+
+  const cancelDismissPlay = () => {
+    setDismissingPlayId(null);
+    setDismissReason('');
+  };
+
+  // Add to register (M7.4, confirmed and recorded under Note 19.3): accept a
+  // suggested risk play. The new row lands at the register's default convention
+  // (medium and medium, watching, not yet reviewed) with the objective the
+  // developer confirmed and the criticality that derives from it, carries the
+  // source columns that record it came from a play rather than the Brief, and
+  // the decision is recorded with who and when. Deliberately NOT routed through
+  // applyUpdate: accepting a suggestion is not a review, so last_reviewed_at
+  // stays null.
   const acceptPlay = async (suggestion) => {
     if (actingPlayId) return;
     setActingPlayId(suggestion.playId);
     setError(null);
 
+    const linkedObjectiveId = playObjectiveId || null;
+    const criticality = confirmedPlayCriticality(suggestion, linkedObjectiveId, (id) =>
+      toStoredCriticality(id, objectivesById)
+    );
+
     const { data, error: insErr } = await supabase
       .from('project_risks')
-      .insert(buildRiskFromPlay(suggestion, projectId))
+      .insert(
+        buildRiskFromPlay(suggestion, projectId, {
+          linkedObjectiveId,
+          criticality,
+        })
+      )
       .select(RISK_COLUMNS)
       .single();
 
@@ -293,15 +475,31 @@ export default function RiskRegister({
       });
     if (stateErr) setError(SAVE_ERROR);
 
+    await recordTriageDecision(supabase, {
+      projectId,
+      itemKind: 'play',
+      itemId: suggestion.playId,
+      itemName: suggestion.title ?? null,
+      surface: TRIAGE_SURFACES.RISK_REGISTER,
+      decision: TRIAGE_DECISIONS.ADDED,
+      createdRiskId: data.id,
+      decidedBy: userId,
+    });
+
     setRisks((rs) => [...rs, data]);
     setActedPlayIds((ids) => new Set(ids).add(suggestion.playId));
+    setConfirmingPlayId(null);
+    setPlayObjectiveId('');
     setActingPlayId(null);
   };
 
-  // Dismiss (M7.4): records dismissed for this project. Dismissed stays
-  // dismissed; no re-nagging.
+  // Dismiss (M7.4, recorded under Note 19.3): records dismissed for this
+  // project, with the reason, the decider and the timestamp. Dismissed stays
+  // dismissed; no re-nagging. Declining curated knowledge is a judgement about
+  // this project, so it is recorded as one.
   const dismissPlay = async (suggestion) => {
-    if (actingPlayId) return;
+    const reason = dismissReason.trim();
+    if (!reason || actingPlayId) return;
     setActingPlayId(suggestion.playId);
     setError(null);
 
@@ -315,61 +513,166 @@ export default function RiskRegister({
 
     if (stateErr) {
       setError(DISMISS_PLAY_ERROR);
-    } else {
-      setActedPlayIds((ids) => new Set(ids).add(suggestion.playId));
+      setActingPlayId(null);
+      return;
     }
+
+    await recordTriageDecision(supabase, {
+      projectId,
+      itemKind: 'play',
+      itemId: suggestion.playId,
+      itemName: suggestion.title ?? null,
+      surface: TRIAGE_SURFACES.RISK_REGISTER,
+      decision: TRIAGE_DECISIONS.DISMISSED,
+      reason,
+      decidedBy: userId,
+    });
+
+    setActedPlayIds((ids) => new Set(ids).add(suggestion.playId));
+    setDismissingPlayId(null);
+    setDismissReason('');
     setActingPlayId(null);
   };
 
-  // One suggested risk play: the title, the why line in full (never
-  // truncated), a Critical chip when this project's classification derives
-  // it critical, and the two one-tap responses.
+  // One suggested risk play (M7.4, reworked under Note 19.3): the title, the
+  // why line in full (never truncated), the basis it was selected on, and the
+  // two responses.
+  //
+  // IT WEARS NO CRITICALITY CHIP. Criticality derives from the objective an
+  // item threatens, and a suggestion threatens none yet: the developer has not
+  // agreed to take it on. The chip it used to carry was classifying a risk that
+  // did not exist. Add to register confirms the link first and the criticality
+  // follows it, read-only. What it says instead is its basis, which is the
+  // honest version of what the chip was gesturing at.
   const renderPlaySuggestion = (s) => {
     const acting = actingPlayId === s.playId;
+    const confirming = confirmingPlayId === s.playId;
+    const dismissing = dismissingPlayId === s.playId;
+    const confirmedCriticality = confirmedPlayCriticality(
+      s,
+      playObjectiveId || null,
+      (id) => toStoredCriticality(id, objectivesById)
+    );
 
     return (
       <article key={s.playId} className={styles.playItem}>
-        {s.criticality === 'critical' && (
-          <div className={styles.playTags}>
-            <CriticalityChip critical />
-          </div>
-        )}
         <p className={styles.playTitle}>{s.title}</p>
         <p className={styles.why}>{s.why}</p>
-        <div className={styles.playActions}>
-          <button
-            type="button"
-            className={styles.primaryBtn}
-            onClick={() => acceptPlay(s)}
-            disabled={actingPlayId !== null}
-            aria-label={`Add to register: ${s.title}`}
-          >
-            {acting ? 'Adding' : 'Add to register'}
-          </button>
-          <button
-            type="button"
-            className={styles.ghostBtn}
-            onClick={() => dismissPlay(s)}
-            disabled={actingPlayId !== null}
-            aria-label={`Dismiss: ${s.title}`}
-          >
-            Dismiss
-          </button>
-        </div>
+        <p className={styles.basis}>{s.basis}</p>
+
+        {confirming ? (
+          <div className={styles.triageForm}>
+            <span className={styles.controlLabel}>
+              Which objective does this threaten?
+            </span>
+            <ObjectiveSelect
+              value={playObjectiveId}
+              onChange={setPlayObjectiveId}
+              options={objectiveOptions}
+              ariaLabel={`Objective threatened by ${s.title}`}
+            />
+            <p className={styles.basis}>
+              {inheritedCriticalityLine(
+                confirmedCriticality,
+                objectivesById[playObjectiveId]?.name ?? null,
+                s.alwaysCritical
+              )}
+            </p>
+            <div className={styles.playActions}>
+              <button
+                type="button"
+                className={styles.primaryBtn}
+                onClick={() => acceptPlay(s)}
+                disabled={actingPlayId !== null}
+              >
+                {acting ? 'Adding' : 'Add to register'}
+              </button>
+              <button
+                type="button"
+                className={styles.ghostBtn}
+                onClick={cancelAddPlay}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : dismissing ? (
+          <div className={styles.triageForm}>
+            <input
+              type="text"
+              className={styles.noteInput}
+              value={dismissReason}
+              onChange={(e) => setDismissReason(e.target.value)}
+              placeholder={DISMISS_REASON_PLACEHOLDER}
+              aria-label={`Reason for dismissing ${s.title}`}
+              autoComplete="off"
+              maxLength={200}
+            />
+            <div className={styles.playActions}>
+              <button
+                type="button"
+                className={styles.primaryBtn}
+                onClick={() => dismissPlay(s)}
+                disabled={dismissReason.trim() === '' || actingPlayId !== null}
+              >
+                {acting ? 'Recording' : 'Dismiss'}
+              </button>
+              <button
+                type="button"
+                className={styles.ghostBtn}
+                onClick={cancelDismissPlay}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className={styles.playActions}>
+            <button
+              type="button"
+              className={styles.primaryBtn}
+              onClick={() => startAddPlay(s)}
+              disabled={actingPlayId !== null}
+              aria-label={`Add to register: ${s.title}`}
+            >
+              Add to register
+            </button>
+            <button
+              type="button"
+              className={styles.ghostBtn}
+              onClick={() => startDismissPlay(s)}
+              disabled={actingPlayId !== null}
+              aria-label={`Dismiss: ${s.title}`}
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
       </article>
     );
   };
 
-  // One row in the Needs attention panel (B2): the live criticality chip and
-  // severity (the same reads the card below shows, so the two surfaces agree),
-  // the objective it threatens, the risk itself as a jump link to its full
-  // card, and the plain-language reasons the monitor flagged it.
+  // One row in the first-review queue (B2, reworked under Note 19): the live
+  // criticality chip and severity (the same reads the card below shows, so the
+  // two surfaces agree), the objective it threatens, where it came from, the
+  // risk itself as a jump link to its full card, and ONE accurate status line.
+  //
+  // The escalation line renders under it only when a recorded band-raising
+  // event exists for this risk, and then it names from, to, when and who. On a
+  // register that has recorded no change, it renders on no card at all, which
+  // is the point: the platform says a risk escalated only when its own data can
+  // show that it did.
   const renderAttnRow = ({ risk, assessment }) => {
     const critical = isLiveCritical(risk, objectivesById);
     const objective = risk.linked_objective_id
-      ? objectivesById[risk.linked_objective_id]?.name ?? 'Unlinked'
-      : 'Unlinked';
-    const reasons = attentionReasons(assessment, risk, now);
+      ? objectivesById[risk.linked_objective_id]?.name ?? null
+      : null;
+    const status = statusLine(assessment, risk, now);
+    const escalated = escalationLine(escalations.get(risk.id) ?? null, {
+      bandLabel: (k) => BAND_LABEL[k] ?? k,
+      actorName: (id) => actorNames[id] ?? null,
+      formatDate: formatReviewed,
+    });
 
     return (
       <article
@@ -380,19 +683,15 @@ export default function RiskRegister({
           <CriticalityChip critical={critical} />
           <SeverityChip severity={assessment.severity} />
           <span className={styles.objective}>
-            {objective === 'Unlinked' ? 'Unlinked' : `vs ${objective}`}
+            {objectiveRelation(objective)}
           </span>
+          <span className={styles.provenance}>{riskProvenance(risk)}</span>
         </div>
         <a className={styles.attnName} href={`#risk-${risk.id}`}>
           {risk.description}
         </a>
-        <ul className={styles.attnReasons}>
-          {reasons.map((reason, i) => (
-            <li key={i} className={styles.attnReason}>
-              {reason}
-            </li>
-          ))}
-        </ul>
+        {status && <p className={styles.attnStatus}>{status}</p>}
+        {escalated && <p className={styles.attnEscalation}>{escalated}</p>}
       </article>
     );
   };
@@ -401,8 +700,8 @@ export default function RiskRegister({
     const critical = isLiveCritical(r, objectivesById);
     const severity = deriveSeverity(r.likelihood, r.impact);
     const objective = r.linked_objective_id
-      ? objectivesById[r.linked_objective_id]?.name ?? 'Unlinked'
-      : 'Unlinked';
+      ? objectivesById[r.linked_objective_id]?.name ?? null
+      : null;
     const reviewed = formatReviewed(r.last_reviewed_at);
     const noteDirty = (noteDrafts[r.id] ?? '') !== (r.response_note ?? '');
 
@@ -416,7 +715,7 @@ export default function RiskRegister({
           <div className={styles.cardTags}>
             <CriticalityChip critical={critical} />
             <span className={styles.objective}>
-              {objective === 'Unlinked' ? 'Unlinked' : `vs ${objective}`}
+              {objectiveRelation(objective)}
             </span>
           </div>
           <SeverityChip severity={severity} />
@@ -505,8 +804,8 @@ export default function RiskRegister({
     const critical = isLiveCritical(r, objectivesById);
     const severity = deriveSeverity(r.likelihood, r.impact);
     const objective = r.linked_objective_id
-      ? objectivesById[r.linked_objective_id]?.name ?? 'Unlinked'
-      : 'Unlinked';
+      ? objectivesById[r.linked_objective_id]?.name ?? null
+      : null;
     const reviewed = formatReviewed(r.last_reviewed_at);
     const likelihoodLabel = labelFor(LIKELIHOOD_OPTIONS, r.likelihood);
     const impactLabel = labelFor(IMPACT_OPTIONS, r.impact);
@@ -523,7 +822,7 @@ export default function RiskRegister({
           <div className={styles.cardTags}>
             <CriticalityChip critical={critical} />
             <span className={styles.objective}>
-              {objective === 'Unlinked' ? 'Unlinked' : `vs ${objective}`}
+              {objectiveRelation(objective)}
             </span>
           </div>
           <SeverityChip severity={severity} />
@@ -589,15 +888,19 @@ export default function RiskRegister({
         </div>
       )}
 
-      {/* The Needs attention panel (B2): the risks the monitor flags, most
-          urgent first, each with the reason in plain words. When nothing is
-          flagged it collapses to one calm line: monitoring stays quiet when
-          things are fine. */}
+      {/* The first-review queue (B2, reframed under Note 19.2): the risks the
+          monitor flags, most urgent first, each with ONE accurate status line
+          and its provenance. It used to be headed "Needs attention" and stack
+          three boilerplate lines per card, so six Brief risks nobody had opened
+          yet read as six failures. When nothing is flagged it collapses to one
+          calm line: monitoring stays quiet when things are fine. */}
       {needsAttention.length > 0 ? (
-        <section className={styles.attnBand} aria-labelledby="needs-attention">
-          <h2 id="needs-attention" className={styles.bandHeading}>
-            Needs attention
+        <section className={styles.attnBand} aria-labelledby="first-review">
+          <h2 id="first-review" className={styles.bandHeading}>
+            Your review queue
           </h2>
+          {queueLine && <p className={styles.bandIntro}>{queueLine}</p>}
+          <SeverityLegend />
           <div className={styles.attnList}>
             {needsAttention.map(renderAttnRow)}
           </div>

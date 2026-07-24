@@ -19,15 +19,20 @@ import {
   buildObjectiveIndex,
   toStoredCriticality,
 } from '../../../../lib/engine/criticality.js';
+import {
+  LIKELIHOOD_OPTIONS,
+  IMPACT_OPTIONS,
+} from '../../../../lib/engine/severity.js';
 
-// Risk likelihood / impact scale (risk_level enum). Shared by the two risk
-// rating selects. Both default to medium so an inserted risk always carries a
-// value (the columns are nullable, but the spec wants inserts to be rated).
-const RISK_LEVELS = [
-  { value: 'low', label: 'Low' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'high', label: 'High' },
-];
+// The risk likelihood and impact scales (risk_level enum), read from the engine
+// so this capture and the register speak one vocabulary (Note 19). They used to
+// be one local Low / Medium / High list serving both selects, while the register
+// that reads the very same columns said Unlikely, Possible, Likely and Limited,
+// Significant, Severe. The developer had to work out that their Medium and the
+// register's Possible were the same answer. The stored values are unchanged;
+// only the words are, and they are now written once. Both selects still default
+// to medium so an inserted risk always carries a value (the columns are
+// nullable, but the spec wants inserts to be rated).
 
 // The two cascaded criticality values (criticality_level enum). The shared
 // criticality control on every item renders from this.
@@ -178,14 +183,14 @@ export const LIST_CONFIG = {
         name: 'likelihood',
         label: 'Likelihood',
         type: 'select',
-        options: RISK_LEVELS,
+        options: LIKELIHOOD_OPTIONS,
         default: 'medium',
       },
       {
         name: 'impact',
         label: 'Impact',
         type: 'select',
-        options: RISK_LEVELS,
+        options: IMPACT_OPTIONS,
         default: 'medium',
       },
       {
