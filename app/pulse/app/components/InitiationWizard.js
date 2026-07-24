@@ -1631,145 +1631,110 @@ export default function InitiationWizard({
     return errored ? new Error('list_save_failed') : null;
   };
 
+  // Persist one step's data through its own persistence path. The single
+  // dispatch every navigation shares (Next, Back, the progress dots, and the
+  // lock's flush), so the live baseline always holds what the screen holds:
+  //   1  the project definition            5  organisation + workstreams
+  //   2  the strategic context             6  the financial baseline
+  //   3  objectives + the priority ranking 7  the programme choices
+  //   4  scope and site                    8  the four RAID lists
+  // Step 9 (the brief) persists nothing of its own. Returns the first error,
+  // or null.
+  const persistForStep = async (n) => {
+    if (n === 1) return await persistStep1();
+    if (!projectId) return null;
+    if (n === 2) return await persistStep2();
+    if (n === 3) {
+      const objErr = await persistStep3();
+      return objErr ?? (await persistStep4());
+    }
+    if (n === 4) return await persistScopeSite();
+    if (n === 5) {
+      const orgErr = await persistOrganisation();
+      return orgErr ?? (await persistList('workstreams'));
+    }
+    if (n === 6) return await persistFinancial();
+    if (n === 7) return await persistGates();
+    if (n === 8) {
+      for (const key of ['risks', 'assumptions', 'constraints', 'dependencies']) {
+        const err = await persistList(key);
+        if (err) return err;
+      }
+      return null;
+    }
+    return null;
+  };
+
+  // The lock's flush: persist every step, 1 through 8, so the live tables
+  // hold exactly the record set the brief is about to snapshot. Called by
+  // Step 9 immediately before the lock writes; the first failure aborts, and
+  // the caller blocks the lock, because a baseline must never be locked ahead
+  // of its own records. This is the single-source rule at the moment it
+  // matters: the wizard edits the live baseline until lock, and the lock
+  // versions a snapshot of those same records.
+  const persistAllSteps = async () => {
+    if (!projectId) return new Error('no_project');
+    for (let n = 1; n <= 8; n += 1) {
+      const err = await persistForStep(n);
+      if (err) return err;
+    }
+    return null;
+  };
+
   const handleNext = async () => {
     setError(null);
 
-    if (step === 1) {
-      if (!nameValid) {
-        setError('Please give the project a name to continue.');
-        return;
-      }
-      setBusy(true);
-      const err = await persistStep1();
-      setBusy(false);
-      if (err) {
-        setError(SAVE_ERROR);
-        return;
-      }
-      advanceTo(2);
+    if (step === 1 && !nameValid) {
+      setError('Please give the project a name to continue.');
       return;
     }
-
-    if (step === 2) {
-      setBusy(true);
-      const err = await persistStep2();
-      setBusy(false);
-      if (err) {
-        setError(SAVE_ERROR);
-        return;
-      }
-      advanceTo(3);
-      return;
-    }
-
-    // Step 3: persist the objective definitions and the priority ranking
-    // together. Both are no-ops once the baseline is committed (frozen).
-    if (step === 3) {
-      setBusy(true);
-      const objErr = await persistStep3();
-      const rankErr = objErr ? null : await persistStep4();
-      setBusy(false);
-      if (objErr || rankErr) {
-        setError(SAVE_ERROR);
-        return;
-      }
-      advanceTo(4);
-      return;
-    }
-
-    // Step 4 Scope and Site: upsert the project_scope_site record.
-    if (step === 4) {
-      setBusy(true);
-      const err = await persistScopeSite();
-      setBusy(false);
-      if (err) {
-        setError(SAVE_ERROR);
-        return;
-      }
-      advanceTo(5);
-      return;
-    }
-
-    // Step 6 Financial Baseline: the headline figures on the projects row, the
-    // budget breakdown and funding on project_budget, and the funding milestones.
-    if (step === 6) {
-      setBusy(true);
-      const err = await persistFinancial();
-      setBusy(false);
-      if (err) {
-        setError(SAVE_ERROR);
-        return;
-      }
-      advanceTo(7);
-      return;
-    }
-
-    // Step 5 Organisation and Governance: the parties, the named authority and
-    // the cadence (persistOrganisation), then the workstreams list.
-    if (step === 5) {
-      setBusy(true);
-      const orgErr = await persistOrganisation();
-      const wsErr = orgErr ? null : await persistList('workstreams');
-      setBusy(false);
-      if (orgErr || wsErr) {
-        setError(SAVE_ERROR);
-        return;
-      }
-      advanceTo(6);
-      return;
-    }
-
-    // Step 7 Programme: the stage gate target dates and the per-milestone choices
-    // (date and note), all persisted by persistGates through the programme
-    // choices layer (saveProgrammeChoices writes milestone_choices onto each gate
-    // row, keyed by the stable milestone key). The milestones are template-fixed,
-    // so there is no separate list to save here.
-    if (step === 7) {
-      setBusy(true);
-      const gatesErr = await persistGates();
-      setBusy(false);
-      if (gatesErr) {
-        setError(SAVE_ERROR);
-        return;
-      }
-      advanceTo(8);
-      return;
-    }
-
-    // Step 8 RAID: the risks and the three sibling lists (assumptions,
-    // constraints, dependencies). Persist each in turn; stop on the first error.
-    if (step === 8) {
-      setBusy(true);
-      let err = null;
-      for (const key of ['risks', 'assumptions', 'constraints', 'dependencies']) {
-        err = await persistList(key);
-        if (err) break;
-      }
-      setBusy(false);
-      if (err) {
-        setError(SAVE_ERROR);
-        return;
-      }
-      advanceTo(9);
-      return;
-    }
-
     // Step 9 (the brief) is the last step and has no Next; its button is
-    // disabled, so there is nothing to handle here.
+    // disabled, so there is nothing to handle there.
+    if (step >= TOTAL_STEPS) return;
+
+    setBusy(true);
+    const err = await persistForStep(step);
+    setBusy(false);
+    if (err) {
+      setError(SAVE_ERROR);
+      return;
+    }
+    advanceTo(step + 1);
+  };
+
+  // Leaving a step persists it, whichever way the developer leaves: Next
+  // (above), Back, or a progress dot. Without this, an edit made on a
+  // revisited step would live only on screen, and a later lock would snapshot
+  // state the live tables never received, the exact divergence the
+  // single-source rule forbids. A failed save keeps the developer on the step
+  // with the error shown rather than silently abandoning the edit.
+  const leaveStepTo = async (n) => {
+    if (busy) return;
+    setError(null);
+    // Step 1 with no valid name has nothing worth saving; do not write an
+    // unnamed project on the way past.
+    if (projectId && !(step === 1 && !nameValid)) {
+      setBusy(true);
+      const err = await persistForStep(step);
+      setBusy(false);
+      if (err) {
+        setError(SAVE_ERROR);
+        return;
+      }
+    }
+    setStep(n);
   };
 
   const handleBack = () => {
-    setError(null);
-    if (step > 1) setStep(step - 1);
+    if (step > 1) leaveStepTo(step - 1);
   };
 
   // Progress-dot navigation: only to steps already reached (free-backward,
   // no jumping ahead). Blocked while a save is in flight.
   const goToStep = (n) => {
     if (busy) return;
-    if (n <= maxReached) {
-      setError(null);
-      setStep(n);
+    if (n <= maxReached && n !== step) {
+      leaveStepTo(n);
     }
   };
 
@@ -2137,6 +2102,7 @@ export default function InitiationWizard({
           financial={financial}
           gates={gates}
           currentStage={currentStage}
+          persistAllSteps={persistAllSteps}
         />
       );
     }

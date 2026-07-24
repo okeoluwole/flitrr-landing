@@ -106,12 +106,12 @@ export default async function ProgrammeSetupPage({ searchParams }) {
   const [{ data: project }, { data: brief }] = await Promise.all([
     supabase
       .from('projects')
-      .select('id, name, start_date')
+      .select('id, name, start_date, target_completion_date')
       .eq('id', projectParam)
       .maybeSingle(),
     supabase
       .from('project_briefs')
-      .select('id, version, is_locked')
+      .select('id, version, is_locked, content')
       .eq('project_id', projectParam)
       .order('version', { ascending: false })
       .limit(1)
@@ -158,6 +158,10 @@ export default async function ProgrammeSetupPage({ searchParams }) {
   //   - the project's objective rows for the criticality join the assembly bakes;
   //   - the current baseline, if the project already has one, which makes this an
   //     already-locked re-entry rather than a fresh lock.
+  // The locked Brief's content (its programme record set) and the project's
+  // Step 1 target completion were read above: they feed the lock-time
+  // reconciliation check, which compares v1 against the locked record and the
+  // target before any lock is allowed.
   // Reads only: this server component never writes. The lock is a confirmed
   // action in the client, written through the store.
   const [{ choices }, { data: objectives }, { baseline: currentBaseline }] =
@@ -208,6 +212,8 @@ export default async function ProgrammeSetupPage({ searchParams }) {
         projectId={project.id}
         objectives={objectives ?? []}
         sourceBriefId={brief?.id ?? null}
+        briefProgramme={brief?.content?.programme ?? null}
+        targetCompletionDate={project.target_completion_date ?? null}
         userId={user.id}
         lockerName={navUser.full_name ?? null}
         existingBaseline={existingBaseline}

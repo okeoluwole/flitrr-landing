@@ -219,23 +219,16 @@ export function nextCriticalTile(programme, forecast) {
   };
 }
 
-// The latest baseline date across every applicable stage's trackable points,
-// the baseline's own completion. Trackable means keyed, the same point set
-// the forecast engine walks (a keyless point can never carry a forecast), so
-// the variance's two sides always read the same points and an untrackable
-// date can never open a phantom gap. The surface derives the variance, the
-// engines carry the dates.
+// The latest baseline gate date across the applicable stages, the baseline's
+// own completion. Gates only, mirroring the forecast engine's finish: a stage
+// completes at its gate, so the completion gate per the baseline is the last
+// applicable gate, and a milestone (a derived or overhung point sitting past
+// its gate) is never the completion. The variance's two sides therefore read
+// the same rule: gate against gate, never a milestone tail on either side.
 function baselineCompletionEpoch(programme) {
   let latest = null;
   for (const stage of programme?.stages ?? []) {
     if (stage == null || stage.applicable === false) continue;
-    for (const activity of stage.activities ?? []) {
-      for (const milestone of activity?.milestones ?? []) {
-        if (milestone?.key == null) continue;
-        const epoch = softEpoch(milestone.baselineDate);
-        if (epoch != null && (latest == null || epoch > latest)) latest = epoch;
-      }
-    }
     if (stage.gate?.key == null) continue;
     const gateEpoch = softEpoch(stage.gate.baselineDate);
     if (gateEpoch != null && (latest == null || gateEpoch > latest)) {
@@ -248,9 +241,9 @@ function baselineCompletionEpoch(programme) {
 /**
  * The Forecast completion tile: the programme forecast completion from the
  * forecast engine, passed through, with the variance against the baseline's
- * own completion (the latest baseline date across applicable points) derived
- * here in exact weeks. It moves with the actuals because the engine's roll
- * does.
+ * own completion (the latest applicable gate's baseline date, the completion
+ * gate per the baseline) derived here in exact weeks. It moves with the
+ * actuals because the engine's roll does.
  *
  * Returns { date, baselineDate, varianceWeeks }: the forecast Date (or null),
  * the baseline completion as a Date (or null), and the exact signed variance

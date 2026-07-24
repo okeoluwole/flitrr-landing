@@ -17,15 +17,26 @@
  * having run upstream. It locks v1 only and never produces a re-baseline; the
  * re-baseline reason is always null here.
  *
- * THE VISIBILITY FILTER, the load-bearing rule. The review shows the gates and the
- * carried milestones, the ones the developer dated in the Brief, with their
- * baseline dates, stage by stage. The added milestones, the engine's derived
- * drill-down points, are written into v1 as part of the assembled programme but
- * are not shown on this review: the commitment the developer reviews is about the
- * points they decided. The carried-versus-added tag the assembly engine bakes
- * (ITEM_ORIGIN) is what distinguishes them. reviewStages keeps the gates and the
- * carried milestones and drops the added ones; the assembled programme the store
- * freezes is untouched and still carries every point.
+ * FULL DISCLOSURE, the load-bearing rule. The review shows every point v1 will
+ * hold, stage by stage: the gates, the carried milestones (the developer's own
+ * points, dated or honestly undated, so an undated Critical milestone is named
+ * at lock), and the added drill-down milestones the engine placed, each listed
+ * with its basis (the template offset from the stage start, or no date where
+ * the point serves a protected objective). Nothing locks silently. The
+ * carried-versus-added tag the assembly engine bakes (ITEM_ORIGIN) is what
+ * distinguishes the two lists; the assembled programme the store freezes is
+ * untouched and still carries every point.
+ *
+ * THE LOCK GUARD. Locking also runs the reconciliation engine
+ * (lib/engine/programmeReconciliation.js): v1 must match the locked Brief's
+ * record set exactly, or differ only by recorded variances and disclosed
+ * derivations, and v1's completion is compared against the Step 1 target
+ * completion. lockGuard reads the result: any named difference blocks the
+ * lock, and a completion breach blocks it until the developer expressly
+ * accepts it as a recorded decision. finaliseProgrammeForLock then freezes
+ * the reconciliation result, the disclosed derivations and any accepted
+ * breach into the v1 object itself, so the locked record carries its own
+ * proof.
  *
  * THE FLOW PHASES this screen lives in, extending the 1.2 reconcile flow:
  *   - reconcile. The 1.2 step, present only when a date was flagged.
@@ -65,11 +76,12 @@ export function canReturnToReconcile(anyFlagged) {
   return anyFlagged === true;
 }
 
-// Order two dated points by their baseline date, undated points first. Used to
-// read each stage's milestones in chronological order on the review.
+// Order points by their baseline date, undated points last, so a stage reads
+// chronologically and an undated point is plainly visible at the end rather
+// than sorted to the front as a phantom early date.
 function byBaselineDate(a, b) {
-  const ta = a?.baselineDate instanceof Date ? a.baselineDate.getTime() : 0;
-  const tb = b?.baselineDate instanceof Date ? b.baselineDate.getTime() : 0;
+  const ta = a?.baselineDate instanceof Date ? a.baselineDate.getTime() : Infinity;
+  const tb = b?.baselineDate instanceof Date ? b.baselineDate.getTime() : Infinity;
   return ta - tb;
 }
 
@@ -85,15 +97,17 @@ function reviewMilestone(milestone) {
     criticality: milestone.criticality,
     baselineDate: milestone.baselineDate ?? null,
     origin: milestone.origin,
+    offsetWeeks: milestone.offsetWeeks ?? null,
   };
 }
 
 /**
  * The review's stage-by-stage view of the assembled programme: each stage with
- * its carried milestones (the developer's own dated points, sorted by date) and
- * its gate. The added drill-down milestones are filtered out here; they remain in
- * the assembled programme the store freezes. A not-applicable stage carries no
- * dated points and is marked so the screen can render it plainly.
+ * its carried milestones (the developer's own points, dated or undated, sorted
+ * dated first by date), its added drill-down milestones (the engine's, listed
+ * so nothing locks silently), and its gate. Everything in v1 is on this view.
+ * A not-applicable stage carries no dated points and is marked so the screen
+ * can render it plainly.
  *
  * The gate is always kept, dated or not. A gate carries no baked criticality (the
  * assembly engine bakes criticality on milestones only), so the review shows a
@@ -102,14 +116,19 @@ function reviewMilestone(milestone) {
 export function reviewStages(assembled) {
   return (assembled?.stages ?? []).map((stage) => {
     const carried = [];
+    const added = [];
     for (const activity of stage.activities ?? []) {
       for (const milestone of activity.milestones ?? []) {
-        if (milestone && milestone.origin === ITEM_ORIGIN.CARRIED) {
+        if (milestone == null) continue;
+        if (milestone.origin === ITEM_ORIGIN.CARRIED) {
           carried.push(reviewMilestone(milestone));
+        } else if (milestone.origin === ITEM_ORIGIN.ADDED) {
+          added.push(reviewMilestone(milestone));
         }
       }
     }
     carried.sort(byBaselineDate);
+    added.sort(byBaselineDate);
     return {
       stage: stage.stage,
       name: stage.name,
@@ -122,34 +141,32 @@ export function reviewStages(assembled) {
         origin: stage.gate?.origin ?? ITEM_ORIGIN.CARRIED,
       },
       milestones: carried,
+      addedMilestones: added,
     };
   });
 }
 
 /**
- * A small tally for the review footer and tests: the dated gates and the carried
- * milestones shown, and the added drill-down milestones hidden from the review but
- * written into v1. The added count is read straight off the assembled programme,
- * the same object the store freezes, so the footer can state plainly what locks
- * silently.
+ * A small tally for the review footer and tests: the dated gates, the carried
+ * milestones (with how many of them are undated, so the footer can name what
+ * locks without a date), and the added drill-down milestones now listed on the
+ * review. Read off the same object the store freezes.
  */
 export function reviewSummary(assembled) {
   const stages = reviewStages(assembled);
   let gates = 0;
   let carriedMilestones = 0;
+  let undatedCarried = 0;
+  let addedMilestones = 0;
+  let undatedAdded = 0;
   for (const stage of stages) {
     if (stage.gate && stage.gate.baselineDate) gates += 1;
     carriedMilestones += stage.milestones.length;
+    undatedCarried += stage.milestones.filter((m) => m.baselineDate == null).length;
+    addedMilestones += stage.addedMilestones.length;
+    undatedAdded += stage.addedMilestones.filter((m) => m.baselineDate == null).length;
   }
-  let addedMilestones = 0;
-  for (const stage of assembled?.stages ?? []) {
-    for (const activity of stage.activities ?? []) {
-      for (const milestone of activity.milestones ?? []) {
-        if (milestone && milestone.origin === ITEM_ORIGIN.ADDED) addedMilestones += 1;
-      }
-    }
-  }
-  return { gates, carriedMilestones, addedMilestones };
+  return { gates, carriedMilestones, undatedCarried, addedMilestones, undatedAdded };
 }
 
 /**
@@ -202,6 +219,64 @@ export function buildBaselineLockArgs({
     lockedBy: lockedBy ?? null,
     rebaselineReason: null,
   };
+}
+
+/**
+ * The lock guard over the reconciliation result. The lock may proceed only
+ * when the check ran, no named difference stands, and any completion breach
+ * has been expressly accepted. Returns { allowed, reason }: reason is
+ * 'not_checked', 'differences', or 'breach_not_accepted', and null when
+ * allowed.
+ */
+export function lockGuard(reconciliation, breachAccepted = false) {
+  if (reconciliation == null) {
+    return { allowed: false, reason: 'not_checked' };
+  }
+  if (!reconciliation.ok) {
+    return { allowed: false, reason: 'differences' };
+  }
+  if (reconciliation.completion?.breached === true && breachAccepted !== true) {
+    return { allowed: false, reason: 'breach_not_accepted' };
+  }
+  return { allowed: true, reason: null };
+}
+
+/**
+ * The frozen v1 object: the assembled programme plus its own proof. The
+ * reconciliation result (its source, the empty differences that let the lock
+ * proceed, the disclosed derivations and the completion comparison) is baked
+ * into the object the store freezes, and an accepted completion breach rides
+ * with it as the recorded decision. No date is invented and no assembled
+ * point is touched; this only attaches the record of what was checked and
+ * what was decided. The lock timestamp is the row's locked_at, so nothing
+ * here reads a clock.
+ */
+export function finaliseProgrammeForLock(assembled, reconciliation, breachAccepted = false) {
+  if (reconciliation == null) return assembled;
+  const completion = reconciliation.completion ?? {};
+  const finalised = {
+    ...assembled,
+    reconciliation: {
+      source: reconciliation.source ?? null,
+      differences: reconciliation.differences ?? [],
+      derivations: reconciliation.derivations ?? [],
+      completion: {
+        baselineCompletionDate: completion.baselineCompletionDate ?? null,
+        targetCompletionDate: completion.targetCompletionDate ?? null,
+        weeksLate: completion.weeksLate ?? null,
+        breached: completion.breached === true,
+      },
+    },
+  };
+  if (completion.breached === true && breachAccepted === true) {
+    finalised.completionDecision = {
+      accepted: true,
+      baselineCompletionDate: completion.baselineCompletionDate ?? null,
+      targetCompletionDate: completion.targetCompletionDate ?? null,
+      weeksLate: completion.weeksLate ?? null,
+    };
+  }
+  return finalised;
 }
 
 /**

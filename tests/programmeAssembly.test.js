@@ -112,6 +112,11 @@ const mkAct = (key, name, typicalWeeks, milestones) => ({
   withinNormWeeks: withinNormBand(typicalWeeks),
   milestones,
 });
+// The synthetic milestones are tagged drill-down: derivation only ever dates a
+// drill-down point (a headline point the developer left undated stays undated,
+// covered in its own describe below). The objectives here are all flexible so
+// every drill-down is standard and takes its derived date; the critical
+// drill-down staying undated is covered in its own describe too.
 const SYNTH = {
   version: 'synth-1.0.0',
   stages: [
@@ -121,8 +126,8 @@ const SYNTH = {
       gateWeeks: 10,
       activities: [
         mkAct('a0_one', 'Alpha one', 5, [
-          { key: 'a0_m1', name: 'Alpha m1', serves: 'cost', offsetWeeks: 2 },
-          { key: 'a0_m2', name: 'Alpha m2', serves: 'time', offsetWeeks: 8 },
+          { key: 'a0_m1', name: 'Alpha m1', serves: 'cost', offsetWeeks: 2, tier: 'drilldown' },
+          { key: 'a0_m2', name: 'Alpha m2', serves: 'time', offsetWeeks: 8, tier: 'drilldown' },
         ]),
         mkAct('a0_two', 'Alpha two', 5, []),
       ],
@@ -134,8 +139,8 @@ const SYNTH = {
       gateWeeks: 12,
       activities: [
         mkAct('b1_one', 'Beta one', 6, [
-          { key: 'b1_m1', name: 'Beta m1', serves: 'quality', offsetWeeks: 3 },
-          { key: 'b1_m2', name: 'Beta m2', serves: 'funding', offsetWeeks: 10 },
+          { key: 'b1_m1', name: 'Beta m1', serves: 'quality', offsetWeeks: 3, tier: 'drilldown' },
+          { key: 'b1_m2', name: 'Beta m2', serves: 'funding', offsetWeeks: 10, tier: 'drilldown' },
         ]),
         mkAct('b1_two', 'Beta two', 6, []),
       ],
@@ -144,10 +149,10 @@ const SYNTH = {
   ],
 };
 const SYNTH_OBJECTIVES = [
-  { id: 's-cost', objective_type: 'cost', classification: 'non_negotiable' },
+  { id: 's-cost', objective_type: 'cost', classification: 'flexible' },
   { id: 's-time', objective_type: 'time', classification: 'flexible' },
   { id: 's-quality', objective_type: 'quality', classification: 'flexible' },
-  { id: 's-funding', objective_type: 'funding', classification: 'non_negotiable' },
+  { id: 's-funding', objective_type: 'funding', classification: 'flexible' },
 ];
 
 // Run the genuine reconcile pipeline (reality check then resolution set) and
@@ -352,7 +357,7 @@ describe('drill-down placement is by the absolute offset on the agreed skeleton'
   });
 });
 
-describe('a developer-dated headline milestone is authoritative', () => {
+describe('a developer-dated milestone is authoritative', () => {
   it('takes the developer date even where it differs from the start-plus-offset position', () => {
     // a0_m1 has offset 2 but the developer dated it at week 4. With no resolution
     // the developer date stands, not the offset-derived week 2.
@@ -364,6 +369,52 @@ describe('a developer-dated headline milestone is authoritative', () => {
     // Its sibling a0_m2 was not dated, so it is a drill-down at its offset (8).
     expect(weeksFromStart(milestoneOf(prog, 0, 'a0_m2').baselineDate)).toBe(8);
     expect(milestoneOf(prog, 0, 'a0_m2').origin).toBe(ITEM_ORIGIN.ADDED);
+  });
+});
+
+describe('derivation never dates a point the developer governs or a protected point', () => {
+  it('leaves an undated headline milestone undated and carried, named in v1', () => {
+    // Every gate is dated but first_exchange (headline, stage 7) is left blank.
+    // The engine must not invent a date for it: it stays in v1 by name, undated,
+    // tagged carried, its criticality still baked.
+    const spec = { ...ADVISED_SPEC, 7: { gate: w(146) } };
+    const choices = makeChoices(T, spec);
+    const prog = assembleProgramme(START, T, choices, [], OBJECTIVES);
+    const m = milestoneOf(prog, 7, 'first_exchange');
+    expect(m).toBeDefined();
+    expect(m.baselineDate).toBeNull();
+    expect(m.origin).toBe(ITEM_ORIGIN.CARRIED);
+    expect(m.tier).toBe('headline');
+  });
+
+  it('leaves a critical drill-down milestone undated, tagged added', () => {
+    // substructure_complete is a drill-down serving time, non-negotiable here, so
+    // it is critical: no derived date may reach it. It stays undated and added.
+    const choices = makeChoices(T, ADVISED_SPEC);
+    const prog = assembleProgramme(START, T, choices, [], OBJECTIVES);
+    const m = milestoneOf(prog, 5, 'substructure_complete');
+    expect(m).toBeDefined();
+    expect(m.baselineDate).toBeNull();
+    expect(m.origin).toBe(ITEM_ORIGIN.ADDED);
+    expect(m.criticality).toBe('critical');
+    expect(m.tier).toBe('drilldown');
+  });
+
+  it('still dates a critical drill-down from a developer date, carried', () => {
+    // The constraint is on derivation only: a developer (or resolution) date on a
+    // drill-down stands, whatever the criticality.
+    const spec = {
+      ...ADVISED_SPEC,
+      5: {
+        gate: w(120),
+        milestones: { ...ADVISED_SPEC[5].milestones, substructure_complete: w(80) },
+      },
+    };
+    const choices = makeChoices(T, spec);
+    const prog = assembleProgramme(START, T, choices, [], OBJECTIVES);
+    const m = milestoneOf(prog, 5, 'substructure_complete');
+    expect(weeksFromStart(m.baselineDate)).toBe(80);
+    expect(m.origin).toBe(ITEM_ORIGIN.CARRIED);
   });
 });
 
@@ -447,24 +498,23 @@ describe('criticality is baked from the served objective', () => {
 
 describe('the four real drill-down milestones are placed as added on the agreed skeleton', () => {
   // The developer dated every gate and headline milestone at its advised position
-  // (ADVISED_SPEC) and dated no drill-down, so each of the four template drill-down
-  // milestones is placed by its absolute offset from its agreed stage start and
-  // tagged added, with no change to the assembly logic. Stage starts on the
-  // accepted advised gates: stage 1 at week 12, stage 2 at 20, stage 3 at 26,
-  // stage 5 at 68. Objectives here make cost and time non-negotiable, so the only
-  // critical drill-down is substructure_complete (serves time).
+  // (ADVISED_SPEC) and dated no drill-down. Each standard drill-down is placed by
+  // its absolute offset from its agreed stage start and tagged added. Stage starts
+  // on the accepted advised gates: stage 1 at week 12, stage 2 at 20, stage 3 at
+  // 26, stage 5 at 68. Objectives here make cost and time non-negotiable, so
+  // substructure_complete (serves time) is the one critical drill-down, and a
+  // critical drill-down takes no derived date: it stays undated, tagged added.
   //   [stage, key, weeksFromStart, criticality]
-  const CASES = [
+  const DATED_CASES = [
     [1, 'feasibility_confirmed', 15, 'standard'],
     [2, 'consultant_scope_agreed', 24, 'standard'],
     [3, 'developed_design_complete', 34, 'standard'],
-    [5, 'substructure_complete', 80, 'critical'],
   ];
   const choices = makeChoices(T, ADVISED_SPEC);
   const prog = assembleProgramme(START, T, choices, [], OBJECTIVES);
 
-  it('places each drill-down at its agreed stage start plus its offset, tagged added', () => {
-    for (const [stage, key, weeks] of CASES) {
+  it('places each standard drill-down at its agreed stage start plus its offset, tagged added', () => {
+    for (const [stage, key, weeks] of DATED_CASES) {
       const m = milestoneOf(prog, stage, key);
       expect(m).toBeDefined();
       expect(weeksFromStart(m.baselineDate)).toBe(weeks);
@@ -472,16 +522,24 @@ describe('the four real drill-down milestones are placed as added on the agreed 
     }
   });
 
-  it('sits each drill-down exactly its curated offset from its agreed stage start', () => {
-    for (const [stage, key] of CASES) {
+  it('sits each dated drill-down exactly its curated offset from its agreed stage start', () => {
+    for (const [stage, key] of DATED_CASES) {
       const m = milestoneOf(prog, stage, key);
       const start = weeksFromStart(stageOf(prog, stage).stageStart);
       expect(weeksFromStart(m.baselineDate) - start).toBe(m.offsetWeeks);
     }
   });
 
+  it('leaves the critical drill-down undated, tagged added, criticality baked', () => {
+    const m = milestoneOf(prog, 5, 'substructure_complete');
+    expect(m).toBeDefined();
+    expect(m.baselineDate).toBeNull();
+    expect(m.origin).toBe(ITEM_ORIGIN.ADDED);
+    expect(m.criticality).toBe('critical');
+  });
+
   it('bakes each drill-down criticality from the objective it serves', () => {
-    for (const [stage, key, , criticality] of CASES) {
+    for (const [stage, key, , criticality] of DATED_CASES) {
       expect(milestoneOf(prog, stage, key).criticality).toBe(criticality);
     }
   });
@@ -505,16 +563,22 @@ describe('the output is fully resolved', () => {
   const choices = makeChoices(T, ADVISED_SPEC);
   const prog = assembleProgramme(START, T, choices, [], OBJECTIVES);
 
-  it('dates every gate and every milestone on every applicable stage', () => {
+  it('dates every gate, and every milestone except a critical drill-down, on every applicable stage', () => {
     for (const stage of prog.stages) {
       if (!stage.applicable) continue;
       expect(stage.gate.baselineDate).toBeInstanceOf(Date);
       expect(stage.stageStart).toBeInstanceOf(Date);
       for (const a of stage.activities) {
         for (const m of a.milestones) {
-          expect(m.baselineDate).toBeInstanceOf(Date);
-          expect(Number.isNaN(m.baselineDate.getTime())).toBe(false);
+          // The one honest gap: a critical drill-down takes no derived date.
+          if (m.origin === ITEM_ORIGIN.ADDED && m.criticality === 'critical') {
+            expect(m.baselineDate).toBeNull();
+          } else {
+            expect(m.baselineDate).toBeInstanceOf(Date);
+            expect(Number.isNaN(m.baselineDate.getTime())).toBe(false);
+          }
           expect(m.criticality === 'critical' || m.criticality === 'standard').toBe(true);
+          expect(m.tier === 'headline' || m.tier === 'drilldown').toBe(true);
           expect(m.origin === ITEM_ORIGIN.CARRIED || m.origin === ITEM_ORIGIN.ADDED).toBe(true);
         }
       }

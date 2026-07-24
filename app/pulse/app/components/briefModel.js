@@ -18,7 +18,12 @@
  */
 
 import { OBJECTIVE_META, OBJECTIVE_ORDER } from './objectiveMeta';
-import { toNumber, formatCurrency, formatPercent, formatMonthYear } from './briefFormat';
+import {
+  toNumber,
+  formatCurrency,
+  formatPercent,
+  formatDayMonthYear,
+} from './briefFormat';
 import { computeInsights } from './pulseRead';
 import { buildSummaries } from './briefLens';
 import { deriveCriticality, CRITICALITY } from '../../../../lib/engine/criticality.js';
@@ -28,10 +33,16 @@ import { deriveMilestoneView } from '../../../../lib/engine/programmeMilestones.
 // Current snapshot schema. Bump if the model shape changes in a way a locked
 // brief's renderer must branch on. Bumped to 2 in S10: the model now carries
 // the widened sections (scope and site, organisation, the fuller financials,
-// the stage gate dates, and the full RAID). Locked v1 snapshots predate these
-// keys; the renderer drops any section whose data is absent, so they keep
-// rendering unchanged.
-export const BRIEF_SCHEMA_VERSION = 2;
+// the stage gate dates, and the full RAID). Bumped to 3 for the single-source
+// work: gate and milestone dates render day-precise ("23 Jul 2026", never
+// month and year alone), every dated entry carries its raw date alongside the
+// display string, and the model carries a `programme` section, the raw gate
+// and milestone record set the lock snapshots, which the Programme lock
+// reconciles v1 against point for point. Snapshots from earlier versions keep
+// rendering unchanged: the renderer reads display strings as stored, and the
+// reconciliation falls back to the live store for a Brief without the
+// programme section.
+export const BRIEF_SCHEMA_VERSION = 3;
 
 const NAME_BY_TYPE = Object.fromEntries(
   OBJECTIVE_META.map((o) => [o.type, o.name])
@@ -186,6 +197,12 @@ function normalizeFacts({ def, ctx, objectives, rankOrder, lists, gates }) {
     .filter((s) => s.applicable)
     .flatMap((s) =>
       s.milestones.map((m) => ({
+        // The stable key and the stage travel with each milestone so the
+        // snapshot's programme record set (the raw records the Programme lock
+        // reconciles v1 against) can name every point exactly.
+        key: m.key,
+        stage: s.stage,
+        serves: m.serves,
         name: m.name,
         date: t(m.date),
         note: t(m.note),
@@ -338,12 +355,14 @@ function buildExtras({ def, scope, org, stakeholders, financial, lists, gates },
   );
 
   // Stage gate dates (only the gates the developer dated), in stage order.
+  // Day-precise, with the raw date alongside the display string.
   const gateDates = (gates ?? [])
     .filter((g) => t(g.target_date))
     .map((g) => ({
       stage: g.stage,
       stageName: STAGE_NAMES[g.stage] ?? `Stage ${g.stage}`,
-      dateDisplay: formatMonthYear(g.target_date),
+      date: t(g.target_date),
+      dateDisplay: formatDayMonthYear(g.target_date),
     }))
     .sort((a, b) => a.stage - b.stage);
 
@@ -358,7 +377,8 @@ function buildExtras({ def, scope, org, stakeholders, financial, lists, gates },
     .map((m) => ({
       label: t(m.label),
       amount: formatCurrency(m.amount, currency),
-      dateDisplay: formatMonthYear(m.target_date),
+      date: t(m.target_date),
+      dateDisplay: formatDayMonthYear(m.target_date),
       status: m.status ? FM_STATUS_LABELS[m.status] ?? null : null,
     }));
   const financialDetail = {
@@ -400,7 +420,34 @@ function buildExtras({ def, scope, org, stakeholders, financial, lists, gates },
     dependencies: acdList(lists?.dependencies),
   };
 
-  return { scopeSite, organisation, gateDates, financialDetail, raid };
+  // The raw programme record set the lock snapshots: every gate choice (all
+  // eight stages, dated or undated, with the N/A flag) and every headline
+  // milestone the Brief shows, each with its raw date and note. This is the
+  // record set the Programme lock reconciles v1 against point for point, so
+  // the Brief document and v1 are provably assembled from identical records.
+  const programme = {
+    projectStart: t(def?.start_date),
+    targetCompletionDate: t(def?.target_completion_date),
+    gates: [...(gates ?? [])]
+      .filter((g) => g != null && g.stage != null)
+      .sort((a, b) => a.stage - b.stage)
+      .map((g) => ({
+        stage: g.stage,
+        date: t(g.target_date),
+        na: g.target_na === true,
+      })),
+    milestones: facts.milestones.map((m) => ({
+      stage: m.stage,
+      key: m.key,
+      name: m.name,
+      serves: m.serves,
+      date: m.date,
+      note: m.note,
+      critical: m.critical,
+    })),
+  };
+
+  return { scopeSite, organisation, gateDates, financialDetail, raid, programme };
 }
 
 /**
@@ -424,7 +471,7 @@ export function assembleBrief(state) {
     {
       key: 'completion',
       label: 'Target completion',
-      value: formatMonthYear(facts.targetCompletion),
+      value: formatDayMonthYear(facts.targetCompletion),
     },
     { key: 'protected', label: 'Protected objectives', value: `${nn} of 5` },
     { key: 'risks', label: 'Critical risks', value: String(criticalRiskCount) },
@@ -438,10 +485,14 @@ export function assembleBrief(state) {
 
   // Lifecycle (stage) order, as normalizeFacts built them: an undated milestone
   // keeps its place rather than being reordered by date. The developer's note
-  // (from the milestone choices) rides along, so the Brief shows what Step 7 does.
+  // (from the milestone choices) rides along, so the Brief shows what Step 7
+  // does. Day-precise display, with the stable key and the raw date kept on
+  // the snapshot so the rendered document and the raw record set never fork.
   const milestones = facts.milestones.map((m) => ({
+    key: m.key,
     name: m.name,
-    dateDisplay: formatMonthYear(m.date),
+    date: m.date,
+    dateDisplay: formatDayMonthYear(m.date),
     critical: m.critical,
     note: m.note,
   }));
@@ -517,6 +568,9 @@ export function assembleBrief(state) {
     gateDates: extras.gateDates,
     financialDetail: extras.financialDetail,
     raid: extras.raid,
+    // The raw programme record set (S single-source): what the Programme lock
+    // reconciles v1 against. Snapshotted with the rest of the model at lock.
+    programme: extras.programme,
     insights: computeInsights(facts),
     summariesByLens: buildSummaries(facts),
   };

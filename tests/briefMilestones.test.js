@@ -134,7 +134,7 @@ describe('the Brief milestone list is the curated template, not project_mileston
 });
 
 describe("a milestone's chosen date and note flow through to the Brief, by stable key", () => {
-  it('carries the chosen date (as month and year) and the note onto the right milestone', () => {
+  it('carries the chosen date (day-precise) and the note onto the right milestone', () => {
     let gates = emptyGates();
     // Stage 0, heads_of_terms: a date and a note, keyed by the stable key.
     gates[0] = setMilestoneChoice(gates[0], 'heads_of_terms', {
@@ -144,7 +144,7 @@ describe("a milestone's chosen date and note flow through to the Brief, by stabl
     const brief = assembleBrief(stateWith(gates));
 
     const heads = byName(brief, 'Heads of terms agreed');
-    expect(heads.dateDisplay).toBe('Feb 2026');
+    expect(heads.dateDisplay).toBe('10 Feb 2026');
     expect(heads.note).toBe('Subject to survey');
 
     // An untouched milestone carries neither a date nor a note.
@@ -164,7 +164,7 @@ describe("a milestone's chosen date and note flow through to the Brief, by stabl
 
     const finishing = byName(brief, 'Finishing complete');
     const superstructure = byName(brief, 'Superstructure complete');
-    expect(finishing.dateDisplay).toBe('Sep 2027');
+    expect(finishing.dateDisplay).toBe('1 Sep 2027');
     expect(finishing.note).toBe('Snagging window agreed');
     // The other stage 5 milestone is untouched: nothing bled across by position.
     expect(superstructure.dateDisplay).toBeNull();
@@ -191,7 +191,7 @@ describe('ordering is by stage (lifecycle), with undated milestones kept in plac
     expect(brief.milestones[0].dateDisplay).toBeNull();
     const last = brief.milestones[brief.milestones.length - 1];
     expect(last.name).toBe('First unit exchanged');
-    expect(last.dateDisplay).toBe('Jun 2027');
+    expect(last.dateDisplay).toBe('1 Jun 2027');
   });
 
   it('drops a not-applicable stage milestones, keeping the rest in order', () => {

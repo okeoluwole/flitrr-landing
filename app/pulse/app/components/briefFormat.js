@@ -95,6 +95,23 @@ export function formatMonthYear(dateStr) {
 }
 
 /**
+ * Format a stored DATE ('YYYY-MM-DD') as "23 Jul 2026", day-precise. The
+ * Brief's gate and milestone dates render through this, never month and year
+ * alone: a baseline the later modules reconcile against must read to the day.
+ * Parses the parts by hand, like formatMonthYear, so no timezone shift can
+ * move the day. Returns null for a missing or malformed value.
+ */
+export function formatDayMonthYear(dateStr) {
+  if (!dateStr) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr));
+  if (!m) return null;
+  const month = Number(m[2]);
+  const day = Number(m[3]);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  return `${day} ${MONTHS[month - 1]} ${m[1]}`;
+}
+
+/**
  * Join names into a readable list: [] -> "", [a] -> "a", [a,b] -> "a and b",
  * [a,b,c] -> "a, b and c". Used wherever an insight or summary names the
  * actual objectives involved.

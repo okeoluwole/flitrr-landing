@@ -25,9 +25,19 @@ import {
   reviewStages,
   reviewSummary,
   lockEligibility,
+  lockGuard,
+  finaliseProgrammeForLock,
   buildBaselineLockArgs,
   lockSucceeded,
 } from './reviewLockModel';
+import {
+  reconcileBaseline,
+  referenceFromBriefProgramme,
+  referenceFromChoices,
+  describeDifference,
+  formatReconciliationDate,
+  RECONCILIATION_SOURCES,
+} from '../../../../../lib/engine/programmeReconciliation.js';
 import ViewOnlyBadge from '../../components/ViewOnlyBadge';
 import styles from './ProgrammeSetup.module.css';
 
@@ -46,13 +56,24 @@ import styles from './ProgrammeSetup.module.css';
  * the store.
  *
  * The review is read-only: the reality check ran upstream, so no date is edited
- * here. The visibility filter (reviewLockModel.reviewStages) shows the gates and
- * the carried milestones the developer set; the added drill-down milestones lock
- * into v1 silently. The lock is deliberate and confirmed, states what it means,
- * and writes through programmeBaselineStore.writeProgrammeBaseline. This screen
- * locks v1 only: when a current baseline already exists it shows the already-
- * locked state rather than offering a second lock. A failed write surfaces the
- * failure and never claims the programme is locked.
+ * here. It discloses everything v1 will hold (reviewLockModel.reviewStages):
+ * the gates, the carried milestones the developer set (dated or honestly
+ * undated, so an undated Critical milestone is named before the lock), and the
+ * added drill-down milestones with the basis each was placed on. Nothing locks
+ * silently.
+ *
+ * The lock is guarded by the reconciliation engine
+ * (lib/engine/programmeReconciliation.js): v1 must match the locked Brief's
+ * record set exactly, or differ only by recorded variances and disclosed
+ * derivations; any named difference blocks the lock. v1's completion is also
+ * compared against the Step 1 target completion, and a breach blocks the lock
+ * until the developer expressly accepts it as a recorded decision, which is
+ * then frozen into v1 itself. The lock is deliberate and confirmed, states
+ * what it means, and writes through
+ * programmeBaselineStore.writeProgrammeBaseline. This screen locks v1 only:
+ * when a current baseline already exists it shows the already-locked state
+ * rather than offering a second lock. A failed write surfaces the failure and
+ * never claims the programme is locked.
  */
 
 const { ACCEPTED, KEPT, VERIFIED } = RECONCILE_DECISIONS;
@@ -361,10 +382,12 @@ function CheckIcon() {
 
 // One carried milestone row: its marker, name, served objective, agreed date, and
 // its baked criticality. The criticality is read from the assembled snapshot,
-// never derived here.
+// never derived here. An undated point reads "Not dated" plainly: it stays
+// undated in v1 and is named here rather than locking out of sight.
 function MilestoneRow({ milestone }) {
   const servesName = OBJECTIVE_NAME[milestone.serves] ?? null;
   const critical = milestone.criticality === 'critical';
+  const dateLabel = formatDate(milestone.baselineDate);
   return (
     <div className={styles.item}>
       <span className={`${styles.mk} ${styles.mkMs}`} aria-hidden="true" />
@@ -372,8 +395,36 @@ function MilestoneRow({ milestone }) {
       <span className={styles.imeta}>
         {servesName ? `serves ${servesName}` : 'milestone'}
       </span>
-      <span className={`${styles.idate} tnum`}>
-        {formatDate(milestone.baselineDate) ?? ''}
+      <span
+        className={`${styles.idate} tnum ${dateLabel ? '' : styles.idateTbc}`}
+      >
+        {dateLabel ?? 'Not dated'}
+      </span>
+      <span className={critical ? styles.badgeCrit : styles.badgeStd}>
+        {critical ? 'Critical' : 'Standard'}
+      </span>
+    </div>
+  );
+}
+
+// One added drill-down milestone row: a point PULSE placed, listed with the
+// basis it was placed on so no derivation locks undisclosed. A protected point
+// carries no derived date and says so.
+function AddedMilestoneRow({ milestone }) {
+  const critical = milestone.criticality === 'critical';
+  const dateLabel = formatDate(milestone.baselineDate);
+  const basis = dateLabel
+    ? `added by PULSE, stage start plus ${milestone.offsetWeeks} wk`
+    : 'added by PULSE, no date derived (protected)';
+  return (
+    <div className={`${styles.item} ${styles.itemAdded}`}>
+      <span className={`${styles.mk} ${styles.mkMs}`} aria-hidden="true" />
+      <span className={styles.iname}>{milestone.name}</span>
+      <span className={styles.imeta}>{basis}</span>
+      <span
+        className={`${styles.idate} tnum ${dateLabel ? '' : styles.idateTbc}`}
+      >
+        {dateLabel ?? 'Not dated'}
       </span>
       <span className={critical ? styles.badgeCrit : styles.badgeStd}>
         {critical ? 'Critical' : 'Standard'}
@@ -425,6 +476,9 @@ function ReviewStage({ stage }) {
         {stage.milestones.map((m) => (
           <MilestoneRow key={m.key} milestone={m} />
         ))}
+        {(stage.addedMilestones ?? []).map((m) => (
+          <AddedMilestoneRow key={m.key} milestone={m} />
+        ))}
         <GateRow gate={stage.gate} />
       </div>
     </div>
@@ -471,6 +525,8 @@ export default function ProgrammeSetup({
   projectId,
   objectives,
   sourceBriefId,
+  briefProgramme = null,
+  targetCompletionDate = null,
   userId,
   lockerName,
   existingBaseline,
@@ -524,6 +580,27 @@ export default function ProgrammeSetup({
     );
   }, [projectStart, choices, resolutions, objectives]);
 
+  // The lock-time reconciliation: v1 against the locked Brief's record set
+  // (falling back to the live choices for a Brief locked before the record set
+  // existed), plus the completion comparison against the Step 1 target. Pure
+  // and recomputed with the assembly, so a changed reconcile decision re-runs
+  // the check too.
+  const reconciliation = useMemo(() => {
+    if (assembled == null) return null;
+    const reference =
+      referenceFromBriefProgramme(briefProgramme) ?? referenceFromChoices(choices);
+    return reconcileBaseline({
+      assembled,
+      reference,
+      resolutions: resolutions ?? [],
+      targetCompletionDate,
+    });
+  }, [assembled, briefProgramme, choices, resolutions, targetCompletionDate]);
+
+  // The express acceptance of a completion breach: a deliberate tick, never a
+  // default, recorded into v1 at lock.
+  const [breachAccepted, setBreachAccepted] = useState(false);
+
   const setDecision = (key, decision) =>
     setDecisions((prev) => ({
       ...prev,
@@ -543,13 +620,22 @@ export default function ProgrammeSetup({
     setPhase(REVIEW_PHASES.REVIEW);
   };
 
+  // The lock guard: no lock while a named difference stands, and none while a
+  // completion breach sits unaccepted.
+  const guard = lockGuard(reconciliation, breachAccepted);
+
   const handleLock = async () => {
     if (!eligibility.lockable || !assembled || locking) return;
+    if (!guard.allowed) return;
     setLocking(true);
     setLockError(null);
+    // The frozen v1 carries its own proof: the reconciliation result, the
+    // disclosed derivations, and any accepted completion breach as the
+    // recorded decision.
+    const finalised = finaliseProgrammeForLock(assembled, reconciliation, breachAccepted);
     const result = await writeProgrammeBaseline(
       supabase,
-      buildBaselineLockArgs({ assembled, projectId, sourceBriefId, lockedBy: userId })
+      buildBaselineLockArgs({ assembled: finalised, projectId, sourceBriefId, lockedBy: userId })
     );
     // Show the confirmation only when the write succeeds. On a failed write,
     // surface the failure and leave the programme unlocked on the review.
@@ -676,9 +762,11 @@ export default function ProgrammeSetup({
           operational baseline, v1.
         </p>
         <p className={styles.subnote}>
-          This is read-only. Your dates were checked in the previous step. The
-          drill-down milestones the programme adds are included in v1 but are not
-          listed here, so the review stays about the points you set.
+          This is read-only. Your dates were checked in the previous step. Every
+          point v1 will hold is listed here: the points you set, and any
+          drill-down point PULSE adds, each with the basis it was placed on. A
+          point you left undated stays undated; PULSE never dates your points
+          for you.
         </p>
 
         <div className={styles.key}>
@@ -702,14 +790,112 @@ export default function ProgrammeSetup({
           ))}
         </div>
 
+        {reconciliation && (
+          <div
+            className={`${styles.recon} ${
+              reconciliation.ok ? '' : styles.reconBad
+            }`}
+          >
+            {reconciliation.ok ? (
+              <p className={styles.reconLead}>
+                <CheckIcon />
+                v1 matches your locked{' '}
+                {reconciliation.source === RECONCILIATION_SOURCES.BRIEF
+                  ? 'Brief'
+                  : 'programme record'}{' '}
+                point for point
+                {resolutions && resolutions.length > 0
+                  ? `, with ${resolutions.length} recorded ${
+                      resolutions.length === 1 ? 'variance' : 'variances'
+                    } from the reconcile step`
+                  : ''}
+                {reconciliation.derivations.length > 0
+                  ? ` and ${reconciliation.derivations.length} disclosed ${
+                      reconciliation.derivations.length === 1
+                        ? 'derivation'
+                        : 'derivations'
+                    } listed above`
+                  : ''}
+                .
+              </p>
+            ) : (
+              <>
+                <p className={styles.reconLeadBad}>
+                  v1 does not match your locked record. The lock is blocked until
+                  every difference below is resolved.
+                </p>
+                <ul className={styles.reconList}>
+                  {reconciliation.differences.map((diff) => (
+                    <li key={`${diff.kind}:${diff.key}`} className={styles.reconItem}>
+                      {describeDifference(diff)}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            {reconciliation.completion.breached ? (
+              <div className={styles.breach}>
+                <p className={styles.breachText}>
+                  v1 completes on{' '}
+                  {formatReconciliationDate(
+                    reconciliation.completion.baselineCompletionDate
+                  )}
+                  , {Math.round(reconciliation.completion.weeksLate)}{' '}
+                  {Math.round(reconciliation.completion.weeksLate) === 1
+                    ? 'week'
+                    : 'weeks'}{' '}
+                  after your target completion of{' '}
+                  {formatReconciliationDate(
+                    reconciliation.completion.targetCompletionDate
+                  )}
+                  . Locking this is a decision, not a default.
+                </p>
+                <label className={styles.verifyCheck}>
+                  <input
+                    type="checkbox"
+                    className={styles.verifyBox}
+                    checked={breachAccepted}
+                    onChange={(e) => setBreachAccepted(e.target.checked)}
+                  />
+                  <span className={styles.verifyLabel}>
+                    I accept that v1 completes after the target completion. Record
+                    this decision on v1.
+                  </span>
+                </label>
+              </div>
+            ) : reconciliation.completion.targetCompletionDate &&
+              reconciliation.completion.baselineCompletionDate ? (
+              <p className={styles.reconMeta}>
+                v1 completes on{' '}
+                {formatReconciliationDate(
+                  reconciliation.completion.baselineCompletionDate
+                )}
+                , within your target completion of{' '}
+                {formatReconciliationDate(
+                  reconciliation.completion.targetCompletionDate
+                )}
+                .
+              </p>
+            ) : null}
+          </div>
+        )}
+
         <div className={styles.lockBar}>
           <p className={styles.footerSummary}>
             <span className={styles.tnum}>{sum.gates}</span> gates and{' '}
             <span className={styles.tnum}>{sum.carriedMilestones}</span> milestones
             you set
+            {sum.undatedCarried > 0 ? (
+              <>
+                {' '}
+                (<span className={styles.tnum}>{sum.undatedCarried}</span> not
+                dated)
+              </>
+            ) : null}
             {' · '}
             <span className={styles.tnum}>{sum.addedMilestones}</span> drill-down
-            milestones included in v1
+            milestones listed and included in v1
           </p>
 
           {lockError && (
@@ -737,7 +923,7 @@ export default function ProgrammeSetup({
                   type="button"
                   className={styles.proceedBtn}
                   onClick={handleLock}
-                  disabled={locking}
+                  disabled={locking || !guard.allowed}
                 >
                   {locking ? 'Locking…' : 'Confirm and lock v1'}
                 </button>
@@ -757,6 +943,15 @@ export default function ProgrammeSetup({
                   Back to reconcile
                 </button>
               )}
+              {!guard.allowed && (
+                <span className={styles.proceedHint}>
+                  {guard.reason === 'differences'
+                    ? 'Resolve the named differences to lock.'
+                    : guard.reason === 'breach_not_accepted'
+                      ? 'Accept the completion breach above, or revisit your dates, to lock.'
+                      : 'The reconciliation check has not run.'}
+                </span>
+              )}
               <button
                 type="button"
                 className={styles.proceedBtn}
@@ -764,6 +959,7 @@ export default function ProgrammeSetup({
                   setLockError(null);
                   setConfirming(true);
                 }}
+                disabled={!guard.allowed}
               >
                 Lock programme v1
               </button>

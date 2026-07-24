@@ -22,7 +22,10 @@ import styles from './Brief.module.css';
  *
  *   - The live preview is assembled from the wizard's current in-memory
  *     state, so it reflects edits to earlier steps immediately.
- *   - On lock, the assembled model is snapshotted as JSON into
+ *   - On lock, every step is first persisted to the live tables (the
+ *     persistAllSteps flush from the wizard shell), so the snapshot is taken
+ *     of the same record set the database holds; a failed save blocks the
+ *     lock. Then the assembled model is snapshotted as JSON into
  *     project_briefs (version incremented, is_locked true), and the project
  *     moves from draft to active. current_stage is untouched here: advancing
  *     to Stage 2 is the Stage 1 to 2 gate's decision (the gate screen, M5),
@@ -38,6 +41,8 @@ import styles from './Brief.module.css';
 
 const LOCK_ERROR =
   'We could not lock the baseline. Please check your connection and try again, or email hello@flitrr.com.';
+const FLUSH_ERROR =
+  'We could not save your latest edits, so the baseline was not locked. Please check your connection and try again, or email hello@flitrr.com.';
 const STATUS_ERROR =
   'The baseline was locked, but we could not set the project to active. It is safe to lock again, or email hello@flitrr.com.';
 const UNLOCK_ERROR =
@@ -57,6 +62,7 @@ export default function StepGeneratedBrief({
   financial,
   gates,
   currentStage = 1,
+  persistAllSteps = null,
 }) {
   const [lens, setLens] = useState(DEFAULT_LENS);
   const [briefRow, setBriefRow] = useState(null);
@@ -153,6 +159,22 @@ export default function StepGeneratedBrief({
     if (!canLock) return;
     setBusy(true);
     setError(null);
+
+    // The single-source flush: persist every step to the live tables first,
+    // so the snapshot below is taken of exactly the record set the database
+    // holds. Edits made on a revisited step and left unsaved by navigation
+    // would otherwise live only on this screen, and the locked Brief would
+    // fork from the live baseline (the store the Programme assembles v1
+    // from). A failed save blocks the lock: a baseline is never locked ahead
+    // of its own records.
+    if (persistAllSteps) {
+      const flushErr = await persistAllSteps();
+      if (flushErr) {
+        setBusy(false);
+        setError(FLUSH_ERROR);
+        return;
+      }
+    }
 
     // Read the current max version fresh, so a second tab cannot make us
     // reuse a version (the unique constraint would otherwise reject it).

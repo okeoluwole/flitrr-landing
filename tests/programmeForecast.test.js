@@ -401,11 +401,12 @@ describe('the programme forecast completion is the latest across the programme',
     expect(deriveForecast(undefined, {}, w(0)).forecastCompletion).toBeNull();
   });
 
-  it('can be dragged past a met gate by an unmet milestone under it, honestly', () => {
+  it('is never dragged past the last gate by an unmet milestone under it', () => {
     // The gate was passed on time but m1 was never marked met: unmet is unmet,
-    // exactly as the RAG engine still flags it, and it floors to today. The
-    // met gate re-anchors the chain so the phantom never leaks into the next
-    // stage.
+    // exactly as the RAG engine still flags it, and its own forecast floors to
+    // today. But the programme finish reads the gates alone (the completion
+    // gate per the baseline), so the straggling milestone is visible on its
+    // own row and never drives the completion past the met gate.
     const r = deriveForecast(
       twoStages(),
       { gate_0: { met: true, metDate: w(12) }, m2: { met: true, metDate: w(16) }, gate_1: { met: true, metDate: w(20) } },
@@ -414,7 +415,7 @@ describe('the programme forecast completion is the latest across the programme',
     expect(milestoneOf(r, 'm1').forecastDate.getTime()).toBe(w(22).getTime());
     expect(gateOf(r, 0).forecastDate.getTime()).toBe(w(12).getTime());
     expect(stageOf(r, 1).forecastStart.getTime()).toBe(w(12).getTime());
-    expect(r.forecastCompletion.getTime()).toBe(w(22).getTime());
+    expect(r.forecastCompletion.getTime()).toBe(w(20).getTime());
   });
 });
 
@@ -773,6 +774,9 @@ describe('it consumes a real assembled v1 baseline', () => {
       expect(node.gate.forecastDate.getTime()).toBe(stage.gate.baselineDate.getTime());
       for (const activity of stage.activities) {
         for (const m of activity.milestones) {
+          // A baseline-undated point (the critical drill-down that takes no
+          // derived date) has no baseline to reproduce; it is checked below.
+          if (m.baselineDate == null) continue;
           const forecast = node.activities
             .flatMap((a) => a.milestones)
             .find((f) => f.key === m.key);
@@ -781,6 +785,55 @@ describe('it consumes a real assembled v1 baseline', () => {
       }
     }
     expect(r.forecastCompletion.getTime()).toBe(fromStart(146).getTime());
+  });
+
+  it('never lets a baseline-undated point push or drag the chain', () => {
+    // substructure_complete is the critical drill-down the assembly leaves
+    // undated. Unmet, its own forecast floors at the running position or
+    // today, but the dated points around it still reproduce their baselines
+    // on day one: no phantom weeks enter the chain from a point the baseline
+    // never dated.
+    const r = deriveForecast(baseline, {}, START);
+    const s5 = r.stages.find((s) => s.stage === 5);
+    const sub = s5.activities
+      .flatMap((a) => a.milestones)
+      .find((m) => m.key === 'substructure_complete');
+    expect(sub.forecastDate).toBeInstanceOf(Date);
+    const superstructure = s5.activities
+      .flatMap((a) => a.milestones)
+      .find((m) => m.key === 'superstructure');
+    expect(superstructure.forecastDate.getTime()).toBe(fromStart(94).getTime());
+
+    // Met with an actual, it is a fact on its own row and still does not
+    // re-anchor: the spacing after it stays the baseline's own. Everything up
+    // to gate 4 met on its baseline so no other slip muddies the read.
+    const met = {
+      heads_of_terms: { met: true, metDate: iso(6) },
+      gate_0: { met: true, metDate: iso(12) },
+      feasibility_confirmed: { met: true, metDate: iso(15) },
+      finance_committed: { met: true, metDate: iso(18) },
+      gate_1: { met: true, metDate: iso(20) },
+      consultant_scope_agreed: { met: true, metDate: iso(24) },
+      lead_consultant: { met: true, metDate: iso(24) },
+      gate_2: { met: true, metDate: iso(26) },
+      developed_design_complete: { met: true, metDate: iso(34) },
+      planning_validated: { met: true, metDate: iso(40) },
+      gate_3: { met: true, metDate: iso(56) },
+      tenders_returned: { met: true, metDate: iso(64) },
+      gate_4: { met: true, metDate: iso(68) },
+      substructure_complete: { met: true, metDate: iso(82) },
+    };
+    const r2 = deriveForecast(baseline, met, fromStart(84));
+    const sub2 = r2.stages
+      .find((s) => s.stage === 5)
+      .activities.flatMap((a) => a.milestones)
+      .find((m) => m.key === 'substructure_complete');
+    expect(sub2.forecastDate.getTime()).toBe(fromStart(82).getTime());
+    const super2 = r2.stages
+      .find((s) => s.stage === 5)
+      .activities.flatMap((a) => a.milestones)
+      .find((m) => m.key === 'superstructure');
+    expect(super2.forecastDate.getTime()).toBe(fromStart(94).getTime());
   });
 
   it('reproduces day one even where a placed offset lands past a hand-set gate', () => {
@@ -804,6 +857,7 @@ describe('it consumes a real assembled v1 baseline', () => {
       expect(node.gate.forecastDate.getTime()).toBe(stage.gate.baselineDate.getTime());
       for (const activity of stage.activities) {
         for (const m of activity.milestones) {
+          if (m.baselineDate == null) continue;
           const forecast = node.activities
             .flatMap((a) => a.milestones)
             .find((f) => f.key === m.key);
