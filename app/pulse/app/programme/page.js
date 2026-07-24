@@ -5,6 +5,8 @@ import { resolveProjectAccess } from '../../../../lib/team/access';
 import DashboardShell from '../../../components/DashboardShell';
 import { loadCurrentProgrammeBaseline } from '../components/programmeBaselineStore';
 import { loadMetPointsView } from '../components/programmeActualsStore';
+import { deriveStageStates } from '../../../../lib/engine/stageStates.js';
+import { PROGRAMME_TEMPLATE } from '../../../../lib/engine/programmeTemplate.js';
 import { trackingReady } from './trackingModel';
 import ProgrammeTracking from './ProgrammeTracking';
 import styles from './ProgrammeTracking.module.css';
@@ -107,9 +109,12 @@ export default async function ProgrammeTrackingPage({ searchParams }) {
 
   // The project, for its name and the stage position the band's eyebrow
   // carries. RLS scopes it to the viewer's organisation.
+  // country comes along for the stage states: Sales and Disposal runs
+  // concurrent for a Nigeria or off-plan scheme, which is what puts the
+  // stage 7 track on the chart where its dates actually are.
   const { data: project } = await supabase
     .from('projects')
-    .select('id, name, current_stage')
+    .select('id, name, current_stage, country')
     .eq('id', projectParam)
     .maybeSingle();
 
@@ -125,15 +130,22 @@ export default async function ProgrammeTrackingPage({ searchParams }) {
   const workspaceHref = `/pulse/app/workspace?project=${project.id}&view=workspace`;
   const setupHref = `/pulse/app/programme/setup?project=${project.id}`;
 
-  // The two loads this page makes, side by side, plus the viewer's access for
+  // The loads this page makes, side by side, plus the viewer's access for
   // the read-only badge. Reads only: this page never writes.
-  const [{ baseline }, { view }, { canEdit, adminContact }] = await Promise.all(
-    [
+  const [{ baseline }, { view }, { canEdit, adminContact }, { data: budget }] =
+    await Promise.all([
       loadCurrentProgrammeBaseline(supabase, project.id),
       loadMetPointsView(supabase, project.id),
       resolveProjectAccess(supabase),
-    ]
-  );
+      // maybeSingle: a project predating migration 015 has no seeded budget
+      // row, which is not an error. No funding structure simply triggers
+      // nothing.
+      supabase
+        .from('project_budget')
+        .select('funding_structure_type')
+        .eq('project_id', project.id)
+        .maybeSingle(),
+    ]);
 
   // No baseline: point the developer to set-up rather than rendering an
   // empty band. Set-up itself guides further (to the Brief if it is not yet
@@ -154,6 +166,15 @@ export default async function ProgrammeTrackingPage({ searchParams }) {
   // surface derives from the loaded data, this today, and the tolerance.
   const todayIso = new Date().toISOString();
 
+  // The stage states, read off the baseline exactly as set-up and the wizard
+  // read them: Sales and Disposal runs concurrent for an off-plan or Nigeria
+  // scheme, so the chart draws its window from sales launch rather than as a
+  // sliver after handover. Derived, never a manual flag on the chart.
+  const stageStates = deriveStageStates(PROGRAMME_TEMPLATE, {
+    country: project.country,
+    fundingStructureType: budget?.funding_structure_type,
+  });
+
   return (
     <DashboardShell user={navUser}>
       <ProgrammeTracking
@@ -166,6 +187,7 @@ export default async function ProgrammeTrackingPage({ searchParams }) {
         metView={view ?? {}}
         todayIso={todayIso}
         currentStage={project.current_stage}
+        stageStates={stageStates}
         canEdit={canEdit}
         adminContact={adminContact}
       />

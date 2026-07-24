@@ -38,12 +38,14 @@ import {
 } from './overviewModel';
 import {
   VARIANCE_DIRECTIONS,
+  REGISTER_FILTERS,
+  DEFAULT_REGISTER_FILTER,
   scheduleRows,
-  highLevelRows,
+  filterRows,
   registerGroups,
-  timelineLayout,
   varianceText,
 } from './scheduleModel';
+import { programmeChart } from './chartModel';
 import {
   detailFields,
   writeControls,
@@ -57,15 +59,32 @@ import styles from './ProgrammeTracking.module.css';
 /**
  * ProgrammeTracking - the tracking surface shell, its hero band (Programme
  * module Phase 3.5), the Overview tab's content (Phase 3.6), the Schedule
- * tab's content (Phase 3.7), the milestone detail with the mark action
- * (Phase 3.8a), and the fast mark on Next 30 days (Phase 3.8b). The daily
- * face of the module: the pinned summary band with its five co-equal tiles,
- * the status key, the bounded tolerance dial, the Overview tab (the Next
- * Gate card, the Needs attention list, and the Next 30 days lookahead), the
- * Schedule tab (the high-level breakdown and, behind the full-schedule
- * control, the Register and Timeline views of the one programme model), and,
+ * tab's content (Phase 3.7, restructured for Note 17), the milestone detail
+ * with the mark action (Phase 3.8a), and the fast mark on Next 30 days (Phase
+ * 3.8b). The daily face of the module: the pinned summary band with its five
+ * co-equal tiles, the status key, the bounded tolerance dial, the Overview tab
+ * (the Next Gate card, the Needs attention list, and the Next 30 days
+ * lookahead), the Schedule tab (one programme chart and one register), and,
  * opened by tapping a Schedule or Next 30 days row, the point detail, the
  * considered home for the surface's one write.
+ *
+ * THE SCHEDULE TAB (Note 17, findings 3 and 4). One register and one chart,
+ * two readings of the same row set, never two tables of the same columns.
+ *   - The register is grouped by stage and filtered, not duplicated: Critical
+ *     and gates is the governing view (every gate, every critical milestone,
+ *     and anything flagged at the current tolerance), All points is the whole
+ *     locked programme. Criticality is the derived value already on each row,
+ *     read from the objective the point serves, so the toggle chooses a view
+ *     and never classifies anything.
+ *   - The chart is a thin SVG render over the pure chartModel view-model:
+ *     stage bars for the baseline extent, a quarter grid, one today line, gate
+ *     diamonds and milestone circles, and each point paired solid at its
+ *     baseline to open at its current position across a drift bar. It holds no
+ *     arithmetic of its own; every position is a fraction the model computed.
+ *   - Mobile leads with the register, the legible form; the chart follows in a
+ *     scrollable frame. From 1024px the chart takes the lead and the register
+ *     sits beneath it. The register keeps its place in the document either
+ *     way, so the interactive rows stay first in reading and tab order.
  *
  * The page (server) has loaded the frozen v1 programme and the met-points
  * view, read the clock once, and passed everything down as plain data. This
@@ -128,13 +147,24 @@ const TABS = Object.freeze([
   Object.freeze({ key: 'schedule', label: 'Schedule' }),
 ]);
 
-// The two views of the full schedule, one programme model, no duplication.
-// The toggle belongs to the Schedule tab only; the band never shows a
-// timeline.
-const SCHEDULE_VIEWS = Object.freeze([
-  Object.freeze({ key: 'register', label: 'Register' }),
-  Object.freeze({ key: 'timeline', label: 'Timeline' }),
-]);
+/* ── The chart's geometry, in its own coordinate space. The SVG is drawn at
+      these figures and scrolls inside its frame where it does not fit, so
+      nothing is scaled and no text ever shrinks below its set size. Every
+      position along the axis is a fraction the view-model computed; these
+      constants only turn a fraction into a coordinate. ── */
+const CHART = Object.freeze({
+  gutter: 200, // the left column naming each stage, wide enough for the
+  // longest stage name in the template on one line
+  padRight: 22,
+  axis: 34, // the quarter labels and the today mark sit above the tracks
+  row: 52, // one stage track
+  bottom: 10,
+  minWidth: 780,
+  quarterWidth: 94,
+  centre: 32, // the track centreline, from the top of its row
+  barHeight: 12,
+  driftHeight: 3,
+});
 
 // The engine's status bands render in the workspace ladder, never as traffic
 // lights: amber is criticality only, and only the red band (a gate overdue, a
@@ -192,17 +222,6 @@ function formatStamp(value) {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
-    timeZone: 'UTC',
-  });
-}
-
-// A month label for a timeline tick, UTC-pinned for the same reason as
-// formatShort.
-function formatMonthTick(date) {
-  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return null;
-  return date.toLocaleDateString('en-GB', {
-    month: 'short',
-    year: '2-digit',
     timeZone: 'UTC',
   });
 }
@@ -559,206 +578,334 @@ function PointDetail({
   );
 }
 
-// The spoken form of one timeline point, the same facts the Register row
-// carries, so the drawing is never the only carrier of them.
-function timelinePointLabel(point) {
-  const baseline = formatShort(point.baselineDate) ?? 'not dated';
-  const current = formatShort(point.currentDate) ?? 'not dated';
-  const variance = varianceText(point.varianceWeeks);
-  return (
-    `${point.name ?? point.key}: ${point.kind}, ${point.criticality}` +
-    `${point.met ? ', met' : ''}. Baseline ${baseline}, current ${current}` +
-    `${variance ? `, ${variance}` : ''}.`
-  );
-}
+/* ── The programme chart (Note 17, finding 4): one drawing of the locked
+      programme against where it now stands. A left gutter names each stage,
+      a labelled bar carries its baseline extent, a quarter grid and one
+      today line set the time, and every point sits where its dates put it:
+      a gate as a diamond at the stage end, a milestone as a circle, solid at
+      its baseline and open at its current position with the drift between
+      them carrying the slip in weeks. A slipped gate reads through the faint
+      forecast extension on its own stage bar, so no second diamond competes
+      with the first.
 
-// The current marker's state: met is the success green, a flagged point
-// carries its band (the amber bullseye for critical slip, the bright
-// monochrome fill for the watch band), everything else the neutral fill.
-function timelineMarkerState(point) {
-  if (point.met) return styles.tlMkMet;
+      A thin render over the pure chartModel view-model. Every x here is
+      CHART.gutter plus a fraction the model computed; this component holds
+      no date arithmetic, no domain, and no ordering of its own. The SVG is
+      one image to assistive technology, summarised in its label: the
+      register beneath is the accessible reading of the same rows, point by
+      point, so nothing lives in the drawing alone. ── */
+
+// The current marker's tone, the surface's existing status vocabulary: met
+// is the success green, a flagged point carries its band (amber for the
+// critical-slip read, the bright monochrome for the watch band), everything
+// else the neutral secondary ink.
+function chartPointTone(point) {
+  if (point.met) return styles.cxMet;
   if (point.flagged) {
-    return point.flagColour === 'red' ? styles.tlMkCritSlip : styles.tlMkSlip;
+    return point.flagColour === 'red' ? styles.cxCritSlip : styles.cxSlipping;
   }
-  return styles.tlMkStd;
+  return styles.cxNeutral;
 }
 
 // The drift connector's tone, matching the variance column: the band on a
-// flagged point, the success green when ahead, neutral otherwise.
-function timelineDriftTone(point) {
+// flagged point, the success green when ahead, quiet otherwise.
+function chartDriftTone(point) {
   if (point.flagged) {
-    return point.flagColour === 'red'
-      ? styles.tlDriftCritSlip
-      : styles.tlDriftSlip;
+    return point.flagColour === 'red' ? styles.cxCritSlip : styles.cxSlipping;
   }
-  if (point.direction === VARIANCE_DIRECTIONS.AHEAD) {
-    return styles.tlDriftAhead;
-  }
-  return styles.tlDriftStd;
+  if (point.direction === VARIANCE_DIRECTIONS.AHEAD) return styles.cxAhead;
+  return styles.cxQuietTone;
 }
 
-// The Timeline view: the same points laid out on time, stages as lanes, each
-// point drawn twice, an outline at its baseline position and a fill at its
-// current position, with the drift between them plain. Every position is a
-// fraction the pure layout helper computed from the dates alone: no
-// dependencies, no smoothing, no ordering beyond the dates. A point past its
-// gate sits past its gate.
-function TimelinePlot({ layout }) {
-  const pct = (frac) => `${(frac * 100).toFixed(4)}%`;
-  const markerShape = (point) =>
-    point.kind === 'gate' ? styles.tlMkGate : styles.tlMkMs;
-  const markerSize = (point) =>
-    point.criticality === 'critical' ? styles.tlMkCrit : '';
+// One point's two markers, the drift between them, and the slip. A gate
+// draws its diamond at the baseline only: its slip is the stage bar's
+// forecast extension.
+function ChartPoint({ point, x, cy }) {
+  const critical = point.criticality === 'critical';
+  const radius = critical ? 6 : 4.5;
+  const half = 6;
+
+  const marker = (frac, kindClass) => {
+    const cx = x(frac);
+    if (point.kind === 'gate') {
+      return (
+        <rect
+          className={`${styles.cxMk} ${kindClass}`}
+          x={cx - half}
+          y={cy - half}
+          width={half * 2}
+          height={half * 2}
+          rx="1.5"
+          transform={`rotate(45 ${cx} ${cy})`}
+        />
+      );
+    }
+    return (
+      <circle
+        className={`${styles.cxMk} ${kindClass}`}
+        cx={cx}
+        cy={cy}
+        r={radius}
+      />
+    );
+  };
 
   return (
-    <div>
-      <div className={styles.tlFrame}>
-        <div className={styles.tlRow}>
-          <span className={styles.tlLaneLabel} aria-hidden="true" />
-          <div className={`${styles.tlPlot} ${styles.tlAxis}`}>
-            {layout.ticks.map((tick) => (
-              <span
-                key={tick.date.getTime()}
-                className={`${styles.tlTickLabel} tnum`}
-                style={{ left: pct(tick.frac) }}
-              >
-                {formatMonthTick(tick.date)}
-              </span>
-            ))}
-            {layout.todayFrac != null && (
-              <span
-                className={styles.tlTodayLabel}
-                style={{ left: pct(layout.todayFrac) }}
+    <g>
+      <title>{point.label}</title>
+      {point.drift != null && (
+        <rect
+          className={`${styles.cxDrift} ${chartDriftTone(point)}`}
+          x={x(point.drift.fromFrac)}
+          y={cy - CHART.driftHeight / 2}
+          width={Math.max(x(point.drift.toFrac) - x(point.drift.fromFrac), 1)}
+          height={CHART.driftHeight}
+          rx={CHART.driftHeight / 2}
+        />
+      )}
+      {point.baselineFrac != null &&
+        marker(
+          point.baselineFrac,
+          critical ? styles.cxBaseCrit : styles.cxBase
+        )}
+      {point.showCurrent &&
+        marker(
+          point.currentFrac,
+          `${styles.cxCurrent} ${critical ? styles.cxCurrentCrit : ''} ${chartPointTone(point)}`
+        )}
+      {point.drift != null && point.slipLabel != null && (
+        <text
+          className={`${styles.cxSlip} ${chartDriftTone(point)}`}
+          x={(x(point.drift.fromFrac) + x(point.drift.toFrac)) / 2}
+          y={cy - 13}
+          textAnchor="middle"
+        >
+          {point.slipLabel}
+        </text>
+      )}
+    </g>
+  );
+}
+
+function ProgrammeChart({ chart, baselineVersion }) {
+  if (!chart.hasDomain || chart.tracks.length === 0) {
+    return (
+      <p className={styles.cxNote}>
+        The locked programme holds no dated point, so there is nothing to plot.
+        The register below lists every point it does hold.
+      </p>
+    );
+  }
+
+  const width = Math.max(
+    CHART.minWidth,
+    CHART.gutter +
+      CHART.padRight +
+      Math.max(chart.quarters.length, 4) * CHART.quarterWidth
+  );
+  const plot = width - CHART.gutter - CHART.padRight;
+  const height = CHART.axis + chart.tracks.length * CHART.row + CHART.bottom;
+  const x = (frac) => CHART.gutter + frac * plot;
+  const gridTop = CHART.axis - 4;
+  const gridBottom = height - CHART.bottom;
+
+  // The today label is pinned inside the plot so it never overhangs the
+  // frame at either edge of the domain.
+  const todayX = chart.todayFrac == null ? null : x(chart.todayFrac);
+  const todayLabelX =
+    todayX == null
+      ? null
+      : Math.min(
+          Math.max(todayX, CHART.gutter + 22),
+          CHART.gutter + plot - 22
+        );
+
+  const spoken =
+    `Programme chart. ${chart.tracks.length} stages on the locked baseline ` +
+    `v${baselineVersion}, ${formatShort(chart.start)} to ${formatShort(chart.end)}. ` +
+    `Every point is listed with its dates in the register below.`;
+
+  return (
+    <div className={styles.cxFrame}>
+      <div className={styles.cxScroll}>
+        <svg
+          className={styles.cxSvg}
+          width={width}
+          height={height}
+          viewBox={`0 0 ${width} ${height}`}
+          role="img"
+          aria-label={spoken}
+        >
+          <defs>
+            <clipPath id="programme-chart-gutter">
+              <rect x="0" y="0" width={CHART.gutter - 14} height={height} />
+            </clipPath>
+          </defs>
+
+          {/* The quarter grid and its labels. */}
+          {chart.quarters.map((band) => (
+            <g key={`${band.year}-${band.quarter}`}>
+              {band.gridline && (
+                <line
+                  className={styles.cxGrid}
+                  x1={x(band.startFrac)}
+                  y1={gridTop}
+                  x2={x(band.startFrac)}
+                  y2={gridBottom}
+                />
+              )}
+              {band.labelled && (
+                <text
+                  className={styles.cxQuarter}
+                  x={x(band.midFrac)}
+                  y={26}
+                  textAnchor="middle"
+                >
+                  {band.label}
+                </text>
+              )}
+            </g>
+          ))}
+
+          {/* One today line, reference and not signal: ink, never amber. */}
+          {todayX != null && (
+            <g>
+              <line
+                className={styles.cxToday}
+                x1={todayX}
+                y1={gridTop}
+                x2={todayX}
+                y2={gridBottom}
+              />
+              <rect
+                className={styles.cxTodayBg}
+                x={todayLabelX - 21}
+                y="2"
+                width="42"
+                height="13"
+                rx="2"
+              />
+              <text
+                className={styles.cxTodayLabel}
+                x={todayLabelX}
+                y={12}
+                textAnchor="middle"
               >
                 Today
-              </span>
-            )}
-          </div>
-        </div>
-        {layout.lanes.map((lane) => (
-          <div key={lane.stage ?? 'unstaged'} className={styles.tlRow}>
-            <span className={styles.tlLaneLabel}>
-              <b className="tnum">S{lane.stage}</b> {lane.stageName}
-            </span>
-            <div className={styles.tlPlot}>
-              {layout.ticks.map((tick) => (
-                <span
-                  key={tick.date.getTime()}
-                  className={styles.tlGridline}
-                  style={{ left: pct(tick.frac) }}
-                  aria-hidden="true"
-                />
-              ))}
-              {layout.todayFrac != null && (
-                <span
-                  className={styles.tlToday}
-                  style={{ left: pct(layout.todayFrac) }}
-                  aria-hidden="true"
-                />
-              )}
-              {lane.spanStartFrac != null && lane.spanEndFrac != null && (
-                <span
-                  className={styles.tlSpan}
-                  style={{
-                    left: pct(lane.spanStartFrac),
-                    width: pct(
-                      Math.max(lane.spanEndFrac - lane.spanStartFrac, 0)
-                    ),
-                  }}
-                  aria-hidden="true"
-                />
-              )}
-              {lane.points.map((point) => (
-                <span
-                  key={point.key}
-                  role="img"
-                  aria-label={timelinePointLabel(point)}
-                >
-                  {point.baselineFrac != null &&
-                    point.currentFrac != null &&
-                    point.baselineFrac !== point.currentFrac && (
-                      <span
-                        className={`${styles.tlDrift} ${timelineDriftTone(point)}`}
-                        style={{
-                          left: pct(
-                            Math.min(point.baselineFrac, point.currentFrac)
-                          ),
-                          width: pct(
-                            Math.abs(point.currentFrac - point.baselineFrac)
-                          ),
-                        }}
-                        aria-hidden="true"
-                      />
-                    )}
-                  {point.baselineFrac != null && (
-                    <span
-                      className={`${styles.tlMk} ${markerShape(point)} ${markerSize(point)} ${styles.tlMkBase}`}
-                      style={{ left: pct(point.baselineFrac) }}
-                      aria-hidden="true"
-                    />
+              </text>
+            </g>
+          )}
+
+          {chart.tracks.map((track, index) => {
+            const top = CHART.axis + index * CHART.row;
+            const cy = top + CHART.centre;
+            const hasBar = track.startFrac != null && track.endFrac != null;
+            const barX = hasBar ? x(track.startFrac) : null;
+            const barEnd = hasBar ? x(track.endFrac) : null;
+            return (
+              <g key={track.stage ?? `t${index}`}>
+                {index > 0 && (
+                  <line
+                    className={styles.cxRowRule}
+                    x1="0"
+                    y1={top}
+                    x2={width}
+                    y2={top}
+                  />
+                )}
+
+                <g clipPath="url(#programme-chart-gutter)">
+                  <text className={styles.cxStageNum} x="2" y={cy - 3}>
+                    S{track.stage}
+                  </text>
+                  <text className={styles.cxStageName} x="26" y={cy - 3}>
+                    {track.stageName}
+                  </text>
+                  <text className={styles.cxStageMeta} x="2" y={cy + 13}>
+                    {track.extentWeeks != null ? `${track.extentWeeks} wk` : 'not dated'}
+                    {track.concurrent && track.anchorLabel
+                      ? ` · from ${track.anchorLabel}`
+                      : ''}
+                  </text>
+                </g>
+
+                {/* The stage bar: its baseline extent, and where the gate is
+                    forecast later, the faint extension that carries the slip
+                    rather than a second diamond. */}
+                {hasBar && track.forecastEndFrac != null && (
+                  <rect
+                    className={styles.cxExtension}
+                    x={barEnd}
+                    y={cy - CHART.barHeight / 2}
+                    width={Math.max(x(track.forecastEndFrac) - barEnd, 1)}
+                    height={CHART.barHeight}
+                    rx={CHART.barHeight / 2}
+                  />
+                )}
+                {hasBar && (
+                  <rect
+                    className={`${styles.cxBar} ${
+                      track.concurrent ? styles.cxBarConcurrent : ''
+                    }`}
+                    x={barX}
+                    y={cy - CHART.barHeight / 2}
+                    width={Math.max(barEnd - barX, 2)}
+                    height={CHART.barHeight}
+                    rx={CHART.barHeight / 2}
+                  />
+                )}
+                {hasBar &&
+                  track.forecastEndFrac != null &&
+                  track.gateSlipLabel != null && (
+                    <text
+                      className={`${styles.cxSlip} ${styles.cxQuietTone}`}
+                      x={(barEnd + x(track.forecastEndFrac)) / 2}
+                      y={cy - 13}
+                      textAnchor="middle"
+                    >
+                      {track.gateSlipLabel}
+                    </text>
                   )}
-                  {point.currentFrac != null && (
-                    <span
-                      className={`${styles.tlMk} ${markerShape(point)} ${markerSize(point)} ${timelineMarkerState(point)}`}
-                      style={{ left: pct(point.currentFrac) }}
-                      aria-hidden="true"
-                    />
-                  )}
-                </span>
-              ))}
-            </div>
-          </div>
-        ))}
+
+                {track.points.map((point) => (
+                  <ChartPoint key={point.key} point={point} x={x} cy={cy} />
+                ))}
+              </g>
+            );
+          })}
+        </svg>
       </div>
-      <ul className={styles.tlLegend} aria-label="Timeline key">
-        <li className={styles.tlLegendItem}>
-          <span
-            className={`${styles.tlMk} ${styles.tlMkMs} ${styles.tlMkBase} ${styles.tlMkLegend}`}
-            aria-hidden="true"
-          />
+
+      <ul className={styles.cxLegend} aria-label="Chart key">
+        <li className={styles.cxLegendItem}>
+          <span className={`${styles.cxKeyBar}`} aria-hidden="true" />
+          stage, its baseline extent
+        </li>
+        <li className={styles.cxLegendItem}>
+          <span className={styles.cxKeyExt} aria-hidden="true" />
+          forecast extension
+        </li>
+        <li className={styles.cxLegendItem}>
+          <span className={styles.cxKeyBase} aria-hidden="true" />
           baseline position
         </li>
-        <li className={styles.tlLegendItem}>
-          <span
-            className={`${styles.tlMk} ${styles.tlMkMs} ${styles.tlMkStd} ${styles.tlMkLegend}`}
-            aria-hidden="true"
-          />
+        <li className={styles.cxLegendItem}>
+          <span className={styles.cxKeyCurrent} aria-hidden="true" />
           current position
         </li>
-        <li className={styles.tlLegendItem}>
-          <span
-            className={`${styles.tlMk} ${styles.tlMkMs} ${styles.tlMkMet} ${styles.tlMkLegend}`}
-            aria-hidden="true"
-          />
-          met, the actual
+        <li className={styles.cxLegendItem}>
+          <span className={styles.cxKeyCrit} aria-hidden="true" />
+          critical milestone
         </li>
-        <li className={styles.tlLegendItem}>
-          <span
-            className={`${styles.tlMk} ${styles.tlMkMs} ${styles.tlMkSlip} ${styles.tlMkLegend}`}
-            aria-hidden="true"
-          />
-          slipping
+        <li className={styles.cxLegendItem}>
+          <span className={styles.cxKeyGate} aria-hidden="true" />
+          gate
         </li>
-        <li className={styles.tlLegendItem}>
-          <span
-            className={`${styles.tlMk} ${styles.tlMkMs} ${styles.tlMkCritSlip} ${styles.tlMkLegend}`}
-            aria-hidden="true"
-          />
-          critical slip
-        </li>
-        <li className={styles.tlLegendItem}>
-          <span className={styles.tlLegendToday} aria-hidden="true" />
+        <li className={styles.cxLegendItem}>
+          <span className={styles.cxKeyToday} aria-hidden="true" />
           today
         </li>
       </ul>
-      <p className={styles.tlNote}>
-        A diamond is a gate, a circle a milestone; critical points draw
-        larger. Each point sits where its dates put it: the outline at its
-        locked baseline date, the fill at its current date, the line between
-        them the drift. The faint bar is the stage's baseline extent. Nothing
-        here is an invented dependency and nothing is smoothed; later stages
-        sit where the rolling forecast puts them.
-      </p>
     </div>
   );
 }
@@ -773,6 +920,7 @@ export default function ProgrammeTracking({
   metView,
   todayIso,
   currentStage,
+  stageStates = null,
   canEdit = true,
   adminContact = null,
 }) {
@@ -784,11 +932,12 @@ export default function ProgrammeTracking({
   const [activeTab, setActiveTab] = useState(TABS[0].key);
   const tabRefs = useRef({});
 
-  // The Schedule tab's two controls, session-only like the dial: the
-  // full-schedule disclosure (the high-level breakdown shows first, every
-  // visit) and the Register or Timeline view of the full set.
-  const [fullOpen, setFullOpen] = useState(false);
-  const [scheduleView, setScheduleView] = useState(SCHEDULE_VIEWS[0].key);
+  // The register's view, session-only like the dial: it opens on the
+  // governing set every visit, and the toggle chooses a view of the one
+  // register rather than opening a second table.
+  const [registerFilter, setRegisterFilter] = useState(
+    DEFAULT_REGISTER_FILTER
+  );
 
   // The met-points view as state (3.8a): opened on what the page loaded, and
   // replaced after a successful write so the engines re-derive and the
@@ -856,21 +1005,32 @@ export default function ProgrammeTracking({
     [programme, forecast, todayIso]
   );
 
-  // The Schedule tab's faces, derived from the same engine outputs by the
-  // pure schedule model: one row set joining the frozen baseline, the
-  // forecast tree, and the RAG flags (so the dial's re-run restyles the
-  // flagged rows live), the fixed high-level filter over it, the Register's
-  // stage grouping, and the Timeline's positions from the dates alone. No
-  // new load and no second clock read.
+  // The Schedule tab's two readings of one row set, derived from the same
+  // engine outputs by the pure models: the row set joining the frozen
+  // baseline, the forecast tree, and the RAG flags (so the dial's re-run
+  // restyles the flagged rows live), the register's chosen view grouped by
+  // stage, and the chart's geometry from the dates, the stage states, and
+  // the one today the page read. No new load and no second clock read.
   const rows = useMemo(
     () => scheduleRows(programme, forecast, rag),
     [programme, forecast, rag]
   );
-  const highLevel = useMemo(() => highLevelRows(rows), [rows]);
-  const stageGroups = useMemo(() => registerGroups(rows), [rows]);
-  const timeline = useMemo(
-    () => timelineLayout(rows, todayIso),
-    [rows, todayIso]
+  const registerRows = useMemo(
+    () => filterRows(rows, registerFilter),
+    [rows, registerFilter]
+  );
+  const stageGroups = useMemo(
+    () => registerGroups(registerRows),
+    [registerRows]
+  );
+  const chart = useMemo(
+    () =>
+      programmeChart(programme, rows, {
+        today: todayIso,
+        stageStates,
+        forecastCompletion: forecast?.forecastCompletion ?? null,
+      }),
+    [programme, rows, todayIso, stageStates, forecast]
   );
 
   // The open point's detail fields (3.8a): the row the Schedule already built
@@ -999,6 +1159,11 @@ export default function ProgrammeTracking({
 
   const lockedOn = formatStamp(baselineLockedAt);
   const completionVariance = varianceLabel(completion.varianceWeeks);
+
+  // The register's own sentence, stated by the view it is showing, so the
+  // rule the filter applies is never left to be inferred from the rows.
+  const registerFilterNote =
+    REGISTER_FILTERS.find((view) => view.key === registerFilter)?.note ?? '';
 
   // Whether any lookahead row offers the fast mark, for the block's hint
   // line alone: a writer with at least one unmet milestone in the window.
@@ -1514,7 +1679,7 @@ export default function ProgrammeTracking({
         id="panel-schedule"
         aria-labelledby="tab-schedule"
         hidden={activeTab !== 'schedule'}
-        className={styles.panel}
+        className={`${styles.panel} ${styles.schedulePanel}`}
       >
         {rows.length === 0 ? (
           <div className={styles.blockEmpty}>
@@ -1528,130 +1693,135 @@ export default function ProgrammeTracking({
           </div>
         ) : (
           <>
-            {/* ── The high-level breakdown, the default: the fixed governance
-                   filter, the gates always, every critical milestone always,
-                   and anything flagged. ── */}
+            {/* ── The register: one table, grouped by stage, seen either as
+                   the governing set or as every point. The rows are the same
+                   rows the chart draws. ── */}
             <section
-              className={styles.block}
-              aria-labelledby="schedule-highlevel"
+              className={`${styles.block} ${styles.registerBlock}`}
+              aria-labelledby="schedule-register"
             >
               <div className={styles.blockHead}>
-                <h2 id="schedule-highlevel" className={styles.blockTitle}>
-                  High-level breakdown
+                <h2 id="schedule-register" className={styles.blockTitle}>
+                  Schedule register
                 </h2>
                 <span className={`${styles.blockMeta} tnum`}>
-                  {highLevel.length} of {rows.length} points
+                  {registerRows.length} of {rows.length} points
                 </span>
               </div>
-              {highLevel.length === 0 ? (
+              <div
+                className={styles.viewToggle}
+                role="group"
+                aria-label="Register view"
+              >
+                {REGISTER_FILTERS.map((view) => (
+                  <button
+                    key={view.key}
+                    type="button"
+                    className={`${styles.viewBtn} ${
+                      registerFilter === view.key ? styles.viewBtnOn : ''
+                    }`}
+                    aria-pressed={registerFilter === view.key}
+                    onClick={() => setRegisterFilter(view.key)}
+                  >
+                    {view.label}
+                  </button>
+                ))}
+              </div>
+              {registerRows.length === 0 ? (
                 <div className={styles.blockEmpty}>
                   <p className={styles.blockEmptyLead}>
-                    Nothing rises to the breakdown.
+                    Nothing rises to this view.
                   </p>
                   <p className={styles.blockEmptyNote}>
-                    No gate, no critical milestone, and nothing flagged at
-                    this tolerance. The full schedule below holds every point.
+                    No gate, no critical milestone, and nothing flagged at this
+                    tolerance. All points holds the whole programme.
                   </p>
                 </div>
               ) : (
                 <>
                   <div className={styles.pointsTable}>
                     <PointsHeader />
-                    <PointList
-                      rows={highLevel}
-                      table="high"
-                      openPoint={openPoint}
-                      onToggle={togglePoint}
-                      detail={detailPanel}
-                    />
+                    {stageGroups.map((group) => (
+                      <div
+                        key={group.stage ?? 'unstaged'}
+                        className={styles.stageGroup}
+                      >
+                        <h3 className={styles.stageGroupHead}>
+                          <span className={`${styles.stageGroupNum} tnum`}>
+                            Stage {group.stage}
+                          </span>
+                          {group.stageName && (
+                            <span className={styles.stageGroupName}>
+                              {group.stageName}
+                            </span>
+                          )}
+                        </h3>
+                        <PointList
+                          rows={group.rows}
+                          table="register"
+                          openPoint={openPoint}
+                          onToggle={togglePoint}
+                          detail={detailPanel}
+                        />
+                      </div>
+                    ))}
                   </div>
                   <p className={styles.tableNote}>
-                    The fixed filter: the gates always, every critical
-                    milestone always, and anything flagged. Flagged rows carry
-                    the status they contribute and follow the slip tolerance
-                    above. Baseline is the locked v{baselineVersion} date;
-                    Current is the forecast, or the actual once met. Tap a
-                    point to open its detail.
+                    {registerFilterNote}
+                    {registerFilter === DEFAULT_REGISTER_FILTER
+                      ? ' Flagged rows carry the status they contribute and follow the slip tolerance above.'
+                      : ''}{' '}
+                    Baseline is the locked v{baselineVersion} date; Current is
+                    the forecast, or the actual once met. Tap a point to open
+                    its detail.
                   </p>
                 </>
               )}
             </section>
 
-            {/* ── The full schedule, behind its control: every point, as a
-                   register or on a timeline, two views of one model. ── */}
-            <section className={styles.block} aria-labelledby="schedule-full">
+            {/* ── The chart: the same rows on time. It leads from 1024px and
+                   follows beneath the register on a phone, where the register
+                   is the legible form. ── */}
+            <section
+              className={`${styles.block} ${styles.chartBlock}`}
+              aria-labelledby="schedule-chart"
+            >
               <div className={styles.blockHead}>
-                <h2 id="schedule-full" className={styles.blockTitle}>
-                  Full schedule
+                <h2 id="schedule-chart" className={styles.blockTitle}>
+                  Programme chart
                 </h2>
-                <button
-                  type="button"
-                  className={styles.fullToggle}
-                  aria-expanded={fullOpen}
-                  aria-controls="schedule-full-body"
-                  onClick={() => setFullOpen((open) => !open)}
-                >
-                  {fullOpen
-                    ? 'Hide the full schedule'
-                    : `Show all ${rows.length} points`}
-                </button>
+                <span className={styles.blockMeta}>
+                  baseline against current
+                </span>
               </div>
-              {fullOpen && (
-                <div id="schedule-full-body">
-                  <div
-                    className={styles.viewToggle}
-                    role="group"
-                    aria-label="Full schedule view"
-                  >
-                    {SCHEDULE_VIEWS.map((view) => (
-                      <button
-                        key={view.key}
-                        type="button"
-                        className={`${styles.viewBtn} ${
-                          scheduleView === view.key ? styles.viewBtnOn : ''
-                        }`}
-                        aria-pressed={scheduleView === view.key}
-                        onClick={() => setScheduleView(view.key)}
-                      >
-                        {view.label}
-                      </button>
-                    ))}
-                  </div>
-                  {scheduleView === 'register' ? (
-                    <div className={styles.pointsTable}>
-                      <PointsHeader />
-                      {stageGroups.map((group) => (
-                        <div
-                          key={group.stage ?? 'unstaged'}
-                          className={styles.stageGroup}
-                        >
-                          <h3 className={styles.stageGroupHead}>
-                            <span
-                              className={`${styles.stageGroupNum} tnum`}
-                            >
-                              Stage {group.stage}
-                            </span>
-                            {group.stageName && (
-                              <span className={styles.stageGroupName}>
-                                {group.stageName}
-                              </span>
-                            )}
-                          </h3>
-                          <PointList
-                            rows={group.rows}
-                            table="register"
-                            openPoint={openPoint}
-                            onToggle={togglePoint}
-                            detail={detailPanel}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <TimelinePlot layout={timeline} />
-                  )}
-                </div>
-              )}
+              <ProgrammeChart chart={chart} baselineVersion={baselineVersion} />
+              <p className={styles.cxCaption}>
+                Forecast completion{' '}
+                <span className="tnum">
+                  {formatShort(chart.completion.forecastDate) ?? 'not dated'}
+                </span>
+                , target{' '}
+                <span className="tnum">
+                  {formatShort(chart.completion.targetDate) ?? 'not dated'}
+                </span>
+                {chart.completion.varianceLabel == null ? (
+                  '. The variance cannot be stated.'
+                ) : (
+                  <>
+                    {', '}
+                    <span
+                      className={`${
+                        chart.completion.varianceWeeks > 0.5
+                          ? styles.cxCaptionBehind
+                          : ''
+                      } tnum`}
+                    >
+                      {chart.completion.varianceLabel}
+                    </span>
+                    .
+                  </>
+                )}
+              </p>
             </section>
           </>
         )}

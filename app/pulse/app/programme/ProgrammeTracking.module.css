@@ -1,7 +1,8 @@
 /*
  * Programme tracking on the Instrument surface. The summary band is a raised
  * console cluster pinned under the app bar, its five tiles inset display
- * cells; the tabs, tables, and timeline sit as seated panels beneath it.
+ * cells; the tabs, the register, and the programme chart sit as seated
+ * panels beneath it.
  *
  * The status vocabulary, reconciled with the house rule that amber means
  * criticality only: the engine's three bands render as the workspace ladder,
@@ -884,7 +885,6 @@
 
   .tabBtn,
   .panel,
-  .fullToggle,
   .viewBtn {
     scroll-margin-top: 14rem;
   }
@@ -1365,38 +1365,10 @@
   margin-top: 0.6rem;
 }
 
-/* ── The full-schedule disclosure and the Register or Timeline toggle. ── */
+/* ── The register view toggle. ── */
 
-.fullToggle {
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--app-ink);
-  background: transparent;
-  border: 1px solid var(--app-border-strong);
-  border-radius: var(--app-radius-sm);
-  min-height: 44px;
-  margin-block: -0.5rem;
-  padding: 0.4rem 0.85rem;
-  cursor: pointer;
-  transition:
-    border-color var(--dur-fast) var(--ease-out),
-    background-color var(--dur-fast) var(--ease-out);
-  /* Keep the focused control clear of the pinned band, as the tabs do. */
-  scroll-margin-top: 24rem;
-}
-
-.fullToggle:hover {
-  border-color: var(--app-ink);
-  background: var(--app-hover);
-}
-
-.fullToggle:focus-visible {
-  outline: 2px solid var(--app-focus);
-  outline-offset: 2px;
-}
-
-/* The two views of one model: the same sunken well as the tolerance dial. */
+/* The two views of one register: the same sunken well as the tolerance
+   dial. */
 .viewToggle {
   display: inline-flex;
   flex-wrap: wrap;
@@ -1444,231 +1416,303 @@
   font-weight: 600;
 }
 
-/* ── The Timeline: stages as lanes on one shared axis. At phone width each
-      lane label stacks above its full-width track (the honest compact form);
-      from 768px the labels move into a left column beside the tracks. ── */
+/* ── The programme chart (Note 17, finding 4). One SVG drawn at its own
+      figures inside a scrolling frame: nothing is scaled to fit, so no text
+      ever shrinks below its set size and a long programme scrolls instead of
+      compressing. Colour is set here, never in the component, so the chart
+      spends the same tokens as the rest of the instrument: amber is
+      criticality alone (the critical-slip band), the watch band is the
+      bright monochrome, met is the success green, and today is reference
+      ink, never signal. ── */
 
-/* The inline padding leaves room for the half of an edge label (Today, a
-   month tick) that overhangs a position at the very start or end of the
-   domain, the normal state of a freshly locked baseline. */
-.tlFrame {
+.cxFrame {
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-elev-1);
-  padding: 0.7rem 1.25rem 0.4rem;
+  padding: 0.6rem 0.9rem 0.8rem;
 }
 
-.tlRow {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
+.cxScroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
 }
 
-.tlLaneLabel {
+/* The global base caps every svg at max-width 100%, which would scale this
+   one down to fit its frame and shrink the labels with it. The chart is
+   drawn at a fixed, legible size and the frame scrolls instead, so the cap
+   is lifted here and only here. */
+.cxSvg {
+  display: block;
+  max-width: none;
+}
+
+/* The quarter grid and the axis. */
+
+.cxGrid {
+  stroke: var(--app-hairline);
+  stroke-width: 1;
+}
+
+.cxRowRule {
+  stroke: var(--app-hairline);
+  stroke-width: 1;
+}
+
+.cxQuarter {
+  font-family: var(--app-font-mono), monospace;
+  font-size: 10px;
+  font-weight: 500;
+  fill: var(--app-ink-muted);
+}
+
+.cxToday {
+  stroke: var(--app-ink);
+  stroke-width: 2;
+  opacity: 0.5;
+}
+
+.cxTodayBg {
+  fill: var(--app-surface);
+}
+
+.cxTodayLabel {
+  font-family: var(--app-font-mono), monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  fill: var(--app-ink);
+}
+
+/* The left gutter: the stage named, and its extent stated under the name. */
+
+.cxStageNum {
+  font-family: var(--app-font-mono), monospace;
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--app-ink);
+}
+
+.cxStageName {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  fill: var(--app-ink-secondary);
+}
+
+.cxStageMeta {
+  font-family: var(--app-font-mono), monospace;
+  font-size: 10px;
+  font-weight: 500;
+  fill: var(--app-ink-muted);
+}
+
+/* The stage bar, its baseline extent, and the faint forecast extension that
+   carries a slipped gate rather than a second diamond. The bar has to read
+   as a definite band on the panel it sits on, so it takes the raised surface
+   with a full border rather than the sunken well, which is within a hair of
+   the panel itself. */
+
+.cxBar {
+  fill: var(--app-surface-raised);
+  stroke: var(--app-border);
+  stroke-width: 1;
+}
+
+/* A concurrent stage overlaps what it runs beside, so its bar is drawn open
+   rather than seated: the dashes say "alongside", the gutter says from
+   where. */
+.cxBarConcurrent {
+  fill: var(--app-hover);
+  stroke: var(--app-border-strong);
+  stroke-dasharray: 4 3;
+}
+
+/* The forecast extension is tentative, not a second commitment, so it is
+   drawn open where the bar is solid. It stays legible at a one-week slip,
+   which is the whole point of it: a slipped gate has to be visible. */
+.cxExtension {
+  fill: var(--app-hover);
+  stroke: var(--app-border-strong);
+  stroke-width: 1;
+  stroke-dasharray: 3 2;
+}
+
+/* The points. Solid is the locked baseline position, open the current one;
+   size and weight carry criticality. */
+
+.cxMk {
+  stroke-width: 1.5;
+}
+
+.cxBase {
+  fill: var(--app-ink-secondary);
+  stroke: none;
+}
+
+.cxBaseCrit {
+  fill: var(--app-ink);
+  stroke: none;
+}
+
+.cxCurrent {
+  fill: var(--app-surface);
+}
+
+.cxCurrentCrit {
+  stroke-width: 2.25;
+}
+
+.cxDrift {
+  stroke: none;
+}
+
+.cxSlip {
+  font-family: var(--app-font-mono), monospace;
+  font-size: 9.5px;
+  font-weight: 500;
+}
+
+/* The four tones, shared by a marker's stroke, a drift bar's fill, and a
+   slip figure's text. */
+
+.cxMet {
+  stroke: var(--app-success);
+  fill: var(--app-success);
+}
+
+.cxCurrent.cxMet {
+  fill: var(--app-surface);
+}
+
+.cxCritSlip {
+  stroke: var(--app-signal);
+  fill: var(--app-signal);
+}
+
+.cxCurrent.cxCritSlip {
+  fill: var(--app-surface);
+}
+
+text.cxCritSlip {
+  fill: var(--app-signal-ink);
+  stroke: none;
+}
+
+.cxSlipping {
+  stroke: var(--app-ink);
+  fill: var(--app-ink);
+}
+
+.cxCurrent.cxSlipping {
+  fill: var(--app-surface);
+}
+
+.cxAhead {
+  stroke: var(--app-success);
+  fill: var(--app-success);
+}
+
+.cxNeutral {
+  stroke: var(--app-ink-secondary);
+  fill: var(--app-ink-secondary);
+}
+
+.cxCurrent.cxNeutral {
+  fill: var(--app-surface);
+}
+
+.cxQuietTone {
+  stroke: var(--app-border-strong);
+  fill: var(--app-border-strong);
+}
+
+text.cxQuietTone,
+text.cxNeutral {
+  fill: var(--app-ink-muted);
+  stroke: none;
+}
+
+text.cxMet,
+text.cxAhead {
+  fill: var(--app-success);
+  stroke: none;
+}
+
+text.cxSlipping {
+  fill: var(--app-ink);
+  stroke: none;
+}
+
+/* The key, in flow beneath the drawing. */
+
+.cxLegend {
+  list-style: none;
+  margin: 0.7rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 1rem;
+}
+
+.cxLegendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   font-family: var(--app-font-sans), sans-serif;
   font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1.3;
   color: var(--app-ink-secondary);
-  padding: 0.55rem 0 0.2rem;
 }
 
-/* The axis row's label cell is empty; at phone width it would only open a
-   gap above the axis, so it collapses. The desktop grid restores it. */
-.tlLaneLabel:empty {
-  display: none;
-}
-
-.tlLaneLabel b {
-  font-family: var(--app-font-mono), monospace;
-  color: var(--app-ink);
-  font-weight: 600;
-  margin-right: 0.35rem;
-}
-
-.tlPlot {
-  position: relative;
-  height: 2.1rem;
-  border-bottom: 1px solid var(--app-hairline);
-}
-
-.tlRow:last-child .tlPlot {
-  border-bottom: none;
-}
-
-.tlAxis {
-  height: 1.4rem;
-}
-
-.tlTickLabel {
-  position: absolute;
-  top: 0.1rem;
-  transform: translateX(-50%);
-  font-family: var(--app-font-mono), monospace;
-  font-size: 0.625rem;
-  font-weight: 500;
-  color: var(--app-ink-muted);
-  white-space: nowrap;
-}
-
-/* Today is reference, not signal: ink, never amber. */
-.tlTodayLabel {
-  position: absolute;
-  top: 0.1rem;
-  transform: translateX(-50%);
-  font-family: var(--app-font-mono), monospace;
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--app-ink);
-  background: var(--app-surface);
-  padding-inline: 0.2rem;
-  white-space: nowrap;
-  z-index: 3;
-}
-
-.tlGridline {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: var(--app-hairline);
-  z-index: 0;
-}
-
-.tlToday {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--app-ink);
-  opacity: 0.5;
-  z-index: 1;
-}
-
-/* The stage's baseline extent, context under the markers, from real
-   baseline dates only. */
-.tlSpan {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+.cxKeyBar,
+.cxKeyExt {
+  display: inline-block;
+  width: 20px;
   height: 8px;
   border-radius: 4px;
   background: var(--app-surface-sunken);
   border: 1px solid var(--app-hairline);
-  z-index: 0;
-}
-
-/* The drift between a point's baseline and current positions: the honest
-   gap, drawn from the two fractions alone, in the tone of its band. */
-.tlDrift {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 3px;
-  border-radius: 1.5px;
-  z-index: 2;
-}
-
-.tlDriftCritSlip {
-  background: var(--app-signal);
-}
-
-.tlDriftSlip {
-  background: var(--app-ink);
-}
-
-.tlDriftAhead {
-  background: var(--app-success);
-}
-
-.tlDriftStd {
-  background: var(--app-border-strong);
-}
-
-/* The markers: a circle is a milestone, a diamond a gate; the outline sits
-   at the baseline date, the fill at the current date. State keeps the
-   shape-plus-intensity discipline of the status marks: met is the success
-   green, the watch band the bright monochrome fill, critical slip the amber
-   bullseye. */
-.tlMk {
-  position: absolute;
-  top: 50%;
-  width: 11px;
-  height: 11px;
-  transform: translate(-50%, -50%);
-  box-sizing: border-box;
-  z-index: 3;
-}
-
-.tlMkMs {
-  border-radius: 50%;
-}
-
-.tlMkGate {
-  border-radius: 2px;
-  transform: translate(-50%, -50%) rotate(45deg);
-}
-
-.tlMkCrit {
-  width: 14px;
-  height: 14px;
-}
-
-.tlMkBase {
-  background: var(--app-surface);
-  border: 1.5px solid var(--app-ink-secondary);
-  z-index: 2;
-}
-
-.tlMkStd {
-  background: var(--app-ink-secondary);
-}
-
-.tlMkMet {
-  background: var(--app-success);
-}
-
-.tlMkCritSlip {
-  background: radial-gradient(
-    circle at center,
-    var(--app-ground) 0 22%,
-    var(--app-signal) 30% 100%
-  );
-}
-
-.tlMkSlip {
-  background: var(--app-ink);
-}
-
-/* Legend swatches reuse the marker classes in static flow. */
-.tlMkLegend {
-  position: static;
-  transform: none;
-  display: inline-block;
   flex-shrink: 0;
 }
 
-.tlLegend {
-  list-style: none;
-  margin: 0.8rem 0 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1.1rem;
+.cxKeyExt {
+  opacity: 0.55;
 }
 
-.tlLegendItem {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.75rem;
-  color: var(--app-ink-secondary);
+.cxKeyBase,
+.cxKeyCurrent,
+.cxKeyCrit {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--app-ink-secondary);
+  flex-shrink: 0;
 }
 
-.tlLegendToday {
+.cxKeyCurrent {
+  background: var(--app-surface);
+  border: 1.5px solid var(--app-ink-secondary);
+}
+
+.cxKeyCrit {
+  width: 12px;
+  height: 12px;
+  background: var(--app-ink);
+}
+
+.cxKeyGate {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  background: var(--app-ink);
+  transform: rotate(45deg);
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.cxKeyToday {
   display: inline-block;
   width: 2px;
   height: 12px;
@@ -1677,13 +1721,66 @@
   flex-shrink: 0;
 }
 
-.tlNote {
+.cxNote {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   line-height: 1.55;
   color: var(--app-ink-secondary);
-  margin-top: 0.6rem;
   max-width: 70ch;
+}
+
+/* The summary caption: forecast completion against target, stated as a
+   programme fact in the tracker's own variance language. */
+.cxCaption {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--app-ink-secondary);
+  margin-top: 0.7rem;
+  max-width: 70ch;
+}
+
+.cxCaptionBehind {
+  color: var(--app-ink);
+  font-weight: 600;
+}
+
+/* ── The Schedule tab's order. The register leads on a phone, where it is
+      the legible form of the schedule and its rows are the interactive
+      ones; from 1024px the chart takes the lead and the register sits
+      beneath it. The register keeps its place in the document either way,
+      so reading and tab order are unchanged by the flip. ── */
+
+/* :not([hidden]) matters: an author display would otherwise beat the user
+   agent's [hidden] rule and leave the inactive tab panel on screen. */
+.schedulePanel:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  /* The gap replaces the blocks' own bottom margin, so the spacing holds
+     whichever of the two is drawn first. */
+  gap: 1.9rem;
+}
+
+.schedulePanel .block {
+  margin-bottom: 0;
+}
+
+.registerBlock {
+  order: 1;
+}
+
+.chartBlock {
+  order: 2;
+}
+
+@media (min-width: 1024px) {
+  .chartBlock {
+    order: 1;
+  }
+
+  .registerBlock {
+    order: 2;
+  }
 }
 
 /* ── Under 640px: the segmented wells go full width, their choices sharing
@@ -1709,7 +1806,7 @@
 }
 
 /* ── 768px and up: the point rows become one aligned four-column table with
-      its header row, and the timeline labels move beside the tracks. ── */
+      its header row, and the chart frame takes its fuller inset. ── */
 
 @media (min-width: 768px) {
   /* The header's right inset matches the row button's chevron allowance, so
@@ -1778,30 +1875,7 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
-  .tlRow {
-    grid-template-columns: 11rem minmax(0, 1fr);
-    column-gap: 0.9rem;
-  }
-
-  .tlLaneLabel {
-    display: flex;
-    align-items: center;
-    padding: 0;
-  }
-
-  .tlLaneLabel:empty {
-    display: block;
-  }
-
-  .tlLaneLabel b {
-    margin-right: 0.4rem;
-  }
-
-  .tlPlot {
-    height: 2.4rem;
-  }
-
-  .tlAxis {
-    height: 1.4rem;
+  .cxFrame {
+    padding: 0.7rem 1.1rem 0.9rem;
   }
 }
