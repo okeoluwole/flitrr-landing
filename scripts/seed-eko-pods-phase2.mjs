@@ -394,6 +394,7 @@ async function main() {
   const { buildTrackedActionFromRisk } = await L('/app/pulse/app/actions/actionFeed.js');
   const { deriveDashboard } = await L('/app/pulse/app/dashboard/dashboardModel.js');
   const { derivePhase, deriveLanding, SURFACES } = await L('/app/pulse/app/workspace/phaseModel.js');
+  const { deriveGateConfirmed } = await L('/app/pulse/app/workspace/sequenceModel.js');
 
   // ----- Admin client (service key): user lookup / create + session minting -----
   const admin = createClient(url, secret, {
@@ -910,7 +911,18 @@ async function main() {
   const briefLocked = brief.is_locked === true;
   const hasBaseline = currentBaseline != null;
   const phase = derivePhase({ briefLocked, hasBaseline });
-  const landing = deriveLanding({ phase, viewWorkspace: false });
+  // The landing is gate-aware (Note 20): read the project's own passed gate
+  // rows, the same read the workspace makes.
+  const { data: passedGates } = await supabase
+    .from('project_stage_gates')
+    .select('stage')
+    .eq('project_id', projectId)
+    .eq('gate_status', 'passed');
+  const gateConfirmed = deriveGateConfirmed({
+    currentStage: proj.current_stage,
+    passedGateStages: (passedGates ?? []).map((g) => g?.stage),
+  });
+  const landing = deriveLanding({ phase, gateConfirmed, viewWorkspace: false });
 
   const dash = deriveDashboard({
     objectives: objectivesRead,

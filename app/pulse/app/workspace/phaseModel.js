@@ -53,16 +53,29 @@ export const SURFACES = Object.freeze({
 });
 
 /**
- * The landing decision (M9.5): which surface a project opens to. A pure
- * function of the phase, so it is DERIVED ON EVERY REQUEST, never stored. That
- * is the whole point: the moment a lock changes the landing changes with it,
- * with nothing to go stale. Reopen the Brief on a project in Run and the phase
- * drops to Define (an open Brief reads Define, baseline or not), so the same
- * project now lands on the workspace again, for free.
+ * The landing decision (M9.5, gate-aware since Note 20): which surface a
+ * project opens to. A pure function of the phase and the gate decision, so it
+ * is DERIVED ON EVERY REQUEST, never stored. That is the whole point: the
+ * moment a lock changes the landing changes with it, with nothing to go
+ * stale. Reopen the Brief on a project in Run and the phase drops to Define
+ * (an open Brief reads Define, baseline or not), so the same project now
+ * lands on the workspace again, for free.
  *
- *   Define -> workspace  (the project is being defined)
- *   Plan   -> workspace  (the project is being planned)
- *   Run    -> dashboard  (the project is being delivered)
+ *   Define                    -> workspace  (the project is being defined)
+ *   Plan                      -> workspace  (the project is being planned)
+ *   Run, gate not confirmed   -> workspace  (the go decision is still open)
+ *   Run, gate confirmed       -> dashboard  (the project is being delivered)
+ *
+ * THE GATE IS PART OF THE DECISION (Note 20). The dashboard only becomes the
+ * project's home once the Brief is locked, the operational baseline (v1) is
+ * assembled and locked, and the gate out of set-up is confirmed: the same
+ * three conditions that open the monitoring modules (Note 13). Before the
+ * gate, the sequence keeps the modules locked, so landing a project on a
+ * locked dashboard would be a dead end; the workspace, which names the next
+ * step, is the honest landing. gateConfirmed arrives from
+ * deriveGateConfirmed, which reads the project's own passed gate rows against
+ * where it now stands, so the decision stays entry-stage independent: a
+ * project adopted mid-lifecycle (Note 12) reads by the same rule.
  *
  * In Run the workspace does not disappear; it becomes the route to the modules,
  * one tap back from the dashboard. viewWorkspace carries that tap: the dashboard
@@ -72,9 +85,11 @@ export const SURFACES = Object.freeze({
  * bare open, so it is not bounced back, and a developer in Run can always reach
  * the modules.
  */
-export function deriveLanding({ phase, viewWorkspace = false }) {
+export function deriveLanding({ phase, gateConfirmed = false, viewWorkspace = false }) {
   if (viewWorkspace) return SURFACES.WORKSPACE;
-  return phase === PHASES.RUN ? SURFACES.DASHBOARD : SURFACES.WORKSPACE;
+  return phase === PHASES.RUN && gateConfirmed
+    ? SURFACES.DASHBOARD
+    : SURFACES.WORKSPACE;
 }
 
 /*

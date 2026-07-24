@@ -56,49 +56,66 @@ describe('derivePhase: the two locks in, one phase out', () => {
   });
 });
 
-describe('deriveLanding: the phase decides the surface, derived not stored (M9.5)', () => {
-  it('lands Define and Plan on the workspace', () => {
+describe('deriveLanding: phase and gate decide the surface, derived not stored (M9.5, Note 20)', () => {
+  it('lands Define and Plan on the workspace, gate or no gate', () => {
     expect(deriveLanding({ phase: PHASES.DEFINE })).toBe(SURFACES.WORKSPACE);
     expect(deriveLanding({ phase: PHASES.PLAN })).toBe(SURFACES.WORKSPACE);
+    expect(deriveLanding({ phase: PHASES.DEFINE, gateConfirmed: true })).toBe(SURFACES.WORKSPACE);
+    expect(deriveLanding({ phase: PHASES.PLAN, gateConfirmed: true })).toBe(SURFACES.WORKSPACE);
   });
 
-  it('lands Run on the dashboard: the delivery home', () => {
-    expect(deriveLanding({ phase: PHASES.RUN })).toBe(SURFACES.DASHBOARD);
+  it('lands Run with the gate confirmed on the dashboard: the delivery home', () => {
+    expect(deriveLanding({ phase: PHASES.RUN, gateConfirmed: true })).toBe(SURFACES.DASHBOARD);
   });
 
-  it('returns the workspace on the explicit view path, even in Run: the anti-loop', () => {
+  it('keeps Run on the workspace while the gate is unconfirmed (Note 20)', () => {
+    // Baseline locked, gate still open: the sequence keeps the modules locked,
+    // so landing on the dashboard would be a dead end. The workspace, which
+    // names the gate as the next step, is the honest landing.
+    expect(deriveLanding({ phase: PHASES.RUN, gateConfirmed: false })).toBe(SURFACES.WORKSPACE);
+    expect(deriveLanding({ phase: PHASES.RUN })).toBe(SURFACES.WORKSPACE);
+  });
+
+  it('returns the workspace on the explicit view path, even in full delivery: the anti-loop', () => {
     // The dashboard back-link asks for the workspace with viewWorkspace set. In
-    // Run a bare open redirects to the dashboard; this explicit ask must not, or
-    // the pair loops. It returns the workspace in every phase.
-    expect(deriveLanding({ phase: PHASES.RUN, viewWorkspace: true })).toBe(SURFACES.WORKSPACE);
+    // delivery a bare open redirects to the dashboard; this explicit ask must
+    // not, or the pair loops. It returns the workspace in every phase.
+    expect(deriveLanding({ phase: PHASES.RUN, gateConfirmed: true, viewWorkspace: true })).toBe(SURFACES.WORKSPACE);
     expect(deriveLanding({ phase: PHASES.PLAN, viewWorkspace: true })).toBe(SURFACES.WORKSPACE);
     expect(deriveLanding({ phase: PHASES.DEFINE, viewWorkspace: true })).toBe(SURFACES.WORKSPACE);
   });
 
-  it('sends a bare open to the dashboard on Run, and only on Run', () => {
-    // Only Run, and only without the explicit view path, sends a bare open to
-    // the dashboard. Every other phase stays on the workspace, so the redirect
-    // can never fire on a project whose Brief is open (Define) or unbaselined
-    // (Plan).
+  it('sends a bare open to the dashboard only on Run with the gate confirmed', () => {
+    // The three conditions together (Brief locked, baseline locked, gate
+    // confirmed) are the only combination that lands on the dashboard; the
+    // redirect can never fire on a project whose Brief is open (Define),
+    // unbaselined (Plan), or whose go decision is still open.
     for (const phase of Object.values(PHASES)) {
-      const bare = deriveLanding({ phase });
-      expect(bare).toBe(phase === PHASES.RUN ? SURFACES.DASHBOARD : SURFACES.WORKSPACE);
+      for (const gateConfirmed of [false, true]) {
+        const bare = deriveLanding({ phase, gateConfirmed });
+        expect(bare).toBe(
+          phase === PHASES.RUN && gateConfirmed
+            ? SURFACES.DASHBOARD
+            : SURFACES.WORKSPACE
+        );
+      }
     }
   });
 
-  it('reverses for free: reopening the Brief on a Run project lands on the workspace', () => {
+  it('reverses for free: reopening the Brief on a delivering project lands on the workspace', () => {
     // The reversibility (Task 3), composed from the two real functions, not
-    // asserted from memory. A project in Run (both locks) lands on the dashboard.
-    // Reopen the Brief (briefLocked false) with the baseline still present:
-    // derivePhase reads Define, and Define lands on the workspace. The landing
-    // follows the live phase, so the flip reverses with nothing stored.
+    // asserted from memory. A project in full delivery (both locks, gate
+    // confirmed) lands on the dashboard. Reopen the Brief (briefLocked false)
+    // with the baseline still present: derivePhase reads Define, and Define
+    // lands on the workspace. The landing follows the live phase, so the flip
+    // reverses with nothing stored.
     const run = derivePhase({ briefLocked: true, hasBaseline: true });
     expect(run).toBe(PHASES.RUN);
-    expect(deriveLanding({ phase: run })).toBe(SURFACES.DASHBOARD);
+    expect(deriveLanding({ phase: run, gateConfirmed: true })).toBe(SURFACES.DASHBOARD);
 
     const reopened = derivePhase({ briefLocked: false, hasBaseline: true });
     expect(reopened).toBe(PHASES.DEFINE);
-    expect(deriveLanding({ phase: reopened })).toBe(SURFACES.WORKSPACE);
+    expect(deriveLanding({ phase: reopened, gateConfirmed: true })).toBe(SURFACES.WORKSPACE);
   });
 });
 
