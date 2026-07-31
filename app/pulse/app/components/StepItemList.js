@@ -201,10 +201,15 @@ export default function StepItemList({
                   <div className={styles.itemGrid}>
                     {config.fields.map((field) => renderField(field, item))}
 
-                    {/* Shared: link to the objective this item serves. */}
+                    {/* Shared control, per-type label (Note 7). The field is
+                        the same objective link everywhere; the relationship is
+                        not. A workstream serves its objective, a risk threatens
+                        it, and an assumption, constraint or dependency bears on
+                        it, so the label says which. Nothing about what the field
+                        links to, or how criticality derives from it, changes. */}
                     <div className={styles.field}>
                       <label className={styles.label} htmlFor={linkId}>
-                        Serves objective
+                        {config.linkLabel ?? 'Serves objective'}
                         <span className={styles.optional}>(optional)</span>
                       </label>
                       <select

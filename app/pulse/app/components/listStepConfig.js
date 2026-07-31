@@ -87,6 +87,16 @@ export function scopeSuggestions(suggested, entryStage) {
  * `suggested` is the starter set, shown only when the project has no saved
  * rows of this type yet. Each entry is merged onto a blank item, so unlisted
  * fields take their defaults (unlinked, Standard, medium/medium for risks).
+ *
+ * `linkLabel` is the objective link control's own label (Note 7). The control
+ * is shared, the relationship is not: a workstream or a milestone SERVES its
+ * objective, a risk THREATENS the one it is tagged to, and an assumption, a
+ * constraint or a dependency BEARS ON it. One label for all of them said
+ * "Serves objective" on a risk card whose own intro said "Tag each to the
+ * objective it threatens", which is the same field described two ways. This is
+ * the vocabulary the Action Log and the Risk register already speak. Only the
+ * wording differs; what the field links to, and the criticality that derives
+ * from it, are unchanged.
  */
 export const LIST_CONFIG = {
   milestones: {
@@ -98,6 +108,7 @@ export const LIST_CONFIG = {
       'Set the milestones that mark real progress, and link each to the objective it serves. A milestone serving a non-negotiable objective is treated as critical.',
     itemNoun: 'milestone',
     addLabel: 'Add milestone',
+    linkLabel: 'Serves objective',
     requiredField: 'name',
     fields: [
       {
@@ -147,6 +158,7 @@ export const LIST_CONFIG = {
       'Define the workstreams that deliver the project and who leads each, and link a workstream to the objective it serves. A workstream serving a non-negotiable objective is treated as critical.',
     itemNoun: 'workstream',
     addLabel: 'Add workstream',
+    linkLabel: 'Serves objective',
     requiredField: 'name',
     fields: [
       {
@@ -191,6 +203,7 @@ export const LIST_CONFIG = {
       'Capture the risks you can already see. Tag each to the objective it threatens, rate it, and note how you would respond.',
     itemNoun: 'risk',
     addLabel: 'Add risk',
+    linkLabel: 'Threatens objective',
     requiredField: 'description',
     fields: [
       {
@@ -252,6 +265,7 @@ export const LIST_CONFIG = {
       'The assumptions the baseline rests on. Link each to the objective it bears on, so its weight follows from the objective it serves.',
     itemNoun: 'assumption',
     addLabel: 'Add assumption',
+    linkLabel: 'Bears on objective',
     requiredField: 'description',
     fields: [
       {
@@ -282,6 +296,7 @@ export const LIST_CONFIG = {
     intro: 'The fixed constraints the project must respect.',
     itemNoun: 'constraint',
     addLabel: 'Add constraint',
+    linkLabel: 'Bears on objective',
     requiredField: 'description',
     fields: [
       {
@@ -313,6 +328,7 @@ export const LIST_CONFIG = {
     itemNoun: 'dependency',
     nounPlural: 'dependencies',
     addLabel: 'Add dependency',
+    linkLabel: 'Bears on objective',
     requiredField: 'description',
     fields: [
       {

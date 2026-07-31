@@ -5,6 +5,7 @@ import {
   LENS_NOTE,
   showsProjected,
 } from './briefLens';
+import { criticalFlag } from './briefModel';
 import styles from './Brief.module.css';
 
 /**
@@ -217,8 +218,9 @@ function RiskMatrix({ matrix }) {
 
 // One RAID sibling list (assumptions, constraints or dependencies), rendered
 // like the risk list: numbered, with the critical flag and the objective each
-// serves. Absent on a v1 snapshot, so it renders nothing then.
-function AcdList({ title, items }) {
+// bears on. Absent on a v1 snapshot, so it renders nothing then. `kind` names
+// the item type so the critical flag states the relationship in the right verb.
+function AcdList({ title, items, kind }) {
   if (!items || items.length === 0) return null;
   return (
     <div className={styles.subBlock}>
@@ -233,7 +235,7 @@ function AcdList({ title, items }) {
               <span className={styles.rt}>{x.description}</span>
               {x.critical && (
                 <span className={styles.critFlag}>
-                  {x.servesName ? `Critical, vs ${x.servesName}` : 'Critical'}
+                  {criticalFlag(kind, x.servesName)}
                 </span>
               )}
               {x.detail && <div className={styles.rMeta}>{x.detail}</div>}
@@ -280,7 +282,7 @@ function Risk({ model }) {
                     <span className={styles.rt}>{r.description}</span>
                     {r.critical && (
                       <span className={styles.critFlag}>
-                        {r.servesName ? `Critical, vs ${r.servesName}` : 'Critical'}
+                        {criticalFlag('risk', r.servesName)}
                       </span>
                     )}
                     {r.mitigation && (
@@ -298,9 +300,13 @@ function Risk({ model }) {
           </div>
         </div>
       )}
-      <AcdList title="Assumptions" items={raid.assumptions} />
-      <AcdList title="Constraints" items={raid.constraints} />
-      <AcdList title="Dependencies" items={raid.dependencies} />
+      <AcdList title="Assumptions" items={raid.assumptions} kind="assumption" />
+      <AcdList title="Constraints" items={raid.constraints} kind="constraint" />
+      <AcdList
+        title="Dependencies"
+        items={raid.dependencies}
+        kind="dependency"
+      />
     </div>
   );
 }

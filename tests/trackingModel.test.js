@@ -520,9 +520,21 @@ describe('varianceLabel display rounding', () => {
 });
 
 describe('the band position eyebrow', () => {
-  it('names the module and the stage position', () => {
-    expect(bandPosition(3)).toBe('Programme summary, Stage 3 of 8');
-    expect(bandPosition(0)).toBe('Programme summary, Stage 0 of 8');
+  // Note 8: the eyebrow used to say "Stage 3 of 8", a count of eight over a
+  // framework that numbers its stages 0 to 7, naming neither stage.
+  it('names the module and the stage, by number and name', () => {
+    expect(bandPosition(3)).toBe(
+      'Programme summary, Stage 3: Design and Planning Approvals'
+    );
+    expect(bandPosition(0)).toBe(
+      'Programme summary, Stage 0: Land and Site Acquisition'
+    );
+  });
+
+  it('never uses the "of 8" form', () => {
+    for (let stage = 0; stage <= 7; stage += 1) {
+      expect(bandPosition(stage)).not.toContain('of 8');
+    }
   });
 
   it('falls back to the bare module name when the stage is not a number', () => {

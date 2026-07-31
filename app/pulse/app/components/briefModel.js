@@ -29,6 +29,19 @@ import { buildSummaries } from './briefLens';
 import { deriveCriticality, CRITICALITY } from '../../../../lib/engine/criticality.js';
 import { PROGRAMME_TEMPLATE } from '../../../../lib/engine/programmeTemplate.js';
 import { deriveMilestoneView } from '../../../../lib/engine/programmeMilestones.js';
+import {
+  STAGE_NAMES,
+  stageLabel as stageChipLabel,
+} from '../../../../lib/engine/stageNames.js';
+// Party roles read from the one role domain (Note 3), so the Brief's Parties
+// section names the actual discipline (Architect, Quantity Surveyor, Sales
+// Agent) rather than flattening every appointment to "Consultant". A row still
+// holding the retired flat value renders as "Consultant (unspecified)".
+import { roleLabel } from './stakeholderRoles';
+// The objective-relationship vocabulary the Action Log and the Risk register
+// already speak (B3), so the Brief states the same relationships in the same
+// words rather than keeping its own.
+import { objectiveRelation } from '../actions/actionModel';
 
 // Current snapshot schema. Bump if the model shape changes in a way a locked
 // brief's renderer must branch on. Bumped to 2 in S10: the model now carries
@@ -91,15 +104,6 @@ const PLANNING_LABELS_UK = {
   full_consent: 'Full planning permission',
 };
 
-const ROLE_LABELS = {
-  developer: 'Developer',
-  funder: 'Funder',
-  project_manager: 'Project manager',
-  consultant: 'Consultant',
-  contractor: 'Contractor',
-  other: 'Other',
-};
-
 const FUNDING_STRUCTURE_LABELS = {
   senior_debt: 'Senior debt',
   mezzanine: 'Mezzanine',
@@ -115,17 +119,27 @@ const FUNDING_STRUCTURE_LABELS = {
 
 const FM_STATUS_LABELS = { planned: 'Planned', secured: 'Secured', drawn: 'Drawn' };
 
-// Lifecycle stage names (framework Section 4), for the stage gate dates.
-const STAGE_NAMES = {
-  0: 'Land and Site Acquisition',
-  1: 'Project Objectives and Funding',
-  2: 'Consultant Appointment',
-  3: 'Design and Planning Approvals',
-  4: 'Contractor Procurement',
-  5: 'Construction',
-  6: 'Completion and Handover',
-  7: 'Sales and Disposal',
-};
+// The stage the Brief itself belongs to. The Project Brief is Stage 1's own
+// produce (the Flitrr Framework's Stage 1 mandate), so the chip names that
+// stage, not the project's current position, and it holds for a mid-lifecycle
+// adopter too. It reads its stage from exactly where it always did; only the
+// form of the label changed, from "Stage 1 of 8" to the stage's own number and
+// name (Note 8).
+const BRIEF_STAGE = 1;
+
+/**
+ * The critical flag on a risk or a RAID sibling, in the objective-relationship
+ * vocabulary. A risk THREATENS the objective it is linked to; an assumption, a
+ * constraint or a dependency BEARS ON it. The band used to say "Critical, vs
+ * Cost" for all of them, which states that the two are connected without saying
+ * how. The verb comes from the one vocabulary the Action Log and the Risk
+ * register already speak (objectiveRelation), so the Brief cannot drift from
+ * them. An unlinked item has no relationship to state, so it reads plainly.
+ */
+export function criticalFlag(kind, servesName) {
+  if (!servesName) return 'Critical';
+  return `Critical, ${objectiveRelation(kind, servesName)}`;
+}
 
 /**
  * A compact size display from the structured measures (Step 1), falling back
@@ -334,7 +348,7 @@ function buildExtras({ def, scope, org, stakeholders, financial, lists, gates },
     .map((p) => ({
       name: t(p.name),
       organisation: t(p.organisation),
-      role: ROLE_LABELS[p.role] ?? null,
+      role: roleLabel(p.role),
       isAuthority: org?.authority_key ? p._key === org.authority_key : false,
     }));
   const authority = parties.find((p) => p.isAuthority) ?? null;
@@ -520,7 +534,7 @@ export function assembleBrief(state) {
     identity: {
       name: facts.name,
       subtitle,
-      stageLabel: 'Stage 1 of 8',
+      stageLabel: stageChipLabel(BRIEF_STAGE),
     },
     kpis,
     financials: {

@@ -1,3 +1,5 @@
+import { Fragment } from 'react';
+import { roleOptionsFor } from './stakeholderRoles';
 import styles from './InitiationWizard.module.css';
 
 /**
@@ -17,17 +19,6 @@ import styles from './InitiationWizard.module.css';
  * approves a re-baseline (framework Section 3). Every field is optional here;
  * completeness is a Gate 1 to 2 concern.
  */
-
-// stakeholder_role enum values, paired with readable labels. A new party
-// defaults to developer, the one party every project has.
-const ROLE_OPTIONS = [
-  { value: 'developer', label: 'Developer' },
-  { value: 'funder', label: 'Funder' },
-  { value: 'project_manager', label: 'Project manager' },
-  { value: 'consultant', label: 'Consultant' },
-  { value: 'contractor', label: 'Contractor' },
-  { value: 'other', label: 'Other' },
-];
 
 export default function StepOrganisation({
   parties,
@@ -137,17 +128,32 @@ export default function StepOrganisation({
                         <label className={styles.label} htmlFor={`pa-${p._key}-role`}>
                           Role
                         </label>
+                        {/* The role list (Note 3). The principals, then the
+                            consultant disciplines that replaced the single
+                            Consultant option, then Other. A party still holding
+                            the retired flat value keeps it visible under its own
+                            group, so the row reads honestly and opening this
+                            step never silently reassigns it. */}
                         <select
                           id={`pa-${p._key}-role`}
                           className={styles.select}
                           value={p.role}
                           onChange={(e) => onPartyField(p._key, 'role', e.target.value)}
                         >
-                          {ROLE_OPTIONS.map((o) => (
-                            <option key={o.value} value={o.value}>
-                              {o.label}
-                            </option>
-                          ))}
+                          {roleOptionsFor(p.role).map((group, gi) => {
+                            const options = group.options.map((o) => (
+                              <option key={o.value} value={o.value}>
+                                {o.label}
+                              </option>
+                            ));
+                            return group.label ? (
+                              <optgroup key={`g${gi}`} label={group.label}>
+                                {options}
+                              </optgroup>
+                            ) : (
+                              <Fragment key={`g${gi}`}>{options}</Fragment>
+                            );
+                          })}
                         </select>
                       </div>
 

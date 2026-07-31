@@ -22,6 +22,8 @@
  * tolerance is session-only); no marking a milestone met (a later sub-step).
  */
 
+import { stageLabel } from '../../../../lib/engine/stageNames.js';
+
 // One week in milliseconds, whole seven-day spans, the same convention as the
 // engines this model reads (programmeRAG.js, programmeForecast.js).
 const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
@@ -284,13 +286,16 @@ export function varianceLabel(varianceWeeks) {
 }
 
 /**
- * The band's eyebrow: the module name and the stage position, in the
- * specification's own form, 'Programme summary, Stage 3 of 8'. Falls back to
- * the bare module name when the stage is not a number.
+ * The band's eyebrow: the module name and the stage position, as 'Programme
+ * summary, Stage 3: Design and Planning Approvals'. It used to read 'Stage 3 of
+ * 8', which asks the reader to reconcile a count of eight with a framework that
+ * numbers its stages 0 to 7, and names nothing (Note 8). Falls back to the bare
+ * module name when the stage is not a number. It reads its stage from exactly
+ * where it always did.
  */
 export function bandPosition(currentStage) {
   if (typeof currentStage === 'number' && Number.isInteger(currentStage)) {
-    return `Programme summary, Stage ${currentStage} of 8`;
+    return `Programme summary, ${stageLabel(currentStage)}`;
   }
   return 'Programme summary';
 }

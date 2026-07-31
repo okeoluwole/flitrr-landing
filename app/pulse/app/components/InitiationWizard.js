@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { createClient } from '../../../../lib/supabase/client';
 import StepProjectDefinition from './StepProjectDefinition';
 import StepStrategicContext from './StepStrategicContext';
@@ -29,6 +30,15 @@ import {
 } from './programmeChoices';
 import { PROGRAMME_TEMPLATE } from '../../../../lib/engine/programmeTemplate.js';
 import { deriveStageStates } from '../../../../lib/engine/stageStates.js';
+import { STAGE_NAMES } from '../../../../lib/engine/stageNames.js';
+import {
+  ACTION_LABELS,
+  PROJECTS_HREF,
+  STEP_ACTION,
+  hasAction,
+  saveAndExit,
+} from './stepActions';
+import { DEFAULT_ROLE } from './stakeholderRoles';
 import styles from './InitiationWizard.module.css';
 
 /**
@@ -149,18 +159,6 @@ const EMPTY_ORG = {
 
 const SAVE_ERROR =
   'We could not save this step. Please check your connection and try again, or email hello@flitrr.com.';
-
-// Lifecycle stage names (framework Section 4), for the header stage indicator.
-const STAGE_NAMES = {
-  0: 'Land and Site Acquisition',
-  1: 'Project Objectives and Funding',
-  2: 'Consultant Appointment',
-  3: 'Design and Planning Approvals',
-  4: 'Contractor Procurement',
-  5: 'Construction',
-  6: 'Completion and Handover',
-  7: 'Sales and Disposal',
-};
 
 // Short date for the gate decision note, e.g. "5 Jun 2026". Pinned to UTC so
 // the recorded day reads the same for every viewer and matches the gate screen.
@@ -436,6 +434,8 @@ export default function InitiationWizard({
   hasBaseline = false,
 }) {
   const supabase = createClient();
+  // Save & Exit routes here once its save lands.
+  const router = useRouter();
 
   // Current lifecycle stage for this project. The Stage 1 to 2 gate (a
   // separate screen) is what advances it; within the wizard it does not
@@ -481,6 +481,12 @@ export default function InitiationWizard({
   const [def, setDef] = useState(() => defFrom(initialProject));
   const [ctx, setCtx] = useState(() => ctxFrom(initialProject));
   const [busy, setBusy] = useState(false);
+  // Which action is mid-save, so only the button that was pressed reads
+  // "Saving…". With two Save buttons side by side, a shared busy flag would put
+  // that word on whichever one happened to render it, which is precisely the
+  // ambiguity about what was saved that Note 1 exists to remove. Null for a save
+  // triggered by Back or a progress dot, which have no label to change.
+  const [pendingAction, setPendingAction] = useState(null);
   const [error, setError] = useState(null);
 
   // Step 3 / 4 state. The five objective rows are loaded client-side once
@@ -619,7 +625,7 @@ export default function InitiationWizard({
   const onPartyAdd = () => {
     setStakeholders((prev) => [
       ...prev,
-      { _key: makeKey(), id: null, name: '', organisation: '', role: 'developer', contact: '' },
+      { _key: makeKey(), id: null, name: '', organisation: '', role: DEFAULT_ROLE, contact: '' },
     ]);
     if (error) setError(null);
   };
@@ -838,7 +844,7 @@ export default function InitiationWizard({
       id: row.id,
       name: row.name ?? '',
       organisation: row.organisation ?? '',
-      role: row.role ?? 'developer',
+      role: row.role ?? DEFAULT_ROLE,
       contact: row.contact ?? '',
     }));
     setStakeholders(items);
@@ -1020,8 +1026,8 @@ export default function InitiationWizard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, objStatus]);
 
-  // On step change, return to the top of the page. Advancing from the Next
-  // button at the foot of a long step would otherwise leave the next step
+  // On step change, return to the top of the page. Advancing from Save &
+  // Continue at the foot of a long step would otherwise leave the next step
   // scrolled to its base.
   useEffect(() => {
     if (typeof window !== 'undefined') window.scrollTo(0, 0);
@@ -1593,8 +1599,9 @@ export default function InitiationWizard({
   };
 
   // Persist one step's data through its own persistence path. The single
-  // dispatch every navigation shares (Next, Back, the progress dots, and the
-  // lock's flush), so the live baseline always holds what the screen holds:
+  // dispatch every navigation shares (Save & Continue, Save & Exit, Back, the
+  // progress dots, and the lock's flush), so the live baseline always holds what
+  // the screen holds:
   //   1  the project definition            5  organisation + workstreams
   //   2  the strategic context             6  the financial baseline
   //   3  objectives + the priority ranking 7  the programme choices
@@ -1642,20 +1649,25 @@ export default function InitiationWizard({
     return null;
   };
 
-  const handleNext = async () => {
+  // Save & Continue: persist this step, then advance. The persistence is the
+  // one that already ran on every navigation (A0); the label now says so, which
+  // is the whole of Note 1's change here. There is no second save path.
+  const handleSaveContinue = async () => {
     setError(null);
 
     if (step === 1 && !nameValid) {
       setError('Please give the project a name to continue.');
       return;
     }
-    // Step 9 (the brief) is the last step and has no Next; its button is
-    // disabled, so there is nothing to handle there.
+    // Step 9 (the brief) is the last step: the continue slot belongs to the
+    // Brief's own generate-and-lock action, so the bar never offers this there.
     if (step >= TOTAL_STEPS) return;
 
     setBusy(true);
+    setPendingAction(STEP_ACTION.SAVE_CONTINUE);
     const err = await persistForStep(step);
     setBusy(false);
+    setPendingAction(null);
     if (err) {
       setError(SAVE_ERROR);
       return;
@@ -1663,12 +1675,41 @@ export default function InitiationWizard({
     advanceTo(step + 1);
   };
 
-  // Leaving a step persists it, whichever way the developer leaves: Next
-  // (above), Back, or a progress dot. Without this, an edit made on a
-  // revisited step would live only on screen, and a later lock would snapshot
-  // state the live tables never received, the exact divergence the
-  // single-source rule forbids. A failed save keeps the developer on the step
-  // with the error shown rather than silently abandoning the edit.
+  // Save & Exit: persist this step, then leave for the projects list. The same
+  // persistence Save & Continue uses, so the two actions are honest about
+  // saving in exactly the same way; only where they land differs. A failed save
+  // keeps the developer here with the error shown rather than routing away from
+  // work that was never written.
+  const handleSaveExit = async () => {
+    if (busy) return;
+    setError(null);
+
+    setBusy(true);
+    setPendingAction(STEP_ACTION.SAVE_EXIT);
+    const { saved } = await saveAndExit({
+      // Step 1 with no valid name has nothing worth saving, the same rule
+      // leaveStepTo applies: an unnamed project is never written on the way
+      // past. Every other case goes through the step's own persistence.
+      persist: () =>
+        step === 1 && !nameValid ? null : persistForStep(step),
+      exit: () => router.push(PROJECTS_HREF),
+    });
+    if (!saved) {
+      setBusy(false);
+      setPendingAction(null);
+      setError(SAVE_ERROR);
+      return;
+    }
+    // Busy stays set through the route change, so the bar cannot be pressed
+    // again while the navigation is in flight.
+  };
+
+  // Leaving a step persists it, whichever way the developer leaves: Save &
+  // Continue and Save & Exit (above), Back, or a progress dot. Without this, an
+  // edit made on a revisited step would live only on screen, and a later lock
+  // would snapshot state the live tables never received, the exact divergence
+  // the single-source rule forbids. A failed save keeps the developer on the
+  // step with the error shown rather than silently abandoning the edit.
   const leaveStepTo = async (n) => {
     if (busy) return;
     setError(null);
@@ -2084,7 +2125,9 @@ export default function InitiationWizard({
     return null;
   };
 
-  const nextDisabled =
+  // Save & Continue waits on the step's own data being in hand, so it never
+  // advances past a step whose records have not loaded and would save empty.
+  const continueDisabled =
     busy ||
     step === TOTAL_STEPS ||
     (step === 1 && !nameValid) ||
@@ -2198,6 +2241,13 @@ export default function InitiationWizard({
         )}
       </div>
 
+      {/* The action bar (Note 1). Back on the left; Save & Exit then Save &
+          Continue on the right, with Save & Continue primary. Both forward
+          labels carry the Save prefix because both actions persist through the
+          one path every navigation already uses; a bare Next read as unsaved and
+          sent developers out through the exit control to be sure. On the final
+          step the continue slot belongs to the Brief's own generate-and-lock
+          action in the panel, so the bar carries Back and Save & Exit only. */}
       <div className={styles.footer}>
         <button
           type="button"
@@ -2215,47 +2265,44 @@ export default function InitiationWizard({
               strokeLinejoin="round"
             />
           </svg>
-          Back
+          {ACTION_LABELS[STEP_ACTION.BACK]}
         </button>
-        {step === TOTAL_STEPS ? (
-          // Terminal step: there is nothing after the brief. The lock and
-          // unlock controls in the panel are the primary actions here, so
-          // offer a way back to the project list rather than a dead Next.
-          <Link href="/pulse/app" className={styles.returnLink}>
-            Return to projects
-            <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-              <path
-                d="M5 3l4 4-4 4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </Link>
-        ) : (
+        <div className={styles.footerActions}>
           <button
             type="button"
-            className={styles.btnNext}
-            onClick={handleNext}
-            disabled={nextDisabled}
+            className={styles.btnExit}
+            onClick={handleSaveExit}
+            disabled={busy}
           >
-            {busy ? 'Saving…' : 'Next'}
-            {!busy && (
-              <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-                <path
-                  d="M5 3l4 4-4 4"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.75"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            )}
+            {pendingAction === STEP_ACTION.SAVE_EXIT
+              ? 'Saving…'
+              : ACTION_LABELS[STEP_ACTION.SAVE_EXIT]}
           </button>
-        )}
+          {hasAction(step, TOTAL_STEPS, STEP_ACTION.SAVE_CONTINUE) && (
+            <button
+              type="button"
+              className={styles.btnNext}
+              onClick={handleSaveContinue}
+              disabled={continueDisabled}
+            >
+              {pendingAction === STEP_ACTION.SAVE_CONTINUE
+                ? 'Saving…'
+                : ACTION_LABELS[STEP_ACTION.SAVE_CONTINUE]}
+              {pendingAction !== STEP_ACTION.SAVE_CONTINUE && (
+                <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+                  <path
+                    d="M5 3l4 4-4 4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
+            </button>
+          )}
+        </div>
         </div>
         </div>
       </div>
