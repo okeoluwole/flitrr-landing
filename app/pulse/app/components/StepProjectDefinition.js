@@ -38,6 +38,23 @@ const COUNTRY_OPTIONS = [
   { value: 'other', label: 'Other' },
 ];
 
+// The eight lifecycle stages, for the project status picker (Note 12,
+// mid-project adoption). The framework's own stage names, never invented.
+// Stage 1 is the from-scratch entry stage: a project set up from the start
+// declares it and behaves exactly as before the field existed. Declaring a
+// later stage records that everything before it was completed prior to
+// adopting PULSE.
+const ENTRY_STAGE_OPTIONS = [
+  { value: '0', label: 'Stage 0: Land and Site Acquisition' },
+  { value: '1', label: 'Stage 1: Project Objectives and Funding' },
+  { value: '2', label: 'Stage 2: Consultant Appointment' },
+  { value: '3', label: 'Stage 3: Design and Planning Approvals' },
+  { value: '4', label: 'Stage 4: Contractor Procurement' },
+  { value: '5', label: 'Stage 5: Construction' },
+  { value: '6', label: 'Stage 6: Completion and Handover' },
+  { value: '7', label: 'Stage 7: Sales and Disposal' },
+];
+
 export default function StepProjectDefinition({ values, onChange }) {
   const set = (field) => (e) => onChange(field, e.target.value);
 
@@ -153,6 +170,30 @@ export default function StepProjectDefinition({ values, onChange }) {
           </select>
           <p id="pd-country-hint" className={styles.hint}>
             The jurisdiction the project is governed in.
+          </p>
+        </div>
+
+        <div className={`${styles.field} ${styles.fieldFull}`}>
+          <label className={styles.label} htmlFor="pd-entry-stage">
+            Project status
+          </label>
+          <select
+            id="pd-entry-stage"
+            className={styles.select}
+            value={values.entry_stage}
+            onChange={set('entry_stage')}
+            aria-describedby="pd-entry-stage-hint"
+          >
+            {ENTRY_STAGE_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <p id="pd-entry-stage-hint" className={styles.hint}>
+            Where is this project today? If it is already under way, pick its
+            current stage: the stages before it are recorded as complete, and
+            PULSE plans from here forward.
           </p>
         </div>
 

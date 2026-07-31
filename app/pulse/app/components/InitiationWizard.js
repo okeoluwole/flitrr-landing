@@ -18,6 +18,7 @@ import {
   LIST_CONFIG,
   CONFIG_BY_STEP,
   cascadeCriticality,
+  scopeSuggestions,
 } from './listStepConfig';
 import {
   loadProgrammeChoices,
@@ -87,6 +88,11 @@ const EMPTY_DEF = {
   // project_country enum, nullable, so it defaults to empty (maps to null).
   location: '',
   country: '',
+  // The declared entry stage (Note 12): where the project is today, across the
+  // eight lifecycle stages. Held as a string for the controlled select.
+  // Defaults to Stage 1, the from-scratch entry stage, so a project set up
+  // from scratch behaves exactly as before the field existed.
+  entry_stage: '1',
   // Size: structured measures (assembled into the size_measures JSONB on save,
   // see buildSizeMeasures) plus the legacy free-text `size` summary the brief
   // still reads. All held as strings for the controlled inputs.
@@ -292,6 +298,7 @@ function defFrom(p) {
     description: p.description ?? '',
     location: p.location ?? '',
     country: p.country ?? '',
+    entry_stage: p.entry_stage != null ? String(p.entry_stage) : '1',
     // size_measures is a JSONB object (or null); unpack its keys onto the flat
     // controlled fields. The legacy free-text summary stays in `size`.
     size: p.size ?? '',
@@ -461,12 +468,18 @@ function rowToItem(cfg, row, objectives, makeKey) {
 }
 
 // Build a step's initial list: saved rows if any exist, otherwise the
-// suggested starter set (each suggestion merged onto a blank item).
-function buildList(cfg, rows, objectives, makeKey) {
+// suggested starter set (each suggestion merged onto a blank item). The
+// starter set scopes to the stages still ahead of the declared entry stage
+// (Note 12, scopeSuggestions): a mid-lifecycle adopter is not seeded
+// suggestions belonging to stages completed before adoption.
+function buildList(cfg, rows, objectives, makeKey, entryStage) {
   if (rows && rows.length > 0) {
     return rows.map((row) => rowToItem(cfg, row, objectives, makeKey));
   }
-  return cfg.suggested.map((s) => ({ ...makeEmptyItem(cfg, makeKey), ...s }));
+  return scopeSuggestions(cfg.suggested, entryStage).map((s) => ({
+    ...makeEmptyItem(cfg, makeKey),
+    ...s,
+  }));
 }
 
 // An item is "blank" when its required (identity) field is empty after
@@ -505,17 +518,25 @@ export default function InitiationWizard({
   // unlock block on Step 8 and the header stage indicator.
   const currentStage = initialProject?.current_stage ?? 1;
 
-  // Once the Stage 1 to 2 gate has committed the baseline (the project is at
-  // Stage 2, or the gate row is recorded passed), Steps 3 and 4 are frozen:
-  // the objective definitions, their classification, and their ranking can no
-  // longer be edited here. This is the minimal expression of the locked-
-  // baseline principle. The Risk module derives criticality live from these
-  // objectives, so an ad hoc change post-gate would silently move monitoring
-  // decisions. Revising a committed baseline is a re-baseline, a separate
-  // milestone that is not yet built. Mirrors the post-gate unlock block on
-  // Step 8.
+  // The declared entry stage (Note 12): where the project already was when it
+  // adopted PULSE. Stage 1 for a from-scratch project. The active stage sits
+  // at it through initiation, and a gate having been passed shows as the
+  // project standing beyond it.
+  const storedEntryStage = initialProject?.entry_stage ?? 1;
+
+  // Once a gate has committed the baseline (the project has advanced beyond
+  // its entry stage, or the gate row is recorded passed), Steps 3 and 4 are
+  // frozen: the objective definitions, their classification, and their
+  // ranking can no longer be edited here. This is the minimal expression of
+  // the locked-baseline principle. The Risk module derives criticality live
+  // from these objectives, so an ad hoc change post-gate would silently move
+  // monitoring decisions. Revising a committed baseline is a re-baseline, a
+  // separate milestone that is not yet built. Mirrors the post-gate unlock
+  // block on Step 8. Measured against the entry stage, not Stage 2, so a
+  // mid-lifecycle adopter (whose current stage is its entry stage until its
+  // own next gate passes) is not frozen during initiation.
   const objectivesFrozen =
-    currentStage >= 2 || initialGate?.gate_status === 'passed';
+    currentStage > storedEntryStage || initialGate?.gate_status === 'passed';
 
   const [projectId, setProjectId] = useState(initialProject?.id ?? null);
   const [step, setStep] = useState(1);
@@ -1024,14 +1045,14 @@ export default function InitiationWizard({
       return;
     }
     setLists({
-      milestones: buildList(LIST_CONFIG.milestones, m.data ?? [], objs, makeKey),
+      milestones: buildList(LIST_CONFIG.milestones, m.data ?? [], objs, makeKey, def.entry_stage),
       workstreams: buildList(
         LIST_CONFIG.workstreams,
         w.data ?? [],
         objs,
         makeKey
       ),
-      risks: buildList(LIST_CONFIG.risks, r.data ?? [], objs, makeKey),
+      risks: buildList(LIST_CONFIG.risks, r.data ?? [], objs, makeKey, def.entry_stage),
       assumptions: buildList(
         LIST_CONFIG.assumptions,
         a.data ?? [],
@@ -1202,6 +1223,13 @@ export default function InitiationWizard({
   // Save Step 1. INSERT the project the first time (firing the seed
   // trigger), UPDATE it thereafter. Returns a Supabase error or null.
   const persistStep1 = async () => {
+    // The declared entry stage, parsed from the picker. Anything malformed
+    // falls back to the from-scratch default.
+    const parsedEntry = Number(def.entry_stage);
+    const entryStage =
+      Number.isInteger(parsedEntry) && parsedEntry >= 0 && parsedEntry <= 7
+        ? parsedEntry
+        : 1;
     const payload = {
       name: def.name.trim(),
       project_type: clean(def.project_type),
@@ -1210,6 +1238,13 @@ export default function InitiationWizard({
       description: clean(def.description),
       location: clean(def.location),
       country: clean(def.country),
+      // The declared entry stage (Note 12). The declared stage is also the
+      // active stage: current_stage follows it until the project's own next
+      // gate advances it, so a Stage 5 adopter's workspace reads Stage 5,
+      // never Stage 1. Guarded below: once a gate has passed, neither is
+      // rewritten from here.
+      entry_stage: entryStage,
+      current_stage: entryStage,
       // Structured measures into the JSONB; the free-text summary on `size`.
       size: clean(def.size),
       size_measures: buildSizeMeasures(def),
@@ -1223,9 +1258,9 @@ export default function InitiationWizard({
     };
 
     if (!projectId) {
-      // First save: create the row. status (draft) and current_stage (1)
-      // come from schema defaults; the AFTER INSERT trigger seeds the 5
-      // objectives and 8 stage gates.
+      // First save: create the row. status (draft) comes from the schema
+      // default; current_stage is set to the declared entry stage above; the
+      // AFTER INSERT trigger seeds the 5 objectives and 8 stage gates.
       const { data, error: insErr } = await supabase
         .from('projects')
         .insert({ user_id: userId, ...payload })
@@ -1244,6 +1279,13 @@ export default function InitiationWizard({
         );
       }
       return null;
+    }
+
+    // Once a gate has passed, the entry stage is history and the active stage
+    // belongs to the gate path: neither is rewritten from a Step 1 revisit.
+    if (objectivesFrozen) {
+      delete payload.entry_stage;
+      delete payload.current_stage;
     }
 
     const { error: updErr } = await supabase
@@ -1911,6 +1953,10 @@ export default function InitiationWizard({
   const stageStates = deriveStageStates(PROGRAMME_TEMPLATE, {
     country: def.country,
     fundingStructureType: financial?.funding_structure_type,
+    // The declared entry stage (Note 12), read live from the Step 1 picker so
+    // the Programme step marks the stages before it complete: they take a
+    // light actual-date backfill, never target-date decisions.
+    entryStage: def.entry_stage,
   });
 
   const renderStep = () => {
@@ -2118,6 +2164,7 @@ export default function InitiationWizard({
           financial={financial}
           gates={gates}
           currentStage={currentStage}
+          entryStage={storedEntryStage}
           hasBaseline={hasBaseline}
           persistAllSteps={persistAllSteps}
         />
@@ -2147,9 +2194,12 @@ export default function InitiationWizard({
   // advance is visible on the project view; the gate decision date appears
   // once the project has moved past Stage 1.
   const stageName = STAGE_NAMES[currentStage] ?? `Stage ${currentStage}`;
+  // Passed means advanced beyond the declared entry stage: a mid-lifecycle
+  // adopter sitting at its entry stage has passed nothing through PULSE.
   const gatePassed =
-    currentStage >= 2 || initialGate?.gate_status === 'passed';
+    currentStage > storedEntryStage || initialGate?.gate_status === 'passed';
   const gatePassedDate = formatGateDate(initialGate?.passed_at);
+  const gatePassedLabel = `Gate ${storedEntryStage} to ${storedEntryStage + 1} passed`;
 
   return (
     <main className={`container ${styles.page}`} id="main-content">
@@ -2179,7 +2229,7 @@ export default function InitiationWizard({
             </span>
             {gatePassed && (
               <span className={styles.stageDecision}>
-                Gate 1 to 2 passed{gatePassedDate ? ` ${gatePassedDate}` : ''}
+                {gatePassedLabel}{gatePassedDate ? ` ${gatePassedDate}` : ''}
               </span>
             )}
           </div>

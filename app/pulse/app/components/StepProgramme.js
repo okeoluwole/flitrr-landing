@@ -199,9 +199,19 @@ export default function StepProgramme({
 
         {gates.map((g, i) => {
           const meta = metaByStage.get(g.stage);
+          const isCompleteStage = meta?.state === STAGE_STATE.COMPLETE;
+          const prevMeta = i > 0 ? metaByStage.get(gates[i - 1].stage) : null;
           // Sequential reveal: stage 0 is open first, each later gate opens once
-          // the one before it is set (dated or marked not applicable).
-          const enabled = i === 0 || isGateSet(gates[i - 1]);
+          // the one before it is set (dated or marked not applicable). A stage
+          // completed before adoption (Note 12) sits outside the decision
+          // sequence: its own gate is always open for a light actual-date
+          // backfill, and it never blocks the gate after it, because recording
+          // history is optional while planning is not.
+          const enabled =
+            i === 0 ||
+            isCompleteStage ||
+            isGateSet(gates[i - 1]) ||
+            prevMeta?.state === STAGE_STATE.COMPLETE;
           const advisedDate = meta?.applicable ? meta.advisedDate : null;
           const showSuggestion =
             enabled && !g.target_na && !isGateDated(g) && advisedDate != null;
@@ -235,6 +245,13 @@ export default function StepProgramme({
                   Not applicable
                 </label>
               </div>
+
+              {isCompleteStage && !g.target_na && (
+                <p className={styles.hint}>
+                  Completed before this project entered PULSE. Record the date
+                  this stage closed, if you know it. Nothing is planned here.
+                </p>
+              )}
 
               {showSuggestion && (
                 <div className={styles.gateSuggest}>
@@ -279,7 +296,12 @@ export default function StepProgramme({
             </p>
           ) : (
             milestoneStages.map((stage) => {
-              const windowNote = stageWindowNote(metaByStage.get(stage.stage));
+              const stageMeta = metaByStage.get(stage.stage);
+              const windowNote = stageWindowNote(stageMeta);
+              // In a stage completed before adoption the dates record what
+              // happened, so the input is an actual date, not a target-date
+              // decision.
+              const stageComplete = stageMeta?.state === STAGE_STATE.COMPLETE;
               return (
               <div key={stage.stage} className={styles.milestoneStage}>
                 <p className={styles.milestoneStageLabel}>
@@ -316,7 +338,7 @@ export default function StepProgramme({
                         <div className={styles.itemGrid}>
                           <div className={styles.field}>
                             <label className={styles.label} htmlFor={dateId}>
-                              Target date
+                              {stageComplete ? 'Actual date' : 'Target date'}
                               <span className={styles.optional}>(optional)</span>
                             </label>
                             <input

@@ -59,6 +59,26 @@ export function cascadeCriticality(linkedObjectiveId, objectives) {
 }
 
 /**
+ * Scope a starter set to the stages still ahead of the declared entry stage
+ * (Note 12, mid-project adoption). A suggestion tagged with `stages` (the
+ * lifecycle stages it bears on) is kept only when at least one of them is the
+ * entry stage or later, so a Stage 5 adopter is never seeded a suggestion
+ * whose stage completed before adoption. An untagged suggestion always shows,
+ * and the tag itself is stripped so it never lands on an item or a row. A
+ * missing or malformed entry stage reads as the from-scratch Stage 1, which
+ * keeps every suggestion, exactly as before the field existed.
+ */
+export function scopeSuggestions(suggested, entryStage) {
+  const entry = Number(entryStage);
+  const floor = Number.isInteger(entry) ? entry : 1;
+  return (suggested ?? [])
+    .filter(
+      (s) => !Array.isArray(s.stages) || s.stages.some((stage) => stage >= floor)
+    )
+    .map(({ stages, ...rest }) => rest);
+}
+
+/**
  * Per-step configuration, keyed by a stable list key.
  *
  * `fields` are the type-specific inputs only; the shared objective link and
@@ -108,13 +128,15 @@ export const LIST_CONFIG = {
         optional: true,
       },
     ],
+    // Stage-tagged like the risk starter set (Note 12): a milestone whose
+    // stage completed before the declared entry stage is not suggested.
     suggested: [
-      { name: 'Planning approval secured' },
-      { name: 'Design finalised' },
-      { name: 'Contractor appointed' },
-      { name: 'Construction commenced' },
-      { name: 'Practical completion' },
-      { name: 'Handover complete' },
+      { name: 'Planning approval secured', stages: [3] },
+      { name: 'Design finalised', stages: [3] },
+      { name: 'Contractor appointed', stages: [4] },
+      { name: 'Construction commenced', stages: [5] },
+      { name: 'Practical completion', stages: [6] },
+      { name: 'Handover complete', stages: [6] },
     ],
   },
 
@@ -202,12 +224,17 @@ export const LIST_CONFIG = {
         placeholder: 'How would you respond?',
       },
     ],
+    // Each suggestion names the lifecycle stages it bears on (`stages`, not
+    // persisted), so the starter set scopes to the stages still ahead of the
+    // project's declared entry stage (Note 12): a Stage 5 adopter is not
+    // seeded a planning-consent risk whose stage completed before adoption.
+    // A suggestion with no stages tag always shows.
     suggested: [
-      { description: 'Planning permission delayed or refused' },
-      { description: 'Construction costs exceed budget' },
-      { description: 'Funding delayed or falls through' },
-      { description: 'Programme slips beyond target completion' },
-      { description: 'Sales slower than forecast' },
+      { description: 'Planning permission delayed or refused', stages: [2, 3] },
+      { description: 'Construction costs exceed budget', stages: [4, 5] },
+      { description: 'Funding delayed or falls through', stages: [1, 2, 3, 4, 5, 6, 7] },
+      { description: 'Programme slips beyond target completion', stages: [1, 2, 3, 4, 5, 6, 7] },
+      { description: 'Sales slower than forecast', stages: [3, 4, 5, 6, 7] },
     ],
   },
 

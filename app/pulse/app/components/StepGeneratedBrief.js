@@ -39,6 +39,18 @@ import styles from './Brief.module.css';
  *     preview and the locked rendering.
  */
 
+// Lifecycle stage names (framework), for the post-gate line.
+const STAGE_NAMES = {
+  0: 'Land and Site Acquisition',
+  1: 'Project Objectives and Funding',
+  2: 'Consultant Appointment',
+  3: 'Design and Planning Approvals',
+  4: 'Contractor Procurement',
+  5: 'Construction',
+  6: 'Completion and Handover',
+  7: 'Sales and Disposal',
+};
+
 const LOCK_ERROR =
   'We could not lock the baseline. Please check your connection and try again, or email hello@flitrr.com.';
 const FLUSH_ERROR =
@@ -62,6 +74,7 @@ export default function StepGeneratedBrief({
   financial,
   gates,
   currentStage = 1,
+  entryStage = 1,
   hasBaseline = false,
   persistAllSteps = null,
 }) {
@@ -143,10 +156,19 @@ export default function StepGeneratedBrief({
 
   const locked = briefRow?.is_locked === true;
 
-  // Once the Stage 1 to 2 gate has passed, the project sits at Stage 2. Past
+  // Once a gate has passed, the project sits beyond its entry stage. Past
   // that point the baseline is committed: unlock is blocked (a re-baseline is
   // not yet built), and the gate entry point opens the recorded decision.
-  const postGate = currentStage >= 2;
+  // Measured against the entry stage (Note 12): a mid-lifecycle adopter sits
+  // at its declared stage without any gate having passed through PULSE.
+  const postGate = currentStage > entryStage;
+
+  // A mid-lifecycle adopter (entry stage past the from-scratch Stage 1). Its
+  // prior gates were completed before adoption, so the go into its current
+  // stage is already decided: on lock and set-up its modules open directly,
+  // and gate ceremonies apply from its own next transition forward, never
+  // Gate 1 to 2.
+  const adopter = entryStage > 1;
 
   // The one next step this screen offers (Note 13). The Brief no longer points
   // straight at the gate on lock: the sequence runs Brief, then Programme
@@ -160,21 +182,30 @@ export default function StepGeneratedBrief({
       }
     : postGate
       ? {
-          title: 'Stage 1 to 2 gate',
-          note: 'Gate passed. This project is at Stage 2: Consultant Appointment.',
-          cta: 'View the Stage 1 to 2 gate decision',
+          title: `Stage ${entryStage} to ${entryStage + 1} gate`,
+          note: `Gate passed. This project is at Stage ${currentStage}: ${STAGE_NAMES[currentStage] ?? ''}.`,
+          cta: `View the Stage ${entryStage} to ${entryStage + 1} gate decision`,
           href: `/pulse/app/gate?project=${projectId}`,
         }
       : hasBaseline
-        ? {
-            title: 'Next: the Stage 1 to 2 gate',
-            note: 'Your operational baseline is locked, so the objective lens can be answered. Confirm the gate to advance to Stage 2.',
-            cta: 'Open the Stage 1 to 2 gate',
-            href: `/pulse/app/gate?project=${projectId}`,
-          }
+        ? adopter
+          ? {
+              title: 'Next: the workspace',
+              note: `Your operational baseline is locked. The stages before Stage ${entryStage} are recorded as completed prior to adoption, so the monitoring modules open now; the next gate ceremony is Stage ${entryStage} to ${entryStage + 1}.`,
+              cta: 'Open the workspace',
+              href: `/pulse/app/workspace?project=${projectId}`,
+            }
+          : {
+              title: 'Next: the Stage 1 to 2 gate',
+              note: 'Your operational baseline is locked, so the objective lens can be answered. Confirm the gate to advance to Stage 2.',
+              cta: 'Open the Stage 1 to 2 gate',
+              href: `/pulse/app/gate?project=${projectId}`,
+            }
         : {
             title: 'Next: Programme set-up',
-            note: 'The baseline is locked. Reconcile your dates and lock the operational baseline, then the Stage 1 to 2 gate opens.',
+            note: adopter
+              ? `The baseline is locked. Record what has already happened on the completed stages, reconcile the remaining dates, and lock the operational baseline.`
+              : 'The baseline is locked. Reconcile your dates and lock the operational baseline, then the Stage 1 to 2 gate opens.',
             cta: 'Start Programme set-up',
             href: `/pulse/app/programme/setup?project=${projectId}`,
           };
