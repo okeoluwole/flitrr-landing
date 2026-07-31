@@ -192,6 +192,7 @@ export default async function ProgrammeTrackingPage({ searchParams }) {
         todayIso={todayIso}
         currentStage={project.current_stage}
         stageStates={stageStates}
+        country={project.country}
         canEdit={canEdit}
         adminContact={adminContact}
       />

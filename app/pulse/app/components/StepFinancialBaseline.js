@@ -1,4 +1,6 @@
 import SuiteNudge from './SuiteNudge';
+import DateField from './DateField';
+import { resolveGeography } from '../../../../lib/engine/geography.js';
 import styles from './InitiationWizard.module.css';
 
 /**
@@ -56,6 +58,10 @@ export default function StepFinancialBaseline({
 }) {
   const setDef = (field) => (e) => onDefChange(field, e.target.value);
   const setFin = (field) => (e) => onFinancialChange(field, e.target.value);
+  // The funding milestone dates read in the project's entry format. This is the
+  // field the end-to-end test had to ask about: 06/01/2027 needed disambiguating
+  // as 1 June 2027.
+  const geography = resolveGeography(def.country);
 
   return (
     <>
@@ -342,12 +348,12 @@ export default function StepFinancialBaseline({
                           Target date
                           <span className={styles.optional}>(optional)</span>
                         </label>
-                        <input
+                        <DateField
                           id={`fm-${m._key}-date`}
-                          type="date"
                           className={styles.input}
                           value={m.target_date}
-                          onChange={(e) => onFmField(m._key, 'target_date', e.target.value)}
+                          format={geography.dateInputFormat}
+                          onChange={(v) => onFmField(m._key, 'target_date', v)}
                         />
                       </div>
 

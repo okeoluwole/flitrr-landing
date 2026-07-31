@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/client';
 import { seatAvailability, canInvite, canReactivate } from '../../../lib/team/seats.js';
 import { canDemote, canDeactivate } from '../../../lib/team/adminGuard.js';
+import { formatDisplayDate } from '../../../lib/engine/dateFormat.js';
 import styles from './page.module.css';
 
 /**
@@ -27,19 +28,12 @@ function memberName(m) {
   return 'Member';
 }
 
-// The invitation created_at timestamp shown at day granularity. Pinned to UTC
-// so the invited day reads the same for every viewer and the server-rendered
-// HTML matches the client.
+// The invitation created_at timestamp at day granularity, in the app's one
+// display format (lib/engine/dateFormat.js). UTC-pinned there, so the invited day
+// reads the same for every viewer and the server-rendered HTML matches the
+// client. Empty string, not null, because the call site renders it inline.
 function formatDate(iso) {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  return d.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'UTC',
-  });
+  return formatDisplayDate(iso) ?? '';
 }
 
 export default function TeamManager({

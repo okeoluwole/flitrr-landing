@@ -1,0 +1,52 @@
+/*
+ * The controlled date field (Note 10 date half). Deliberately thin: the input
+ * keeps whatever class its call site already passed, so the field looks exactly
+ * like the native date input it replaces on every surface it appears. Only the
+ * flagged state and the small line beneath it are styled here.
+ */
+
+.wrap {
+  display: block;
+}
+
+/* The field itself carries no look of its own. It inherits the call site's
+   class, and only sets what a text input needs that a date input did not: a
+   tabular figure set, so a typed date does not shuffle while it is typed. */
+.input {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Unreadable text, or a date outside the bounds its surface implies. The border
+   carries the signal; the message below carries the meaning. */
+.inputFlagged {
+  border-color: var(--app-danger-border);
+}
+
+/* The line under the field: what PULSE read, or why it could not read it. It
+   holds its height so a field does not jump as the message appears. */
+.msg {
+  display: block;
+  min-height: 1.2em;
+  margin-top: calc(var(--app-space-1, 0.25rem) * 1);
+  font-family: var(--app-font-mono), monospace;
+  font-size: var(--app-text-xs);
+  line-height: 1.2;
+}
+
+/* The date PULSE read, echoed back in the app's one display format while the
+   developer is still looking at the field. This is the quiet, normal state. */
+.msgRead {
+  color: var(--app-ink-muted);
+}
+
+/* The entry could not be read as a date at all. */
+.msgBad {
+  color: var(--app-danger);
+}
+
+/* The entry is a real date, but falls outside the window its surface expects.
+   Advisory, exactly as the native control's bounds were: the value still
+   reports upward, so a developer can always record what actually happened. */
+.msgWarn {
+  color: var(--app-warning);
+}

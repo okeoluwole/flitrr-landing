@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/client';
 import styles from './page.module.css';
+import { formatDisplayDate } from '../../../lib/engine/dateFormat.js';
 
 /**
  * ProjectList, the organisation's projects with a two-step delete for
@@ -41,20 +42,10 @@ const STATUS_LABELS = {
 const DELETE_ERROR =
   'We could not delete this draft. Please check your connection and try again.';
 
-// The updated_at timestamp shown at day granularity. Pinned to UTC so the
-// displayed day reads the same for every viewer and the server-rendered HTML
-// matches the client.
-function formatUpdated(iso) {
-  if (!iso) return null;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'UTC',
-  });
-}
+// The updated_at timestamp at day granularity, in the app's one display format
+// (lib/engine/dateFormat.js). UTC-pinned there, so the displayed day reads the
+// same for every viewer and the server-rendered HTML matches the client.
+const formatUpdated = formatDisplayDate;
 
 function StatusPill({ status }) {
   const label = STATUS_LABELS[status] ?? STATUS_LABELS.draft;

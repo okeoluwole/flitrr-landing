@@ -6,6 +6,7 @@ import {
   showsProjected,
 } from './briefLens';
 import { criticalFlag } from './briefModel';
+import { formatDisplayDate } from '../../../../lib/engine/dateFormat.js';
 import styles from './Brief.module.css';
 
 /**
@@ -42,19 +43,10 @@ function safeUrl(url) {
   return /^https?:\/\//i.test(url) ? url : null;
 }
 
-// Full date for the "Generated" chip, e.g. "31 May 2026". Pinned to UTC so the
-// generated day of the locked record reads the same for every viewer.
-function formatLongDate(iso) {
-  if (!iso) return null;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'UTC',
-  });
-}
+// The "Generated" chip's date, e.g. "31 May 2026", in the app's one display
+// format (lib/engine/dateFormat.js). UTC-pinned there, so the generated day of
+// the locked record reads the same for every viewer.
+const formatLongDate = formatDisplayDate;
 
 // Severity backdrop for a matrix cell: a standard symmetric heat scale by
 // the sum of impact and likelihood (lo <= 3, md = 4, hi >= 5). The pins and

@@ -42,7 +42,7 @@
  * unless every stage is marked not applicable.
  */
 
-import { PROGRAMME_TEMPLATE } from '../../../../lib/engine/programmeTemplate.js';
+import { geographyTemplate } from '../../../../lib/engine/geography.js';
 import { deriveMilestoneView } from '../../../../lib/engine/programmeMilestones.js';
 
 const OBJECTIVE_COUNT = 5;
@@ -82,7 +82,7 @@ export function checkCompleteness({
   // contributes none, so a fresh project (no legacy rows) is assessed on exactly
   // what Step 7 shows.
   const templateMilestones = deriveMilestoneView(
-    PROGRAMME_TEMPLATE,
+    geographyTemplate(def?.country),
     gates,
     objectives,
     def?.start_date

@@ -448,13 +448,13 @@ describe('the four facts', () => {
 
   it('fact 3: names both dates, late, ahead, and on the day', () => {
     expect(factForecast('2028-04-14', '2027-12-31').detail).toBe(
-      '15 weeks after your target of 31 December 2027'
+      '15 weeks after your target of 31 Dec 2027'
     );
     expect(factForecast('2028-04-14', '2028-05-26').detail).toBe(
       '6 weeks before your target of 26 May 2028'
     );
     expect(factForecast('2028-04-14', '2028-04-14').detail).toBe(
-      'Exactly your target of 14 April 2028'
+      'Exactly your target of 14 Apr 2028'
     );
     expect(factForecast('2028-04-14', null).detail).toBe(
       'No target completion date set'
@@ -473,10 +473,10 @@ describe('the four facts', () => {
     // "Gate 7 to 8" must be impossible to produce.
     expect(fact.value).toBe('Consultant Appointment');
     expect(fact.detail).toBe(
-      '12 September 2026. 3 open actions bear on it, 2 critical.'
+      '12 Sep 2026. 3 open actions bear on it, 2 critical.'
     );
     expect(factGate(gate, { open: 0, critical: 0 }, true).detail).toBe(
-      '12 September 2026. No open actions bear on it.'
+      '12 Sep 2026. No open actions bear on it.'
     );
     expect(factGate(null, { open: 0, critical: 0 }, true).value).toBe(
       'No gate ahead'
@@ -667,8 +667,8 @@ describe('the state labels and dates', () => {
     expect(classificationWord(row({ isProtected: false }))).toBe('Flexible');
   });
 
-  it('formats dates day month year, UTC-safe', () => {
-    expect(formatDate('2026-09-12')).toBe('12 September 2026');
+  it('formats dates in the app-wide display format, UTC-safe', () => {
+    expect(formatDate('2026-09-12')).toBe('12 Sep 2026');
     expect(formatDate(null)).toBeNull();
   });
 });

@@ -75,41 +75,19 @@ export function formatPercent(value) {
   return `${trimOneDecimal(n)}%`;
 }
 
-const MONTHS = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-];
-
 /**
- * Format a stored DATE ('YYYY-MM-DD') as "Aug 2027". Parses the parts by
- * hand rather than via Date() to avoid a timezone shift moving the month.
- * Returns null for a missing or malformed value.
+ * Format a stored DATE ('YYYY-MM-DD') as "23 Jul 2026", day-precise. EVERY date
+ * in the Brief renders through this, on the gate list, the milestone list, the
+ * Programme section and the stage-gate timeline alike: a baseline the later
+ * modules reconcile against must read to the day, never month and year alone
+ * (Note 16).
+ *
+ * It is now the app-wide formatter (lib/engine/dateFormat.js) under its Brief
+ * name rather than a second implementation of the same rule. The month-and-year
+ * form this module also carried has been removed: it had no remaining caller,
+ * and a second date format is exactly what the note asked to be rid of.
  */
-export function formatMonthYear(dateStr) {
-  if (!dateStr) return null;
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr));
-  if (!m) return null;
-  const month = Number(m[2]);
-  if (month < 1 || month > 12) return null;
-  return `${MONTHS[month - 1]} ${m[1]}`;
-}
-
-/**
- * Format a stored DATE ('YYYY-MM-DD') as "23 Jul 2026", day-precise. The
- * Brief's gate and milestone dates render through this, never month and year
- * alone: a baseline the later modules reconcile against must read to the day.
- * Parses the parts by hand, like formatMonthYear, so no timezone shift can
- * move the day. Returns null for a missing or malformed value.
- */
-export function formatDayMonthYear(dateStr) {
-  if (!dateStr) return null;
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr));
-  if (!m) return null;
-  const month = Number(m[2]);
-  const day = Number(m[3]);
-  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
-  return `${day} ${MONTHS[month - 1]} ${m[1]}`;
-}
+export { formatDisplayDate as formatDayMonthYear } from '../../../../lib/engine/dateFormat.js';
 
 /**
  * Join names into a readable list: [] -> "", [a] -> "a", [a,b] -> "a and b",

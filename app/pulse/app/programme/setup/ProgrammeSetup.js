@@ -47,6 +47,12 @@ import {
   RECONCILIATION_SOURCES,
 } from '../../../../../lib/engine/programmeReconciliation.js';
 import ViewOnlyBadge from '../../components/ViewOnlyBadge';
+import DateField from '../../components/DateField';
+import { formatDisplayDate } from '../../../../../lib/engine/dateFormat.js';
+import {
+  geographyTemplate,
+  resolveGeography,
+} from '../../../../../lib/engine/geography.js';
 import styles from './ProgrammeSetup.module.css';
 
 /**
@@ -104,6 +110,10 @@ const OBJECTIVE_NAME = Object.fromEntries(
 
 // The served objective per milestone, keyed by the milestone's stable key, read
 // straight from the template. Deterministic, not invented at render time.
+// Deliberately the base template and not the geography-expressed one: a
+// milestone's key and the objective it serves are structural and identical in
+// every geography (only its NAME is expressed), and the criticality cascade this
+// feeds must never vary by jurisdiction.
 const SERVES_BY_KEY = (() => {
   const map = {};
   for (const stage of PROGRAMME_TEMPLATE.stages) {
@@ -114,18 +124,12 @@ const SERVES_BY_KEY = (() => {
   return map;
 })();
 
-// The engine dates are UTC-midnight instants, so format in UTC to keep the
-// displayed day stable regardless of the viewer's timezone and identical to
-// the tracking surface, which renders the same assembled dates.
-function formatDate(date) {
-  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return null;
-  return date.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'UTC',
-  });
-}
+// Every date on this screen, in the app's one display format, "23 Jul 2026"
+// (lib/engine/dateFormat.js). It is UTC-pinned there, which this screen needs:
+// the engine dates are UTC-midnight instants, so rendering in the viewer's zone
+// would show the previous day west of Greenwich. Identical to the tracking
+// surface, which renders the same assembled dates.
+const formatDate = formatDisplayDate;
 
 // A plain-language gap between the developer's date and the recommendation, in
 // whole weeks. The engine works in weeks, so the unit stays coherent with the
@@ -208,7 +212,7 @@ function Choice({ selected, lead, sub, onClick, wide = false }) {
 // The amend field (Note 14), shown once amend is chosen: the operational date
 // the developer sets, and an optional line on why. It never touches the locked
 // Brief; the gap between this date and the Brief's is recorded as a variance.
-function AmendField({ item, state, onAmendDate, onNote }) {
+function AmendField({ item, state, onAmendDate, onNote, dateInputFormat }) {
   const check = checkAmendedDate(item, state);
   return (
     <>
@@ -217,11 +221,11 @@ function AmendField({ item, state, onAmendDate, onNote }) {
           The date to work to
           <span className={styles.reasonRequired}> Required</span>
         </span>
-        <input
-          type="date"
+        <DateField
           className={styles.dateInput}
           value={state.amendedDate ?? ''}
-          onChange={(e) => onAmendDate(e.target.value)}
+          format={dateInputFormat}
+          onChange={onAmendDate}
         />
         {check.reason === 'below_floor' && (
           <span className={styles.amendWarn} role="alert">
@@ -250,7 +254,7 @@ function AmendField({ item, state, onAmendDate, onNote }) {
 // The propose controls: accept, keep, or amend, presented evenly with no
 // default. Keep reveals a required reason, because a kept divergence is recorded
 // as a risk. Amend is the third answer, for when neither offered date is right.
-function ProposeControls({ item, state, onDecide, onNote, onAmendDate }) {
+function ProposeControls({ item, state, onDecide, onNote, onAmendDate, dateInputFormat }) {
   return (
     <div className={styles.controls}>
       <div className={styles.choices} role="group" aria-label="Choose a date">
@@ -293,6 +297,7 @@ function ProposeControls({ item, state, onDecide, onNote, onAmendDate }) {
           item={item}
           state={state}
           onAmendDate={onAmendDate}
+          dateInputFormat={dateInputFormat}
           onNote={onNote}
         />
       )}
@@ -303,7 +308,7 @@ function ProposeControls({ item, state, onDecide, onNote, onAmendDate }) {
 // The force controls: accept the compliant date, or amend to another date that
 // still clears the floor. A breached hard floor can never be KEPT, and an amend
 // below the floor is refused, so the mechanic is untouched by the widening.
-function ForceControls({ item, state, onDecide, onNote, onAmendDate }) {
+function ForceControls({ item, state, onDecide, onNote, onAmendDate, dateInputFormat }) {
   return (
     <div className={styles.controls}>
       <p className={styles.forceNote}>
@@ -331,6 +336,7 @@ function ForceControls({ item, state, onDecide, onNote, onAmendDate }) {
           item={item}
           state={state}
           onAmendDate={onAmendDate}
+          dateInputFormat={dateInputFormat}
           onNote={onNote}
         />
       )}
@@ -345,7 +351,7 @@ function ForceControls({ item, state, onDecide, onNote, onAmendDate }) {
 //   Amend        the check found a different date, so set it
 //   Verify later the flow proceeds on your date and an open verification action
 //                is raised on the Action Log, so nothing is waved through
-function VerifyControls({ item, state, onDecide, onNote, onAmendDate }) {
+function VerifyControls({ item, state, onDecide, onNote, onAmendDate, dateInputFormat }) {
   return (
     <div className={styles.controls}>
       <div
@@ -392,6 +398,7 @@ function VerifyControls({ item, state, onDecide, onNote, onAmendDate }) {
           item={item}
           state={state}
           onAmendDate={onAmendDate}
+          dateInputFormat={dateInputFormat}
           onNote={onNote}
         />
       )}
@@ -408,7 +415,7 @@ function VerifyControls({ item, state, onDecide, onNote, onAmendDate }) {
 // One flagged item as a card: its identity, its dates, the reason, and the
 // tier's decision controls. The card carries the item's key as its DOM id so the
 // footer's named blocker can jump straight to the first undecided one.
-function ReconcileCard({ item, state, onDecide, onNote, onAmendDate }) {
+function ReconcileCard({ item, state, onDecide, onNote, onAmendDate, dateInputFormat }) {
   const isForce = item.tier === 'force';
   const kindLabel = KIND_LABEL[item.kind] ?? item.kind;
   const servesType = item.kind === 'milestone' ? SERVES_BY_KEY[item.key] : null;
@@ -445,6 +452,7 @@ function ReconcileCard({ item, state, onDecide, onNote, onAmendDate }) {
           onDecide={onDecide}
           onNote={onNote}
           onAmendDate={onAmendDate}
+          dateInputFormat={dateInputFormat}
         />
       )}
       {item.tier === 'force' && (
@@ -454,6 +462,7 @@ function ReconcileCard({ item, state, onDecide, onNote, onAmendDate }) {
           onDecide={onDecide}
           onNote={onNote}
           onAmendDate={onAmendDate}
+          dateInputFormat={dateInputFormat}
         />
       )}
       {item.tier === 'flag_verify' && (
@@ -463,6 +472,7 @@ function ReconcileCard({ item, state, onDecide, onNote, onAmendDate }) {
           onDecide={onDecide}
           onNote={onNote}
           onAmendDate={onAmendDate}
+          dateInputFormat={dateInputFormat}
         />
       )}
     </article>
@@ -491,38 +501,13 @@ function BlockerHint({ line, onJump }) {
   );
 }
 
-// A longer date stamp for the locked record (a DB timestamp, an ISO string or a
-// Date). Distinct from formatDate, which reads the assembled Date baseline dates.
-// Pinned to UTC so the recorded day reads the same for every viewer and matches
-// the tracking surface's stamp of the same lock.
-function formatStamp(value) {
-  if (value == null) return null;
-  const d = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'UTC',
-  });
-}
-
-// A compact date for a stage span, two-digit year to read at a glance. UTC for
-// the same reason as formatDate.
-function formatShort(date) {
-  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return null;
-  return date.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: '2-digit',
-    timeZone: 'UTC',
-  });
-}
-
-// The stage span, the agreed stage start to the agreed gate date.
+// The stage span, the agreed stage start to the agreed gate date. Both ends read
+// in the one display format: this screen previously wrote the span with a
+// two-digit year ("12 Feb 26"), a second date format on the screen that agrees
+// the baseline.
 function formatRange(start, end) {
-  const s = formatShort(start);
-  const e = formatShort(end);
+  const s = formatDisplayDate(start);
+  const e = formatDisplayDate(end);
   if (!s && !e) return null;
   if (!s) return `to ${e}`;
   if (!e) return `from ${s}`;
@@ -662,7 +647,10 @@ function ReviewStage({ stage }) {
 // The locked record, shared by the post-lock confirmation and the already-locked
 // re-entry. justLocked distinguishes the two only in its lead line.
 function LockedPanel({ version, lockedAt, lockerName, justLocked, workspaceHref }) {
-  const on = formatStamp(lockedAt);
+  // The lock stamp reads in the one display format, like every other date here.
+  // It previously spelled the month in full ("23 July 2026"), the only second
+  // date format left in the app.
+  const on = formatDisplayDate(lockedAt);
   return (
     <div className={`${styles.lockedPanel} riseIn`}>
       <div className={styles.lockedBadge}>
@@ -705,19 +693,30 @@ export default function ProgrammeSetup({
   userId,
   lockerName,
   existingBaseline,
+  country = null,
   canEdit = true,
   adminContact = null,
 }) {
+  // The template expressed for the project's geography (Note 10). One object
+  // feeds both derivations below, which is what makes the expression coherent:
+  // the VERIFY LOCALLY hint a card shows, the normal-range benchmarks that
+  // decided the card was flagged at all, and the milestone names the lock
+  // freezes into v1 all come from the same resolved template. Memoised on the
+  // country alone, so the two derivations below keep stable dependencies.
+  const geography = useMemo(() => resolveGeography(country), [country]);
+  const template = useMemo(() => geographyTemplate(country), [country]);
+
   // The reality check, run once over the loaded inputs. Pure and deterministic.
   // The stage states come from the server, derived off the baseline, so a stage
   // that runs concurrent is measured from its window start here exactly as the
-  // Brief's Step 7 measured it.
+  // Brief's Step 7 measured it. Its hints and its range benchmarks both come off
+  // the geography-expressed template, never from a constant in this file.
   const realityCheck = useMemo(
     () =>
-      deriveRealityCheck(projectStart, PROGRAMME_TEMPLATE, choices, {
+      deriveRealityCheck(projectStart, template, choices, {
         stageStates,
       }),
-    [projectStart, choices, stageStates]
+    [projectStart, template, choices, stageStates]
   );
   const flagged = useMemo(() => flaggedItems(realityCheck), [realityCheck]);
   const summary = useMemo(() => reconcileSummary(realityCheck), [realityCheck]);
@@ -776,13 +775,13 @@ export default function ProgrammeSetup({
     if (resolutions == null) return null;
     return assembleProgramme(
       projectStart,
-      PROGRAMME_TEMPLATE,
+      template,
       choices,
       resolutions,
       objectives,
       { stageStates }
     );
-  }, [projectStart, choices, resolutions, objectives, stageStates]);
+  }, [projectStart, template, choices, resolutions, objectives, stageStates]);
 
   // The lock-time reconciliation: v1 against the locked Brief's record set
   // (falling back to the live choices for a Brief locked before the record set
@@ -1281,6 +1280,7 @@ export default function ProgrammeSetup({
             onDecide={(decision) => setDecision(item.key, decision)}
             onNote={(note) => setNote(item.key, note)}
             onAmendDate={(date) => setAmendedDate(item.key, date)}
+            dateInputFormat={geography.dateInputFormat}
           />
         ))}
       </div>

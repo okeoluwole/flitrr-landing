@@ -1,3 +1,4 @@
+import { resolveGeography } from '../../../../lib/engine/geography.js';
 import styles from './InitiationWizard.module.css';
 
 /**
@@ -19,27 +20,20 @@ import styles from './InitiationWizard.module.css';
  * Every field is optional; completeness is a Gate 1 to 2 concern, not here.
  */
 
-// planning_status enum values, relabelled to the jurisdiction. The values are
-// fixed; the wording follows the country so the field reads naturally.
-function planningOptions(country) {
-  const isUk = country === 'united_kingdom';
-  return [
-    { value: 'no_application', label: 'No application yet' },
-    { value: 'pre_application', label: 'Pre-application' },
-    { value: 'outline_consent', label: isUk ? 'Outline planning permission' : 'Outline consent' },
-    { value: 'full_consent', label: isUk ? 'Full planning permission' : 'Full consent' },
-    { value: 'reserved_matters', label: 'Reserved matters' },
-    { value: 'approved', label: 'Approved' },
-    { value: 'refused', label: 'Refused' },
-    { value: 'other', label: 'Other' },
-  ];
-}
-
-function planningLabel(country) {
-  if (country === 'united_kingdom') return 'Planning status';
-  if (country === 'nigeria') return 'Consent status';
-  return 'Planning or consent status';
-}
+// The stored planning_status enum values, in the order the field offers them.
+// The values are fixed and geography-agnostic by design (migration 015); only
+// their wording follows the jurisdiction, and it now comes from the geography
+// configuration rather than a conditional here (Note 10).
+const PLANNING_STATUS_ORDER = [
+  'no_application',
+  'pre_application',
+  'outline_consent',
+  'full_consent',
+  'reserved_matters',
+  'approved',
+  'refused',
+  'other',
+];
 
 export default function StepScopeSite({
   values,
@@ -51,6 +45,18 @@ export default function StepScopeSite({
   country,
 }) {
   const set = (field) => (e) => onChange(field, e.target.value);
+
+  // The project's geography expression (Note 10). The specification placeholder
+  // and the planning field's wording are both read from it. Before this, the
+  // placeholder offered NHBC and an EPC rating to every project regardless of
+  // jurisdiction, which is how a Lagos scheme inherited two United Kingdom
+  // instruments; an unconfigured country now resolves to the neutral base, never
+  // to the United Kingdom.
+  const geography = resolveGeography(country);
+  const planningOptions = PLANNING_STATUS_ORDER.map((value) => ({
+    value,
+    label: geography.planningStatusLabels[value],
+  }));
 
   return (
     <>
@@ -152,7 +158,7 @@ export default function StepScopeSite({
             className={styles.input}
             value={values.spec_standard}
             onChange={set('spec_standard')}
-            placeholder="e.g. NHBC, EPC B, contemporary fit-out"
+            placeholder={geography.specificationPlaceholder}
             autoComplete="off"
           />
         </div>
@@ -181,7 +187,7 @@ export default function StepScopeSite({
 
         <div className={styles.field}>
           <label className={styles.label} htmlFor="ss-planning">
-            {planningLabel(country)}
+            {geography.planningStatusLabel}
           </label>
           <select
             id="ss-planning"
@@ -190,7 +196,7 @@ export default function StepScopeSite({
             onChange={set('planning_status')}
           >
             <option value="">Select…</option>
-            {planningOptions(country).map((o) => (
+            {planningOptions.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
               </option>

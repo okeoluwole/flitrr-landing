@@ -27,7 +27,7 @@ import {
 import { computeInsights } from './pulseRead';
 import { buildSummaries } from './briefLens';
 import { deriveCriticality, CRITICALITY } from '../../../../lib/engine/criticality.js';
-import { PROGRAMME_TEMPLATE } from '../../../../lib/engine/programmeTemplate.js';
+import { geographyTemplate } from '../../../../lib/engine/geography.js';
 import { deriveMilestoneView } from '../../../../lib/engine/programmeMilestones.js';
 import {
   STAGE_NAMES,
@@ -202,8 +202,12 @@ function normalizeFacts({ def, ctx, objectives, rankOrder, lists, gates }) {
   // item, a locked Brief renders its frozen snapshot and never re-runs this, so
   // the value frozen at lock stays the agreed baseline (Principle 4).
   const idByType = Object.fromEntries(objs.map((o) => [o.type, o.id]));
+  // The template expressed for the project's geography (Note 10), so the Brief
+  // names each milestone the way the project's jurisdiction does, and the name
+  // frozen into the locked snapshot is that one. An unconfigured country reads
+  // the neutral base, never the United Kingdom.
   const milestones = deriveMilestoneView(
-    PROGRAMME_TEMPLATE,
+    geographyTemplate(def?.country),
     gates,
     objectives,
     def?.start_date

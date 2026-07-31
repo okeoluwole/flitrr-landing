@@ -39,6 +39,7 @@ import {
 import ViewOnlyBadge from '../components/ViewOnlyBadge';
 import CriticalityChip from '../components/CriticalityChip';
 import styles from './RiskRegister.module.css';
+import { formatDisplayDate } from '../../../../lib/engine/dateFormat.js';
 
 /**
  * RiskRegister (M6.1 + M7.4) - the living register, the default view of the
@@ -128,20 +129,10 @@ function labelFor(options, value) {
   return options.find((o) => o.value === value)?.label ?? null;
 }
 
-// The last_reviewed_at timestamp shown at day granularity. Pinned to UTC so
-// the reviewed day reads the same for every viewer and the server-rendered
-// HTML matches the client.
-function formatReviewed(iso) {
-  if (!iso) return null;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'UTC',
-  });
-}
+// The last_reviewed_at timestamp at day granularity, in the app's one display
+// format (lib/engine/dateFormat.js). UTC-pinned there, so the reviewed day reads
+// the same for every viewer and the server-rendered HTML matches the client.
+const formatReviewed = formatDisplayDate;
 
 // The status line and the escalation sentence both live in registerRead.js, so
 // the copy is pure and unit-testable rather than only reviewable by eye. The

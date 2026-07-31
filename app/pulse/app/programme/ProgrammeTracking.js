@@ -12,6 +12,9 @@ import {
   unmarkMilestone,
 } from '../components/programmeActualsStore';
 import ViewOnlyBadge from '../components/ViewOnlyBadge';
+import DateField from '../components/DateField';
+import { formatDisplayDate } from '../../../../lib/engine/dateFormat.js';
+import { resolveGeography } from '../../../../lib/engine/geography.js';
 import {
   TOLERANCE_SETTINGS,
   DEFAULT_TOLERANCE_KEY,
@@ -197,34 +200,16 @@ const MARK_ERROR =
 const UNMARK_ERROR =
   'We could not remove that mark. Please check your connection and try again.';
 
-// A compact date for a tile value, two-digit year so a date years out still
-// reads at a glance. Pinned to UTC: the engines' dates are UTC-midnight
-// instants, so rendering in the viewer's zone would show the previous day
-// west of Greenwich and split the server-rendered HTML from the client. The
-// tile shows the engine's own calendar day, everywhere.
-function formatShort(date) {
-  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return null;
-  return date.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: '2-digit',
-    timeZone: 'UTC',
-  });
-}
-
-// A longer stamp for the baseline chip (a DB timestamp or ISO string). UTC
-// for the same reason as formatShort.
-function formatStamp(value) {
-  if (value == null) return null;
-  const d = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'UTC',
-  });
-}
+// Every date on this surface, in the app's one display format, "23 Jul 2026"
+// (lib/engine/dateFormat.js). It is UTC-pinned there, which matters here: the
+// engines' dates are UTC-midnight instants, so rendering in the viewer's zone
+// would show the previous day west of Greenwich and split the server-rendered
+// HTML from the client. This surface previously carried its own two-digit-year
+// form ("23 Jul 26"), a second date format on a governance surface; there is now
+// exactly one. formatStamp takes a database timestamp or ISO string, formatShort
+// an engine Date, and both render identically.
+const formatShort = formatDisplayDate;
+const formatStamp = formatDisplayDate;
 
 // The status mark, one silhouette per band, named for assistive tech by the
 // band's word. Where the adjacent text already carries the word (the status
@@ -429,6 +414,7 @@ function PointDetail({
   fields,
   canEdit,
   todayIso,
+  dateInputFormat,
   busy,
   error,
   onMark,
@@ -533,12 +519,13 @@ function PointDetail({
           <form className={styles.markForm} onSubmit={submitMark}>
             <label className={styles.markField}>
               <span className={styles.markLabel}>Met on</span>
-              <input
-                type="date"
+              <DateField
                 className={styles.dateInput}
                 value={inputValue}
+                format={dateInputFormat}
                 max={todayValue ?? undefined}
-                onChange={(event) => setDraft(event.target.value)}
+                maxLabel="A milestone cannot be met in the future."
+                onChange={setDraft}
                 disabled={busy}
               />
             </label>
@@ -921,10 +908,16 @@ export default function ProgrammeTracking({
   todayIso,
   currentStage,
   stageStates = null,
+  country = null,
   canEdit = true,
   adminContact = null,
 }) {
   const supabase = createClient();
+
+  // The project's geography, for the date entry format on the Mark met field.
+  // The Mark met input repeated the native date input's misread, so it now
+  // enters in the project's own format like every other date in PULSE.
+  const geography = resolveGeography(country);
 
   // The bounded tolerance dial: session-only, opens on Standard every visit,
   // persisted nowhere.
@@ -1150,6 +1143,7 @@ export default function ProgrammeTracking({
         fields={openDetail}
         canEdit={canEdit}
         todayIso={todayIso}
+        dateInputFormat={geography.dateInputFormat}
         busy={markBusy}
         error={markError}
         onMark={(dateValue) => handleMark(openDetail.key, dateValue)}

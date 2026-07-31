@@ -41,6 +41,7 @@ import { severityLegend } from '../../../../lib/engine/severity';
 import ViewOnlyBadge from '../components/ViewOnlyBadge';
 import CriticalityChip from '../components/CriticalityChip';
 import styles from './ActionLog.module.css';
+import { formatDisplayDate } from '../../../../lib/engine/dateFormat.js';
 
 /**
  * ActionLog (M7.1 + M7.2) - the central attention home. The triage queue at the
@@ -159,20 +160,10 @@ const LAST_STAGE = 7;
 const ACTION_COLUMNS =
   'id, description, linked_objective_id, criticality, criticality_override, override_reason, stage, reason, outcome, variance, status, note, source, source_id, created_at';
 
-// The created_at timestamp shown at day granularity. Pinned to UTC so the
-// logged day reads the same for every viewer and the server-rendered HTML
-// matches the client.
-function formatLogged(iso) {
-  if (!iso) return null;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'UTC',
-  });
-}
+// The created_at timestamp at day granularity, in the app's one display format
+// (lib/engine/dateFormat.js). UTC-pinned there, so the logged day reads the same
+// for every viewer and the server-rendered HTML matches the client.
+const formatLogged = formatDisplayDate;
 
 // The severity band chip's class per band (Note 18). The queue used to show a
 // chip only when a risk scored Serious, so Worth watching and Minor read as no

@@ -31,6 +31,7 @@ import { LADDER_STATUSES } from '../../../../lib/engine/objectiveLadder';
 import { OBJECTIVE_META } from '../components/objectiveMeta';
 import { formatList } from '../components/briefFormat';
 import { ATTENTION_KINDS, ATTENTION_TRIGGERS } from './attentionModel';
+import { formatDisplayDate } from '../../../../lib/engine/dateFormat.js';
 
 // ---------------------------------------------------------------------------
 // Section 3: the page.
@@ -144,20 +145,11 @@ function weeksUnit(x) {
   return `${n} ${n === 1 ? 'week' : 'weeks'}`;
 }
 
-// "14 April 2028". Dates on this surface are day month year in full, parsed
-// as UTC so a plain date string never shifts a day.
-export function formatDate(value) {
-  if (value == null) return null;
-  const epoch =
-    value instanceof Date ? value.getTime() : Date.parse(String(value));
-  if (Number.isNaN(epoch)) return null;
-  return new Date(epoch).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'UTC',
-  });
-}
+// The app's one display format, "14 Apr 2028" (lib/engine/dateFormat.js). This
+// surface spelled the month in full ("14 April 2028"), which was a second date
+// format; there is now exactly one. UTC-parsed there, so a plain date string
+// never shifts a day.
+export const formatDate = formatDisplayDate;
 
 const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
 

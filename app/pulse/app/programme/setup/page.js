@@ -251,6 +251,7 @@ export default async function ProgrammeSetupPage({ searchParams }) {
         userId={user.id}
         lockerName={navUser.full_name ?? null}
         existingBaseline={existingBaseline}
+        country={project.country}
         canEdit={canEdit}
         adminContact={adminContact}
       />

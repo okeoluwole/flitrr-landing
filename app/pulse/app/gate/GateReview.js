@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { createClient } from '../../../../lib/supabase/client';
 import ViewOnlyBadge from '../components/ViewOnlyBadge';
 import styles from './GateReview.module.css';
+import { formatDisplayDate } from '../../../../lib/engine/dateFormat.js';
 
 /**
  * GateReview - the interactive Gate 1 to 2 screen (M5).
@@ -38,20 +39,12 @@ const OVER_CONSTRAINT_ACK =
 const CONFIRM_ERROR =
   'We could not record the gate decision. Please check your connection and try again, or email hello@flitrr.com.';
 
-// The passed_at timestamp shown at day granularity. Pinned to UTC so the
-// recorded day reads the same for every viewer and the server-rendered HTML
-// matches the client.
-function formatLongDate(iso) {
-  if (!iso) return null;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'UTC',
-  });
-}
+// The passed_at timestamp at day granularity, in the app's one display format
+// (lib/engine/dateFormat.js). This screen is where "23 Jul 2026" was already
+// rendered correctly, and it is the form the whole app now writes. UTC-pinned,
+// so the recorded day reads the same for every viewer and the server-rendered
+// HTML matches the client.
+const formatLongDate = formatDisplayDate;
 
 function CheckIcon() {
   return (

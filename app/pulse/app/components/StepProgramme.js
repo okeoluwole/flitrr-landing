@@ -1,10 +1,15 @@
 import styles from './InitiationWizard.module.css';
 import { OBJECTIVE_META } from './objectiveMeta';
-import { PROGRAMME_TEMPLATE } from '../../../../lib/engine/programmeTemplate.js';
 import { deriveRollingGateDates } from '../../../../lib/engine/programmeSchedule.js';
 import { deriveMilestoneView } from '../../../../lib/engine/programmeMilestones.js';
 import { STAGE_STATE } from '../../../../lib/engine/stageStates.js';
+import {
+  geographyTemplate,
+  resolveGeography,
+} from '../../../../lib/engine/geography.js';
+import { formatDisplayDate } from '../../../../lib/engine/dateFormat.js';
 import CritBadge from './CritBadge';
+import DateField from './DateField';
 
 /**
  * Step 7, Programme (live step 7). The lifecycle baseline the Programme
@@ -83,13 +88,11 @@ function advisedValue(date) {
   return date.toISOString().slice(0, 10);
 }
 
+// The app's one display format, "23 Jul 2026" (lib/engine/dateFormat.js). Never
+// a second format, and never a locale call: the basis hint under an advised date
+// has to read the same to every developer in every jurisdiction.
 function advisedDisplay(date) {
-  return date.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'UTC',
-  });
+  return formatDisplayDate(date);
 }
 
 // Two dates are the same instant. Used to tell the first open gate (anchored on
@@ -140,16 +143,25 @@ export default function StepProgramme({
   projectStart,
   objectives,
   stageStates,
+  country,
   onGateDateChange,
   onGateNaToggle,
   onMilestoneDateChange,
   onMilestoneNoteChange,
 }) {
+  // The template expressed for the project's geography (Note 10): this stage's
+  // location-sensitive prompts and its milestone names are the jurisdiction's,
+  // not a hardcoded United Kingdom set. Every derivation below reads this one
+  // object, so the hints under a stage and the names beside them can never
+  // disagree about which geography they are speaking for.
+  const geography = resolveGeography(country);
+  const template = geographyTemplate(country);
+
   // Roll the advised dates from the project start and the choices so far. Pure
   // and derived: nothing here is persisted.
   const rolling = deriveRollingGateDates(
     projectStart,
-    PROGRAMME_TEMPLATE,
+    template,
     { stages: gates },
     stageStates
   );
@@ -160,7 +172,7 @@ export default function StepProgramme({
   // window. Pure and derived, like the gates above; criticality is shown, never
   // stored. A not-applicable stage yields no milestones and is filtered out.
   const milestoneView = deriveMilestoneView(
-    PROGRAMME_TEMPLATE,
+    template,
     { stages: gates },
     objectives,
     projectStart,
@@ -216,13 +228,13 @@ export default function StepProgramme({
               </label>
 
               <div className={styles.gateRow}>
-                <input
+                <DateField
                   id={`gate-${g.stage}`}
-                  type="date"
                   className={styles.input}
                   value={g.target_date}
+                  format={geography.dateInputFormat}
                   disabled={!enabled || g.target_na}
-                  onChange={(e) => onGateDateChange(g.stage, e.target.value)}
+                  onChange={(v) => onGateDateChange(g.stage, v)}
                 />
                 <label
                   className={`${styles.naToggle} ${
@@ -325,19 +337,15 @@ export default function StepProgramme({
                               {stageComplete ? 'Actual date' : 'Target date'}
                               <span className={styles.optional}>(optional)</span>
                             </label>
-                            <input
+                            <DateField
                               id={dateId}
-                              type="date"
                               className={styles.input}
                               value={m.date}
+                              format={geography.dateInputFormat}
                               min={m.minDate ?? undefined}
                               max={m.maxDate ?? undefined}
-                              onChange={(e) =>
-                                onMilestoneDateChange(
-                                  stage.stage,
-                                  m.key,
-                                  e.target.value
-                                )
+                              onChange={(v) =>
+                                onMilestoneDateChange(stage.stage, m.key, v)
                               }
                             />
                           </div>

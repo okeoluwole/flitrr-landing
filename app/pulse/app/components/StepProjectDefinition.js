@@ -1,4 +1,6 @@
 import SuiteNudge from './SuiteNudge';
+import DateField from './DateField';
+import { resolveGeography } from '../../../../lib/engine/geography.js';
 import styles from './InitiationWizard.module.css';
 
 /**
@@ -57,6 +59,11 @@ const ENTRY_STAGE_OPTIONS = [
 
 export default function StepProjectDefinition({ values, onChange }) {
   const set = (field) => (e) => onChange(field, e.target.value);
+  // The date entry format follows the country chosen on this very step, so the
+  // two date fields below re-read as soon as the jurisdiction is set. Both
+  // configured geographies enter dates day first today; the lookup is here so a
+  // future geography that differs is a configuration entry.
+  const geography = resolveGeography(values.country);
 
   return (
     <>
@@ -314,12 +321,12 @@ export default function StepProjectDefinition({ values, onChange }) {
           <label className={styles.label} htmlFor="pd-start">
             Start date
           </label>
-          <input
+          <DateField
             id="pd-start"
-            type="date"
             className={styles.input}
             value={values.start_date}
-            onChange={set('start_date')}
+            format={geography.dateInputFormat}
+            onChange={(v) => onChange('start_date', v)}
           />
         </div>
 
@@ -327,12 +334,12 @@ export default function StepProjectDefinition({ values, onChange }) {
           <label className={styles.label} htmlFor="pd-target">
             Target completion date
           </label>
-          <input
+          <DateField
             id="pd-target"
-            type="date"
             className={styles.input}
             value={values.target_completion_date}
-            onChange={set('target_completion_date')}
+            format={geography.dateInputFormat}
+            onChange={(v) => onChange('target_completion_date', v)}
           />
         </div>
 

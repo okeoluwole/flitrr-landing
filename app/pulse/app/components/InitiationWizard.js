@@ -30,6 +30,7 @@ import {
 } from './programmeChoices';
 import { PROGRAMME_TEMPLATE } from '../../../../lib/engine/programmeTemplate.js';
 import { deriveStageStates } from '../../../../lib/engine/stageStates.js';
+import { formatDisplayDate } from '../../../../lib/engine/dateFormat.js';
 import { STAGE_NAMES } from '../../../../lib/engine/stageNames.js';
 import {
   ACTION_LABELS,
@@ -160,19 +161,10 @@ const EMPTY_ORG = {
 const SAVE_ERROR =
   'We could not save this step. Please check your connection and try again, or email hello@flitrr.com.';
 
-// Short date for the gate decision note, e.g. "5 Jun 2026". Pinned to UTC so
-// the recorded day reads the same for every viewer and matches the gate screen.
-function formatGateDate(iso) {
-  if (!iso) return null;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'UTC',
-  });
-}
+// The gate decision note's date, in the app's one display format, "5 Jun 2026"
+// (lib/engine/dateFormat.js). UTC-pinned there, so the recorded day reads the
+// same for every viewer and matches every other surface.
+const formatGateDate = formatDisplayDate;
 
 /**
  * Normalise an optional field for the database: trim, and treat an empty
@@ -285,8 +277,9 @@ function deriveFundingStructure(financial) {
 }
 
 // Map a stored projects row onto Step 1 / Step 2 field state. DATE
-// columns come back as 'YYYY-MM-DD' strings, which is exactly what
-// <input type="date"> expects.
+// columns come back as 'YYYY-MM-DD' strings, which is exactly the value
+// DateField takes and reports back (lib/engine/dateFormat.js). The stored
+// form is unchanged by the move off the native date input.
 function defFrom(p) {
   if (!p) return { ...EMPTY_DEF };
   return {
@@ -2035,6 +2028,7 @@ export default function InitiationWizard({
           projectStart={def.start_date}
           objectives={objectives}
           stageStates={stageStates}
+          country={def.country}
           onGateDateChange={onGateDateChange}
           onGateNaToggle={onGateNaToggle}
           onMilestoneDateChange={onMilestoneDateChange}

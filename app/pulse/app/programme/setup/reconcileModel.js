@@ -80,8 +80,8 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 /**
  * Soft parse to epoch milliseconds, or null. The engine hands Dates, the screen
- * hands the ISO string an <input type="date"> produces, and a stored record
- * hands a date string back. All three read the same way here.
+ * hands the ISO string DateField reports, and a stored record hands a date
+ * string back. All three read the same way here.
  */
 export function softEpoch(value) {
   if (value == null) return null;
@@ -106,7 +106,7 @@ function toDate(value) {
   return epoch == null ? null : new Date(epoch);
 }
 
-// The YYYY-MM-DD form an <input type="date"> takes and a DATE column stores.
+// The YYYY-MM-DD form DateField takes and a DATE column stores.
 // UTC, like every other date the engines produce, so the day never shifts with
 // the viewer's timezone.
 export function toDateInputValue(value) {

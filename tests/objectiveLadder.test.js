@@ -135,7 +135,7 @@ describe('the four rungs, each from its trigger', () => {
     expect(rows[0].status).toBe(LADDER_STATUSES.COMPROMISED);
     expect(rows[0].trigger.key).toBe(LADDER_TRIGGERS.FORECAST_PAST_TARGET);
     expect(rows[0].driver).toBe(
-      'Forecast completes 3 weeks past your 30 April 2028 target.'
+      'Forecast completes 3 weeks past your 30 Apr 2028 target.'
     );
     expect(rows[0].actsIn).toBe('programme');
   });

@@ -1,9 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { assembleBrief } from '../app/pulse/app/components/briefModel.js';
-import {
-  PROGRAMME_TEMPLATE,
-  stageMilestones,
-} from '../lib/engine/programmeTemplate.js';
+import { stageMilestones } from '../lib/engine/programmeTemplate.js';
+import { geographyTemplate } from '../lib/engine/geography.js';
 import {
   buildObjectiveIndex,
   classifyByType,
@@ -46,7 +44,13 @@ const OBJECTIVES = [
 // Every template milestone, flattened in stage (lifecycle) order: the exact set,
 // in the exact order, the Brief must reproduce. Milestones sit under each stage's
 // activities now, so read them through stageMilestones.
-const templateMilestones = PROGRAMME_TEMPLATE.stages.flatMap((s) =>
+//
+// Read through the geography expression (Note 10) for the country these fixture
+// projects carry, which is none: an unconfigured country resolves to the neutral
+// base, so the Stage 6 milestone reads "Completion / occupancy certification
+// issued" rather than the United Kingdom's Building Regulations name. The set
+// and the order are unchanged; only the expression of one name is.
+const templateMilestones = geographyTemplate(null).stages.flatMap((s) =>
   stageMilestones(s).map((m) => ({
     stage: s.stage,
     key: m.key,
