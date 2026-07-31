@@ -2122,6 +2122,17 @@ export default function InitiationWizard({
           gates,
           objectives,
           nameByType: NAME_BY_TYPE,
+          // What is already in each list, so a candidate the developer has
+          // already captured is not offered back to them. Read from the live
+          // list state, so adding one immediately stops it being suggested.
+          captured: Object.fromEntries(
+            Object.entries(LIST_KEY_BY_TYPE).map(([type, listKey]) => [
+              type,
+              (lists[listKey] ?? []).map(
+                (it) => it[LIST_CONFIG[listKey].requiredField]
+              ),
+            ])
+          ),
         })
       );
       const suggestionsByType = groupByType(

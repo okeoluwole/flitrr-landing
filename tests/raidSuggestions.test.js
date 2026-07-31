@@ -448,6 +448,60 @@ describe('every candidate states its basis', () => {
   });
 });
 
+// ── Already captured ───────────────────────────────────────────────────────
+
+describe('a candidate already in the list is not offered again', () => {
+  const textOf = (key) => byKey(deriveRaidSuggestions(lagos()), key).text;
+
+  it('suppresses an exact match in the same list', () => {
+    const text = textOf('offplan_absorption_behind_drawdown');
+    const result = deriveRaidSuggestions(lagos({ captured: { risk: [text] } }));
+
+    expect(keysOf(result)).not.toContain('offplan_absorption_behind_drawdown');
+    expect(result.suppressed).toContainEqual({
+      key: 'offplan_absorption_behind_drawdown',
+      reason: 'already_captured',
+    });
+    // Its siblings are untouched.
+    expect(keysOf(result)).toContain('assume_absorption_rate_holds');
+  });
+
+  it('matches through trivial differences of writing, and nothing more', () => {
+    const text = textOf('offplan_absorption_behind_drawdown');
+    const rewritten = `  ${text.toUpperCase().replace(' ', '\n ')}  `;
+    expect(
+      keysOf(deriveRaidSuggestions(lagos({ captured: { risk: [rewritten] } })))
+    ).not.toContain('offplan_absorption_behind_drawdown');
+
+    // A reworded near-match is a DIFFERENT item, and is still offered. Deciding
+    // otherwise would be a judgement, which this engine does not make.
+    const reworded = 'Off-plan presales absorption slower than planned';
+    expect(
+      keysOf(deriveRaidSuggestions(lagos({ captured: { risk: [reworded] } })))
+    ).toContain('offplan_absorption_behind_drawdown');
+  });
+
+  it('does not suppress across RAID types', () => {
+    const text = textOf('assume_absorption_rate_holds');
+    // The same words captured as a RISK do not suppress the ASSUMPTION.
+    expect(
+      keysOf(deriveRaidSuggestions(lagos({ captured: { risk: [text] } })))
+    ).toContain('assume_absorption_rate_holds');
+  });
+
+  it('ignores blank and missing entries', () => {
+    const result = deriveRaidSuggestions(
+      lagos({ captured: { risk: ['', '   ', null, undefined] } })
+    );
+    expect(result.suppressed).toEqual([]);
+    expect(keysOf(result)).toContain('offplan_absorption_behind_drawdown');
+  });
+
+  it('suppresses nothing when the project has captured nothing', () => {
+    expect(deriveRaidSuggestions(lagos()).suppressed).toEqual([]);
+  });
+});
+
 // ── The write path: nothing until the user acts, and no criticality ────────
 
 describe('adding a suggestion', () => {
