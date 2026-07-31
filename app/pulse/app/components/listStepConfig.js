@@ -6,7 +6,8 @@
  *
  * The three steps share one shape: an editable, pre-filled list of items,
  * each with type-specific fields plus a shared "serves objective" link and a
- * cascading Critical / Standard criticality. This module is the single
+ * criticality derived from it (Note 2: the link is the only control; the
+ * criticality is shown, never chosen). This module is the single
  * source of truth for what differs between them (table, copy, fields, the
  * suggested starter set), so the shared StepItemList component and the wizard
  * shell can stay generic.
@@ -33,13 +34,6 @@ import {
 // only the words are, and they are now written once. Both selects still default
 // to medium so an inserted risk always carries a value (the columns are
 // nullable, but the spec wants inserts to be rated).
-
-// The two cascaded criticality values (criticality_level enum). The shared
-// criticality control on every item renders from this.
-export const CRITICALITY_OPTIONS = [
-  { value: 'critical', label: 'Critical' },
-  { value: 'standard', label: 'Standard' },
-];
 
 /**
  * The cascade rule (framework Section 6, M3.4 spec): an item linked to a
@@ -143,6 +137,10 @@ export const LIST_CONFIG = {
   workstreams: {
     key: 'workstreams',
     table: 'project_workstreams',
+    // A capture table records the basis beside the derived criticality
+    // (criticality_basis_type / criticality_basis_classification, migration
+    // 034), so "inherited from [objective]" is a read of stored fact.
+    captureBasis: true,
     step: 5,
     title: 'Organisation and Governance',
     intro:
@@ -186,6 +184,7 @@ export const LIST_CONFIG = {
   risks: {
     key: 'risks',
     table: 'project_risks',
+    captureBasis: true,
     step: 8,
     title: 'Risks, Assumptions, Constraints and Dependencies',
     intro:
@@ -246,6 +245,7 @@ export const LIST_CONFIG = {
   assumptions: {
     key: 'assumptions',
     table: 'project_assumptions',
+    captureBasis: true,
     step: 8,
     title: 'Assumptions',
     intro:
@@ -276,6 +276,7 @@ export const LIST_CONFIG = {
   constraints: {
     key: 'constraints',
     table: 'project_constraints',
+    captureBasis: true,
     step: 8,
     title: 'Constraints',
     intro: 'The fixed constraints the project must respect.',
@@ -305,6 +306,7 @@ export const LIST_CONFIG = {
   dependencies: {
     key: 'dependencies',
     table: 'project_dependencies',
+    captureBasis: true,
     step: 8,
     title: 'Dependencies',
     intro: 'The external dependencies the project relies on to deliver.',

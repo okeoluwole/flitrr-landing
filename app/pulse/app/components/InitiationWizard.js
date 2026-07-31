@@ -14,12 +14,13 @@ import StepFinancialBaseline from './StepFinancialBaseline';
 import StepProgramme from './StepProgramme';
 import StepGeneratedBrief from './StepGeneratedBrief';
 import { OBJECTIVE_ORDER } from './objectiveMeta';
+import { LIST_CONFIG, CONFIG_BY_STEP } from './listStepConfig';
 import {
-  LIST_CONFIG,
-  CONFIG_BY_STEP,
-  cascadeCriticality,
-  scopeSuggestions,
-} from './listStepConfig';
+  makeEmptyItem,
+  buildList,
+  isBlank,
+  itemToRow,
+} from './listItemModel';
 import {
   loadProgrammeChoices,
   saveProgrammeChoices,
@@ -419,90 +420,14 @@ function rankOrderFrom(rows) {
   return [...OBJECTIVE_ORDER];
 }
 
-// ── Step 5 to 7 list helpers ───────────────────────────────────────────────
-// The three list steps (milestones, workstreams, risks) share one shape, so
-// these generic helpers drive all of them from the per-type LIST_CONFIG. A
-// screen item carries: a real database `id` (null until inserted), a stable
-// client `_key` (for React and focus, never persisted), the config's fields,
-// `linked_objective_id`, `criticality`, and an in-session `criticalityOverridden`
-// flag (no schema column for it, by design).
-
-// Default value for a field on a brand-new (blank) item.
-function fieldDefault(field) {
-  if (field.type === 'select') return field.default ?? field.options[0].value;
-  return '';
-}
-
-// A fresh, unsaved item: no id, unlinked, Standard, fields at their defaults.
-function makeEmptyItem(cfg, makeKey) {
-  const item = {
-    id: null,
-    _key: makeKey(),
-    linked_objective_id: '',
-    criticality: 'standard',
-    criticalityOverridden: false,
-  };
-  for (const f of cfg.fields) item[f.name] = fieldDefault(f);
-  return item;
-}
-
-// Map a saved database row onto a screen item. The override flag is
-// reconstructed: a stored criticality that diverges from what the cascade
-// would currently produce can only have come from a manual override, so a
-// later link change must not silently reset it. A value that matches the
-// cascade leaves the cascade live.
-function rowToItem(cfg, row, objectives, makeKey) {
-  const item = {
-    id: row.id,
-    _key: makeKey(),
-    linked_objective_id: row.linked_objective_id ?? '',
-    criticality: row.criticality,
-    criticalityOverridden:
-      row.criticality !==
-      cascadeCriticality(row.linked_objective_id ?? '', objectives),
-  };
-  for (const f of cfg.fields) {
-    item[f.name] = row[f.name] ?? (f.type === 'select' ? fieldDefault(f) : '');
-  }
-  return item;
-}
-
-// Build a step's initial list: saved rows if any exist, otherwise the
-// suggested starter set (each suggestion merged onto a blank item). The
-// starter set scopes to the stages still ahead of the declared entry stage
-// (Note 12, scopeSuggestions): a mid-lifecycle adopter is not seeded
-// suggestions belonging to stages completed before adoption.
-function buildList(cfg, rows, objectives, makeKey, entryStage) {
-  if (rows && rows.length > 0) {
-    return rows.map((row) => rowToItem(cfg, row, objectives, makeKey));
-  }
-  return scopeSuggestions(cfg.suggested, entryStage).map((s) => ({
-    ...makeEmptyItem(cfg, makeKey),
-    ...s,
-  }));
-}
-
-// An item is "blank" when its required (identity) field is empty after
-// trimming. Blank items are not persisted (the column is NOT NULL) and are
-// dropped from the screen on save, so the screen matches the database.
-function isBlank(cfg, item) {
-  return clean(item[cfg.requiredField]) == null;
-}
-
-// Map a screen item onto a database row payload (insert or update). Optional
-// text and date fields are cleaned to null when empty; selects (the risk
-// levels) always carry a value. id, _key, status, and the override flag are
-// intentionally not sent: id/_key are identity, status keeps its default, and
-// the override flag is in-session only.
-function itemToRow(cfg, item) {
-  const row = {};
-  for (const f of cfg.fields) {
-    row[f.name] = f.type === 'select' ? item[f.name] : clean(item[f.name]);
-  }
-  row.linked_objective_id = item.linked_objective_id || null;
-  row.criticality = item.criticality;
-  return row;
-}
+// ── Step 5 to 8 list helpers ───────────────────────────────────────────────
+// The list steps (workstreams, risks and the RAID siblings) share one shape,
+// driven from the per-type LIST_CONFIG. The pure helpers behind them
+// (makeEmptyItem, rowToItem, buildList, isBlank, itemToRow, and the
+// capture-time criticality derivation) live in listItemModel.js so the rules
+// are testable without React or Supabase. Criticality is derived from the
+// objective link at load, at render and at write; there is no manual
+// override on these lists (Note 2).
 
 export default function InitiationWizard({
   userId,
@@ -1148,26 +1073,14 @@ export default function InitiationWizard({
     if (error) setError(null);
   };
 
-  // Changing the linked objective re-applies the cascade default, unless the
-  // developer has manually overridden this item's criticality.
+  // Changing the linked objective is the only criticality control: the
+  // derived value follows the link everywhere it is shown or written
+  // (StepItemList derives at render, itemToRow at write), so nothing else
+  // needs updating here.
   const onListLink = (key, itemKey, value) => {
-    updateListItem(key, itemKey, (it) => {
-      const next = { ...it, linked_objective_id: value };
-      if (!it.criticalityOverridden) {
-        next.criticality = cascadeCriticality(value, objectives);
-      }
-      return next;
-    });
-    if (error) setError(null);
-  };
-
-  // A manual criticality change sticks: it sets the override flag so a later
-  // link change will not silently reset it.
-  const onListCriticality = (key, itemKey, value) => {
     updateListItem(key, itemKey, (it) => ({
       ...it,
-      criticality: value,
-      criticalityOverridden: true,
+      linked_objective_id: value,
     }));
     if (error) setError(null);
   };
@@ -1631,7 +1544,10 @@ export default function InitiationWizard({
     if (toUpdate.length) {
       const updRes = await Promise.all(
         toUpdate.map((it) =>
-          supabase.from(cfg.table).update(itemToRow(cfg, it)).eq('id', it.id)
+          supabase
+            .from(cfg.table)
+            .update(itemToRow(cfg, it, objectives))
+            .eq('id', it.id)
         )
       );
       if (updRes.some((r) => r.error)) errored = true;
@@ -1644,7 +1560,7 @@ export default function InitiationWizard({
         toInsert.map((it) =>
           supabase
             .from(cfg.table)
-            .insert({ project_id: projectId, ...itemToRow(cfg, it) })
+            .insert({ project_id: projectId, ...itemToRow(cfg, it, objectives) })
             .select('id')
             .single()
             .then((res) => ({ it, res }))
@@ -2053,9 +1969,6 @@ export default function InitiationWizard({
               onListField('workstreams', itemKey, field, value)
             }
             onLink={(itemKey, value) => onListLink('workstreams', itemKey, value)}
-            onCriticality={(itemKey, value) =>
-              onListCriticality('workstreams', itemKey, value)
-            }
             onAdd={() => onListAdd('workstreams')}
             onRemove={(itemKey) => onListRemove('workstreams', itemKey)}
             asSection
@@ -2105,9 +2018,6 @@ export default function InitiationWizard({
             onListField(key, itemKey, field, value)
           }
           onLink={(itemKey, value) => onListLink(key, itemKey, value)}
-          onCriticality={(itemKey, value) =>
-            onListCriticality(key, itemKey, value)
-          }
           onAdd={() => onListAdd(key)}
           onRemove={(itemKey) => onListRemove(key, itemKey)}
           asSection

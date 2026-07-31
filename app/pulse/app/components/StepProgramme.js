@@ -3,8 +3,8 @@ import { OBJECTIVE_META } from './objectiveMeta';
 import { PROGRAMME_TEMPLATE } from '../../../../lib/engine/programmeTemplate.js';
 import { deriveRollingGateDates } from '../../../../lib/engine/programmeSchedule.js';
 import { deriveMilestoneView } from '../../../../lib/engine/programmeMilestones.js';
-import { CRITICALITY } from '../../../../lib/engine/criticality.js';
 import { STAGE_STATE } from '../../../../lib/engine/stageStates.js';
+import CritBadge from './CritBadge';
 
 /**
  * Step 7, Programme (live step 7). The lifecycle baseline the Programme
@@ -134,13 +134,6 @@ function stageWindowNote(meta) {
 const NAME_BY_TYPE = Object.fromEntries(
   OBJECTIVE_META.map((o) => [o.type, o.name])
 );
-
-// The read-only criticality badge: critical wears the amber signal, standard
-// stays neutral. classifyByType never returns 'unlinked' (a template milestone
-// always serves a named objective), so the two cases cover it.
-function criticalityLabel(criticality) {
-  return criticality === CRITICALITY.CRITICAL ? 'Critical' : 'Standard';
-}
 
 export default function StepProgramme({
   gates,
@@ -316,20 +309,11 @@ export default function StepProgramme({
                   {stage.milestones.map((m) => {
                     const dateId = `ms-date-${stage.stage}-${m.key}`;
                     const noteId = `ms-note-${stage.stage}-${m.key}`;
-                    const isCritical = m.criticality === CRITICALITY.CRITICAL;
                     return (
                       <li key={m.key} className={styles.itemCard}>
                         <div className={styles.milestoneHead}>
                           <span className={styles.milestoneName}>{m.name}</span>
-                          <span
-                            className={`${styles.critBadge} ${
-                              isCritical
-                                ? styles.critBadgeCritical
-                                : styles.critBadgeStandard
-                            }`}
-                          >
-                            {criticalityLabel(m.criticality)}
-                          </span>
+                          <CritBadge criticality={m.criticality} />
                         </div>
                         <p className={styles.milestoneServes}>
                           Serves {NAME_BY_TYPE[m.serves] ?? m.serves}

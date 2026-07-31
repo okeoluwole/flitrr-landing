@@ -1369,6 +1369,21 @@
   color: var(--app-ink-secondary);
 }
 
+/* The derived criticality readout on the capture lists (Step 5, Step 8): the
+   badge sits where a control would, level with the neighbouring inputs, and
+   the basis line beneath drops the milestone margin. */
+.critReadout {
+  display: flex;
+  align-items: center;
+  min-height: 2.4rem;
+}
+
+.critBasis {
+  margin: 0;
+  text-transform: none;
+  letter-spacing: 0.01em;
+}
+
 /* The served objective, in the instrument's meta voice. */
 .milestoneServes {
   font-family: var(--app-font-mono), monospace;

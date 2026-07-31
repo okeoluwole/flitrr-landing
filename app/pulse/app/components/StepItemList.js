@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from 'react';
 import { OBJECTIVE_META, CLASSIFICATION_LABELS } from './objectiveMeta';
-import { CRITICALITY_OPTIONS } from './listStepConfig';
+import { captureStamp, basisLine } from './listItemModel';
+import CritBadge from './CritBadge';
 import styles from './InitiationWizard.module.css';
 
 /**
@@ -12,12 +13,15 @@ import styles from './InitiationWizard.module.css';
  * state. The wizard shell holds the list and the persistence; this component
  * renders whatever `items` it is given and reports every edit up through the
  * callbacks. `config` (from listStepConfig) supplies the copy and the
- * type-specific fields; the objective link selector and the Critical /
- * Standard control are common to all three steps and rendered here.
+ * type-specific fields; the objective link selector is common to every list
+ * and rendered here.
  *
- * The cascade itself lives in the shell (onLink re-applies the default
- * criticality unless the item has been manually overridden). This component
- * only surfaces the controls.
+ * Criticality is derived, never chosen (Note 2). The objective link is the
+ * only control; beside it the derived criticality renders read-only through
+ * the same badge Step 7's milestones use, with an honest basis line naming
+ * the objective it inherits from, or stating that no objective is linked.
+ * The derivation reads the live objective state, so a Step 3 classification
+ * change recomputes every item shown here.
  *
  * The one piece of local behaviour is focus management: adding a row moves
  * focus to its first field, and removing a row moves focus to the Add
@@ -37,7 +41,6 @@ export default function StepItemList({
   objectives,
   onField,
   onLink,
-  onCriticality,
   onAdd,
   onRemove,
   // When true, render as a continuation section (a groupHead sub-heading)
@@ -160,7 +163,7 @@ export default function StepItemList({
         <ul className={styles.itemList}>
           {items.map((item, i) => {
             const linkId = `${config.key}-${item._key}-link`;
-            const critId = `${config.key}-${item._key}-criticality`;
+            const stamp = captureStamp(item.linked_objective_id, objectives);
             return (
               <li key={item._key}>
                 <fieldset className={styles.itemCard}>
@@ -220,25 +223,19 @@ export default function StepItemList({
                       </select>
                     </div>
 
-                    {/* Shared: cascaded, overridable criticality. */}
+                    {/* Shared: the derived criticality, shown, never chosen.
+                        The badge is Step 7's; the basis line states what the
+                        value inherits from. */}
                     <div className={styles.field}>
-                      <label className={styles.label} htmlFor={critId}>
-                        Criticality
-                      </label>
-                      <select
-                        id={critId}
-                        className={styles.select}
-                        value={item.criticality}
-                        onChange={(e) =>
-                          onCriticality(item._key, e.target.value)
-                        }
+                      <span className={styles.label}>Criticality</span>
+                      <div className={styles.critReadout}>
+                        <CritBadge criticality={stamp.criticality} />
+                      </div>
+                      <p
+                        className={`${styles.milestoneServes} ${styles.critBasis}`}
                       >
-                        {CRITICALITY_OPTIONS.map((o) => (
-                          <option key={o.value} value={o.value}>
-                            {o.label}
-                          </option>
-                        ))}
-                      </select>
+                        {basisLine(stamp)}
+                      </p>
                     </div>
                   </div>
                 </fieldset>
