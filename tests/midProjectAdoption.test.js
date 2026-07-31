@@ -488,8 +488,20 @@ describe('the adopter sequence and next gate', () => {
 });
 
 describe('suggestion scoping for an adopter', () => {
-  it('drops seeded risks whose stages completed before adoption and keeps the remaining ones', () => {
-    const scoped = scopeSuggestions(LIST_CONFIG.risks.suggested, 5);
+  // A stage-tagged fixture in the shape the starter sets use. It was the risk
+  // starter set until Note 7 replaced that content with the RAID suggestion
+  // engine; the scoping RULE this pins is unchanged and still serves Step 7's
+  // milestones, so the test keeps its own fixture rather than depending on
+  // content another note is free to rewrite.
+  const SEEDED = [
+    { description: 'Planning permission delayed or refused', stages: [2, 3] },
+    { description: 'Construction costs exceed budget', stages: [4, 5] },
+    { description: 'Funding delayed or falls through', stages: [1, 2, 3, 4, 5, 6, 7] },
+    { description: 'Sales slower than forecast', stages: [3, 4, 5, 6, 7] },
+  ];
+
+  it('drops seeded items whose stages completed before adoption and keeps the remaining ones', () => {
+    const scoped = scopeSuggestions(SEEDED, 5);
     const names = scoped.map((s) => s.description);
     expect(names).not.toContain('Planning permission delayed or refused');
     expect(names).toContain('Construction costs exceed budget');
@@ -507,8 +519,8 @@ describe('suggestion scoping for an adopter', () => {
   });
 
   it('keeps every suggestion for a from-scratch Stage 1 project and strips the tag', () => {
-    const scoped = scopeSuggestions(LIST_CONFIG.risks.suggested, 1);
-    expect(scoped.length).toBe(LIST_CONFIG.risks.suggested.length);
+    const scoped = scopeSuggestions(SEEDED, 1);
+    expect(scoped.length).toBe(SEEDED.length);
     for (const s of scoped) expect(s.stages).toBeUndefined();
   });
 

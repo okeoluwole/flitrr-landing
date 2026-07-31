@@ -236,18 +236,21 @@ export const LIST_CONFIG = {
         placeholder: 'How would you respond?',
       },
     ],
-    // Each suggestion names the lifecycle stages it bears on (`stages`, not
-    // persisted), so the starter set scopes to the stages still ahead of the
-    // project's declared entry stage (Note 12): a Stage 5 adopter is not
-    // seeded a planning-consent risk whose stage completed before adoption.
-    // A suggestion with no stages tag always shows.
-    suggested: [
-      { description: 'Planning permission delayed or refused', stages: [2, 3] },
-      { description: 'Construction costs exceed budget', stages: [4, 5] },
-      { description: 'Funding delayed or falls through', stages: [1, 2, 3, 4, 5, 6, 7] },
-      { description: 'Programme slips beyond target completion', stages: [1, 2, 3, 4, 5, 6, 7] },
-      { description: 'Sales slower than forecast', stages: [3, 4, 5, 6, 7] },
-    ],
+    // NO STARTER SET (Note 7). This held five generic risks (planning permission
+    // delayed, construction costs exceed budget, funding delayed, programme
+    // slips, sales slower than forecast) pre-filled straight into the list. They
+    // were conditioned on nothing the developer had recorded, so the same rows
+    // appeared on every project in every country under every funding structure,
+    // and because they arrived as ordinary editable rows a suggestion was
+    // indistinguishable from something the developer had written.
+    //
+    // Suggestions now come from the RAID suggestion engine
+    // (lib/engine/raidSuggestions.js), selected from the captured baseline and
+    // shown as cards above the list, each stating the recorded input that
+    // selected it. Nothing reaches the list until the developer adds it. The
+    // stage scoping this array carried is not lost: the engine's own
+    // `stagesAhead` condition does the same job against the same entry stage.
+    suggested: [],
   },
 
   // The three RAID siblings alongside risks (step 8). Same shape as risks for

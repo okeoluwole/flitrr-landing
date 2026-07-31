@@ -50,6 +50,12 @@ export default function StepItemList({
   asSection = false,
   sectionTitle,
   sectionIntro,
+  // The PULSE Suggests band for this list (Note 7), rendered between the
+  // section's intro and its items. Passed in rather than derived here, because
+  // the engine reads the whole captured baseline and this component is
+  // presentational and knows only its own list. Omitted on the steps that have
+  // no suggestions, where it renders nothing at all.
+  suggestions = null,
 }) {
   // First focusable field per item, keyed by the item's stable client key.
   const firstFieldRefs = useRef(new Map());
@@ -153,6 +159,8 @@ export default function StepItemList({
           <p className={styles.panelIntro}>{config.intro}</p>
         </>
       )}
+
+      {suggestions}
 
       {items.length === 0 ? (
         <p className={styles.emptyHint}>

@@ -11,16 +11,18 @@ import StepOrganisation from './StepOrganisation';
 import StepProjectObjectives from './StepProjectObjectives';
 import StepConstraintRanking from './StepConstraintRanking';
 import StepItemList from './StepItemList';
+import RaidSuggestions from './RaidSuggestions';
 import StepFinancialBaseline from './StepFinancialBaseline';
 import StepProgramme from './StepProgramme';
 import StepGeneratedBrief from './StepGeneratedBrief';
-import { OBJECTIVE_ORDER } from './objectiveMeta';
+import { OBJECTIVE_ORDER, OBJECTIVE_META } from './objectiveMeta';
 import { LIST_CONFIG, CONFIG_BY_STEP } from './listStepConfig';
 import {
   makeEmptyItem,
   buildList,
   isBlank,
   itemToRow,
+  suggestionToItem,
 } from './listItemModel';
 import {
   loadProgrammeChoices,
@@ -29,6 +31,12 @@ import {
   setMilestoneChoice,
 } from './programmeChoices';
 import { PROGRAMME_TEMPLATE } from '../../../../lib/engine/programmeTemplate.js';
+import {
+  buildRaidBaseline,
+  deriveRaidSuggestions,
+  groupByType,
+  LIST_KEY_BY_TYPE,
+} from '../../../../lib/engine/raidSuggestions.js';
 import { deriveStageStates } from '../../../../lib/engine/stageStates.js';
 import { formatDisplayDate } from '../../../../lib/engine/dateFormat.js';
 import { STAGE_NAMES } from '../../../../lib/engine/stageNames.js';
@@ -134,6 +142,13 @@ const EMPTY_CTX = {
   exit_strategy: '',
   completion_handover: '',
 };
+
+// Objective display names keyed by objective_type, for the engines that hold no
+// display strings of their own (the criticality kernel, the RAID suggestion
+// engine). objectiveMeta is the one source of the names.
+const NAME_BY_TYPE = Object.fromEntries(
+  OBJECTIVE_META.map((o) => [o.type, o.name])
+);
 
 // Step 4 Scope and Site, the scalar fields of the project_scope_site 1:1
 // record. The mix and quantum is held separately as a list of rows (see
@@ -549,6 +564,13 @@ export default function InitiationWizard({
     dependencies: new Set(),
   });
   const makeKey = () => `k${keyCounterRef.current++}`;
+
+  // Step 8 PULSE Suggests (Note 7): the candidate keys the developer has acted
+  // on this session, so an added or dismissed suggestion stops being offered.
+  // Session state only. B3's recorded triage (who decided what, and when) lives
+  // on the monitoring modules and is deliberately not built at initiation, so
+  // there is nothing to persist and this needs no migration.
+  const [actedSuggestions, setActedSuggestions] = useState(() => new Set());
 
   const nameValid = def.name.trim().length > 0;
 
@@ -1103,6 +1125,43 @@ export default function InitiationWizard({
         : prev
     );
     if (error) setError(null);
+  };
+
+  /**
+   * Add a PULSE Suggests candidate to its RAID list (Note 7), with the objective
+   * link the developer confirmed: the proposed one, one they changed it to, or
+   * none where they cleared it.
+   *
+   * It becomes an ordinary item from this moment, editable and removable like a
+   * hand-typed one, and it saves with the rest of the step through persistList.
+   * The one thing it carries that a typed row does not is the client-only
+   * from-suggestion marker, which tells itemToRow to send no criticality: the
+   * database trigger derives that from the confirmed link and is its sole writer.
+   */
+  const onSuggestionAdd = (candidate, confirmedObjectiveId) => {
+    const key = LIST_KEY_BY_TYPE[candidate.type];
+    const cfg = LIST_CONFIG[key];
+    if (!cfg) return;
+    setLists((prev) =>
+      prev
+        ? {
+            ...prev,
+            [key]: [
+              ...prev[key],
+              suggestionToItem(cfg, candidate, confirmedObjectiveId, makeKey),
+            ],
+          }
+        : prev
+    );
+    setActedSuggestions((prev) => new Set(prev).add(candidate.key));
+    if (error) setError(null);
+  };
+
+  // Dismiss a suggestion: it stops being offered for this session. Step 8's own
+  // behaviour, and no more than that. The recorded triage that names who
+  // dismissed what and why is B3's, and it belongs to the monitoring modules.
+  const onSuggestionDismiss = (candidate) => {
+    setActedSuggestions((prev) => new Set(prev).add(candidate.key));
   };
 
   // Retry control for the Steps 5 to 7 load fallback. Retries whichever load
@@ -2038,12 +2097,38 @@ export default function InitiationWizard({
     }
 
     // Step 8 RAID: the full picture under one header, four criticality-cascade
-    // lists as continuation sections (risks, then the three siblings).
+    // lists as continuation sections (risks, then the three siblings), each
+    // preceded by the PULSE Suggests band the engine fills (Note 7).
     if (step === 8) {
       if (objStatus !== 'loaded' || listsStatus !== 'loaded') {
         return renderListNotReady(step);
       }
-      const raidSection = (key, sectionTitle) => (
+
+      // The suggestion engine reads the RECORDED baseline: the seven steps
+      // already captured, gathered here from the state that holds each of them.
+      // The financial and scope loads are not gated on above, because Step 8 has
+      // never waited for them; a field not yet loaded arrives null and simply
+      // fires no condition, which is the same as a fact not yet recorded.
+      const { candidates } = deriveRaidSuggestions(
+        buildRaidBaseline({
+          country: def.country,
+          currency: def.currency,
+          procurementRoute: def.procurement_route,
+          planningStatus: scope?.planning_status,
+          fundingStructureType: financial?.funding_structure_type,
+          fundingMilestoneCount: financial?.milestones?.length ?? 0,
+          entryStage: storedEntryStage,
+          projectStart: def.start_date,
+          gates,
+          objectives,
+          nameByType: NAME_BY_TYPE,
+        })
+      );
+      const suggestionsByType = groupByType(
+        candidates.filter((c) => !actedSuggestions.has(c.key))
+      );
+
+      const raidSection = (key, sectionTitle, type) => (
         <StepItemList
           key={key}
           config={LIST_CONFIG[key]}
@@ -2058,6 +2143,19 @@ export default function InitiationWizard({
           asSection
           sectionTitle={sectionTitle}
           sectionIntro={LIST_CONFIG[key].intro}
+          suggestions={
+            <RaidSuggestions
+              candidates={suggestionsByType[type]}
+              objectives={objectives}
+              nounPlural={
+                LIST_CONFIG[key].nounPlural ?? `${LIST_CONFIG[key].itemNoun}s`
+              }
+              addLabel={LIST_CONFIG[key].addLabel}
+              linkLabel={LIST_CONFIG[key].linkLabel}
+              onAdd={onSuggestionAdd}
+              onDismiss={onSuggestionDismiss}
+            />
+          }
         />
       );
       return (
@@ -2073,10 +2171,10 @@ export default function InitiationWizard({
             bears on. Every field is optional and can be revised before the
             brief is locked.
           </p>
-          {raidSection('risks', 'Risks')}
-          {raidSection('assumptions', 'Assumptions')}
-          {raidSection('constraints', 'Constraints')}
-          {raidSection('dependencies', 'Dependencies')}
+          {raidSection('risks', 'Risks', 'risk')}
+          {raidSection('assumptions', 'Assumptions', 'assumption')}
+          {raidSection('constraints', 'Constraints', 'constraint')}
+          {raidSection('dependencies', 'Dependencies', 'dependency')}
         </>
       );
     }

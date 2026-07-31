@@ -138,6 +138,15 @@ export function isBlank(cfg, item) {
  * beside the value, the deriving objective's type and classification at the
  * moment of the write, so the brief snapshot and the assembled v1 read the
  * same stored fact.
+ *
+ * EXCEPT ON THE SUGGESTION PATH (Note 7). An item added from a PULSE Suggests
+ * candidate sends NO criticality and NO basis at all. Migration 034's trigger is
+ * the sole writer of all three columns: it stamps the derivation from the linked
+ * objective and hard-rejects a critical the link does not carry. A suggestion
+ * carries no criticality of its own by design, so the payload states only the
+ * link the developer confirmed and lets the trigger derive from it. A
+ * hand-typed row is unchanged and still sends the stamp, which the trigger then
+ * agrees with.
  */
 export function itemToRow(cfg, item, objectives) {
   const row = {};
@@ -145,6 +154,8 @@ export function itemToRow(cfg, item, objectives) {
     row[f.name] = f.type === 'select' ? item[f.name] : clean(item[f.name]);
   }
   row.linked_objective_id = item.linked_objective_id || null;
+  if (item._fromSuggestion === true) return row;
+
   const stamp = captureStamp(item.linked_objective_id, objectives);
   row.criticality = stamp.criticality;
   if (cfg.captureBasis) {
@@ -152,4 +163,30 @@ export function itemToRow(cfg, item, objectives) {
     row.criticality_basis_classification = stamp.basisClassification;
   }
   return row;
+}
+
+/**
+ * A screen item built from a PULSE Suggests candidate the developer has ADDED
+ * (Note 7), with the link they confirmed: the proposed objective, one they
+ * changed it to, or none at all where they cleared it.
+ *
+ * The candidate's rendered text lands in the list's identity field, so the item
+ * is an ordinary editable row from the moment it is added and behaves exactly
+ * like a hand-typed one: it can be reworded, relinked or removed before the
+ * brief is locked, and it saves through the same persistList.
+ *
+ * `_fromSuggestion` is CLIENT-ONLY, like `_key`. It never reaches the database
+ * (itemToRow above drops it with the rest of the bookkeeping) and it is not
+ * persisted anywhere, which is why this needs no migration. It marks one thing:
+ * that this row's criticality is the trigger's to derive, not this path's to
+ * send. A row reloaded from the database comes back through rowToItem without
+ * the marker, which is correct, because by then it is simply a captured item.
+ */
+export function suggestionToItem(cfg, candidate, confirmedObjectiveId, makeKey) {
+  return {
+    ...makeEmptyItem(cfg, makeKey),
+    [cfg.requiredField]: candidate.text,
+    linked_objective_id: confirmedObjectiveId || '',
+    _fromSuggestion: true,
+  };
 }
