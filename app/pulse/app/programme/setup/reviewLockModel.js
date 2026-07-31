@@ -133,6 +133,11 @@ export function reviewStages(assembled) {
       stage: stage.stage,
       name: stage.name,
       applicable: stage.applicable !== false,
+      // Completed before the project entered PULSE (Note 12): its dates are
+      // the developer's backfilled record, so the review reads it as history,
+      // never as a plan.
+      completedPriorToAdoption:
+        stage.gate?.completedPriorToAdoption === true,
       stageStart: stage.stageStart ?? null,
       gate: {
         key: stage.gate?.key ?? `gate_${stage.stage}`,

@@ -28,12 +28,12 @@
  * module with an honest line is the truthful state, and it is not a dead end: it
  * says which step opens it.
  *
- * ENTRY-STAGE INDEPENDENT BY CONSTRUCTION. Nothing here reads current_stage or
- * compares against Stage 1. The sequence takes three booleans and returns a
- * step; deriveGateConfirmed answers "has this project passed a gate to reach
- * where it is" from the project's own gate rows, whatever stage it entered at.
- * A later session (Note 12) lets a developer adopt PULSE mid-lifecycle, and this
- * sequence does not need to change to allow it.
+ * ENTRY-STAGE INDEPENDENT BY CONSTRUCTION. Nothing here compares against
+ * Stage 1. The sequence takes three booleans and returns a step;
+ * deriveGateConfirmed answers "was the transition into the current stage
+ * decided" from the project's own gate rows plus, for a mid-lifecycle adopter
+ * (Note 12), the gates completed prior to adoption, whatever stage it entered
+ * at.
  */
 
 /**
@@ -54,16 +54,47 @@ export const SEQUENCE_STEPS = Object.freeze({
  * deliberate decision having been made.
  *
  * Stage-agnostic on purpose: it takes the stages whose gate rows read passed and
- * the stage the project now sits on, and never a constant of its own. A project
- * adopted at Stage 4 records its go on the stage 4 row and advances to 5,
- * reading confirmed by the same rule that serves a Stage 1 project.
+ * the stage the project now sits on, and never a constant of its own.
+ *
+ * MID-LIFECYCLE ADOPTION (Note 12). A project that adopted PULSE mid-lifecycle
+ * declared its entry stage, and every gate before that stage was completed
+ * prior to adoption: decided in the world, recorded on the baseline, and never
+ * run through the gate ceremony here (nothing before the adoption stage is
+ * retroactively gated, and nothing is fake-passed). Those stages arrive in
+ * completedPriorStages, and a completed-prior gate below the current stage
+ * confirms the transition into it exactly as a passed one does: the decision
+ * that brought the project here was genuinely made, just before PULSE was
+ * watching. Gate ceremonies apply from the adopter's own next transition
+ * forward. For a from-scratch project completedPriorStages is empty and the
+ * rule is exactly as it always was.
  */
-export function deriveGateConfirmed({ currentStage, passedGateStages }) {
+export function deriveGateConfirmed({
+  currentStage,
+  passedGateStages,
+  completedPriorStages,
+}) {
   if (typeof currentStage !== 'number') return false;
   if (!Array.isArray(passedGateStages)) return false;
-  return passedGateStages.some(
+  const decided = Array.isArray(completedPriorStages)
+    ? [...passedGateStages, ...completedPriorStages]
+    : passedGateStages;
+  return decided.some(
     (stage) => typeof stage === 'number' && stage < currentStage
   );
+}
+
+/**
+ * The project's own next gate: the transition out of the stage it now sits on.
+ * For a from-scratch project at Stage 1 this is Gate 1 to 2, exactly the flow
+ * that exists today; for a Stage 5 adopter it is Gate 5 to 6, never Gate 1 to
+ * 2. Null at Stage 7, where no transition remains (closing the development is
+ * Stage 7's own mandate, not a gate).
+ */
+export function nextGateTransition(currentStage) {
+  if (!Number.isInteger(currentStage) || currentStage < 0 || currentStage >= 7) {
+    return null;
+  }
+  return { fromStage: currentStage, toStage: currentStage + 1 };
 }
 
 /**

@@ -73,7 +73,7 @@ export default async function RiskPage({ searchParams }) {
   // also what the sequence read measures the gate decision against.
   const { data: project } = await supabase
     .from('projects')
-    .select('id, name, current_stage')
+    .select('id, name, current_stage, entry_stage')
     .eq('id', projectParam)
     .maybeSingle();
 
@@ -84,7 +84,7 @@ export default async function RiskPage({ searchParams }) {
 
   // Where the project sits on the fixed path (Note 13). The same derivation the
   // workspace tile uses.
-  const sequence = await readSequence(supabase, project.id, project.current_stage);
+  const sequence = await readSequence(supabase, project.id, project.current_stage, project.entry_stage);
 
   // Back to the workspace launcher, carrying view=workspace so in Run it reaches
   // the launcher (to hop to another module) instead of being redirected to the

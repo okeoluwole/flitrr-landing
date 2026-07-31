@@ -114,7 +114,7 @@ export default async function ProgrammeSetupPage({ searchParams }) {
   const [{ data: project }, { data: brief }] = await Promise.all([
     supabase
       .from('projects')
-      .select('id, name, start_date, target_completion_date, country')
+      .select('id, name, start_date, target_completion_date, country, entry_stage')
       .eq('id', projectParam)
       .maybeSingle(),
     supabase
@@ -200,6 +200,11 @@ export default async function ProgrammeSetupPage({ searchParams }) {
   const stageStates = deriveStageStates(PROGRAMME_TEMPLATE, {
     country: project.country,
     fundingStructureType: budget?.funding_structure_type,
+    // The declared entry stage (Note 12): stages before it were complete
+    // before the project entered PULSE. The reality check raises no items for
+    // them and the assembly derives nothing in them; their backfilled dates
+    // are recorded fact.
+    entryStage: project.entry_stage,
   });
 
   // The already-locked record, if a current baseline exists, with the locker's

@@ -114,7 +114,7 @@ export default async function ProgrammeTrackingPage({ searchParams }) {
   // stage 7 track on the chart where its dates actually are.
   const { data: project } = await supabase
     .from('projects')
-    .select('id, name, current_stage, country')
+    .select('id, name, current_stage, country, entry_stage')
     .eq('id', projectParam)
     .maybeSingle();
 
@@ -173,6 +173,10 @@ export default async function ProgrammeTrackingPage({ searchParams }) {
   const stageStates = deriveStageStates(PROGRAMME_TEMPLATE, {
     country: project.country,
     fundingStructureType: budget?.funding_structure_type,
+    // The declared entry stage (Note 12): stages before it were complete
+    // before the project entered PULSE, so the tracking surface reads their
+    // dates as recorded history, not as a plan.
+    entryStage: project.entry_stage,
   });
 
   return (

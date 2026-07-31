@@ -78,7 +78,7 @@ export default async function DashboardPage({ searchParams }) {
 
   const { data: project } = await supabase
     .from('projects')
-    .select('id, name, current_stage, target_completion_date')
+    .select('id, name, current_stage, entry_stage, target_completion_date')
     .eq('id', projectParam)
     .maybeSingle();
 
@@ -89,7 +89,7 @@ export default async function DashboardPage({ searchParams }) {
 
   // Where the project sits on the fixed path (Note 13), the same derivation the
   // workspace tile uses.
-  const sequence = await readSequence(supabase, project.id, project.current_stage);
+  const sequence = await readSequence(supabase, project.id, project.current_stage, project.entry_stage);
 
   // Back to the project reaches the WORKSPACE (the route to the modules), and
   // carries ?view=workspace (M9.5). In Run a bare workspace open redirects to

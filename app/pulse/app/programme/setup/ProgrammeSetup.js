@@ -640,7 +640,11 @@ function ReviewStage({ stage }) {
         <div className={styles.stageTitle}>
           <b>S{stage.stage}</b> {stage.name}
         </div>
-        {range && <span className={`${styles.stageDur} tnum`}>{range}</span>}
+        {stage.completedPriorToAdoption ? (
+          <span className={styles.stageNaTag}>Completed before adoption</span>
+        ) : (
+          range && <span className={`${styles.stageDur} tnum`}>{range}</span>
+        )}
       </div>
       <div className={styles.items}>
         {stage.milestones.map((m) => (

@@ -102,7 +102,7 @@ export default async function GatePage({ searchParams }) {
     await Promise.all([
       supabase
         .from('projects')
-        .select('id, name, current_stage, funding_structure')
+        .select('id, name, current_stage, entry_stage, funding_structure')
         .eq('id', projectParam)
         .maybeSingle(),
       supabase
@@ -124,6 +124,16 @@ export default async function GatePage({ searchParams }) {
   // Not found, or not owned (RLS filtered it out).
   if (!project) {
     redirect('/pulse/app');
+  }
+
+  // This surface is the Stage 1 to 2 review, the from-scratch entry gate. A
+  // mid-lifecycle adopter (Note 12) declared a later entry stage: its gates up
+  // to that stage were completed prior to adoption and are never run through
+  // this ceremony, and its own next gate is a different transition with no
+  // review surface yet. Send it back to the workspace rather than showing a
+  // gate that is not on its path.
+  if ((project.entry_stage ?? 1) > GATE_FROM_STAGE) {
+    redirect(`/pulse/app/workspace?project=${project.id}`);
   }
 
   const briefHref = `/pulse/app/initiate?project=${project.id}`;

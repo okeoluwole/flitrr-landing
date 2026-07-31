@@ -19,15 +19,19 @@ import {
   modulesOpen,
   moduleLockedLine,
 } from '../workspace/sequenceModel';
+import { completedStagesForEntry } from '../../../../lib/engine/stageStates.js';
 
 /**
  * Read a project's sequence position. Returns
  * { step, modulesOpen, lockedLine, briefLocked, baselineLocked, gateConfirmed }.
  *
- * currentStage is passed in by the caller, which has already loaded the project
- * row, so this makes no second read of it.
+ * currentStage and entryStage are passed in by the caller, which has already
+ * loaded the project row, so this makes no second read of it. entryStage is
+ * the declared entry stage (Note 12): the gates before it were completed prior
+ * to adoption, so they confirm the transition into the current stage without
+ * ever being run through the ceremony or written as passed.
  */
-export async function readSequence(supabase, projectId, currentStage) {
+export async function readSequence(supabase, projectId, currentStage, entryStage) {
   const [{ data: brief }, { data: baselineRow }, { data: passedGates }] =
     await Promise.all([
       supabase
@@ -55,6 +59,7 @@ export async function readSequence(supabase, projectId, currentStage) {
   const gateConfirmed = deriveGateConfirmed({
     currentStage,
     passedGateStages: (passedGates ?? []).map((g) => g?.stage),
+    completedPriorStages: completedStagesForEntry(entryStage),
   });
   const step = deriveSequenceStep({ briefLocked, baselineLocked, gateConfirmed });
 

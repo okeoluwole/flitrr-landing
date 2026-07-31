@@ -73,7 +73,7 @@ export default async function ActionsPage({ searchParams }) {
 
   const { data: project } = await supabase
     .from('projects')
-    .select('id, name, current_stage')
+    .select('id, name, current_stage, entry_stage')
     .eq('id', projectParam)
     .maybeSingle();
 
@@ -111,7 +111,7 @@ export default async function ActionsPage({ searchParams }) {
   // The sequence gate (Note 13): the three monitoring modules open together,
   // once the operational baseline is locked and the gate is confirmed. Until
   // then, show the sequence's honest line naming the step that opens it.
-  const sequence = await readSequence(supabase, project.id, project.current_stage);
+  const sequence = await readSequence(supabase, project.id, project.current_stage, project.entry_stage);
   if (!sequence.modulesOpen) {
     return (
       <DashboardShell user={navUser}>

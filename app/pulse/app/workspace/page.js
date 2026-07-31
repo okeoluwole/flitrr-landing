@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { createClient } from '../../../../lib/supabase/server';
 import { resolveProjectAccess } from '../../../../lib/team/access';
 import { buildObjectiveIndex } from '../../../../lib/engine/criticality';
+import { completedStagesForEntry } from '../../../../lib/engine/stageStates.js';
 import { assessRisks } from '../../../../lib/engine/monitor';
 import DashboardShell from '../../../components/DashboardShell';
 import ViewOnlyBadge from '../components/ViewOnlyBadge';
@@ -358,7 +359,7 @@ export default async function WorkspacePage({ searchParams }) {
     await Promise.all([
       supabase
         .from('projects')
-        .select('id, name, current_stage, target_completion_date')
+        .select('id, name, current_stage, entry_stage, target_completion_date')
         .eq('id', projectParam)
         .maybeSingle(),
       supabase
@@ -389,11 +390,13 @@ export default async function WorkspacePage({ searchParams }) {
 
   // The sequence step (Note 13), derived once from the two locks and the gate
   // decision. Stage-agnostic: deriveGateConfirmed reads the project's own passed
-  // gate rows against where it now stands, so a project adopted mid-lifecycle
-  // (Note 12) needs no change here.
+  // gate rows against where it now stands, plus the gates completed prior to
+  // adoption for a mid-lifecycle adopter (Note 12), so an adopter's next gate
+  // is its own next transition, never Gate 1 to 2.
   const gateConfirmed = deriveGateConfirmed({
     currentStage: project.current_stage,
     passedGateStages: (passedGates ?? []).map((g) => g?.stage),
+    completedPriorStages: completedStagesForEntry(project.entry_stage),
   });
   const step = deriveSequenceStep({
     briefLocked,
