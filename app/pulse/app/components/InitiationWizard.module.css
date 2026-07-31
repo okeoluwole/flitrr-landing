@@ -38,83 +38,11 @@
 
 /* ── Wizard header ── */
 
+/* The wizard header frame is PageHeader (Session K). This wrapper stays
+   only as the print target that hides the chrome when the Brief exports;
+   display: contents so it adds no box of its own on screen. */
 .header {
-  margin-bottom: 2rem;
-}
-
-.backLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  min-height: 44px;
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--app-ink-secondary);
-  text-decoration: none;
-  margin: -0.6rem 0 0.6rem;
-  transition: color var(--dur-fast) var(--ease-out);
-}
-
-.backLink:hover,
-.backLink:focus-visible {
-  color: var(--app-ink);
-}
-
-.backLink:focus-visible {
-  outline: 2px solid var(--app-focus);
-  outline-offset: 2px;
-  border-radius: 2px;
-}
-
-.title {
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: var(--app-text-xl);
-  font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  color: var(--app-ink);
-  overflow-wrap: break-word;
-  margin-bottom: 0.5rem;
-}
-
-.subtitle {
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
-  font-weight: 400;
-  line-height: 1.6;
-  color: var(--app-ink-secondary);
-  max-width: 60ch;
-}
-
-/* ── Stage indicator (M5) ──
-   The stage read, in the numeric instrument voice: the same line the hub row
-   and the workspace carry. A state indicator only, never a chip. */
-.stageIndicator {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 0.35rem 0.85rem;
-  margin-top: 0.9rem;
-}
-
-.stageChip {
-  font-family: var(--app-font-mono), monospace;
-  font-size: 0.75rem;
-  font-weight: 400;
-  line-height: 1.5;
-  letter-spacing: 0.01em;
-  color: var(--app-ink-secondary);
-}
-
-.stageDecision {
-  font-family: var(--app-font-mono), monospace;
-  font-size: 0.75rem;
-  font-weight: 400;
-  line-height: 1.5;
-  letter-spacing: 0.01em;
-  color: var(--app-ink-muted);
-  font-variant-numeric: tabular-nums;
+  display: contents;
 }
 
 /* ── Progress: the step rail. A compact node strip on mobile, a vertical
@@ -185,7 +113,7 @@
   border: 2px solid var(--app-border);
   background-color: var(--app-surface);
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 500;
   color: var(--app-ink-muted);
   cursor: pointer;
@@ -245,7 +173,7 @@
 
 .stepName {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -358,7 +286,7 @@
 
 .panelEyebrow {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -378,7 +306,7 @@
 
 .panelIntro {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   font-weight: 400;
   line-height: 1.6;
   color: var(--app-ink-secondary);
@@ -412,7 +340,7 @@
 
 .label {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 500;
   color: var(--app-ink);
 }
@@ -436,7 +364,7 @@
   width: 100%;
   min-height: 44px;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 400;
   line-height: 1.5;
   color: var(--app-ink);
@@ -472,7 +400,7 @@
 
 .hint {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 400;
   line-height: 1.45;
   color: var(--app-ink-secondary);
@@ -488,7 +416,7 @@
 
 .groupTitle {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.75rem;
+  font-size: var(--app-text-xs);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -498,7 +426,7 @@
 
 .groupHint {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 400;
   line-height: 1.5;
   color: var(--app-ink-secondary);
@@ -507,22 +435,49 @@
 
 /* ── Footer navigation ── */
 
-/* The failed save: the dark-tuned danger, text plus tone, never colour
-   alone (the row carries role="alert"). */
-.error {
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--app-danger);
-  margin-top: 1.5rem;
-}
-
 .footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
   margin-top: 2rem;
+}
+
+/* The named blocker beside a held Save & Continue (Session K): the bar says
+   why it waits instead of reading as a refusal. role="status" in the JSX. */
+.footerHint {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
+  line-height: 1.5;
+  color: var(--app-ink-secondary);
+  text-align: right;
+  margin: var(--app-space-2) 0 0;
+}
+
+/* The flow footer stacks on a phone (Session K, logged out of Session E):
+   the two longer action labels no longer fight for one row. Primary first
+   under the thumb, then Save & Exit, then Back; every control full width. */
+@media (max-width: 540px) {
+  .footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .footerActions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .btnBack,
+  .btnNext,
+  .btnExit {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .footerHint {
+    text-align: center;
+  }
 }
 
 .btnBack,
@@ -533,7 +488,7 @@
   gap: 0.5rem;
   min-height: 44px;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   border-radius: var(--app-radius-sm);
   padding: 0.6rem 1.1rem;
@@ -592,7 +547,7 @@
   gap: 0.45rem;
   min-height: 44px;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   color: var(--app-ink);
   text-decoration: none;
@@ -622,14 +577,11 @@
 /* The footer arrows answer the hover, gently and only when motion is
    welcome. */
 @media (prefers-reduced-motion: no-preference) {
-  .backLink svg,
   .btnBack svg,
   .btnNext svg {
     transition: transform var(--dur-fast) var(--ease-out);
   }
 
-  .backLink:hover svg,
-  .backLink:focus-visible svg,
   .btnBack:hover:not(:disabled) svg {
     transform: translateX(-3px);
   }
@@ -672,14 +624,14 @@
 
 .objName {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   font-weight: 600;
   color: var(--app-ink);
 }
 
 .objDesc {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 400;
   line-height: 1.5;
   color: var(--app-ink-secondary);
@@ -702,7 +654,7 @@
 
 .choiceLegend {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 500;
   color: var(--app-ink);
   padding: 0;
@@ -761,14 +713,14 @@
 
 .choiceTitle {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   color: var(--app-ink);
 }
 
 .choiceHint {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 400;
   line-height: 1.4;
   color: var(--app-ink-secondary);
@@ -833,7 +785,7 @@
   justify-content: center;
   min-width: 1.2rem;
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 600;
   color: var(--app-ink);
   font-variant-numeric: tabular-nums;
@@ -850,7 +802,7 @@
 
 .rankName {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   font-weight: 600;
   color: var(--app-ink);
 }
@@ -860,7 +812,7 @@
    plain mono, monochrome by intensity. */
 .rankBadge {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -950,7 +902,7 @@
 
 .warningText {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 400;
   line-height: 1.5;
   color: var(--app-ink);
@@ -981,7 +933,7 @@
 
 .frozenNoteText {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 400;
   line-height: 1.5;
   color: var(--app-ink);
@@ -1047,7 +999,7 @@
 
 .itemIndex {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1119,7 +1071,7 @@
   margin-top: 1rem;
   min-height: 44px;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   color: var(--app-ink);
   background-color: transparent;
@@ -1143,7 +1095,7 @@
 
 .emptyHint {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 400;
   line-height: 1.5;
   color: var(--app-ink-secondary);
@@ -1211,7 +1163,7 @@
   flex: 0 0 auto;
   min-height: 44px;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 500;
   color: var(--app-ink-secondary);
   cursor: pointer;
@@ -1255,7 +1207,7 @@
   align-items: center;
   flex: 0 0 auto;
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.75rem;
+  font-size: var(--app-text-xs);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   color: var(--app-ink);
@@ -1287,7 +1239,7 @@
 
 .suggestHint {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 400;
   line-height: 1.4;
   color: var(--app-ink-secondary);
@@ -1309,7 +1261,7 @@
 
 .milestoneStageLabel {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1321,7 +1273,7 @@
    stage that runs alongside the others, or one already complete. */
 .stageWindowNote {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 400;
   line-height: 1.5;
   color: var(--app-ink-secondary);
@@ -1348,7 +1300,7 @@
 
 .milestoneName {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   font-weight: 600;
   color: var(--app-ink);
   min-width: 0;
@@ -1361,7 +1313,7 @@
 .critBadge {
   flex: 0 0 auto;
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -1401,7 +1353,7 @@
 /* The served objective, in the instrument's meta voice. */
 .milestoneServes {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -1431,7 +1383,7 @@
 
 .locationNoteText {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 400;
   line-height: 1.45;
   color: var(--app-ink);
@@ -1461,7 +1413,7 @@
 .suggestEyebrow {
   display: block;
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1470,7 +1422,7 @@
 
 .suggestHint {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 400;
   line-height: 1.5;
   color: var(--app-ink-secondary);
@@ -1482,7 +1434,7 @@
    the muted end of the meta voice and carries no affordance at all. */
 .suggestHidden {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 400;
   line-height: 1.5;
   color: var(--app-ink-muted);
@@ -1507,7 +1459,7 @@
 
 .suggestText {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   font-weight: 500;
   line-height: 1.45;
   color: var(--app-ink);
@@ -1518,7 +1470,7 @@
    Sentence case, not the uppercase meta line, because it is a sentence. */
 .suggestBasis {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 400;
   line-height: 1.5;
   color: var(--app-ink-secondary);
@@ -1532,7 +1484,7 @@
    surface means derived criticality and nothing else. */
 .suggestProposal {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 400;
   line-height: 1.5;
   color: var(--app-ink-secondary);
@@ -1572,7 +1524,7 @@
 .suggestGhost {
   min-height: 44px;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 600;
   border-radius: var(--app-radius-sm);
   padding: 0.55rem 1rem;
@@ -1633,8 +1585,7 @@
   .progress,
   .footer,
   .panelEyebrow,
-  .panelHeading,
-  .error {
+  .panelHeading {
     display: none !important;
   }
 

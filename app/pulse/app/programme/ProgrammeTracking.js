@@ -12,6 +12,7 @@ import {
   unmarkMilestone,
 } from '../components/programmeActualsStore';
 import ViewOnlyBadge from '../components/ViewOnlyBadge';
+import PageHeader from '../components/PageHeader';
 import DateField from '../components/DateField';
 import { formatDisplayDate } from '../../../../lib/engine/dateFormat.js';
 import { resolveGeography } from '../../../../lib/engine/geography.js';
@@ -535,7 +536,7 @@ function PointDetail({
                 className={styles.markBtn}
                 disabled={busy}
               >
-                {busy ? 'Saving' : fields.met ? 'Save date' : 'Mark met'}
+                {busy ? 'Saving…' : fields.met ? 'Save date' : 'Mark met'}
               </button>
               {fields.met && (
                 <button
@@ -1187,35 +1188,19 @@ export default function ProgrammeTracking({
 
   return (
     <main className={`container ${styles.page}`} id="main-content">
-      <Link href={workspaceHref} className={styles.backLink}>
-        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-          <path
-            d="M9 11L5 7l4-4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        Back to the workspace
-      </Link>
-
-      <div className={styles.head}>
-        <div>
-          <p className={styles.eyebrow}>Programme / Tracking</p>
-          <h1 className={styles.title}>{projectName}</h1>
-        </div>
-        <span className={`${styles.baselineChip} tnum`}>
-          Baseline v{baselineVersion}
-          {lockedOn ? ` · locked ${lockedOn}` : ''}
-        </span>
-      </div>
-      {!canEdit && (
-        <div className={styles.viewOnly}>
-          <ViewOnlyBadge adminContact={adminContact} />
-        </div>
-      )}
+      <PageHeader
+        back={{ href: workspaceHref, label: 'Back to the workspace' }}
+        eyebrow="Programme / Tracking"
+        title={projectName}
+        stage={currentStage}
+        meta={
+          <span className={`${styles.baselineChip} tnum`}>
+            Baseline v{baselineVersion}
+            {lockedOn ? ` · locked ${lockedOn}` : ''}
+          </span>
+        }
+        badge={!canEdit ? <ViewOnlyBadge adminContact={adminContact} /> : null}
+      />
 
       {/* ── The programme summary band: pinned, five co-equal tiles, every
              one system-calculated. ── */}

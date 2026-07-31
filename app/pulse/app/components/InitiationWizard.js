@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '../../../../lib/supabase/client';
 import StepProjectDefinition from './StepProjectDefinition';
@@ -46,7 +45,6 @@ import {
 } from './raidSuggestionStore';
 import { deriveStageStates } from '../../../../lib/engine/stageStates.js';
 import { formatDisplayDate } from '../../../../lib/engine/dateFormat.js';
-import { STAGE_NAMES } from '../../../../lib/engine/stageNames.js';
 import {
   ACTION_LABELS,
   PROJECTS_HREF,
@@ -55,6 +53,8 @@ import {
   saveAndExit,
 } from './stepActions';
 import { DEFAULT_ROLE } from './stakeholderRoles';
+import PageHeader from './PageHeader';
+import ErrorNote from './ErrorNote';
 import styles from './InitiationWizard.module.css';
 
 /**
@@ -2323,10 +2323,19 @@ export default function InitiationWizard({
 
   const headerTitle = def.name.trim() ? def.name.trim() : 'New project';
 
+  // The named blocker (Session K): when Save & Continue is held, the bar says
+  // why rather than reading as a refusal. Busy is not a blocker (the label
+  // already says Saving); the last step carries no continue at all.
+  const continueBlocker =
+    busy || step === TOTAL_STEPS || !continueDisabled
+      ? null
+      : step === 1 && !nameValid
+        ? 'Name the project to continue.'
+        : "Waiting for this step's records to load.";
+
   // Stage indicator for the header. Shown for an existing project so the gate
   // advance is visible on the project view; the gate decision date appears
   // once the project has moved past Stage 1.
-  const stageName = STAGE_NAMES[currentStage] ?? `Stage ${currentStage}`;
   // Passed means advanced beyond the declared entry stage: a mid-lifecycle
   // adopter sitting at its entry stage has passed nothing through PULSE.
   const gatePassed =
@@ -2337,36 +2346,17 @@ export default function InitiationWizard({
   return (
     <main className={`container ${styles.page}`} id="main-content">
       <div className={styles.header}>
-        <Link href="/pulse/app" className={styles.backLink}>
-          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-            <path
-              d="M9 11L5 7l4-4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.75"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          Back to projects
-        </Link>
-        <h1 className={styles.title}>{headerTitle}</h1>
-        <p className={styles.subtitle}>
-          Set up the baseline that governs every later stage. Your progress
-          saves at each step, so you can leave and resume anytime.
-        </p>
-        {initialProject && (
-          <div className={styles.stageIndicator}>
-            <span className={styles.stageChip}>
-              Stage {currentStage}: {stageName}
-            </span>
-            {gatePassed && (
-              <span className={styles.stageDecision}>
-                {gatePassedLabel}{gatePassedDate ? ` ${gatePassedDate}` : ''}
-              </span>
-            )}
-          </div>
-        )}
+        <PageHeader
+          back={{ href: '/pulse/app', label: 'Back to projects' }}
+          title={headerTitle}
+          stage={initialProject ? currentStage : null}
+          stageNote={
+            initialProject && gatePassed
+              ? `${gatePassedLabel}${gatePassedDate ? ` ${gatePassedDate}` : ''}`
+              : null
+          }
+          sub="Set up the baseline that governs every later stage. Your progress saves at each step, so you can leave and resume anytime."
+        />
       </div>
 
       <div className={styles.layout}>
@@ -2414,11 +2404,7 @@ export default function InitiationWizard({
         <div key={step} className={styles.stepAnim}>
           {renderStep()}
         </div>
-        {error && (
-          <p className={styles.error} role="alert">
-            {error}
-          </p>
-        )}
+        {error && <ErrorNote>{error}</ErrorNote>}
       </div>
 
       {/* The action bar (Note 1). Back on the left; Save & Exit then Save &
@@ -2464,6 +2450,7 @@ export default function InitiationWizard({
               className={styles.btnNext}
               onClick={handleSaveContinue}
               disabled={continueDisabled}
+              aria-describedby={continueBlocker ? 'continue-blocker' : undefined}
             >
               {pendingAction === STEP_ACTION.SAVE_CONTINUE
                 ? 'Saving…'
@@ -2484,6 +2471,11 @@ export default function InitiationWizard({
           )}
         </div>
         </div>
+        {continueBlocker && (
+          <p id="continue-blocker" className={styles.footerHint} role="status">
+            {continueBlocker}
+          </p>
+        )}
         </div>
       </div>
     </main>

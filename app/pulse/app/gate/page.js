@@ -5,6 +5,7 @@ import { resolveProjectAccess } from '../../../../lib/team/access';
 import DashboardShell from '../../../components/DashboardShell';
 import { loadCurrentProgrammeBaseline } from '../components/programmeBaselineStore';
 import GateReview from './GateReview';
+import PageHeader from '../components/PageHeader';
 import styles from './GateReview.module.css';
 
 /**
@@ -153,23 +154,14 @@ export default async function GatePage({ searchParams }) {
     return (
       <DashboardShell user={navUser}>
         <main className={`container ${styles.page}`} id="main-content">
-          <Link href={target} className={styles.backLink}>
-            <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-              <path
-                d="M9 11L5 7l4-4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            {locked ? 'Back to Programme set-up' : 'Back to the brief'}
-          </Link>
-          <p className={styles.eyebrow}>Stage 1 to 2 gate</p>
-          <h1 className={styles.title}>
-            Gate 1 to 2: Objectives and Funding to Consultant Appointment
-          </h1>
+          <PageHeader
+            back={{
+              href: target,
+              label: locked ? 'Back to Programme set-up' : 'Back to the brief',
+            }}
+            eyebrow="Stage 1 to 2 gate"
+            title="Gate 1 to 2: Objectives and Funding to Consultant Appointment"
+          />
           <div className={styles.notAvailable}>
             <p className={styles.notAvailableText}>
               {locked

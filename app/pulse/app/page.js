@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { createClient } from '../../../lib/supabase/server';
 import { resolveProjectAccess } from '../../../lib/team/access';
 import DashboardShell from '../../components/DashboardShell';
+import PageHeader from './components/PageHeader';
 import ProjectList from './ProjectList';
 import styles from './page.module.css';
 
@@ -56,48 +57,37 @@ export default async function PulseAppPage() {
   return (
     <DashboardShell user={navUser}>
       <main className={`container ${styles.page}`} id="main-content">
-        <div className={styles.head}>
-          <div className={styles.headText}>
-            {/* The pulse-line glyph is PULSE's own mark: it sits with the
-                product name, never on the shared Flitrr chrome. */}
-            <p className={styles.eyebrow}>
-              <svg
-                className={styles.eyebrowMark}
-                viewBox="0 0 40 16"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M0 8 H11 L14 8 L16.5 2 L19.5 14 L22.5 8 H40"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              PULSE
-            </p>
-            <h1 className={styles.heading}>Your projects</h1>
-            <p className={styles.sub}>
-              {canEdit
-                ? 'Start a new project to run it through PULSE initiation, or pick up a draft where you left off.'
-                : 'The projects you have access to. Open one to see its baseline and monitoring.'}
-            </p>
-          </div>
-          {canEdit && (
-            <Link href="/pulse/app/initiate" className={styles.newBtn}>
-              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-                <path
-                  d="M8 3v10M3 8h10"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.75"
-                  strokeLinecap="round"
-                />
-              </svg>
-              New project
-            </Link>
-          )}
-        </div>
+        <PageHeader
+          eyebrow="PULSE"
+          eyebrowMark
+          title="Your projects"
+          sub={
+            canEdit
+              ? 'Start a new project to run it through PULSE initiation, or pick up a draft where you left off.'
+              : 'The projects you have access to. Open one to see its baseline and monitoring.'
+          }
+          actions={
+            canEdit ? (
+              <Link href="/pulse/app/initiate" className={styles.newBtn}>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M8 3v10M3 8h10"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                New project
+              </Link>
+            ) : null
+          }
+        />
 
         {list.length === 0 ? (
           <div className={styles.empty}>

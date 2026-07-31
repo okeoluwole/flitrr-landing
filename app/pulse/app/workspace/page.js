@@ -6,6 +6,7 @@ import { buildObjectiveIndex } from '../../../../lib/engine/criticality';
 import { completedStagesForEntry } from '../../../../lib/engine/stageStates.js';
 import { assessRisks } from '../../../../lib/engine/monitor';
 import DashboardShell from '../../../components/DashboardShell';
+import PageHeader from '../components/PageHeader';
 import ViewOnlyBadge from '../components/ViewOnlyBadge';
 import {
   deriveResponseFeed,
@@ -84,18 +85,6 @@ import styles from './Workspace.module.css';
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-// Lifecycle stage names (framework Section 4), for the stage chip.
-const STAGE_NAMES = {
-  0: 'Land and Site Acquisition',
-  1: 'Project Objectives and Funding',
-  2: 'Consultant Appointment',
-  3: 'Design and Planning Approvals',
-  4: 'Contractor Procurement',
-  5: 'Construction',
-  6: 'Completion and Handover',
-  7: 'Sales and Disposal',
-};
 
 function BriefIcon() {
   return (
@@ -436,9 +425,6 @@ export default async function WorkspacePage({ searchParams }) {
   // the edit controls live on the surfaces the tiles open.
   const { canEdit, adminContact } = await resolveProjectAccess(supabase);
 
-  const stageName =
-    STAGE_NAMES[project.current_stage] ?? `Stage ${project.current_stage}`;
-
   // The Programme tile routes by state: no locked Brief, locked; Brief locked
   // but no baseline, to set-up; baseline locked, to the tracking home. It is the
   // sequence's own step, not one of the three gated modules, so it keeps its own
@@ -577,30 +563,15 @@ export default async function WorkspacePage({ searchParams }) {
   return (
     <DashboardShell user={navUser}>
       <main className={`container ${styles.page}`} id="main-content">
-        <Link href="/pulse/app" className={styles.backLink}>
-          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-            <path
-              d="M9 11L5 7l4-4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.75"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          Back to projects
-        </Link>
-
-        <h1 className={styles.heading}>{project.name}</h1>
-        <p className={styles.stageMeta}>
-          Stage {project.current_stage}: {stageName}
-        </p>
-        {!canEdit && (
-          <div className={styles.viewOnly}>
-            <ViewOnlyBadge adminContact={adminContact} />
-          </div>
-        )}
-        <p className={styles.sub}>{PHASE_INTRO[phase]}</p>
+        <PageHeader
+          back={{ href: '/pulse/app', label: 'Back to projects' }}
+          title={project.name}
+          stage={project.current_stage}
+          badge={
+            !canEdit ? <ViewOnlyBadge adminContact={adminContact} /> : null
+          }
+          sub={PHASE_INTRO[phase]}
+        />
 
         {/* The single next step (Note 13). A project runs a fixed path, so the
             workspace names the one thing to do now and states the whole order

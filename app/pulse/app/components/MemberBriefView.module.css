@@ -11,64 +11,10 @@
   padding-block: 3rem 6rem;
 }
 
-.backLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-family: var(--app-font-sans);
-  font-size: var(--app-text-sm);
-  font-weight: 500;
-  color: var(--app-ink-secondary);
-  text-decoration: none;
-  margin-bottom: 1.1rem;
-  /* A 44px hit area without shifting the layout. */
-  padding-block: 0.6rem;
-  margin-block: -0.6rem 0.5rem;
-}
-
-.backLink:hover,
-.backLink:focus-visible {
-  color: var(--app-ink);
-}
-
-.backLink:focus-visible {
-  outline: 2px solid var(--app-focus);
-  outline-offset: 2px;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .backLink svg {
-    transition: transform var(--dur-fast) var(--ease-out);
-  }
-  .backLink:hover svg,
-  .backLink:focus-visible svg {
-    transform: translateX(-3px);
-  }
-}
-
-.eyebrow {
-  font-family: var(--app-font-mono);
-  font-size: var(--app-text-xs);
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--app-ink-secondary);
-  margin-bottom: 0.5rem;
-}
-
-.title {
-  font-family: var(--app-font-sans);
-  font-size: var(--app-text-xl);
-  font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
-  color: var(--app-ink);
-  margin-bottom: 0;
-}
-
-/* The badge tucks just under the title, then the control bar follows. */
-.viewOnly {
-  margin: 0.85rem 0 1.75rem;
+/* The header frame is PageHeader (Session K); this wrapper is only the
+   print target that hides it when the member exports the sheet. */
+.frame {
+  display: contents;
 }
 
 /* No locked baseline yet: a sparse read-only state on a seated panel. */
@@ -123,10 +69,7 @@
    badge) and flush the page so only the document sheet prints, exactly
    as the wizard's export does. */
 @media print {
-  .backLink,
-  .eyebrow,
-  .title,
-  .viewOnly,
+  .frame,
   .placeholder {
     display: none !important;
   }

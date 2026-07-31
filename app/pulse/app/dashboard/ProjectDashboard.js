@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { LADDER_STATUSES } from '../../../../lib/engine/objectiveLadder';
+import PageHeader from '../components/PageHeader';
 import { deriveDashboard } from './dashboardModel';
 import {
   PAGE_TITLE,
@@ -256,25 +257,13 @@ export default function ProjectDashboard({
 
   return (
     <main className={`container ${styles.page}`} id="main-content">
-      <Link href="/pulse/app" className={styles.backLink}>
-        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-          <path
-            d="M9 11L5 7l4-4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        All projects
-      </Link>
-
-      <header className={styles.head}>
-        <p className={styles.eyebrow}>{PAGE_TITLE}</p>
-        <h1 className={styles.title}>{projectName}</h1>
-        <p className={styles.sub}>{PAGE_SUB}</p>
-      </header>
+      <PageHeader
+        back={{ href: '/pulse/app', label: 'All projects' }}
+        eyebrow={PAGE_TITLE}
+        title={projectName}
+        stage={currentStage}
+        sub={PAGE_SUB}
+      />
 
       {/* The summary strip: the instrument row. Four facts over hairlines,
           mono numerals, not a card. */}

@@ -19,77 +19,8 @@
   padding-block: 2.5rem 5rem;
 }
 
-/* ── Header ── */
-
-.backLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  min-height: 44px;
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--app-ink-secondary);
-  text-decoration: none;
-  margin: -0.6rem 0 0.6rem;
-  transition: color var(--dur-fast) var(--ease-out);
-}
-
-.backLink:hover,
-.backLink:focus-visible {
-  color: var(--app-ink);
-}
-
-.backLink:focus-visible {
-  outline: 2px solid var(--app-focus);
-  outline-offset: 2px;
-  border-radius: 2px;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .backLink svg {
-    transition: transform var(--dur-fast) var(--ease-out);
-  }
-
-  .backLink:hover svg,
-  .backLink:focus-visible svg {
-    transform: translateX(-3px);
-  }
-}
-
-.eyebrow {
-  font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--app-ink-muted);
-  margin: 0 0 0.6rem;
-}
-
-.title {
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: var(--app-text-xl);
-  font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  color: var(--app-ink);
-  overflow-wrap: break-word;
-}
-
-.projectName {
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--app-ink-secondary);
-  margin-top: 0.35rem;
-}
-
-/* The badge sits under the project name; the step row below keeps its own
-   top gap. */
-.viewOnly {
-  margin-top: 0.75rem;
-}
+/* Header: PageHeader carries the frame; the two-step read below stays
+   local as the flow's own furniture. */
 
 /* The two-step read: monochrome by intensity, the live step brightest, the
    done step calm, the upcoming step quiet. Never amber: progress is not
@@ -99,7 +30,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 1rem;
+  margin-top: calc(-1 * var(--app-space-4));
   font-family: var(--app-font-mono), monospace;
   font-size: 0.6875rem;
   font-weight: 500;
@@ -1028,13 +959,6 @@
 
 /* The failed write: the dark-tuned danger, text plus tone, never colour
    alone. The one red on the surface. */
-.error {
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--app-danger);
-}
-
 .lockNote {
   font-family: var(--app-font-sans), sans-serif;
   font-size: 0.8125rem;
@@ -1068,7 +992,7 @@
   text-transform: uppercase;
   padding: 3px 10px;
   border-radius: 999px;
-  background: rgba(233, 236, 238, 0.07);
+  background: var(--app-fill);
   border: 1px solid var(--app-border-strong);
   color: var(--app-ink);
 }

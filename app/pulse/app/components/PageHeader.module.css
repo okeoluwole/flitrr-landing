@@ -1,0 +1,147 @@
+/*
+ * PageHeader: the shared page header for every authenticated PULSE surface
+ * (Session K). One frame, one type rhythm, one stage line, so the screens
+ * read as one product. The values are the language's named roles: page
+ * title (sans 600 xl), micro label (mono 500 2xs), caption (sans 400 sm),
+ * spaced on the --app-space rhythm.
+ */
+
+.header {
+  margin-bottom: var(--app-space-6);
+}
+
+/* ── Back link ── */
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--app-space-2);
+  min-height: 44px;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-control);
+  font-weight: 500;
+  color: var(--app-ink-secondary);
+  text-decoration: none;
+  margin: -0.6rem 0 0.6rem;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.backLink:hover,
+.backLink:focus-visible {
+  color: var(--app-ink);
+}
+
+.backLink:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .backLink svg {
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+
+  .backLink:hover svg,
+  .backLink:focus-visible svg {
+    transform: translateX(-2px);
+  }
+}
+
+/* ── Eyebrow: the mono micro-label role ── */
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--app-font-mono), monospace;
+  font-size: var(--app-text-2xs);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
+  margin: 0 0 var(--app-space-2);
+}
+
+/* PULSE's own pulse-line mark, amber like the criticality signal it draws.
+   The one amber element the chrome carries. */
+.eyebrowMark {
+  width: 26px;
+  height: 11px;
+  flex-shrink: 0;
+}
+
+.eyebrowMark path {
+  stroke: var(--app-signal);
+}
+
+/* ── Title row: the page title role, with meta and actions seated right ── */
+
+.titleRow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--app-space-5);
+  flex-wrap: wrap;
+}
+
+.title {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-xl);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--app-ink);
+  overflow-wrap: break-word;
+  min-width: 0;
+  margin: 0 0 var(--app-space-2);
+}
+
+.titleAside {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3);
+  flex-shrink: 0;
+  margin-bottom: var(--app-space-2);
+}
+
+/* ── The stage line: Session E's chip, in the numeric instrument voice ── */
+
+.stageLine {
+  font-family: var(--app-font-mono), monospace;
+  font-size: var(--app-text-xs);
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  color: var(--app-ink-secondary);
+  margin: 0 0 var(--app-space-3);
+}
+
+.stageNote {
+  color: var(--app-ink-muted);
+  margin-left: var(--app-space-3);
+}
+
+/* ── Context lines ── */
+
+.projectName {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-base);
+  font-weight: 600;
+  color: var(--app-ink-secondary);
+  margin: 0 0 var(--app-space-3);
+}
+
+.badgeSlot {
+  margin: var(--app-space-1) 0 var(--app-space-3);
+}
+
+.sub {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-base);
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--app-ink-secondary);
+  max-width: 56ch;
+  margin: var(--app-space-2) 0 0;
+}

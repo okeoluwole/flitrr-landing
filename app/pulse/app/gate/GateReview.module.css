@@ -17,75 +17,8 @@
   padding-block: 2.75rem 6rem;
   max-width: 820px;
 }
+/* Header: PageHeader carries the frame. */
 
-/* ── Back to the brief ───────────────────── */
-
-.backLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  min-height: 44px;
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--app-ink-secondary);
-  text-decoration: none;
-  margin: -0.6rem 0 0.6rem;
-  transition: color var(--dur-fast) var(--ease-out);
-}
-
-.backLink:hover,
-.backLink:focus-visible {
-  color: var(--app-ink);
-}
-
-.backLink:focus-visible {
-  outline: 2px solid var(--app-focus);
-  outline-offset: 2px;
-  border-radius: 2px;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .backLink svg {
-    transition: transform var(--dur-fast) var(--ease-out);
-  }
-
-  .backLink:hover svg,
-  .backLink:focus-visible svg {
-    transform: translateX(-2px);
-  }
-}
-
-/* ── Header ──────────────────────────────── */
-
-.eyebrow {
-  font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--app-ink-muted);
-  margin: 0 0 0.6rem;
-}
-
-.title {
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: var(--app-text-xl);
-  font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  color: var(--app-ink);
-  overflow-wrap: break-word;
-  margin: 0 0 0.6rem;
-}
-
-.projectName {
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--app-ink-secondary);
-  margin: 0 0 1.75rem;
-}
 
 .intro {
   font-family: var(--app-font-sans), sans-serif;
@@ -231,14 +164,6 @@
 
 /* ── Confirm action ────────────────────── */
 
-.error {
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--app-danger);
-  margin-top: 1.5rem;
-}
-
 .confirmBar {
   display: flex;
   align-items: center;
@@ -313,7 +238,7 @@
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--app-ink);
-  background: rgba(233, 236, 238, 0.07);
+  background: var(--app-fill);
   border: 1px solid var(--app-border-strong);
   padding: 3px 10px;
   border-radius: 999px;
@@ -491,12 +416,6 @@
 }
 
 /* ── View only (member) ────────────────── */
-
-/* The badge tucks just under the project name (which carries a 1.75rem
-   bottom margin) and keeps the same spacing to the content below. */
-.viewOnly {
-  margin: -1rem 0 1.75rem;
-}
 
 /* The one sparse line a member sees in place of the confirm bar. */
 .memberNote {

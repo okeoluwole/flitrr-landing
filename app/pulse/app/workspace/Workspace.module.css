@@ -10,83 +10,8 @@
   padding-block: 2.75rem 6rem;
 }
 
-/* ── Back to the project list ────────────── */
-
-.backLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  min-height: 44px;
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--app-ink-secondary);
-  text-decoration: none;
-  margin: -0.6rem 0 0.6rem;
-  transition: color var(--dur-fast) var(--ease-out);
-}
-
-.backLink:hover,
-.backLink:focus-visible {
-  color: var(--app-ink);
-}
-
-.backLink:focus-visible {
-  outline: 2px solid var(--app-focus);
-  outline-offset: 2px;
-  border-radius: 2px;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .backLink svg {
-    transition: transform var(--dur-fast) var(--ease-out);
-  }
-
-  .backLink:hover svg,
-  .backLink:focus-visible svg {
-    transform: translateX(-2px);
-  }
-}
-
-/* ── Header ──────────────────────────────── */
-
-.heading {
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: var(--app-text-xl);
-  font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  color: var(--app-ink);
-  overflow-wrap: break-word;
-  margin: 0 0 0.45rem;
-}
-
-/* The stage read, in the numeric instrument voice: the same line this
-   project's row carries on the hub list. */
-.stageMeta {
-  font-family: var(--app-font-mono), monospace;
-  font-size: 0.75rem;
-  font-weight: 400;
-  line-height: 1.5;
-  letter-spacing: 0.01em;
-  color: var(--app-ink-secondary);
-  margin: 0 0 1.1rem;
-}
-
-/* The View only badge sits between the stage line and the intro. */
-.viewOnly {
-  margin: 0 0 1rem;
-}
-
-.sub {
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
-  font-weight: 400;
-  line-height: 1.55;
-  color: var(--app-ink-secondary);
-  max-width: 56ch;
-  margin: 0 0 2.25rem;
-}
+/* ── Header: PageHeader carries the frame (back link, title, stage line,
+      badge, intro). ────────────────────── */
 
 /* ── The Brief: the keystone, featured ───── */
 
@@ -258,14 +183,14 @@
   width: 48px;
   height: 48px;
   border-radius: var(--app-radius);
-  background: rgba(233, 236, 238, 0.06);
+  background: var(--app-fill);
   color: var(--app-ink-secondary);
   transition: background-color var(--dur-fast) var(--ease-out),
     color var(--dur-fast) var(--ease-out);
 }
 
 .featured:hover .featuredIcon {
-  background: rgba(233, 236, 238, 0.1);
+  background: var(--app-fill-strong);
   color: var(--app-ink);
 }
 
@@ -330,7 +255,7 @@
 }
 
 .chipLocked {
-  background: rgba(233, 236, 238, 0.07);
+  background: var(--app-fill);
   color: var(--app-ink);
   border-color: var(--app-border-strong);
 }
@@ -409,7 +334,7 @@
 /* Only an open row is interactive: it tints like the hub's project rows. */
 .rowOpen {
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: background-color var(--dur-fast) var(--ease-out);
 }
 
 .rowOpen:hover {
@@ -417,7 +342,7 @@
 }
 
 .rowOpen:active {
-  background-color: rgba(233, 236, 238, 0.09);
+  background-color: var(--app-active);
 }
 
 .rowOpen:focus-visible {
@@ -433,19 +358,19 @@
   width: 40px;
   height: 40px;
   border-radius: var(--app-radius-sm);
-  background: rgba(233, 236, 238, 0.06);
+  background: var(--app-fill);
   color: var(--app-ink-secondary);
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
 }
 
 .rowOpen:hover .rowIcon {
-  background: rgba(233, 236, 238, 0.1);
+  background: var(--app-fill-strong);
   color: var(--app-ink);
 }
 
 .rowLocked .rowIcon,
 .rowSoon .rowIcon {
-  background: rgba(233, 236, 238, 0.04);
+  background: var(--app-fill-faint);
   color: var(--app-ink-muted);
 }
 
@@ -517,7 +442,7 @@
   display: inline-flex;
   align-items: center;
   color: var(--app-ink-muted);
-  transition: color 0.15s ease;
+  transition: color var(--dur-fast) var(--ease-out);
 }
 
 .rowOpen:hover .rowAside {
@@ -526,7 +451,7 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .rowOpen .rowAside svg {
-    transition: transform 0.15s ease;
+    transition: transform var(--dur-fast) var(--ease-out);
   }
 
   .rowOpen:hover .rowAside svg {

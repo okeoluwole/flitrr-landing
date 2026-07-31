@@ -8,6 +8,7 @@ import { loadCurrentProgrammeBaseline } from '../../components/programmeBaseline
 import { PROGRAMME_TEMPLATE } from '../../../../../lib/engine/programmeTemplate.js';
 import { deriveStageStates } from '../../../../../lib/engine/stageStates.js';
 import ProgrammeSetup from './ProgrammeSetup';
+import PageHeader from '../../components/PageHeader';
 import styles from './ProgrammeSetup.module.css';
 
 /**
@@ -50,22 +51,12 @@ function NotReady({ navUser, projectName, briefHref, message }) {
   return (
     <DashboardShell user={navUser}>
       <main className={`container ${styles.page}`} id="main-content">
-        <Link href={briefHref} className={styles.backLink}>
-          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-            <path
-              d="M9 11L5 7l4-4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.75"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          Back to the brief
-        </Link>
-        <p className={styles.eyebrow}>Programme / Set up</p>
-        <h1 className={styles.title}>Reconcile dates</h1>
-        {projectName && <p className={styles.projectName}>{projectName}</p>}
+        <PageHeader
+          back={{ href: briefHref, label: 'Back to the brief' }}
+          eyebrow="Programme / Set up"
+          title="Reconcile dates"
+          projectName={projectName || null}
+        />
         <div className={`${styles.placeholder} riseIn`}>
           <p className={styles.placeholderLead}>{message}</p>
           <Link href={briefHref} className={styles.cta}>

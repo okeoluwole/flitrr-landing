@@ -6,6 +6,7 @@ import DashboardShell from '../../../components/DashboardShell';
 import { OBJECTIVE_META } from '../components/objectiveMeta';
 import { deriveProposals } from '../../../../lib/playbook/playbookModel';
 import RiskRegister from './RiskRegister';
+import PageHeader from '../components/PageHeader';
 import { readSequence } from '../components/sequenceRead';
 import styles from './RiskRegister.module.css';
 
@@ -92,24 +93,13 @@ export default async function RiskPage({ searchParams }) {
   const workspaceHref = `/pulse/app/workspace?project=${project.id}&view=workspace`;
 
   const Header = (
-    <>
-      <Link href={workspaceHref} className={styles.backLink}>
-        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-          <path
-            d="M9 11L5 7l4-4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        Back to the workspace
-      </Link>
-      <p className={styles.eyebrow}>Risk module</p>
-      <h1 className={styles.title}>Risk register</h1>
-      <p className={styles.projectName}>{project.name}</p>
-    </>
+    <PageHeader
+      back={{ href: workspaceHref, label: 'Back to the workspace' }}
+      eyebrow="Risk module"
+      title="Risk register"
+      stage={project.current_stage}
+      projectName={project.name}
+    />
   );
 
   // The sequence gate (Note 13): the three monitoring modules open together,
@@ -238,6 +228,7 @@ export default async function RiskPage({ searchParams }) {
         projectId={project.id}
         projectName={project.name}
         workspaceHref={workspaceHref}
+        stage={project.current_stage}
         initialRisks={risks ?? []}
         objectivesById={objectivesById}
         playSuggestions={playSuggestions}

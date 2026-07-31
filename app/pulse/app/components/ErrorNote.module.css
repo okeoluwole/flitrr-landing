@@ -1,0 +1,19 @@
+/*
+ * ErrorNote: the one failure voice (Session K). Danger is dark-tuned
+ * --app-danger, text plus tone, never colour alone (the element carries
+ * role="alert"). Transient feedback never prints.
+ */
+
+.error {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
+  font-weight: 600;
+  color: var(--app-danger);
+  margin: var(--app-space-4) 0 0;
+}
+
+@media print {
+  .error {
+    display: none !important;
+  }
+}

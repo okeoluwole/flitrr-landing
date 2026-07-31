@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '../../../../lib/supabase/client';
 import ViewOnlyBadge from '../components/ViewOnlyBadge';
+import PageHeader from '../components/PageHeader';
+import ErrorNote from '../components/ErrorNote';
 import styles from './GateReview.module.css';
 import { formatDisplayDate } from '../../../../lib/engine/dateFormat.js';
 
@@ -177,31 +179,13 @@ export default function GateReview({
   };
 
   const Header = (
-    <>
-      <Link href={briefHref} className={styles.backLink}>
-        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-          <path
-            d="M9 11L5 7l4-4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        Back to the brief
-      </Link>
-      <p className={styles.eyebrow}>Stage 1 to 2 gate</p>
-      <h1 className={styles.title}>
-        Gate 1 to 2: Objectives and Funding to Consultant Appointment
-      </h1>
-      <p className={styles.projectName}>{projectName}</p>
-      {!canEdit && (
-        <div className={styles.viewOnly}>
-          <ViewOnlyBadge adminContact={adminContact} />
-        </div>
-      )}
-    </>
+    <PageHeader
+      back={{ href: briefHref, label: 'Back to the brief' }}
+      eyebrow="Stage 1 to 2 gate"
+      title="Gate 1 to 2: Objectives and Funding to Consultant Appointment"
+      projectName={projectName}
+      badge={!canEdit ? <ViewOnlyBadge adminContact={adminContact} /> : null}
+    />
   );
 
   // ── Already passed: the recorded decision, read-only, no second advance ──
@@ -306,9 +290,7 @@ export default function GateReview({
       </div>
 
       {error && (
-        <p className={styles.error} role="alert">
-          {error}
-        </p>
+        <ErrorNote>{error}</ErrorNote>
       )}
 
       {canEdit ? (

@@ -9,6 +9,7 @@ import { deriveStageStates } from '../../../../lib/engine/stageStates.js';
 import { PROGRAMME_TEMPLATE } from '../../../../lib/engine/programmeTemplate.js';
 import { trackingReady } from './trackingModel';
 import ProgrammeTracking from './ProgrammeTracking';
+import PageHeader from '../components/PageHeader';
 import styles from './ProgrammeTracking.module.css';
 
 /**
@@ -45,22 +46,12 @@ function SetUpFirst({ navUser, projectName, workspaceHref, setupHref }) {
   return (
     <DashboardShell user={navUser}>
       <main className={`container ${styles.page}`} id="main-content">
-        <Link href={workspaceHref} className={styles.backLink}>
-          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-            <path
-              d="M9 11L5 7l4-4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.75"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          Back to the workspace
-        </Link>
-        <p className={styles.eyebrow}>Programme / Tracking</p>
-        <h1 className={styles.title}>Programme</h1>
-        {projectName && <p className={styles.projectName}>{projectName}</p>}
+        <PageHeader
+          back={{ href: workspaceHref, label: 'Back to the workspace' }}
+          eyebrow="Programme / Tracking"
+          title="Programme"
+          projectName={projectName || null}
+        />
         <div className={`${styles.placeholder} riseIn`}>
           <p className={styles.placeholderLead}>
             Tracking opens once the operational baseline is locked. Run

@@ -47,6 +47,8 @@ import {
   RECONCILIATION_SOURCES,
 } from '../../../../../lib/engine/programmeReconciliation.js';
 import ViewOnlyBadge from '../../components/ViewOnlyBadge';
+import PageHeader from '../../components/PageHeader';
+import ErrorNote from '../../components/ErrorNote';
 import DateField from '../../components/DateField';
 import { formatDisplayDate } from '../../../../../lib/engine/dateFormat.js';
 import {
@@ -904,27 +906,13 @@ export default function ProgrammeSetup({
 
   const Header = (
     <>
-      <Link href={workspaceHref} className={styles.backLink}>
-        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-          <path
-            d="M9 11L5 7l4-4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        Back to the workspace
-      </Link>
-      <p className={styles.eyebrow}>Programme / Set up</p>
-      <h1 className={styles.title}>{titleText}</h1>
-      <p className={styles.projectName}>{projectName}</p>
-      {!canEdit && (
-        <div className={styles.viewOnly}>
-          <ViewOnlyBadge adminContact={adminContact} />
-        </div>
-      )}
+      <PageHeader
+        back={{ href: workspaceHref, label: 'Back to the workspace' }}
+        eyebrow="Programme / Set up"
+        title={titleText}
+        projectName={projectName}
+        badge={!canEdit ? <ViewOnlyBadge adminContact={adminContact} /> : null}
+      />
       <div className={styles.steps} aria-hidden="true">
         <span className={onReconcile ? styles.stepOn : styles.stepDone}>
           1 Reconcile dates
@@ -1165,11 +1153,7 @@ export default function ProgrammeSetup({
             milestones listed and included in v1
           </p>
 
-          {lockError && (
-            <p className={styles.error} role="alert">
-              {lockError}
-            </p>
-          )}
+          {lockError && <ErrorNote>{lockError}</ErrorNote>}
 
           {confirming ? (
             <div className={styles.confirm}>
@@ -1296,11 +1280,7 @@ export default function ProgrammeSetup({
             : 'no hard floors breached'}
         </p>
 
-        {decisionError && (
-          <p className={styles.error} role="alert">
-            {decisionError}
-          </p>
-        )}
+        {decisionError && <ErrorNote>{decisionError}</ErrorNote>}
 
         <div className={styles.footerActions}>
           <BlockerHint line={blockerText} onJump={jumpToFirstGap} />

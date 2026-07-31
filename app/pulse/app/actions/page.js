@@ -88,24 +88,13 @@ export default async function ActionsPage({ searchParams }) {
   const workspaceHref = `/pulse/app/workspace?project=${project.id}&view=workspace`;
 
   const Header = (
-    <>
-      <Link href={workspaceHref} className={styles.backLink}>
-        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-          <path
-            d="M9 11L5 7l4-4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        Back to the workspace
-      </Link>
-      <p className={styles.eyebrow}>Action Log module</p>
-      <h1 className={styles.title}>Action Log</h1>
-      <p className={styles.projectName}>{project.name}</p>
-    </>
+    <PageHeader
+      back={{ href: workspaceHref, label: 'Back to the workspace' }}
+      eyebrow="Action Log module"
+      title="Action Log"
+      stage={project.current_stage}
+      projectName={project.name}
+    />
   );
 
   // The sequence gate (Note 13): the three monitoring modules open together,

@@ -6,6 +6,7 @@ import { loadCurrentProgrammeBaseline } from '../components/programmeBaselineSto
 import { loadMetPointsView } from '../components/programmeActualsStore';
 import { PAGE_TITLE, PAGE_SUB } from './dashboardRead';
 import { readSequence } from '../components/sequenceRead';
+import PageHeader from '../components/PageHeader';
 import ProjectDashboard from './ProjectDashboard';
 import styles from './ProjectDashboard.module.css';
 
@@ -99,25 +100,14 @@ export default async function DashboardPage({ searchParams }) {
   const workspaceHref = `/pulse/app/workspace?project=${project.id}&view=workspace`;
 
   const Header = (
-    <>
-      <Link href={workspaceHref} className={styles.backLink}>
-        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-          <path
-            d="M9 11L5 7l4-4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        Back to the project
-      </Link>
-      <p className={styles.eyebrow}>Dashboard module</p>
-      <h1 className={styles.title}>{PAGE_TITLE}</h1>
-      <p className={styles.projectName}>{project.name}</p>
-      <p className={styles.sub}>{PAGE_SUB}</p>
-    </>
+    <PageHeader
+      back={{ href: workspaceHref, label: 'Back to the workspace' }}
+      eyebrow="Dashboard module"
+      title={PAGE_TITLE}
+      stage={project.current_stage}
+      projectName={project.name}
+      sub={PAGE_SUB}
+    />
   );
 
   // The sequence gate (Note 13): the three monitoring modules open together,

@@ -40,6 +40,8 @@ import {
 import { severityLegend } from '../../../../lib/engine/severity';
 import ViewOnlyBadge from '../components/ViewOnlyBadge';
 import CriticalityChip from '../components/CriticalityChip';
+import PageHeader from '../components/PageHeader';
+import ErrorNote from '../components/ErrorNote';
 import styles from './ActionLog.module.css';
 import { formatDisplayDate } from '../../../../lib/engine/dateFormat.js';
 
@@ -1405,27 +1407,14 @@ export default function ActionLog({
 
   return (
     <main className={`container ${styles.page}`} id="main-content">
-      <Link href={workspaceHref} className={styles.backLink}>
-        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-          <path
-            d="M9 11L5 7l4-4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        Back to the project
-      </Link>
-      <p className={styles.eyebrow}>Action Log module</p>
-      <h1 className={styles.title}>Action Log</h1>
-      <p className={styles.projectName}>{projectName}</p>
-      {!canEdit && (
-        <div className={styles.viewOnly}>
-          <ViewOnlyBadge adminContact={adminContact} />
-        </div>
-      )}
+      <PageHeader
+        back={{ href: workspaceHref, label: 'Back to the workspace' }}
+        eyebrow="Action Log module"
+        title="Action Log"
+        stage={currentStage}
+        projectName={projectName}
+        badge={!canEdit ? <ViewOnlyBadge adminContact={adminContact} /> : null}
+      />
 
       {/* The triage queue (M7.2, reframed under Note 18): the Critical items
           the developer wrote into their own Brief, derived live, arriving to be
@@ -1539,9 +1528,7 @@ export default function ActionLog({
       </div>
 
       {error && (
-        <p className={styles.error} role="alert">
-          {error}
-        </p>
+        <ErrorNote>{error}</ErrorNote>
       )}
 
       {/* The inline add flow: a quick log entry, not a long form. It writes, so

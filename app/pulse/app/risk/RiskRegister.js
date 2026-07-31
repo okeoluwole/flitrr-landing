@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { createClient } from '../../../../lib/supabase/client';
 import {
   LIKELIHOOD_OPTIONS,
@@ -38,6 +37,8 @@ import {
 } from '../actions/triageDecisionStore';
 import ViewOnlyBadge from '../components/ViewOnlyBadge';
 import CriticalityChip from '../components/CriticalityChip';
+import PageHeader from '../components/PageHeader';
+import ErrorNote from '../components/ErrorNote';
 import styles from './RiskRegister.module.css';
 import { formatDisplayDate } from '../../../../lib/engine/dateFormat.js';
 
@@ -232,6 +233,7 @@ export default function RiskRegister({
   projectId,
   projectName,
   workspaceHref,
+  stage = null,
   initialRisks,
   objectivesById,
   playSuggestions,
@@ -857,27 +859,14 @@ export default function RiskRegister({
 
   return (
     <main className={`container ${styles.page}`} id="main-content">
-      <Link href={workspaceHref} className={styles.backLink}>
-        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-          <path
-            d="M9 11L5 7l4-4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        Back to the project
-      </Link>
-      <p className={styles.eyebrow}>Risk module</p>
-      <h1 className={styles.title}>Risk register</h1>
-      <p className={styles.projectName}>{projectName}</p>
-      {!canEdit && (
-        <div className={styles.viewOnly}>
-          <ViewOnlyBadge adminContact={adminContact} />
-        </div>
-      )}
+      <PageHeader
+        back={{ href: workspaceHref, label: 'Back to the workspace' }}
+        eyebrow="Risk module"
+        title="Risk register"
+        stage={stage}
+        projectName={projectName}
+        badge={!canEdit ? <ViewOnlyBadge adminContact={adminContact} /> : null}
+      />
 
       {/* The first-review queue (B2, reframed under Note 19.2): the risks the
           monitor flags, most urgent first, each with ONE accurate status line
@@ -929,11 +918,7 @@ export default function RiskRegister({
         )}
       </div>
 
-      {error && (
-        <p className={styles.error} role="alert">
-          {error}
-        </p>
-      )}
+      {error && <ErrorNote>{error}</ErrorNote>}
 
       {/* The suggestions area (M7.4): stage-keyed curated risk plays, top
           five up front. When none remain it is simply gone: suggestions are

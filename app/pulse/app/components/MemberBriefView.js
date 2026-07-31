@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { LENSES, DEFAULT_LENS } from './briefLens';
 import BriefDocument from './BriefDocument';
 import ViewOnlyBadge from './ViewOnlyBadge';
+import PageHeader from './PageHeader';
 import brief from './Brief.module.css';
 import styles from './MemberBriefView.module.css';
 
@@ -55,26 +56,14 @@ export default function MemberBriefView({
   };
 
   const Header = (
-    <>
-      <Link href={workspaceHref} className={styles.backLink}>
-        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-          <path
-            d="M9 11L5 7l4-4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        Back to the project
-      </Link>
-      <p className={styles.eyebrow}>Project Brief</p>
-      <h1 className={styles.title}>{projectName}</h1>
-      <div className={styles.viewOnly}>
-        <ViewOnlyBadge adminContact={adminContact} />
-      </div>
-    </>
+    <div className={styles.frame}>
+      <PageHeader
+        back={{ href: workspaceHref, label: 'Back to the project' }}
+        eyebrow="Project Brief"
+        title={projectName}
+        badge={<ViewOnlyBadge adminContact={adminContact} />}
+      />
+    </div>
   );
 
   // No locked baseline yet: nothing to render read-only. A sparse line, not a

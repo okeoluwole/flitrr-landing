@@ -10,63 +10,8 @@
   padding-block: 2.75rem 6rem;
 }
 
-/* ── Header ────────────────────────────── */
-
-.head {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-  margin-bottom: 1.75rem;
-}
-
-.headText {
-  min-width: 0;
-}
-
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--app-ink-muted);
-  margin-bottom: 0.6rem;
-}
-
-/* PULSE's own pulse-line mark, amber like the criticality signal it draws. */
-.eyebrowMark {
-  width: 26px;
-  height: 11px;
-  flex-shrink: 0;
-}
-
-.eyebrowMark path {
-  stroke: var(--app-signal);
-}
-
-.heading {
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: var(--app-text-xl);
-  font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  color: var(--app-ink);
-  margin-bottom: 0.6rem;
-}
-
-.sub {
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
-  font-weight: 400;
-  line-height: 1.55;
-  color: var(--app-ink-secondary);
-  max-width: 56ch;
-}
+/* ── Header: PageHeader carries the frame; only the page's own action
+      lives here. ────────────────────────── */
 
 /* "New project": the primary action, structural white. */
 .newBtn {
@@ -148,7 +93,7 @@
 }
 
 .cardLink:active {
-  background-color: rgba(233, 236, 238, 0.09);
+  background-color: var(--app-active);
 }
 
 .cardLink:focus-visible {
@@ -368,7 +313,7 @@
 }
 
 .pillActive {
-  background-color: rgba(233, 236, 238, 0.07);
+  background-color: var(--app-fill);
   color: var(--app-ink);
   border-color: var(--app-border-strong);
 }
