@@ -29,9 +29,16 @@ import styles from './InitiationWizard.module.css';
  * chosen here or sent from here: the database trigger derives it from whatever
  * link is confirmed.
  *
- * DISMISS is Step 8's own behaviour, which is that a suggestion the developer
- * does not want simply goes away. B3's recorded triage lives on the monitoring
- * modules and is deliberately not built here.
+ * DISMISS is recorded, and stays gone. It writes a state row for this project
+ * and candidate (migration 036), so a suggestion the developer has declined does
+ * not come back on the next load. B3's fuller triage, which names who decided
+ * and why, lives on the monitoring modules and is still not built here.
+ *
+ * THE HIDDEN LINE says how many suggestions the band is holding back because
+ * they have already been added or dismissed. Without it a developer who
+ * dismisses everything sees an empty band and no reason for it, which reads as a
+ * fault rather than as their own decisions being respected. One plain line, no
+ * control on it: restoring a dismissed suggestion is Note 15's to design.
  *
  * Presentational and controlled: it owns no candidate state beyond which card is
  * open and what objective that card is proposing. The wizard shell holds the
@@ -67,6 +74,22 @@ function proposalLine(stamp) {
     : `Linked to ${name}, this would be captured at ${level}.`;
 }
 
+/**
+ * The hidden line. One sentence, stating only what it knows: a count of the
+ * candidates this band is holding back.
+ *
+ * "Added or dismissed" is honest about both reasons the engine suppresses on. A
+ * candidate answered on this project was added or dismissed outright; one
+ * suppressed because its text already sits in the list is one the developer has
+ * added, whether from a card or by typing it. Neither reason is a suggestion
+ * being withheld for a reason of the product's own.
+ */
+function hiddenLine(count) {
+  return count === 1
+    ? '1 suggestion is hidden because you have already added or dismissed it.'
+    : `${count} suggestions are hidden because you have already added or dismissed them.`;
+}
+
 export default function RaidSuggestions({
   candidates,
   objectives,
@@ -75,6 +98,9 @@ export default function RaidSuggestions({
   nounPlural,
   addLabel,
   linkLabel,
+  // How many candidates of this type the engine suppressed, so the band can say
+  // why it is shorter than it was rather than just being shorter.
+  hiddenCount = 0,
   onAdd,
   onDismiss,
 }) {
@@ -83,7 +109,13 @@ export default function RaidSuggestions({
   const [openKey, setOpenKey] = useState(null);
   const [chosenObjectiveId, setChosenObjectiveId] = useState('');
 
-  if (!candidates || candidates.length === 0) return null;
+  const offered = candidates ?? [];
+  const hidden = Number(hiddenCount) || 0;
+
+  // Nothing offered and nothing held back is nothing to say. Nothing offered
+  // but something held back still renders, because that is exactly the state a
+  // developer who dismissed everything would otherwise read as a fault.
+  if (offered.length === 0 && hidden === 0) return null;
 
   const startAdd = (candidate) => {
     setOpenKey(candidate.key);
@@ -112,14 +144,19 @@ export default function RaidSuggestions({
     <section className={styles.suggestBand} aria-label={`Suggested ${nounPlural}`}>
       <div className={styles.suggestHead}>
         <span className={styles.suggestEyebrow}>PULSE Suggests</span>
-        <p className={styles.suggestHint}>
-          Drawn from what you have recorded so far. Each one says what selected
-          it. Nothing is added until you add it.
-        </p>
+        {offered.length > 0 ? (
+          <p className={styles.suggestHint}>
+            Drawn from what you have recorded so far. Each one says what selected
+            it. Nothing is added until you add it.
+          </p>
+        ) : null}
+        {hidden > 0 ? (
+          <p className={styles.suggestHidden}>{hiddenLine(hidden)}</p>
+        ) : null}
       </div>
 
       <ul className={styles.suggestList}>
-        {candidates.map((c) => {
+        {offered.map((c) => {
           const open = openKey === c.key;
           return (
             <li key={c.key}>

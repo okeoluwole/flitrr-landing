@@ -1477,6 +1477,18 @@
   margin: 0.35rem 0 0;
 }
 
+/* The hidden line: how many suggestions the band is holding back because they
+   have already been added or dismissed. A statement, not a control, so it takes
+   the muted end of the meta voice and carries no affordance at all. */
+.suggestHidden {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--app-ink-muted);
+  margin: 0.35rem 0 0;
+}
+
 .suggestList {
   list-style: none;
   display: flex;

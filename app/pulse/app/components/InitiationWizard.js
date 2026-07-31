@@ -35,8 +35,15 @@ import {
   buildRaidBaseline,
   deriveRaidSuggestions,
   groupByType,
+  suppressedCountByType,
   LIST_KEY_BY_TYPE,
 } from '../../../../lib/engine/raidSuggestions.js';
+import {
+  RAID_SUGGESTION_STATES,
+  capturedSuggestionIds,
+  loadRaidSuggestionState,
+  recordRaidSuggestionState,
+} from './raidSuggestionStore';
 import { deriveStageStates } from '../../../../lib/engine/stageStates.js';
 import { formatDisplayDate } from '../../../../lib/engine/dateFormat.js';
 import { STAGE_NAMES } from '../../../../lib/engine/stageNames.js';
@@ -175,6 +182,12 @@ const EMPTY_ORG = {
 
 const SAVE_ERROR =
   'We could not save this step. Please check your connection and try again, or email hello@flitrr.com.';
+
+// A dismissed suggestion that is not recorded comes straight back on the next
+// load, so a failed dismissal is told rather than swallowed and the card stays
+// where it is. Same voice as SAVE_ERROR, because it is the same kind of failure.
+const DISMISS_ERROR =
+  'We could not record that dismissal. Please check your connection and try again, or email hello@flitrr.com.';
 
 // The gate decision note's date, in the app's one display format, "5 Jun 2026"
 // (lib/engine/dateFormat.js). UTC-pinned there, so the recorded day reads the
@@ -565,11 +578,14 @@ export default function InitiationWizard({
   });
   const makeKey = () => `k${keyCounterRef.current++}`;
 
-  // Step 8 PULSE Suggests (Note 7): the candidate keys the developer has acted
-  // on this session, so an added or dismissed suggestion stops being offered.
-  // Session state only. B3's recorded triage (who decided what, and when) lives
-  // on the monitoring modules and is deliberately not built at initiation, so
-  // there is nothing to persist and this needs no migration.
+  // Step 8 PULSE Suggests (Note 7): the candidate keys the developer has already
+  // answered, so an added or dismissed suggestion stops being offered.
+  //
+  // NOT SESSION STATE. It is seeded from project_raid_suggestion_state on load
+  // (migration 036) and every answer is written back, so a dismissal stays gone
+  // across loads and an added candidate stays gone even after its captured text
+  // is edited. It held only this session's answers until now, which is exactly
+  // why every dismissal returned on the next visit.
   const [actedSuggestions, setActedSuggestions] = useState(() => new Set());
 
   const nameValid = def.name.trim().length > 0;
@@ -947,10 +963,15 @@ export default function InitiationWizard({
   // the objectives load so Steps 3 and 4 keep their own ready/error gating,
   // but it runs only after objectives are loaded: the cascade default and the
   // override reconstruction both read objective classifications.
+  // The Step 8 suggestion state rides along with this load rather than taking a
+  // status of its own: Step 8 already waits on listsStatus, so the band never
+  // renders before the answers it must respect are in hand. A band that painted
+  // first and suppressed second would flash back every dismissal the developer
+  // has ever made, which is the defect wearing a different coat.
   const loadLists = async (objs) => {
     if (!projectId) return;
     setListsStatus('loading');
-    const [m, w, r, a, c, d] = await Promise.all([
+    const [m, w, r, a, c, d, s] = await Promise.all([
       supabase
         .from('project_milestones')
         .select(
@@ -985,11 +1006,13 @@ export default function InitiationWizard({
         .select('id, description, detail, linked_objective_id, criticality')
         .eq('project_id', projectId)
         .order('created_at', { ascending: true }),
+      loadRaidSuggestionState(supabase, projectId),
     ]);
-    if (m.error || w.error || r.error || a.error || c.error || d.error) {
+    if (m.error || w.error || r.error || a.error || c.error || d.error || s.error) {
       setListsStatus('error');
       return;
     }
+    setActedSuggestions(s.candidateIds ?? new Set());
     setLists({
       milestones: buildList(LIST_CONFIG.milestones, m.data ?? [], objs, makeKey, def.entry_stage),
       workstreams: buildList(
@@ -1134,9 +1157,12 @@ export default function InitiationWizard({
    *
    * It becomes an ordinary item from this moment, editable and removable like a
    * hand-typed one, and it saves with the rest of the step through persistList.
-   * The one thing it carries that a typed row does not is the client-only
-   * from-suggestion marker, which tells itemToRow to send no criticality: the
-   * database trigger derives that from the confirmed link and is its sole writer.
+   * The two things it carries that a typed row does not are both client-only:
+   * the from-suggestion marker, which tells itemToRow to send no criticality
+   * (the database trigger derives that from the confirmed link and is its sole
+   * writer), and the candidate's own key, which persistList records as added
+   * ONCE THE CAPTURE INSERT HAS SUCCEEDED. Nothing is recorded here, because a
+   * capture that never lands must not suppress the suggestion that offered it.
    */
   const onSuggestionAdd = (candidate, confirmedObjectiveId) => {
     const key = LIST_KEY_BY_TYPE[candidate.type];
@@ -1153,15 +1179,38 @@ export default function InitiationWizard({
           }
         : prev
     );
+    // Off the band immediately, which is what the developer just asked for. The
+    // set is what the band reads; the store is what survives a reload, and it is
+    // written by the save. If that save never happens the item is not captured
+    // either, so the next load offers the candidate again, correctly.
     setActedSuggestions((prev) => new Set(prev).add(candidate.key));
     if (error) setError(null);
   };
 
-  // Dismiss a suggestion: it stops being offered for this session. Step 8's own
-  // behaviour, and no more than that. The recorded triage that names who
-  // dismissed what and why is B3's, and it belongs to the monitoring modules.
-  const onSuggestionDismiss = (candidate) => {
+  /**
+   * Dismiss a suggestion: it stops being offered, and stays that way.
+   *
+   * RECORDED FIRST, HIDDEN SECOND. The write is what makes the dismissal
+   * durable, so a failed write leaves the card exactly where it is and says so.
+   * Hiding it on a write that did not land would put the developer back in the
+   * defect this closes, holding a dismissal that returns on the next load, with
+   * nothing on screen to suggest anything went wrong.
+   *
+   * The fuller triage that names who dismissed what and why is B3's, and it
+   * belongs to the monitoring modules. This records the answer, not the argument.
+   */
+  const onSuggestionDismiss = async (candidate) => {
+    const { error: stateErr } = await recordRaidSuggestionState(supabase, {
+      projectId,
+      candidateIds: [candidate.key],
+      state: RAID_SUGGESTION_STATES.DISMISSED,
+    });
+    if (stateErr) {
+      setError(DISMISS_ERROR);
+      return;
+    }
     setActedSuggestions((prev) => new Set(prev).add(candidate.key));
+    if (error) setError(null);
   };
 
   // Retry control for the Steps 5 to 7 load fallback. Retries whichever load
@@ -1647,6 +1696,28 @@ export default function InitiationWizard({
       [key]: nextPersisted,
     };
 
+    // Record every suggestion this list has actually captured (Note 7). Read
+    // from nextItems, so an item qualifies only once it holds a database id:
+    // the capture insert has succeeded by then, which is the order that keeps a
+    // failed capture from suppressing the suggestion the project never got.
+    //
+    // Upserted, so this is idempotent across saves and self-healing across a
+    // failure: the client-only marker lives as long as the session, so a save
+    // that inserted the item but could not record its state records it on the
+    // next save rather than losing it. A workstream carries no marker, so this
+    // is a no-op on every list but the four RAID ones.
+    const captured = capturedSuggestionIds(nextItems);
+    if (captured.length > 0) {
+      const { error: stateErr } = await recordRaidSuggestionState(supabase, {
+        projectId,
+        candidateIds: captured,
+        state: RAID_SUGGESTION_STATES.ADDED,
+      });
+      // Surfaced through the step's own save error rather than swallowed. An
+      // unrecorded add is the defect this closes, so it must not pass quietly.
+      if (stateErr) errored = true;
+    }
+
     return errored ? new Error('list_save_failed') : null;
   };
 
@@ -2109,7 +2180,7 @@ export default function InitiationWizard({
       // The financial and scope loads are not gated on above, because Step 8 has
       // never waited for them; a field not yet loaded arrives null and simply
       // fires no condition, which is the same as a fact not yet recorded.
-      const { candidates } = deriveRaidSuggestions(
+      const { candidates, suppressed } = deriveRaidSuggestions(
         buildRaidBaseline({
           country: def.country,
           currency: def.currency,
@@ -2133,11 +2204,16 @@ export default function InitiationWizard({
               ),
             ])
           ),
+          // The candidates already answered on this project: loaded from
+          // migration 036 with the lists, plus anything answered since. The
+          // engine suppresses them into the same bucket as the text matches
+          // above, so the count the band states covers both and nothing
+          // disappears from the band without being counted.
+          actedCandidateIds: actedSuggestions,
         })
       );
-      const suggestionsByType = groupByType(
-        candidates.filter((c) => !actedSuggestions.has(c.key))
-      );
+      const suggestionsByType = groupByType(candidates);
+      const hiddenByType = suppressedCountByType(suppressed);
 
       const raidSection = (key, sectionTitle, type) => (
         <StepItemList
@@ -2163,6 +2239,7 @@ export default function InitiationWizard({
               }
               addLabel={LIST_CONFIG[key].addLabel}
               linkLabel={LIST_CONFIG[key].linkLabel}
+              hiddenCount={hiddenByType[type]}
               onAdd={onSuggestionAdd}
               onDismiss={onSuggestionDismiss}
             />

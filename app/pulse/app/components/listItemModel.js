@@ -175,12 +175,21 @@ export function itemToRow(cfg, item, objectives) {
  * like a hand-typed one: it can be reworded, relinked or removed before the
  * brief is locked, and it saves through the same persistList.
  *
- * `_fromSuggestion` is CLIENT-ONLY, like `_key`. It never reaches the database
- * (itemToRow above drops it with the rest of the bookkeeping) and it is not
- * persisted anywhere, which is why this needs no migration. It marks one thing:
- * that this row's criticality is the trigger's to derive, not this path's to
- * send. A row reloaded from the database comes back through rowToItem without
- * the marker, which is correct, because by then it is simply a captured item.
+ * `_fromSuggestion` and `_suggestionKey` are CLIENT-ONLY, like `_key`. Neither
+ * reaches the database on this row (itemToRow above drops them with the rest of
+ * the bookkeeping). A row reloaded from the database comes back through
+ * rowToItem without either, which is correct, because by then it is simply a
+ * captured item.
+ *
+ *   _fromSuggestion  marks that this row's criticality is the trigger's to
+ *                    derive, not this path's to send.
+ *   _suggestionKey   carries the candidate's own authored key, so that once the
+ *                    capture insert has succeeded the save can record the
+ *                    candidate as added (raidSuggestionStore, migration 036).
+ *                    Without it the item is indistinguishable from a hand-typed
+ *                    one the moment it is on screen, and the candidate that
+ *                    produced it could only be inferred from the text, which is
+ *                    the inference this session replaces with a record.
  */
 export function suggestionToItem(cfg, candidate, confirmedObjectiveId, makeKey) {
   return {
@@ -188,5 +197,6 @@ export function suggestionToItem(cfg, candidate, confirmedObjectiveId, makeKey) 
     [cfg.requiredField]: candidate.text,
     linked_objective_id: confirmedObjectiveId || '',
     _fromSuggestion: true,
+    _suggestionKey: candidate.key,
   };
 }
