@@ -30,12 +30,14 @@ Part D the locked palette). Build to the tokens; don't reinvent.
      page, `--color-ink-900` raised band, `--color-ink-800` card). Text uses
      `--color-on-ink-primary/secondary/faint`.
    - **The product app (PULSE) is "Instrument", and it is fully dark:** a
-     cool graphite ground (`--app-paper` **#0E1216**, a legacy token NAME
-     pending rename; the value is dark) with hairline-seated panels
-     (`--app-surface` #161C22), console chrome (`--app-console*`), and
+     cool graphite ground (`--app-ground` **#0E1216**) with hairline-seated
+     panels (`--app-surface` #161C22), console chrome (`--app-console*`), and
      `--app-ink*` text. Deliberately cooler and flatter than the marketing
      ink, so the two blacks read as different blacks. Density is a virtue:
-     panels seat on hairlines, they don't float as gapped cards.
+     panels seat on hairlines, they don't float as gapped cards. The app
+     language in full, including the semantic mappings and shared chrome,
+     lives in the **`pulse-design-language`** skill; load that for any
+     authenticated-surface work.
    - **The produced document stands on `--doc-*` warm paper:** the Brief,
      its exports, MemberBriefView (consumed from Phase 4). Dark tool frames
      light output; darkening the app never darkens the Brief. Serif lives
@@ -92,7 +94,7 @@ groups you'll reach for:
   `-700`, `--color-on-ink-primary/secondary/faint`,
   `--color-ink-hairline(-strong)`.
 - **Product (Instrument, dark):** chrome `--app-console*`; ground
-  `--app-paper` (dark; legacy name) with `--app-surface/-raised/-sunken`;
+  `--app-ground` with `--app-surface/-raised/-sunken`;
   ink `--app-ink/-secondary/-muted`; lines `--app-hairline`, `--app-border`,
   `--app-border-strong`, `--app-hover`; signal `--app-signal*` and
   `--app-critical-*`; the white `--app-primary/-ink/-hover` and

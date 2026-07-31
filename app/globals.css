@@ -167,6 +167,19 @@
   --app-border-strong:  rgba(233, 236, 238, 0.28);
   --app-hover:          rgba(233, 236, 238, 0.06);
 
+  /* The translucent-light ramp, named by job (Session K). One RGB base,
+     one alpha per intent, so a chip fill can never drift a percent away
+     from the tile beside it again. hover (0.06), hairline (0.08),
+     border (0.15) and border-strong (0.28) above are the same ramp.
+       fill-faint  a disabled or resting tile, below the hairline
+       fill        the neutral chip and pill fill
+       active      the press state on rows and tiles
+       fill-strong the mid intensity chip fill (severity's middle band) */
+  --app-fill-faint:  rgba(233, 236, 238, 0.04);
+  --app-fill:        rgba(233, 236, 238, 0.07);
+  --app-active:      rgba(233, 236, 238, 0.09);
+  --app-fill-strong: rgba(233, 236, 238, 0.14);
+
   /* Signal: amber keeps one meaning, criticality. On the calm
      cool field it reads louder, so proportional monitoring
      shows itself. --app-signal-ink is amber as text on dark. */
@@ -202,6 +215,10 @@
      --app-ink-muted is non-essential metadata only. */
   --app-focus:            #F1F3F5;
   --app-focus-on-console: #F1F3F5;
+  /* The soft glow a control may pair with the 2px focus outline (the team
+     page's invite field). The ring follows the focus colour by token, so
+     no surface hand-expands #F1F3F5 into an rgba again. */
+  --app-focus-ring: rgba(241, 243, 245, 0.14);
   --app-danger:        #E8988A;
   --app-danger-wash:   rgba(232, 120, 100, 0.12);
   --app-danger-border: rgba(232, 120, 100, 0.45);
@@ -235,13 +252,45 @@
   --app-font-mono: var(--font-geist-mono), ui-monospace, 'SF Mono',
     'Cascadia Code', Menlo, Consolas, monospace;
 
-  /* Instrument type scale: fixed rem, product register (about 1.2 ratio). */
-  --app-text-xs:   0.75rem;
-  --app-text-sm:   0.8125rem;
-  --app-text-base: 0.9375rem;
-  --app-text-md:   1.0625rem;
-  --app-text-lg:   1.375rem;
-  --app-text-xl:   1.75rem;
+  /* Instrument type scale: fixed rem, product register (about 1.2 ratio).
+     2xs is the mono micro-label size (eyebrows, chips, badges), promoted
+     from the 0.6875rem the shipped modules were each writing out by hand.
+     control is the sans label on buttons, links and menu items, promoted
+     from the hand-written 0.875rem for the same reason. */
+  --app-text-2xs:     0.6875rem;
+  --app-text-xs:      0.75rem;
+  --app-text-sm:      0.8125rem;
+  --app-text-control: 0.875rem;
+  --app-text-base:    0.9375rem;
+  --app-text-md:      1.0625rem;
+  --app-text-lg:      1.375rem;
+  --app-text-xl:      1.75rem;
+
+  /* The named type roles (Session K). A role is a size from the scale plus
+     the weight, face and case the language fixes for it; the full contract
+     is written in .claude/skills/pulse-design-language. The size rides a
+     token so a surface can consume the role without re-picking:
+       page title    sans 600  xl    lh 1.15  ls -0.02em
+       section title sans 600  md    lh 1.3
+       card title    sans 600  base  lh 1.4
+       body          sans 400  base  lh 1.55
+       caption       sans 400  sm    lh 1.5   ink-secondary
+       micro label   mono 500  2xs   uppercase, tracked 0.14em (eyebrows)
+                     or 0.05em (chips)
+       data          mono 400  xs+   tabular numerals (.tnum) */
+
+  /* Spacing rhythm (Session K): one 4px base unit, eight steps. Micro gaps
+     take 1 and 2, control padding 2 and 3, panel padding 4 and 5, the gaps
+     between blocks 6, section rhythm 7 and 8. New chrome consumes these;
+     shipped surfaces converge as their own sub-steps convert them. */
+  --app-space-1: 0.25rem;
+  --app-space-2: 0.5rem;
+  --app-space-3: 0.75rem;
+  --app-space-4: 1rem;
+  --app-space-5: 1.5rem;
+  --app-space-6: 2rem;
+  --app-space-7: 3rem;
+  --app-space-8: 4rem;
 }
 
 /* ─────────────────────────────────────────────────────────
@@ -499,6 +548,11 @@ p {
     --app-border: rgba(20, 24, 28, 0.26);
     --app-border-strong: rgba(20, 24, 28, 0.42);
     --app-hover: transparent;
+    --app-fill-faint: rgba(20, 24, 28, 0.04);
+    --app-fill: rgba(20, 24, 28, 0.07);
+    --app-active: transparent;
+    --app-fill-strong: rgba(20, 24, 28, 0.14);
+    --app-focus-ring: transparent;
     --app-signal-ink: #856414;
     --app-signal-ink-dim: #8a6a1a;
     --app-danger: #9c3d2a;
