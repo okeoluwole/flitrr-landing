@@ -27,7 +27,7 @@
 .msg {
   display: block;
   min-height: 1.2em;
-  margin-top: calc(var(--app-space-1, 0.25rem) * 1);
+  margin-top: var(--app-space-1);
   font-family: var(--app-font-mono), monospace;
   font-size: var(--app-text-xs);
   line-height: 1.2;

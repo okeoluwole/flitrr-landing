@@ -3,17 +3,20 @@
  * Initiation flow. Shared by the wizard shell and every step component.
  *
  * Amber spends on criticality only. Here that is the classification read
- * alone: the Non-negotiable ranking pill, the Critical milestone badge,
- * and the over-constraint warning (all non-negotiable IS the criticality
- * read, the gate screen's precedent). The progress rail is monochrome by
- * intensity (progress is not criticality), the required marker holds ink,
- * and the advised-date suggestion is a quiet mono chip. Danger red belongs
- * to the failed save and the remove affordance alone. Mobile-first; the
- * rail goes vertical at 880px.
+ * alone: the Non-negotiable ranking pill, the shared CriticalityChip on
+ * milestones and captures, and the over-constraint warning (all
+ * non-negotiable IS the criticality read, the gate screen's precedent).
+ * The progress rail is monochrome by intensity (progress is not
+ * criticality), the required marker holds ink, and the advised-date
+ * suggestion is a quiet mono chip. Danger red belongs to the failed save
+ * and the remove affordance alone. Type rides the --app-text scale and
+ * positive space rides the --app-space rhythm (Session K sub-step 3);
+ * raw px stays only on control geometry. Mobile-first; the rail goes
+ * vertical at 880px.
  */
 
 .page {
-  padding-block: 2.5rem 5rem;
+  padding-block: var(--app-space-7) var(--app-space-8);
 }
 
 /* ── Layout: header full width, then a vertical rail beside the work column.
@@ -21,7 +24,7 @@
 .layout {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.25rem;
+  gap: var(--app-space-4);
 }
 
 .work {
@@ -31,7 +34,7 @@
 @media (min-width: 880px) {
   .layout {
     grid-template-columns: 236px minmax(0, 1fr);
-    gap: 1.75rem;
+    gap: var(--app-space-6);
     align-items: start;
   }
 }
@@ -57,7 +60,7 @@
   background-color: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
-  padding: 0.9rem 1rem 0.75rem;
+  padding: var(--app-space-4) var(--app-space-4) var(--app-space-3);
   box-shadow: var(--app-elev-1);
 }
 
@@ -67,7 +70,7 @@
   gap: 0;
   list-style: none;
   overflow-x: auto;
-  padding-bottom: 0.25rem;
+  padding-bottom: var(--app-space-1);
   -webkit-overflow-scrolling: touch;
 }
 
@@ -76,7 +79,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--app-space-2);
   flex: 1 0 auto;
   min-width: 56px;
   text-align: center;
@@ -202,7 +205,7 @@
   .progress {
     position: sticky;
     top: 72px;
-    padding: 1.2rem 1.1rem;
+    padding: var(--app-space-4);
   }
 
   .steps {
@@ -215,7 +218,7 @@
   .step {
     flex-direction: row;
     align-items: center;
-    gap: 0.75rem;
+    gap: var(--app-space-3);
     flex: 0 0 auto;
     min-width: 0;
     min-height: 46px;
@@ -243,8 +246,16 @@
   background-color: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
-  padding: clamp(1.25rem, 3vw, 2rem);
+  padding: var(--app-space-5);
   box-shadow: var(--app-elev-1);
+}
+
+/* Panel padding steps up with the two-column field grid: the rhythm's
+   steps replace the old viewport-scaled clamp. */
+@media (min-width: 680px) {
+  .panel {
+    padding: var(--app-space-6);
+  }
 }
 
 /* Step content eases in on each step change. The wrapper is keyed by step in
@@ -260,8 +271,8 @@
    than bare "Loading…" text or a spinner dropped in the content. */
 .skeleton {
   display: grid;
-  gap: 0.9rem;
-  margin-top: 0.5rem;
+  gap: var(--app-space-4);
+  margin-top: var(--app-space-2);
 }
 
 .skelBar {
@@ -291,7 +302,7 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--app-ink-muted);
-  margin-bottom: 0.6rem;
+  margin-bottom: var(--app-space-2);
 }
 
 .panelHeading {
@@ -301,7 +312,7 @@
   line-height: 1.2;
   letter-spacing: -0.01em;
   color: var(--app-ink);
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--app-space-2);
 }
 
 .panelIntro {
@@ -310,7 +321,7 @@
   font-weight: 400;
   line-height: 1.6;
   color: var(--app-ink-secondary);
-  margin-bottom: 1.75rem;
+  margin-bottom: var(--app-space-6);
   max-width: 62ch;
 }
 
@@ -319,7 +330,7 @@
 .fieldGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.25rem;
+  gap: var(--app-space-4);
 }
 
 @media (min-width: 680px) {
@@ -331,7 +342,7 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: var(--app-space-2);
 }
 
 .fieldFull {
@@ -349,13 +360,13 @@
 .required {
   color: var(--app-ink);
   font-weight: 600;
-  margin-left: 0.15rem;
+  margin-left: var(--app-space-1);
 }
 
 .optional {
   font-weight: 500;
   color: var(--app-ink-secondary);
-  margin-left: 0.3rem;
+  margin-left: var(--app-space-1);
 }
 
 .input,
@@ -371,7 +382,7 @@
   background-color: var(--app-surface-sunken);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-sm);
-  padding: 0.6rem 0.75rem;
+  padding: var(--app-space-2) var(--app-space-3);
   color-scheme: dark;
   transition: border-color var(--dur-fast) var(--ease-out);
 }
@@ -409,8 +420,8 @@
 /* Sub-group divider within a step form (e.g. the optional financials group
    in Step 1). Spans the grid, sets the group off with a top rule. */
 .groupHead {
-  margin-top: 0.5rem;
-  padding-top: 1.5rem;
+  margin-top: var(--app-space-2);
+  padding-top: var(--app-space-5);
   border-top: 1px solid var(--app-hairline);
 }
 
@@ -421,7 +432,7 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--app-ink);
-  margin-bottom: 0.35rem;
+  margin-bottom: var(--app-space-1);
 }
 
 .groupHint {
@@ -439,8 +450,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  margin-top: 2rem;
+  gap: var(--app-space-4);
+  margin-top: var(--app-space-6);
 }
 
 /* The named blocker beside a held Save & Continue (Session K): the bar says
@@ -485,13 +496,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: var(--app-space-2);
   min-height: 44px;
   font-family: var(--app-font-sans), sans-serif;
   font-size: var(--app-text-control);
   font-weight: 600;
   border-radius: var(--app-radius-sm);
-  padding: 0.6rem 1.1rem;
+  padding: var(--app-space-2) var(--app-space-4);
   cursor: pointer;
   transition: background-color var(--dur-fast) var(--ease-out),
     border-color var(--dur-fast) var(--ease-out),
@@ -535,7 +546,7 @@
 .footerActions {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--app-space-2);
 }
 
 /* Save & Exit. A secondary action beside the primary Save & Continue, so it
@@ -544,14 +555,14 @@
 .btnExit {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: var(--app-space-2);
   min-height: 44px;
   font-family: var(--app-font-sans), sans-serif;
   font-size: var(--app-text-control);
   font-weight: 600;
   color: var(--app-ink);
   text-decoration: none;
-  padding: 0.6rem 0.85rem;
+  padding: var(--app-space-2) var(--app-space-3);
   border-radius: var(--app-radius-sm);
   background-color: transparent;
   border: none;
@@ -604,12 +615,12 @@
 .objCard {
   display: flex;
   flex-direction: column;
-  gap: 1.1rem;
-  padding: 1.35rem 0;
+  gap: var(--app-space-4);
+  padding: var(--app-space-5) 0;
 }
 
 .objCard:first-child {
-  padding-top: 0.25rem;
+  padding-top: var(--app-space-1);
 }
 
 .objCard:not(:first-child) {
@@ -619,7 +630,7 @@
 .objCardHead {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--app-space-1);
 }
 
 .objName {
@@ -658,13 +669,13 @@
   font-weight: 500;
   color: var(--app-ink);
   padding: 0;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--app-space-2);
 }
 
 .choices {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0.6rem;
+  gap: var(--app-space-2);
 }
 
 @media (min-width: 600px) {
@@ -677,12 +688,12 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: var(--app-space-1);
   min-height: 44px;
   background-color: var(--app-surface-sunken);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-sm);
-  padding: 0.7rem 0.85rem 0.75rem;
+  padding: var(--app-space-3) var(--app-space-3) var(--app-space-3);
   cursor: pointer;
   transition: border-color var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-out);
@@ -741,20 +752,20 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: var(--app-space-2);
   padding: 0;
-  margin: 1.25rem 0 0;
+  margin: var(--app-space-4) 0 0;
 }
 
 .rankRow {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--app-space-3);
   min-height: 44px;
   background-color: var(--app-surface-sunken);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-sm);
-  padding: 0.55rem 0.85rem;
+  padding: var(--app-space-2) var(--app-space-3);
   transition: border-color var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-out),
     opacity var(--dur-fast) var(--ease-out);
@@ -796,7 +807,7 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.5rem 0.6rem;
+  gap: var(--app-space-2) var(--app-space-2);
   min-width: 0;
 }
 
@@ -840,7 +851,7 @@
 .rankControls {
   flex: 0 0 auto;
   display: inline-flex;
-  gap: 0.6rem;
+  gap: var(--app-space-2);
   margin-left: auto;
 }
 
@@ -889,12 +900,12 @@
 .criticalWarning {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
+  gap: var(--app-space-3);
   background-color: var(--app-critical-bg);
   border: 1px solid var(--app-critical-border);
   border-radius: var(--app-radius);
-  padding: 1rem 1.1rem;
-  margin-top: 1.25rem;
+  padding: var(--app-space-4) var(--app-space-4);
+  margin-top: var(--app-space-4);
 }
 
 .criticalWarningIcon {
@@ -920,12 +931,12 @@
 .frozenNote {
   display: flex;
   align-items: flex-start;
-  gap: 0.7rem;
+  gap: var(--app-space-3);
   background-color: transparent;
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius);
-  padding: 0.85rem 1rem;
-  margin-bottom: 1.5rem;
+  padding: var(--app-space-3) var(--app-space-4);
+  margin-bottom: var(--app-space-5);
 }
 
 .frozenNoteIcon {
@@ -974,9 +985,9 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--app-space-3);
   padding: 0;
-  margin: 1.25rem 0 0;
+  margin: var(--app-space-4) 0 0;
 }
 
 /* Each item is a fieldset (grouping its inputs for assistive tech) framed by
@@ -986,7 +997,7 @@
 .itemCard {
   min-width: 0;
   margin: 0;
-  padding: clamp(1rem, 2.5vw, 1.3rem);
+  padding: var(--app-space-4);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius);
   background-color: transparent;
@@ -996,8 +1007,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.9rem;
+  gap: var(--app-space-3);
+  margin-bottom: var(--app-space-4);
 }
 
 .itemIndex {
@@ -1051,7 +1062,7 @@
 .itemGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0.9rem 1rem;
+  gap: var(--app-space-4) var(--app-space-4);
 }
 
 @media (min-width: 560px) {
@@ -1069,9 +1080,9 @@
 .addBtn {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: var(--app-space-2);
   align-self: flex-start;
-  margin-top: 1rem;
+  margin-top: var(--app-space-4);
   min-height: 44px;
   font-family: var(--app-font-sans), sans-serif;
   font-size: var(--app-text-control);
@@ -1080,7 +1091,7 @@
   background-color: transparent;
   border: 1px dashed var(--app-border-strong);
   border-radius: var(--app-radius-sm);
-  padding: 0.6rem 1.05rem;
+  padding: var(--app-space-2) var(--app-space-4);
   cursor: pointer;
   transition: border-color var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-out);
@@ -1102,8 +1113,8 @@
   font-weight: 400;
   line-height: 1.5;
   color: var(--app-ink-secondary);
-  margin: 1.25rem 0 0;
-  padding: 1.1rem 1.25rem;
+  margin: var(--app-space-4) 0 0;
+  padding: var(--app-space-4) var(--app-space-4);
   border: 1px dashed var(--app-border);
   border-radius: var(--app-radius);
   text-align: center;
@@ -1117,15 +1128,15 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: var(--app-space-2);
   padding: 0;
-  margin: 0 0 0.75rem;
+  margin: 0 0 var(--app-space-3);
 }
 
 .mixRow {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: var(--app-space-2);
 }
 
 .mixRow .input {
@@ -1145,7 +1156,7 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.55rem 0.85rem;
+  gap: var(--app-space-2) var(--app-space-3);
 }
 
 .gateRow .input {
@@ -1162,7 +1173,7 @@
 .naToggle {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--app-space-2);
   flex: 0 0 auto;
   min-height: 44px;
   font-family: var(--app-font-sans), sans-serif;
@@ -1200,8 +1211,8 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.3rem 0.6rem;
-  margin-top: 0.5rem;
+  gap: var(--app-space-1) var(--app-space-2);
+  margin-top: var(--app-space-2);
 }
 
 .suggestBtn {
@@ -1217,7 +1228,7 @@
   background-color: transparent;
   border: 1px solid var(--app-border-strong);
   border-radius: 999px;
-  padding: 0.35rem 0.8rem;
+  padding: var(--app-space-1) var(--app-space-3);
   cursor: pointer;
   transition: border-color var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-out);
@@ -1255,7 +1266,7 @@
    and item-grid styles from the list steps, so the section sits flush with the
    gate sequence above. Nothing here is free-text or addable. */
 .milestoneStage {
-  margin-top: 1.5rem;
+  margin-top: var(--app-space-5);
 }
 
 .milestoneStage:first-child {
@@ -1269,7 +1280,7 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--app-ink-secondary);
-  margin-bottom: 0.6rem;
+  margin-bottom: var(--app-space-2);
 }
 
 /* Shown only where a stage's date window is not the strict sequential one: a
@@ -1281,14 +1292,14 @@
   line-height: 1.5;
   color: var(--app-ink-secondary);
   max-width: 60ch;
-  margin: -0.2rem 0 0.7rem;
+  margin: -0.25rem 0 var(--app-space-3);
 }
 
 .milestoneList {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--app-space-3);
   padding: 0;
   margin: 0;
 }
@@ -1297,8 +1308,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.35rem;
+  gap: var(--app-space-3);
+  margin-bottom: var(--app-space-1);
 }
 
 .milestoneName {
@@ -1334,7 +1345,7 @@
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--app-ink-secondary);
-  margin: 0 0 0.9rem;
+  margin: 0 0 var(--app-space-4);
 }
 
 /* Location-sensitive flag: an informational prompt to confirm a local
@@ -1343,12 +1354,12 @@
 .locationNote {
   display: flex;
   align-items: flex-start;
-  gap: 0.55rem;
+  gap: var(--app-space-2);
   background-color: transparent;
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius);
-  padding: 0.7rem 0.85rem;
-  margin-top: 0.6rem;
+  padding: var(--app-space-3) var(--app-space-3);
+  margin-top: var(--app-space-2);
 }
 
 .locationNoteIcon {
@@ -1377,13 +1388,13 @@
    the panel itself. Nothing here borrows the item card's frame, because a
    suggestion that looks like an item is the defect this replaces. */
 .suggestBand {
-  margin: 1rem 0 0;
-  padding: 0.9rem 0 0.2rem 1rem;
+  margin: var(--app-space-4) 0 0;
+  padding: var(--app-space-4) 0 var(--app-space-1) var(--app-space-4);
   border-left: 2px solid var(--app-border-strong);
 }
 
 .suggestHead {
-  margin-bottom: 0.9rem;
+  margin-bottom: var(--app-space-4);
 }
 
 .suggestEyebrow {
@@ -1402,7 +1413,7 @@
   font-weight: 400;
   line-height: 1.5;
   color: var(--app-ink-secondary);
-  margin: 0.35rem 0 0;
+  margin: var(--app-space-1) 0 0;
 }
 
 /* The hidden line: how many suggestions the band is holding back because they
@@ -1414,21 +1425,21 @@
   font-weight: 400;
   line-height: 1.5;
   color: var(--app-ink-muted);
-  margin: 0.35rem 0 0;
+  margin: var(--app-space-1) 0 0;
 }
 
 .suggestList {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
+  gap: var(--app-space-3);
   padding: 0;
   margin: 0;
 }
 
 .suggestCard {
   min-width: 0;
-  padding: 0.9rem 1rem;
+  padding: var(--app-space-4) var(--app-space-4);
   border-radius: var(--app-radius);
   background-color: var(--app-hover);
 }
@@ -1450,7 +1461,7 @@
   font-weight: 400;
   line-height: 1.5;
   color: var(--app-ink-secondary);
-  margin: 0.45rem 0 0;
+  margin: var(--app-space-2) 0 0;
 }
 
 /* THE PROPOSAL REGISTER. Deliberately not the criticality chip's look: a captured item's
@@ -1464,17 +1475,17 @@
   font-weight: 400;
   line-height: 1.5;
   color: var(--app-ink-secondary);
-  margin: 0.7rem 0 0;
-  padding: 0.55rem 0.7rem;
+  margin: var(--app-space-3) 0 0;
+  padding: var(--app-space-2) var(--app-space-3);
   border: 1px dashed var(--app-border-strong);
   border-radius: var(--app-radius-sm);
 }
 
 .suggestProposalTag {
   display: inline-block;
-  margin-right: 0.5rem;
+  margin-right: var(--app-space-2);
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.625rem;
+  font-size: var(--app-text-2xs);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1485,15 +1496,15 @@
 .suggestConfirm {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  margin-top: 0.8rem;
+  gap: var(--app-space-2);
+  margin-top: var(--app-space-3);
 }
 
 .suggestActions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.8rem;
+  gap: var(--app-space-2);
+  margin-top: var(--app-space-3);
 }
 
 .suggestPrimary,
@@ -1503,7 +1514,7 @@
   font-size: var(--app-text-sm);
   font-weight: 600;
   border-radius: var(--app-radius-sm);
-  padding: 0.55rem 1rem;
+  padding: var(--app-space-2) var(--app-space-4);
   cursor: pointer;
   transition: border-color var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-out);
@@ -1544,7 +1555,9 @@
   width: 1px;
   height: 1px;
   padding: 0;
-  margin: -1px;
+  /* The classic -1px offscreen nudge, stated in rem so the space guard can
+     read it as the negative compensation it is. */
+  margin: -0.0625rem;
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
@@ -1565,13 +1578,16 @@
     display: none !important;
   }
 
-  .page {
-    padding: 0 !important;
-    margin: 0 !important;
+  /* The doubled class outweighs the global .container's padding at print
+     without needing !important on the spacing, which the space guard
+     rightly refuses to read. */
+  .page.page {
+    padding: 0;
+    margin: 0;
   }
 
-  .panel {
-    padding: 0 !important;
+  .panel.panel {
+    padding: 0;
     border: 0 !important;
     border-radius: 0 !important;
     background: none !important;

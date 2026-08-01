@@ -8,12 +8,12 @@
 .nudge {
   display: flex;
   align-items: flex-start;
-  gap: 0.7rem;
+  gap: var(--app-space-3);
   background-color: transparent;
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius);
-  padding: 0.8rem 0.95rem;
-  margin-top: 0.6rem;
+  padding: var(--app-space-3) var(--app-space-4);
+  margin-top: var(--app-space-2);
 }
 
 .mark {
@@ -25,13 +25,13 @@
 .body {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: var(--app-space-2);
   min-width: 0;
 }
 
 .text {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 400;
   line-height: 1.5;
   color: var(--app-ink);
@@ -44,21 +44,21 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   color: var(--app-ink);
-  margin-right: 0.4rem;
+  margin-right: var(--app-space-2);
 }
 
 .link {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: var(--app-space-1);
   align-self: flex-start;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 600;
   color: var(--app-ink);
   text-decoration: none;
   min-height: 44px;
-  padding-block: 0.3rem;
+  padding-block: var(--app-space-1);
   margin-block: -0.7rem;
 }
 
