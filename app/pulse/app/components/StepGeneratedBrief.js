@@ -6,6 +6,7 @@ import { assembleBrief } from './briefModel';
 import { checkCompleteness } from './briefCompleteness';
 import { LENSES, DEFAULT_LENS } from './briefLens';
 import BriefDocument from './BriefDocument';
+import ErrorNote from './ErrorNote';
 import wizard from './InitiationWizard.module.css';
 import styles from './Brief.module.css';
 
@@ -330,11 +331,22 @@ export default function StepGeneratedBrief({
     </>
   );
 
+  // Not-ready states speak the wizard's voice, not the document's: they render
+  // on the wizard sheet in place of the brief, so they use the same skeleton,
+  // intro and retry control the other eight steps use rather than a
+  // separately-authored loading line and a repurposed lock button.
   if (briefStatus === 'idle' || briefStatus === 'loading') {
     return (
       <>
         {Header}
-        <p className={styles.loading}>Assembling the brief…</p>
+        <div className={wizard.skeleton} aria-hidden="true">
+          <div className={`${wizard.skelBar} ${wizard.skelShort}`} />
+          <div className={wizard.skelBar} />
+          <div className={wizard.skelBar} />
+        </div>
+        <span className={wizard.srOnly} role="status">
+          Assembling the brief…
+        </span>
       </>
     );
   }
@@ -343,13 +355,13 @@ export default function StepGeneratedBrief({
     return (
       <>
         {Header}
-        <p className={styles.intro}>
+        <p className={wizard.panelIntro}>
           We could not load this brief. Please check your connection and try
           again.
         </p>
         <button
           type="button"
-          className={`${styles.lockBtn} ${styles.unlockBtn}`}
+          className={wizard.btnNext}
           onClick={() => {
             loadStartedRef.current = null;
             loadBrief();
@@ -569,11 +581,7 @@ export default function StepGeneratedBrief({
         </div>
       )}
 
-      {error && (
-        <p className={styles.briefError} role="alert">
-          {error}
-        </p>
-      )}
+      {error && <ErrorNote>{error}</ErrorNote>}
 
       <div className={styles.scroll}>
         <BriefDocument model={model} lens={lens} lockState={lockState} />

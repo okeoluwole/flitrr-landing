@@ -187,13 +187,9 @@
   outline-offset: 2px;
 }
 
-.briefError {
-  font-family: var(--app-font-sans);
-  font-size: var(--app-text-sm);
-  font-weight: 500;
-  color: var(--app-danger);
-  margin-bottom: 1rem;
-}
+/* The write-failure notice is ErrorNote, the one failure voice: it carries
+   its own danger ink, its role="alert" and its own print suppression, so this
+   module no longer authors a second .briefError beside it. */
 
 /* ── Completeness gate (M3.6) ──
    The pre-lock checklist. A seated instrument panel; hidden in the printed
@@ -394,12 +390,8 @@
   -webkit-overflow-scrolling: touch;
 }
 
-.loading {
-  font-family: var(--app-font-sans);
-  font-size: var(--app-text-base);
-  color: var(--app-ink-secondary);
-  padding: 2rem 0;
-}
+/* Step 9's not-ready states render the wizard's shared skeleton on the wizard
+   sheet, so this module no longer authors a text-only loading line. */
 
 /* ── The document ──────────────────────────────────
    A real page on a cool desk. Warm paper, a navy rule at the
@@ -1456,12 +1448,13 @@
    split. This block follows the responsive blocks, so it wins
    where both match. */
 @media print {
+  /* The write-failure notice is not listed here: ErrorNote suppresses itself
+     in print, so the one failure voice carries its own print behaviour. */
   .intro,
   .controlBar,
   .gate,
   .gateEntry,
   .lockHint,
-  .briefError,
   .lensNote {
     display: none !important;
   }
