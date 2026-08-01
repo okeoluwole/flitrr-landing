@@ -8,6 +8,7 @@ import { deriveProposals } from '../../../../lib/playbook/playbookModel';
 import { buildObjectiveIndex } from '../../../../lib/engine/criticality';
 import ActionLog from './ActionLog';
 import { loadTriageDecisions, dismissedItemKeys } from './triageDecisionStore';
+import PageHeader from '../components/PageHeader';
 import { readSequence } from '../components/sequenceRead';
 import styles from './ActionLog.module.css';
 
