@@ -3,6 +3,13 @@
 /.pnp
 .pnp.js
 
+# the Remotion video project (its own branch): the regenerable weight
+# must never ride a git add -A on another branch. GitHub rejects the
+# webpack cache and headless-chrome binaries outright.
+/video/node_modules/
+/video/.remotion/
+/video/out/
+
 # testing
 /coverage
 
