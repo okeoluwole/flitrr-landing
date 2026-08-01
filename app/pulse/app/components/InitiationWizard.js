@@ -1953,8 +1953,8 @@ export default function InitiationWizard({
         {objStatus === 'error' ? (
           <>
             <p className={styles.panelIntro}>
-              We could not load the objectives for this project. Please check
-              your connection and try again.
+              We could not load this step. Please check your connection and try
+              again.
             </p>
             <button
               type="button"
@@ -1972,7 +1972,7 @@ export default function InitiationWizard({
               <div className={styles.skelBar} />
             </div>
             <span className={styles.srOnly} role="status">
-              Loading your objectives…
+              Loading…
             </span>
           </>
         )}

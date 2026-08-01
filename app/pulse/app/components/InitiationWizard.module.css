@@ -807,9 +807,12 @@
   color: var(--app-ink);
 }
 
-/* The classification badges: the house mono pair. Non-negotiable is the
-   criticality read, the amber pill; flexible is its calm counterpart,
-   plain mono, monochrome by intensity. */
+/* The classification badges: the house mono pair. Non-negotiable IS the
+   criticality read, so its pill is named for it and spends exactly the
+   criticality mapping's tokens (lib/design/semantics.js); flexible is its
+   calm counterpart, plain mono, monochrome by intensity. The words stay
+   the classification's own (Non-negotiable, Flexible), which is why this
+   is not CriticalityChip: same read, different vocabulary. */
 .rankBadge {
   font-family: var(--app-font-mono), monospace;
   font-size: var(--app-text-2xs);
@@ -818,12 +821,12 @@
   white-space: nowrap;
 }
 
-.rankBadgeNN {
-  font-weight: 600;
+.rankBadgeCritical {
+  font-weight: 500;
   padding: 3px 10px;
   border-radius: 999px;
   background-color: var(--app-signal-wash);
-  border: 1px solid var(--app-signal-border);
+  border: 1px solid var(--app-critical-border);
   color: var(--app-signal-ink);
 }
 
@@ -881,9 +884,9 @@
 }
 
 /* Over-constraint advisory: the screen's one amber moment beyond the
-   classification pills. All non-negotiable IS the criticality read. It
-   warns, it does not block. */
-.warning {
+   classification pills. All non-negotiable IS the criticality read, which
+   is what the rule's name declares. It warns, it does not block. */
+.criticalWarning {
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
@@ -894,13 +897,13 @@
   margin-top: 1.25rem;
 }
 
-.warningIcon {
+.criticalWarningIcon {
   flex: 0 0 auto;
   margin-top: 1px;
   color: var(--app-signal-ink);
 }
 
-.warningText {
+.criticalWarningText {
   font-family: var(--app-font-sans), sans-serif;
   font-size: var(--app-text-control);
   font-weight: 400;

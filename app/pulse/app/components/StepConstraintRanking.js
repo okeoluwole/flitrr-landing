@@ -130,9 +130,9 @@ export default function StepConstraintRanking({
           appears or clears, without stealing focus. */}
       <div aria-live="polite">
         {overConstrained && (
-          <div className={styles.warning} role="status">
+          <div className={styles.criticalWarning} role="status">
             <svg
-              className={styles.warningIcon}
+              className={styles.criticalWarningIcon}
               width="22"
               height="22"
               viewBox="0 0 24 24"
@@ -147,7 +147,7 @@ export default function StepConstraintRanking({
                 strokeLinejoin="round"
               />
             </svg>
-            <p className={styles.warningText}>
+            <p className={styles.criticalWarningText}>
               Every objective is marked non-negotiable. A project with no room
               to flex has nothing to give when reality bites, and is usually
               undeliverable. Consider which objective could be flexible.
@@ -231,7 +231,7 @@ export default function StepConstraintRanking({
                 <span
                   className={`${styles.rankBadge} ${
                     isNonNegotiable
-                      ? styles.rankBadgeNN
+                      ? styles.rankBadgeCritical
                       : styles.rankBadgeFlex
                   }`}
                 >
