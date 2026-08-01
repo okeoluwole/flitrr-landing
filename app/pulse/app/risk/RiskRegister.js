@@ -640,6 +640,11 @@ export default function RiskRegister({
         key={risk.id}
         className={`${styles.attnItem} ${critical ? styles.attnItemCritical : ''}`}
       >
+        {/* Identity first, state second (the register reading order): the
+            risk itself leads, the chips qualify it. */}
+        <a className={styles.attnName} href={`#risk-${risk.id}`}>
+          {risk.description}
+        </a>
         <div className={styles.attnTags}>
           <CriticalityChip critical={critical} />
           <SeverityTag band={assessment.severity.key} />
@@ -648,9 +653,6 @@ export default function RiskRegister({
           </span>
           <span className={styles.provenance}>{riskProvenance(risk)}</span>
         </div>
-        <a className={styles.attnName} href={`#risk-${risk.id}`}>
-          {risk.description}
-        </a>
         {status && <p className={styles.attnStatus}>{status}</p>}
         {escalated && <p className={styles.attnEscalation}>{escalated}</p>}
       </article>
@@ -672,17 +674,17 @@ export default function RiskRegister({
         id={`risk-${r.id}`}
         className={`${styles.card} ${critical ? styles.cardCritical : ''}`}
       >
-        <div className={styles.cardHead}>
-          <div className={styles.cardTags}>
-            <CriticalityChip critical={critical} />
-            <span className={styles.objective}>
-              {objectiveRelation(objective)}
-            </span>
-          </div>
-          <SeverityTag band={severity.key} />
-        </div>
-
+        {/* Identity first, state second, dates last (the register reading
+            order): the risk leads, one consistent tag row qualifies it, and
+            the review stamp stays in the footer. */}
         <p className={styles.riskName}>{r.description}</p>
+        <div className={styles.cardTags}>
+          <CriticalityChip critical={critical} />
+          <SeverityTag band={severity.key} />
+          <span className={styles.objective}>
+            {objectiveRelation(objective)}
+          </span>
+        </div>
 
         <div className={styles.scoring}>
           <div className={styles.scoreRow}>
@@ -779,17 +781,17 @@ export default function RiskRegister({
         id={`risk-${r.id}`}
         className={`${styles.card} ${critical ? styles.cardCritical : ''}`}
       >
-        <div className={styles.cardHead}>
-          <div className={styles.cardTags}>
-            <CriticalityChip critical={critical} />
-            <span className={styles.objective}>
-              {objectiveRelation(objective)}
-            </span>
-          </div>
-          <SeverityTag band={severity.key} />
-        </div>
-
+        {/* Identity first, state second, dates last (the register reading
+            order): the risk leads, one consistent tag row qualifies it, and
+            the review stamp stays in the footer. */}
         <p className={styles.riskName}>{r.description}</p>
+        <div className={styles.cardTags}>
+          <CriticalityChip critical={critical} />
+          <SeverityTag band={severity.key} />
+          <span className={styles.objective}>
+            {objectiveRelation(objective)}
+          </span>
+        </div>
 
         <dl className={styles.roDetail}>
           <div className={styles.roRow}>
@@ -917,9 +919,13 @@ export default function RiskRegister({
 
       {risks.length === 0 ? (
         <div className={styles.empty}>
+          {/* An empty state says what to do next: point at the live path in
+              (PULSE suggests) when one is on screen, otherwise state where
+              risks come from. */}
           <p className={styles.emptyText}>
-            No risks captured yet. Risks added in the initiation flow appear
-            here for monitoring.
+            {canEdit && livePlays.length > 0
+              ? 'No risks on the register yet. Add one from PULSE suggests above; risks captured in your Brief also arrive here for monitoring.'
+              : 'No risks on the register yet. Risks captured in your Brief arrive here for monitoring.'}
           </p>
         </div>
       ) : active.length === 0 ? (

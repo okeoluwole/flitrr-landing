@@ -1,22 +1,29 @@
 /* ─────────────────────────────────────────
    Risk register (M6.1 + M7.4), on the
-   Instrument surface.
+   Instrument surface, converted onto the
+   design language (Session K, sub-step 2):
+   every font size is a type-scale token and
+   every positive space rides the --app-space
+   rhythm, so the register scans as columns
+   rather than as hand-set cards.
 
    Amber carries one meaning here, as it does
    everywhere on the instrument: criticality,
    a risk on a non-negotiable objective. The
-   severity read is a separate monochrome
-   intensity ramp (bright fill for Serious
-   down to a dashed outline for Not yet
-   scored), so the two axes never blur. The
-   needs-attention band is a sunken well, not
-   an amber one: attention is cadence, not
-   criticality. Register cards sit as seated
-   panels; controls take the white primary.
+   severity read is the shared SeverityTag's
+   separate monochrome ramp, so the two axes
+   never blur. The reading order is fixed:
+   a row's identity first, its state second,
+   its dates last. The needs-attention band
+   is a sunken well, not an amber one:
+   attention is cadence, not criticality.
+   A suggestion wears the dashed grammar
+   (proposed, not committed), never a
+   committed row's seat.
 ───────────────────────────────────────── */
 
 .page {
-  padding-block: 2.75rem 6rem;
+  padding-block: var(--app-space-7) var(--app-space-8);
   max-width: 880px;
 }
 
@@ -28,17 +35,17 @@
   background: var(--app-surface-sunken);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
-  padding: 2rem 1.75rem;
+  padding: var(--app-space-6) var(--app-space-5);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 1.1rem;
-  margin-top: 0.5rem;
+  gap: var(--app-space-4);
+  margin-top: var(--app-space-2);
 }
 
 .lockedText {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   line-height: 1.55;
   color: var(--app-ink-secondary);
   margin: 0;
@@ -51,13 +58,13 @@
   align-items: center;
   min-height: 44px;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   color: var(--app-ink);
   background: transparent;
   border: 1px solid var(--app-border-strong);
   border-radius: var(--app-radius-sm);
-  padding: 0.6rem 1.2rem;
+  padding: var(--app-space-2) var(--app-space-4);
   text-decoration: none;
   transition: border-color var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-out);
@@ -78,31 +85,31 @@
    well marks required attention, the inverse
    of the hairline suggests band below; the
    flagged rows sit as surface cards inside
-   it. Each row reuses the register's own
-   criticality and severity chips, so the
-   panel and the card it points to read
-   identically. Collapses to one calm line
-   when nothing is flagged. */
+   it. Each row reuses the shared criticality
+   and severity chips, so the panel and the
+   card it points to read identically.
+   Collapses to one calm line when nothing is
+   flagged. */
 
 .attnBand {
   background: var(--app-surface-sunken);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
-  padding: 1.1rem 1.4rem 1.4rem;
-  margin-bottom: 1.5rem;
+  padding: var(--app-space-4) var(--app-space-5) var(--app-space-5);
+  margin-bottom: var(--app-space-5);
 }
 
 .attnList {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--app-space-3);
 }
 
 .attnItem {
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius);
-  padding: 1rem 1.1rem;
+  padding: var(--app-space-4);
 }
 
 /* Critical (non-negotiable objective) risks carry the amber accent here
@@ -113,15 +120,8 @@
   background: var(--app-critical-bg);
 }
 
-.attnTags {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-  margin-bottom: 0.55rem;
-}
-
-/* The risk itself, a jump link to its full card below. */
+/* The risk itself, a jump link to its full card below. Identity reads
+   first, so it leads the row. */
 .attnName {
   display: inline-block;
   font-family: var(--app-font-sans), sans-serif;
@@ -131,8 +131,8 @@
   letter-spacing: -0.005em;
   color: var(--app-ink);
   text-decoration: none;
-  padding-block: 0.15rem;
-  margin-bottom: 0.4rem;
+  padding-block: var(--app-space-1);
+  margin-bottom: var(--app-space-1);
   transition: color var(--dur-fast) var(--ease-out);
 }
 
@@ -144,6 +144,14 @@
   outline: 2px solid var(--app-focus);
   outline-offset: 2px;
   border-radius: 2px;
+}
+
+.attnTags {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--app-space-2);
 }
 
 /* Why the monitor flagged it, in plain words. ONE line now, not a list (Note
@@ -162,20 +170,21 @@
    quiet evidence under the status line rather than as another alert. */
 .attnEscalation {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.75rem;
+  font-size: var(--app-text-xs);
   line-height: 1.5;
   color: var(--app-ink-muted);
-  margin: 0.3rem 0 0;
+  margin: var(--app-space-1) 0 0;
 }
 
 /* The queue's lead line: how many risks, awaiting what, and where they came
-   from. Sits under the mono group title in the reading voice. */
+   from. Sits under the mono group title in the reading voice; the negative
+   top is the compensation that tucks it under the heading's rhythm. */
 .bandIntro {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-sm);
   line-height: 1.55;
   color: var(--app-ink-secondary);
-  margin: -0.4rem 0 0.7rem;
+  margin: -0.25rem 0 var(--app-space-3);
 }
 
 /* The severity legend and tag are the shared SeverityTag component
@@ -185,7 +194,7 @@
    metadata in the instrument voice, never amber. */
 .provenance {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.75rem;
+  font-size: var(--app-text-xs);
   font-weight: 400;
   letter-spacing: 0.01em;
   color: var(--app-ink-secondary);
@@ -195,10 +204,10 @@
    confirmation derives. The same quiet register as provenance. */
 .basis {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.75rem;
+  font-size: var(--app-text-xs);
   line-height: 1.5;
   color: var(--app-ink-muted);
-  margin: 0 0 0.85rem;
+  margin: 0 0 var(--app-space-3);
 }
 
 /* The inline triage form: the objective confirmation before a suggestion is
@@ -207,8 +216,8 @@
 .triageForm {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  margin-top: 0.2rem;
+  gap: var(--app-space-2);
+  margin-top: var(--app-space-1);
 }
 
 /* The objective link select in the confirmation, matching the note input's
@@ -221,7 +230,7 @@
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius);
-  padding: 0.6rem 0.7rem;
+  padding: var(--app-space-2) var(--app-space-3);
   min-height: 44px;
 }
 
@@ -234,25 +243,25 @@
 /* The collapsed state: one calm line. Quiet is a feature. */
 .bandQuiet {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-sm);
   font-weight: 500;
   color: var(--app-ink-secondary);
   background: var(--app-surface-sunken);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
-  padding: 0.85rem 1.4rem;
-  margin-bottom: 1.5rem;
+  padding: var(--app-space-3) var(--app-space-5);
+  margin-bottom: var(--app-space-5);
 }
 
 /* Shared band heading: the mono group-title read. */
 .bandHeading {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--app-ink-muted);
-  margin: 0 0 0.9rem;
+  margin: 0 0 var(--app-space-3);
 }
 
 /* ── Summary bar ───────────────────────── */
@@ -260,26 +269,26 @@
 .summary {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: var(--app-space-6);
   flex-wrap: wrap;
-  padding: 1rem 1.4rem;
+  padding: var(--app-space-4) var(--app-space-5);
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-elev-1);
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--app-space-5);
 }
 
 .stat {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: var(--app-space-1);
 }
 
 /* Counts speak in the numeric instrument voice. */
 .statValue {
   font-family: var(--app-font-mono), monospace;
-  font-size: 1.5rem;
+  font-size: var(--app-text-lg);
   font-weight: 600;
   line-height: 1;
   color: var(--app-ink);
@@ -295,7 +304,7 @@
 
 .statLabel {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -314,7 +323,7 @@
   background: transparent;
   border: 1px solid var(--app-border-strong);
   border-radius: var(--app-radius-sm);
-  padding: 0.5rem 0.95rem;
+  padding: var(--app-space-2) var(--app-space-3);
   cursor: pointer;
   transition: border-color var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-out);
@@ -336,12 +345,12 @@
   background: var(--app-surface-sunken);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
-  padding: 2rem 1.75rem;
+  padding: var(--app-space-6) var(--app-space-5);
 }
 
 .emptyText {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   line-height: 1.55;
   color: var(--app-ink-secondary);
   margin: 0;
@@ -358,31 +367,25 @@
   background: transparent;
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
-  padding: 1.1rem 1.4rem 1.4rem;
-  margin-bottom: 1.5rem;
+  padding: var(--app-space-4) var(--app-space-5) var(--app-space-5);
+  margin-bottom: var(--app-space-5);
 }
 
 .bandList {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--app-space-3);
 }
 
-/* One suggested play: a suggestion, not a register row. No scoring, no
-   status, just the knowledge and the two responses. */
+/* One suggested play: a proposal, never dressed as a committed row. The
+   dashed frame is the language's derived-not-observed grammar, and the
+   resting fill sits below the hairline, so a suggestion can never be
+   mistaken for an entry the developer has committed to. */
 .playItem {
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
+  background: var(--app-fill-faint);
+  border: 1px dashed var(--app-border-strong);
   border-radius: var(--app-radius);
-  padding: 1rem 1.1rem;
-}
-
-.playTags {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-  margin-bottom: 0.55rem;
+  padding: var(--app-space-4);
 }
 
 .playTitle {
@@ -392,22 +395,22 @@
   line-height: 1.4;
   letter-spacing: -0.005em;
   color: var(--app-ink);
-  margin: 0 0 0.35rem;
+  margin: 0 0 var(--app-space-1);
 }
 
 /* The why line is the knowledge transfer: shown in full, never truncated. */
 .why {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-sm);
   line-height: 1.55;
   color: var(--app-ink-secondary);
-  margin: 0 0 0.9rem;
+  margin: 0 0 var(--app-space-3);
 }
 
 .playActions {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: var(--app-space-2);
   flex-wrap: wrap;
 }
 
@@ -423,7 +426,7 @@
   background: var(--app-primary);
   border: 1px solid transparent;
   border-radius: var(--app-radius-sm);
-  padding: 0.5rem 1rem;
+  padding: var(--app-space-2) var(--app-space-4);
   cursor: pointer;
   transition: background-color var(--dur-fast) var(--ease-out),
     opacity var(--dur-fast) var(--ease-out);
@@ -455,7 +458,7 @@
   background: transparent;
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-sm);
-  padding: 0.5rem 1rem;
+  padding: var(--app-space-2) var(--app-space-4);
   cursor: pointer;
   text-decoration: none;
   transition: border-color var(--dur-fast) var(--ease-out),
@@ -480,7 +483,7 @@
 }
 
 .showAll {
-  margin-top: 0.75rem;
+  margin-top: var(--app-space-3);
 }
 
 /* ── Risk cards ────────────────────────── */
@@ -488,7 +491,7 @@
 .list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--app-space-4);
 }
 
 .card {
@@ -496,10 +499,10 @@
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-elev-1);
-  padding: 1.25rem 1.4rem;
+  padding: var(--app-space-4) var(--app-space-5);
   /* Cards are anchor targets (the Action Log links into the register by
      risk id), so give fragment navigation breathing room at the top. */
-  scroll-margin-top: 5rem;
+  scroll-margin-top: var(--app-space-8);
 }
 
 /* Critical (non-negotiable objective) risks carry the amber accent, as in
@@ -509,43 +512,37 @@
   background: var(--app-critical-bg);
 }
 
-.cardHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-bottom: 0.75rem;
-}
-
+/* One consistent tag row under the name, so the eye can track the chip
+   column down the list. The criticality chip and severity tag are the
+   shared components; no local chip classes here. */
 .cardTags {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: var(--app-space-2);
   flex-wrap: wrap;
   min-width: 0;
+  margin-bottom: var(--app-space-3);
 }
-
-/* The criticality chip is the shared CriticalityChip component
-   (../components/CriticalityChip.js); no local chip classes here. */
 
 /* The objective the risk threatens: meta, in the instrument voice. */
 .objective {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.75rem;
+  font-size: var(--app-text-xs);
   font-weight: 400;
   letter-spacing: 0.01em;
   color: var(--app-ink-secondary);
 }
 
+/* The risk itself: the card title role. Identity reads first, so it leads
+   the card. */
 .riskName {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: var(--app-text-md);
+  font-size: var(--app-text-base);
   font-weight: 600;
   line-height: 1.4;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.005em;
   color: var(--app-ink);
-  margin: 0 0 1.1rem;
+  margin: 0 0 var(--app-space-2);
 }
 
 /* ── Scoring + controls ────────────────── */
@@ -554,12 +551,12 @@
 .controls {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: var(--app-space-3);
 }
 
 .scoring {
-  padding-bottom: 1.1rem;
-  margin-bottom: 1.1rem;
+  padding-bottom: var(--app-space-3);
+  margin-bottom: var(--app-space-3);
   border-bottom: 1px solid var(--app-hairline);
 }
 
@@ -567,10 +564,12 @@
 .controlRow {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: var(--app-space-4);
   flex-wrap: wrap;
 }
 
+/* The fixed label column: one width on every row, so the eye tracks the
+   control column down the card. */
 .scoreLabel,
 .controlLabel {
   flex: 0 0 auto;
@@ -583,7 +582,8 @@
 }
 
 /* Segmented control (reused for likelihood, impact and status): a sunken
-   instrument well; the settled value is the bright monochrome fill. */
+   instrument well; the settled value is the bright monochrome fill. The
+   3px inset and 2px gap are control geometry, below the space rhythm. */
 .seg {
   display: inline-flex;
   flex-wrap: wrap;
@@ -605,7 +605,7 @@
   color: var(--app-ink-secondary);
   border: 0;
   background: transparent;
-  padding: 0.35rem 0.8rem;
+  padding: var(--app-space-1) var(--app-space-3);
   border-radius: 5px;
   cursor: pointer;
   transition: background-color var(--dur-fast) var(--ease-out),
@@ -634,7 +634,7 @@
 .noteField {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: var(--app-space-2);
   flex: 1 1 260px;
   min-width: 0;
 }
@@ -644,12 +644,12 @@
   min-width: 0;
   min-height: 44px;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   color: var(--app-ink);
   background: var(--app-surface-sunken);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-sm);
-  padding: 0.55rem 0.8rem;
+  padding: var(--app-space-2) var(--app-space-3);
   transition: border-color var(--dur-fast) var(--ease-out);
 }
 
@@ -676,7 +676,7 @@
   background: var(--app-primary);
   border: 1px solid transparent;
   border-radius: var(--app-radius-sm);
-  padding: 0.5rem 1rem;
+  padding: var(--app-space-2) var(--app-space-4);
   cursor: pointer;
   transition: background-color var(--dur-fast) var(--ease-out);
 }
@@ -693,12 +693,13 @@
 /* ── Card footer ───────────────────────── */
 
 .cardFoot {
-  margin-top: 1.1rem;
-  padding-top: 0.85rem;
+  margin-top: var(--app-space-3);
+  padding-top: var(--app-space-3);
   border-top: 1px solid var(--app-hairline);
 }
 
-/* The review stamp is a date: the instrument voice, quiet. */
+/* The review stamp is a date: the instrument voice, quiet, and last in the
+   reading order. */
 .reviewed {
   font-family: var(--app-font-mono), monospace;
   font-size: var(--app-text-xs);
@@ -709,17 +710,17 @@
 /* ── Closed section ────────────────────── */
 
 .closedSection {
-  margin-top: 2rem;
+  margin-top: var(--app-space-6);
 }
 
 .closedHeading {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--app-ink-muted);
-  margin: 0 0 1rem;
+  margin: 0 0 var(--app-space-4);
 }
 
 /* Closed cards read quieter than active ones. */
@@ -735,14 +736,14 @@
 .roDetail {
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
-  margin: 1rem 0 0;
+  gap: var(--app-space-2);
+  margin: var(--app-space-4) 0 0;
 }
 
 .roRow {
   display: flex;
   align-items: baseline;
-  gap: 1rem;
+  gap: var(--app-space-4);
   flex-wrap: wrap;
 }
 
@@ -750,7 +751,7 @@
   flex: 0 0 auto;
   width: 168px;
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -762,7 +763,7 @@
   flex: 1 1 200px;
   min-width: 0;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-sm);
   line-height: 1.5;
   color: var(--app-ink);
   margin: 0;
@@ -771,6 +772,8 @@
 /* ── Phone-first adjustments ───────────── */
 
 @media (max-width: 640px) {
+  /* A row collapses to a stacked block that keeps the same reading order:
+     the label takes the full line, the control follows it. */
   .scoreLabel,
   .controlLabel,
   .roLabel {
@@ -789,6 +792,6 @@
   }
 
   .summary {
-    gap: 1.25rem;
+    gap: var(--app-space-4);
   }
 }

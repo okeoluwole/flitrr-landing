@@ -755,6 +755,9 @@ export default function ActionLog({
           reasons.critical ? styles.pushItemCritical : ''
         }`}
       >
+        {/* Identity first, state second (the register reading order): the
+            item itself leads, the chips qualify it. */}
+        <p className={styles.pushName}>{row.description}</p>
         <div className={styles.pushTags}>
           {/* A queued item keeps the criticality it has already derived: its
               objective link is real, unlike a suggestion's. */}
@@ -765,7 +768,6 @@ export default function ActionLog({
             {objectiveRelation(kind, linkedName)}
           </span>
         </div>
-        <p className={styles.pushName}>{row.description}</p>
         <Link
           href={sourceHref}
           className={styles.fromRisk}
@@ -872,7 +874,7 @@ export default function ActionLog({
     );
 
     return (
-      <article key={s.playId} className={styles.pushItem}>
+      <article key={s.playId} className={styles.playItem}>
         <p className={styles.playTitle}>{s.title}</p>
         <p className={styles.why}>{s.why}</p>
         <p className={styles.basis}>{s.basis}</p>
@@ -1110,23 +1112,17 @@ export default function ActionLog({
     const editing = editingId === a.id;
     const confirming = confirmingId === a.id;
 
-    // The head chip states the live criticality, or the needs-a-link gap.
-    // Static, not a control: criticality follows the objective now.
+    // The tag row states the live criticality, or the needs-a-link gap.
+    // Static, not a control: criticality follows the objective now. Identity
+    // first, state second (the register reading order): the action leads, the
+    // chips qualify it, and the logged date stays in the footer. The edit form
+    // replaces the whole read, chips included; its objective select carries
+    // the link the chip would state.
     return (
       <article
         key={a.id}
         className={`${styles.card} ${critical ? styles.cardCritical : ''}`}
       >
-        <div className={styles.cardHead}>
-          <div className={styles.cardTags}>
-            <CriticalityChip critical={critical} unlinked={unlinked} />
-            {linkedName && (
-              <span className={styles.objective}>for {linkedName}</span>
-            )}
-            {renderSourceTag(a)}
-          </div>
-        </div>
-
         {editing ? (
           <div className={styles.editForm}>
             <input
@@ -1184,6 +1180,13 @@ export default function ActionLog({
         ) : (
           <>
             <p className={styles.description}>{a.description}</p>
+            <div className={styles.cardTags}>
+              <CriticalityChip critical={critical} unlinked={unlinked} />
+              {linkedName && (
+                <span className={styles.objective}>for {linkedName}</span>
+              )}
+              {renderSourceTag(a)}
+            </div>
             {a.note && <p className={styles.noteText}>{a.note}</p>}
             {a.reason && <p className={styles.reasonLine}>{a.reason}</p>}
             {renderCritDetail(a, { overridden, critical, unlinked, linkedName })}
@@ -1295,17 +1298,14 @@ export default function ActionLog({
         key={a.id}
         className={`${styles.card} ${critical ? styles.cardCritical : ''}`}
       >
-        <div className={styles.cardHead}>
-          <div className={styles.cardTags}>
-            <CriticalityChip critical={critical} unlinked={unlinked} />
-            {linkedName && (
-              <span className={styles.objective}>for {linkedName}</span>
-            )}
-            {renderSourceTag(a)}
-          </div>
-        </div>
-
         <p className={styles.description}>{a.description}</p>
+        <div className={styles.cardTags}>
+          <CriticalityChip critical={critical} unlinked={unlinked} />
+          {linkedName && (
+            <span className={styles.objective}>for {linkedName}</span>
+          )}
+          {renderSourceTag(a)}
+        </div>
         {a.note && <p className={styles.noteText}>{a.note}</p>}
         {a.reason && <p className={styles.reasonLine}>{a.reason}</p>}
 

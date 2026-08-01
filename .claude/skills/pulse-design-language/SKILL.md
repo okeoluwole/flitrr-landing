@@ -25,12 +25,16 @@ of re-deciding it. The sources of truth are code, not this file:
   domain. Never re-pick a domain colour locally.
 - **Shared chrome**: `app/components/DashboardShell.js` and
   `app/pulse/app/components/` (`PageHeader`, `ErrorNote`, `CriticalityChip`,
-  `ViewOnlyBadge`, `DateField`).
+  `SeverityTag` with its `SeverityLegend`, `ViewOnlyBadge`, `DateField`).
 - **Guard tests**: `tests/designTokenGuard.test.js` (no raw colour literal in
   any app CSS module), `tests/designSemantics.test.js` (mappings complete,
   loud on unknown values, in lock-step with the engines),
-  `tests/designContrast.test.js` (AA on every semantic pairing). If your
-  change fails one of these, fix the change, not the test.
+  `tests/designContrast.test.js` (AA on every semantic pairing), and
+  `tests/designSurfaceGuard.test.js` (on every converted surface: type rides
+  the --app-text scale, positive space rides the --app-space rhythm, amber
+  only inside criticality-named rules, SeverityTag in lock-step with the
+  mapping; a sub-step adds its surfaces to CONVERTED as it converts them).
+  If your change fails one of these, fix the change, not the test.
 
 This file records the rules and the vocabulary. Where it and the code ever
 disagree, the code wins; update this file in the same commit.
@@ -168,6 +172,10 @@ sub-step.
   `sub`. Do not hand-build a header again.
 - Back-link wording: module surfaces say "Back to the workspace" (M9.5a);
   the gate says "Back to the brief"; the hub-level pages "Back to projects".
+- `SeverityTag` (`app/pulse/app/components/SeverityTag.js`): the one severity
+  band expression, label and colours from `severityBandAppearance`, with the
+  engine-derived `SeverityLegend` beside it. A surface never writes its own
+  severity classes, the same way it never re-picks criticality's pill.
 - `ErrorNote`: the one failure voice. `role="alert"`, sans sm 600 in
   `--app-danger`, text plus tone, never colour alone, hidden in print.
   In-flight is a button label swap with an ellipsis ("Saving…"); success is
