@@ -37,9 +37,9 @@ import {
   buildActionFromPlay,
   confirmedPlayCriticality,
 } from '../../../../lib/playbook/playbookModel';
-import { severityLegend } from '../../../../lib/engine/severity';
 import ViewOnlyBadge from '../components/ViewOnlyBadge';
 import CriticalityChip from '../components/CriticalityChip';
+import SeverityTag, { SeverityLegend } from '../components/SeverityTag';
 import PageHeader from '../components/PageHeader';
 import ErrorNote from '../components/ErrorNote';
 import styles from './ActionLog.module.css';
@@ -137,8 +137,6 @@ const DISMISS_ERROR =
 const TRIAGE_HEADING = 'Critical items from your brief, awaiting triage';
 const TRIAGE_QUIET = 'Nothing from your brief is waiting to be triaged.';
 
-const LEGEND = severityLegend();
-
 // The read-only line shown to a member where the inline add flow sits for an
 // admin. One sparse line at the genuine action point, never greyed controls.
 const MEMBER_NO_ADD = 'Only an admin can log actions here.';
@@ -166,43 +164,6 @@ const ACTION_COLUMNS =
 // (lib/engine/dateFormat.js). UTC-pinned there, so the logged day reads the same
 // for every viewer and the server-rendered HTML matches the client.
 const formatLogged = formatDisplayDate;
-
-// The severity band chip's class per band (Note 18). The queue used to show a
-// chip only when a risk scored Serious, so Worth watching and Minor read as no
-// severity at all and the developer could not tell an unscored item from a mild
-// one. Every scored risk now states its band, and the bands step down in weight
-// rather than in presence. Severity stays monochrome: amber is criticality only.
-const SEVERITY_CLASS = {
-  serious: 'chipSerious',
-  moderate: 'chipModerate',
-  minor: 'chipMinor',
-  unscored: 'chipUnscored',
-};
-
-function SeverityTag({ severity }) {
-  if (!severity) return null;
-  return (
-    <span className={`${styles.chip} ${styles[SEVERITY_CLASS[severity.key]]}`}>
-      {severity.label}
-    </span>
-  );
-}
-
-// The legend that makes the bands readable: the rule, then each band with the
-// score range it covers. Derived from the engine (severityLegend), so it can
-// never drift from the derivation it explains.
-function SeverityLegend() {
-  return (
-    <p className={styles.legend}>
-      <span className={styles.legendLead}>{LEGEND.lead}</span>
-      {LEGEND.bands.map((b) => (
-        <span key={b.key} className={styles.legendBand}>
-          {b.label} {b.range}
-        </span>
-      ))}
-    </p>
-  );
-}
 
 /**
  * The read-only criticality line shown wherever criticality is about to be set
@@ -797,12 +758,8 @@ export default function ActionLog({
         <div className={styles.pushTags}>
           {/* A queued item keeps the criticality it has already derived: its
               objective link is real, unlike a suggestion's. */}
-          {reasons.critical && (
-            <span className={`${styles.chip} ${styles.chipCritical}`}>
-              Critical
-            </span>
-          )}
-          <SeverityTag severity={severity} />
+          {reasons.critical && <CriticalityChip critical />}
+          <SeverityTag band={severity?.key} />
           {!isRisk && <span className={styles.kind}>{KIND_LABEL[kind]}</span>}
           <span className={styles.objective}>
             {objectiveRelation(kind, linkedName)}

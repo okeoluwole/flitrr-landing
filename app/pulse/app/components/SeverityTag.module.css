@@ -1,0 +1,69 @@
+/*
+ * SeverityTag - the monochrome intensity ramp for the risk severity band, in
+ * the 4px tag shape (criticality keeps the pill). Each band's tokens mirror
+ * severityBandAppearance in lib/design/semantics.js exactly; the guard test
+ * reads both and fails if they part. Severity is how bad, never what it
+ * threatens, so no rule here may spend an amber token.
+ */
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--app-font-mono), monospace;
+  font-size: var(--app-text-2xs);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: var(--app-space-1) var(--app-space-2);
+  border-radius: 4px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  /* Severity is derived from likelihood and impact, so the tag re-grades as
+     the developer scores. Ease the colour change so it morphs, not snaps. */
+  transition: background-color var(--dur-base) var(--ease-out),
+    color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out);
+}
+
+.serious {
+  background: var(--app-ink);
+  color: var(--app-primary-ink);
+}
+
+.moderate {
+  background: var(--app-fill-strong);
+  color: var(--app-ink);
+}
+
+.minor {
+  background: var(--app-fill);
+  color: var(--app-ink-secondary);
+}
+
+.unscored {
+  background: transparent;
+  border: 1px dashed var(--app-border-strong);
+  color: var(--app-ink-muted);
+}
+
+/* ── The legend: the derivation stated once ── */
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3);
+  flex-wrap: wrap;
+  font-family: var(--app-font-mono), monospace;
+  font-size: var(--app-text-2xs);
+  letter-spacing: 0.01em;
+  color: var(--app-ink-muted);
+  margin: 0 0 var(--app-space-3);
+}
+
+.legendLead {
+  color: var(--app-ink-secondary);
+}
+
+.legendBand {
+  white-space: nowrap;
+}

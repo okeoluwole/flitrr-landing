@@ -158,58 +158,9 @@
   flex-wrap: wrap;
 }
 
-/* Why it surfaced, as chips in the instrument voice. Criticality is the
-   mono pill and takes the amber wash, the one functional colour; severity
-   is the register's separate monochrome axis, the bright-fill tag, so how
-   bad never borrows the colour of what it threatens. */
-.chip {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  border: 1px solid transparent;
-  white-space: nowrap;
-}
-
-.chipCritical {
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: var(--app-signal-wash);
-  color: var(--app-signal-ink);
-  border-color: var(--app-critical-border);
-}
-
-/* The severity bands (Note 18). Every scored item states its band now, not
-   only the Serious ones, so the three step DOWN in weight rather than in and
-   out of existence: a filled tag for Serious, an outlined one for Worth
-   watching, a hairline for Minor. All monochrome. Severity is how bad, which
-   is a separate axis from what it threatens, so it never borrows amber. */
-.chipSerious {
-  padding: 0.3rem 0.6rem;
-  border-radius: 4px;
-  background: var(--app-ink);
-  color: var(--app-primary-ink);
-}
-
-.chipModerate {
-  padding: 0.3rem 0.6rem;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--app-ink);
-  border-color: var(--app-border-strong);
-}
-
-.chipMinor,
-.chipUnscored {
-  padding: 0.3rem 0.6rem;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--app-ink-secondary);
-  border-color: var(--app-border);
-}
+/* The criticality pill and the severity band tag are the shared components
+   (../components/CriticalityChip.js and ../components/SeverityTag.js); no
+   local chip classes here. */
 
 /* The queue's own lead line: how many items, and what to do with them. It
    sits under the heading in the reading voice, not the mono group-title one. */
@@ -219,28 +170,6 @@
   line-height: 1.55;
   color: var(--app-ink-secondary);
   margin: -0.4rem 0 0.7rem;
-}
-
-/* The severity legend: the derivation stated once, so the bands above read
-   rather than have to be learned. A quiet mono strip that wraps. */
-.legend {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
-  letter-spacing: 0.01em;
-  color: var(--app-ink-muted);
-  margin: 0 0 0.9rem;
-}
-
-.legendLead {
-  color: var(--app-ink-secondary);
-}
-
-.legendBand {
-  white-space: nowrap;
 }
 
 /* The basis a suggestion was selected on (Note 18): the stage it belongs to

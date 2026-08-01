@@ -9,7 +9,7 @@ import {
   sortRisks,
   isLiveCritical,
 } from './riskModel';
-import { deriveSeverity, severityLegend } from '../../../../lib/engine/severity';
+import { deriveSeverity } from '../../../../lib/engine/severity';
 import { assessRisks } from '../../../../lib/engine/monitor';
 import {
   escalationsByRisk,
@@ -37,6 +37,7 @@ import {
 } from '../actions/triageDecisionStore';
 import ViewOnlyBadge from '../components/ViewOnlyBadge';
 import CriticalityChip from '../components/CriticalityChip';
+import SeverityTag, { SeverityLegend } from '../components/SeverityTag';
 import PageHeader from '../components/PageHeader';
 import ErrorNote from '../components/ErrorNote';
 import styles from './RiskRegister.module.css';
@@ -115,15 +116,6 @@ const DISMISS_PLAY_ERROR =
 const RISK_COLUMNS =
   'id, description, criticality, linked_objective_id, likelihood, impact, status, last_reviewed_at, response_note, source, source_id';
 
-const LEGEND = severityLegend();
-
-const SEVERITY_CLASS = {
-  serious: 'sevSerious',
-  moderate: 'sevModerate',
-  minor: 'sevMinor',
-  unscored: 'sevUnscored',
-};
-
 // The display label for a segmented value, for the read-only member card where
 // the segmented control is replaced by the settled value.
 function labelFor(options, value) {
@@ -146,22 +138,6 @@ const BAND_LABEL = {
   unscored: 'Not yet scored',
 };
 
-// The severity legend: the derivation stated once, so the bands read rather
-// than have to be learned. Built from the engine, so it cannot drift from the
-// rule it explains.
-function SeverityLegend() {
-  return (
-    <p className={styles.legend}>
-      <span className={styles.legendLead}>{LEGEND.lead}</span>
-      {LEGEND.bands.map((b) => (
-        <span key={b.key} className={styles.legendBand}>
-          {b.label} {b.range}
-        </span>
-      ))}
-    </p>
-  );
-}
-
 // A plain-language segmented control. One option active, single select.
 function Segmented({ options, value, onSelect, ariaLabel }) {
   return (
@@ -178,14 +154,6 @@ function Segmented({ options, value, onSelect, ariaLabel }) {
         </button>
       ))}
     </div>
-  );
-}
-
-function SeverityChip({ severity }) {
-  return (
-    <span className={`${styles.sev} ${styles[SEVERITY_CLASS[severity.key]]}`}>
-      {severity.label}
-    </span>
   );
 }
 
@@ -674,7 +642,7 @@ export default function RiskRegister({
       >
         <div className={styles.attnTags}>
           <CriticalityChip critical={critical} />
-          <SeverityChip severity={assessment.severity} />
+          <SeverityTag band={assessment.severity.key} />
           <span className={styles.objective}>
             {objectiveRelation(objective)}
           </span>
@@ -711,7 +679,7 @@ export default function RiskRegister({
               {objectiveRelation(objective)}
             </span>
           </div>
-          <SeverityChip severity={severity} />
+          <SeverityTag band={severity.key} />
         </div>
 
         <p className={styles.riskName}>{r.description}</p>
@@ -818,7 +786,7 @@ export default function RiskRegister({
               {objectiveRelation(objective)}
             </span>
           </div>
-          <SeverityChip severity={severity} />
+          <SeverityTag band={severity.key} />
         </div>
 
         <p className={styles.riskName}>{r.description}</p>

@@ -178,27 +178,8 @@
   margin: -0.4rem 0 0.7rem;
 }
 
-/* The severity legend: the derivation stated once, so the bands read rather
-   than have to be learned. A quiet mono strip that wraps. */
-.legend {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
-  letter-spacing: 0.01em;
-  color: var(--app-ink-muted);
-  margin: 0 0 0.9rem;
-}
-
-.legendLead {
-  color: var(--app-ink-secondary);
-}
-
-.legendBand {
-  white-space: nowrap;
-}
+/* The severity legend and tag are the shared SeverityTag component
+   (../components/SeverityTag.js); no local severity classes here. */
 
 /* Where a risk came from (migration 032): the Brief, or the playbook. Quiet
    metadata in the instrument voice, never amber. */
@@ -555,47 +536,6 @@
   font-weight: 400;
   letter-spacing: 0.01em;
   color: var(--app-ink-secondary);
-}
-
-/* Severity chip: a monochrome intensity ramp, bright fill for Serious down
-   to a dashed outline for Not yet scored. Never amber: severity is how bad,
-   criticality is what it threatens. */
-.sev {
-  font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 0.3rem 0.6rem;
-  border-radius: 4px;
-  border: 1px solid transparent;
-  white-space: nowrap;
-  /* Severity is derived from likelihood + impact, so the chip re-grades as
-     the developer scores. Ease the colour change so it morphs, not snaps. */
-  transition: background-color var(--dur-base) var(--ease-out),
-    color var(--dur-base) var(--ease-out),
-    border-color var(--dur-base) var(--ease-out);
-}
-
-.sevSerious {
-  background: var(--app-ink);
-  color: var(--app-primary-ink);
-}
-
-.sevModerate {
-  background: var(--app-fill-strong);
-  color: var(--app-ink);
-}
-
-.sevMinor {
-  background: var(--app-fill);
-  color: var(--app-ink-secondary);
-}
-
-.sevUnscored {
-  background: transparent;
-  border: 1px dashed var(--app-border-strong);
-  color: var(--app-ink-muted);
 }
 
 .riskName {
