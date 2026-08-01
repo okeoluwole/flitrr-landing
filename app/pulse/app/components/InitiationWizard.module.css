@@ -1306,38 +1306,11 @@
   min-width: 0;
 }
 
-/* Read-only criticality badge: derived from the served objective, never set
-   here. Critical wears the house amber pill; standard is its calm plain-mono
-   counterpart. Mirrors the ranking badges so criticality reads the same
-   across the flow. */
-.critBadge {
-  flex: 0 0 auto;
-  font-family: var(--app-font-mono), monospace;
-  font-size: var(--app-text-2xs);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.critBadgeCritical {
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background-color: var(--app-signal-wash);
-  border: 1px solid var(--app-signal-border);
-  color: var(--app-signal-ink);
-}
-
-.critBadgeStandard {
-  font-weight: 500;
-  padding: 3px 0;
-  border: 1px solid transparent;
-  color: var(--app-ink-secondary);
-}
-
-/* The derived criticality readout on the capture lists (Step 5, Step 8): the
-   badge sits where a control would, level with the neighbouring inputs, and
-   the basis line beneath drops the milestone margin. */
+/* The derived criticality reads through the shared CriticalityChip (the
+   app-wide pill), never a wizard-local badge. Only the placement is styled
+   here: the readout on the capture lists (Step 5, Step 8) sits where a
+   control would, level with the neighbouring inputs, and the basis line
+   beneath drops the milestone margin. */
 .critReadout {
   display: flex;
   align-items: center;
@@ -1477,7 +1450,7 @@
   margin: 0.45rem 0 0;
 }
 
-/* THE PROPOSAL REGISTER. Deliberately not the CritBadge look: a captured item's
+/* THE PROPOSAL REGISTER. Deliberately not the criticality chip's look: a captured item's
    criticality is a read-only derived FACT and wears the badge, a proposal is a
    suggestion about an item that does not exist yet. So this is a dashed frame
    with its own Proposed tag, and it never uses the amber signal, which on this

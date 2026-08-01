@@ -8,7 +8,8 @@ import {
   resolveGeography,
 } from '../../../../lib/engine/geography.js';
 import { formatDisplayDate } from '../../../../lib/engine/dateFormat.js';
-import CritBadge from './CritBadge';
+import { CRITICALITY } from '../../../../lib/engine/criticality.js';
+import CriticalityChip from './CriticalityChip';
 import DateField from './DateField';
 
 /**
@@ -325,7 +326,9 @@ export default function StepProgramme({
                       <li key={m.key} className={styles.itemCard}>
                         <div className={styles.milestoneHead}>
                           <span className={styles.milestoneName}>{m.name}</span>
-                          <CritBadge criticality={m.criticality} />
+                          <CriticalityChip
+                            critical={m.criticality === CRITICALITY.CRITICAL}
+                          />
                         </div>
                         <p className={styles.milestoneServes}>
                           Serves {NAME_BY_TYPE[m.serves] ?? m.serves}

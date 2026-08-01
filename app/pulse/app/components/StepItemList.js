@@ -3,7 +3,8 @@
 import { useEffect, useRef } from 'react';
 import { OBJECTIVE_META, CLASSIFICATION_LABELS } from './objectiveMeta';
 import { captureStamp, basisLine } from './listItemModel';
-import CritBadge from './CritBadge';
+import { CRITICALITY } from '../../../../lib/engine/criticality.js';
+import CriticalityChip from './CriticalityChip';
 import styles from './InitiationWizard.module.css';
 
 /**
@@ -18,7 +19,7 @@ import styles from './InitiationWizard.module.css';
  *
  * Criticality is derived, never chosen (Note 2). The objective link is the
  * only control; beside it the derived criticality renders read-only through
- * the same badge Step 7's milestones use, with an honest basis line naming
+ * the shared CriticalityChip, with an honest basis line naming
  * the objective it inherits from, or stating that no objective is linked.
  * The derivation reads the live objective state, so a Step 3 classification
  * change recomputes every item shown here.
@@ -237,12 +238,14 @@ export default function StepItemList({
                     </div>
 
                     {/* Shared: the derived criticality, shown, never chosen.
-                        The badge is Step 7's; the basis line states what the
-                        value inherits from. */}
+                        The chip is the app-wide one; the basis line states
+                        what the value inherits from. */}
                     <div className={styles.field}>
                       <span className={styles.label}>Criticality</span>
                       <div className={styles.critReadout}>
-                        <CritBadge criticality={stamp.criticality} />
+                        <CriticalityChip
+                          critical={stamp.criticality === CRITICALITY.CRITICAL}
+                        />
                       </div>
                       <p
                         className={`${styles.milestoneServes} ${styles.critBasis}`}
