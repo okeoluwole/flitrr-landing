@@ -2,11 +2,12 @@
  * The converted-surface guards (Session K, Note 15 sub-step 2).
  *
  * Sub-step 1 sealed colour: no raw colour literal in any app CSS module
- * (designTokenGuard). This file seals what sub-step 2 converted on the first
- * two content interiors, the Action Log and the Risk register: type rides
- * the --app-text scale, positive space rides the --app-space rhythm, amber
- * is spent only by rules whose own name declares criticality, and the shared
- * SeverityTag stays in lock-step with severityBandAppearance. Every
+ * (designTokenGuard). This file seals what the sweep converts, surface by
+ * surface: type rides the --app-text scale, positive space rides the
+ * --app-space rhythm, amber is spent only by rules whose own name declares
+ * criticality, and the shared tags stay in lock-step with their mappings
+ * (SeverityTag with severityBandAppearance; from sub-step 3, CriticalityChip
+ * and the wizard's classification pill with criticalityAppearance). Every
  * assertion is computed from app/globals.css or lib/design/semantics.js,
  * never from a hard-coded copy, and there are NO exempt files: later
  * sub-steps add their surfaces to CONVERTED as they convert them.
@@ -15,7 +16,10 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { severityBandAppearance } from '../lib/design/semantics.js';
+import {
+  severityBandAppearance,
+  criticalityAppearance,
+} from '../lib/design/semantics.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..');
@@ -26,11 +30,22 @@ const DEFINED_TOKENS = new Set(
   [...GLOBALS.matchAll(/(--[a-z0-9-]+)\s*:/gi)].map((m) => m[1])
 );
 
-/** The surfaces the sweep has converted so far. Grows, never shrinks. */
+/** The surfaces the sweep has converted so far. Grows, never shrinks.
+ *  Sub-step 3 adds the nine-step initiation flow: the wizard sheet every
+ *  step shares, plus the flow's own small companions (CriticalityChip,
+ *  DateField, SuiteNudge, ErrorNote). PageHeader stays OUT deliberately:
+ *  its pulse-line eyebrow mark is the language's one sanctioned amber
+ *  chrome element, and this guard rightly holds no exemption list, so the
+ *  header seals with its own sub-step rather than an exception here. */
 const CONVERTED = [
   'app/pulse/app/actions/ActionLog.module.css',
   'app/pulse/app/risk/RiskRegister.module.css',
   'app/pulse/app/components/SeverityTag.module.css',
+  'app/pulse/app/components/InitiationWizard.module.css',
+  'app/pulse/app/components/CriticalityChip.module.css',
+  'app/pulse/app/components/DateField.module.css',
+  'app/pulse/app/components/SuiteNudge.module.css',
+  'app/pulse/app/components/ErrorNote.module.css',
 ];
 
 function read(rel) {
@@ -178,4 +193,64 @@ describe('SeverityTag stays in lock-step with severityBandAppearance', () => {
   function AMBER_FREE(text) {
     return !/--app-(signal|critical)/.test(text);
   }
+});
+
+describe('CriticalityChip stays in lock-step with criticalityAppearance', () => {
+  const css = stripComments(
+    read('app/pulse/app/components/CriticalityChip.module.css')
+  );
+  const blocks = new Map(
+    rules(css).map(({ selector, body }) => [selector.replace(/^\./, ''), body])
+  );
+
+  for (const value of ['critical', 'standard', 'unlinked']) {
+    it(`.${value} spends exactly the mapping's tokens`, () => {
+      const a = criticalityAppearance(value);
+      const body = blocks.get(value);
+      expect(
+        body,
+        `.${value} missing from CriticalityChip.module.css`
+      ).toBeTruthy();
+
+      expect(body).toContain(`var(${a.ink})`);
+      if (a.fill) {
+        expect(body).toContain(`background: var(${a.fill})`);
+      } else {
+        expect(body).toContain('background: transparent');
+      }
+      if (a.border) {
+        expect(body).toContain(`var(${a.border})`);
+      }
+      if (a.borderStyle === 'dashed') {
+        expect(body).toContain('dashed');
+      }
+    });
+  }
+});
+
+describe('the wizard classification pill spends the criticality mapping', () => {
+  // The ranking's Non-negotiable pill IS the criticality read in the
+  // classification's own vocabulary, so its tokens are the mapping's,
+  // never a local re-pick. Computed from criticalityAppearance so a
+  // corrected mapping propagates here without reopening the surface.
+  const css = stripComments(
+    read('app/pulse/app/components/InitiationWizard.module.css')
+  );
+  const blocks = new Map(
+    rules(css).map(({ selector, body }) => [selector.replace(/^\./, ''), body])
+  );
+
+  it('.rankBadgeCritical carries exactly the critical appearance', () => {
+    const a = criticalityAppearance('critical');
+    const body = blocks.get('rankBadgeCritical');
+    expect(
+      body,
+      '.rankBadgeCritical missing from InitiationWizard.module.css'
+    ).toBeTruthy();
+
+    expect(body).toContain(`var(${a.ink})`);
+    expect(body).toContain(`background-color: var(${a.fill})`);
+    expect(body).toContain(`var(${a.border})`);
+    expect(body).toContain(`font-weight: ${a.weight}`);
+  });
 });
