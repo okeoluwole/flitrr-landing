@@ -32,9 +32,11 @@ of re-deciding it. The sources of truth are code, not this file:
   `tests/designContrast.test.js` (AA on every semantic pairing), and
   `tests/designSurfaceGuard.test.js` (on every converted surface: type rides
   the --app-text scale, positive space rides the --app-space rhythm, amber
-  only inside criticality-named rules, SeverityTag in lock-step with the
-  mapping; a sub-step adds its surfaces to CONVERTED as it converts them).
-  If your change fails one of these, fix the change, not the test.
+  only inside criticality-named rules, SeverityTag in lock-step with
+  severityBandAppearance, CriticalityChip and the wizard's classification
+  pill in lock-step with criticalityAppearance; a sub-step adds its surfaces
+  to CONVERTED as it converts them). If your change fails one of these, fix
+  the change, not the test.
 
 This file records the rules and the vocabulary. Where it and the code ever
 disagree, the code wins; update this file in the same commit.
