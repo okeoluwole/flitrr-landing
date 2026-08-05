@@ -98,7 +98,7 @@ function ObjectiveCard({ obj, kind }) {
   const isNn = kind === 'nn';
   return (
     <div
-      className={`${styles.objCard} ${isNn ? styles.objCardNn : styles.objCardFx}`}
+      className={`${styles.objCard} ${isNn ? styles.objCardCritical : styles.objCardFlexible}`}
     >
       <div className={styles.objTop}>
         <span className={styles.objRank}>{obj.rank}</span>
@@ -126,7 +126,7 @@ function Objectives({ model }) {
     <div className={styles.objSplit}>
       <div>
         <div className={styles.objColTitle}>
-          <span className={`${styles.tag} ${styles.tagNn}`}>Protected</span>
+          <span className={`${styles.tag} ${styles.tagCritical}`}>Protected</span>
           Will not be compromised
         </div>
         {prot.length > 0 ? (
@@ -139,7 +139,7 @@ function Objectives({ model }) {
       </div>
       <div>
         <div className={styles.objColTitle}>
-          <span className={`${styles.tag} ${styles.tagFx}`}>Has flex</span>
+          <span className={`${styles.tag} ${styles.tagFlexible}`}>Has flex</span>
           Can move within bounds
         </div>
         {flexible.length > 0 ? (
@@ -158,7 +158,7 @@ function Read({ model }) {
       {model.insights.map((ins) => (
         <div
           key={ins.n}
-          className={`${styles.insight} ${ins.tone === 'warn' ? styles.insightWarn : ''}`}
+          className={`${styles.insight} ${ins.tone === 'warn' ? styles.insightCritical : ''}`}
         >
           <div className={styles.iBadge}>{ins.n}</div>
           <div>
@@ -194,7 +194,7 @@ function RiskMatrix({ matrix }) {
                 {cells[key].map((p) => (
                   <span
                     key={p.num}
-                    className={`${styles.pin} ${p.critical ? styles.pinCrit : ''}`}
+                    className={`${styles.pin} ${p.critical ? styles.pinCritical : ''}`}
                   >
                     {p.num}
                   </span>
@@ -220,13 +220,13 @@ function AcdList({ title, items, kind }) {
       <div className={styles.riskList}>
         {items.map((x) => (
           <div key={x.num} className={styles.riskRow}>
-            <span className={`${styles.rNum} ${x.critical ? styles.rNumCrit : ''}`}>
+            <span className={`${styles.rNum} ${x.critical ? styles.rNumCritical : ''}`}>
               {x.num}
             </span>
             <div className={styles.rText}>
               <span className={styles.rt}>{x.description}</span>
               {x.critical && (
-                <span className={styles.critFlag}>
+                <span className={styles.criticalFlag}>
                   {criticalFlag(kind, x.servesName)}
                 </span>
               )}
@@ -266,14 +266,14 @@ function Risk({ model }) {
               {list.map((r) => (
                 <div key={r.num} className={styles.riskRow}>
                   <span
-                    className={`${styles.rNum} ${r.critical ? styles.rNumCrit : ''}`}
+                    className={`${styles.rNum} ${r.critical ? styles.rNumCritical : ''}`}
                   >
                     {r.num}
                   </span>
                   <div className={styles.rText}>
                     <span className={styles.rt}>{r.description}</span>
                     {r.critical && (
-                      <span className={styles.critFlag}>
+                      <span className={styles.criticalFlag}>
                         {criticalFlag('risk', r.servesName)}
                       </span>
                     )}
@@ -338,7 +338,7 @@ function Programme({ model }) {
             {milestones.map((m, i) => (
               <div key={i} className={styles.ms}>
                 <span
-                  className={`${styles.msMarker} ${m.critical ? styles.msMarkerCrit : ''}`}
+                  className={`${styles.msMarker} ${m.critical ? styles.msMarkerCritical : ''}`}
                 />
                 <span
                   className={`${styles.msWhen} ${m.dateDisplay ? '' : styles.msWhenTbc}`}
@@ -347,7 +347,7 @@ function Programme({ model }) {
                 </span>
                 <span className={styles.msWhat}>
                   {m.name}
-                  {m.critical && <span className={styles.msFlag}>Critical</span>}
+                  {m.critical && <span className={styles.criticalFlag}>Critical</span>}
                   {m.note && <span className={styles.msNote}>{m.note}</span>}
                 </span>
               </div>
@@ -371,7 +371,7 @@ function Workstreams({ model }) {
         return (
           <div
             key={i}
-            className={`${styles.wsCard} ${w.critical ? styles.wsCardCrit : ''}`}
+            className={`${styles.wsCard} ${w.critical ? styles.wsCardCritical : ''}`}
           >
             <div className={styles.wsName}>{w.name}</div>
             <div className={styles.wsLead}>

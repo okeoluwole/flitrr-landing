@@ -8,7 +8,10 @@
  */
 
 .page {
-  padding-block: 3rem 6rem;
+  /* The foot is composed from the rhythm: the top step plus a block gap.
+     The rhythm stops at 4rem, and a read-only page wants a longer run-out
+     than that below the sheet. */
+  padding-block: var(--app-space-7) calc(var(--app-space-8) + var(--app-space-6));
 }
 
 /* The header frame is PageHeader (Session K); this wrapper is only the
@@ -19,12 +22,12 @@
 
 /* No locked baseline yet: a sparse read-only state on a seated panel. */
 .placeholder {
-  margin-top: 0.5rem;
+  margin-top: var(--app-space-2);
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-elev-1);
-  padding: 1.5rem 1.4rem;
+  padding: var(--app-space-5);
 }
 
 .placeholderLead {
@@ -37,7 +40,7 @@
 }
 
 .cta {
-  margin-top: 1.1rem;
+  margin-top: var(--app-space-4);
   display: inline-flex;
   align-items: center;
   font-family: var(--app-font-sans);
@@ -47,7 +50,7 @@
   background: var(--app-primary);
   border: 1px solid var(--app-primary);
   border-radius: var(--app-radius-sm);
-  padding: 0.6rem 1.1rem;
+  padding: var(--app-space-2) var(--app-space-4);
   min-height: 44px;
   text-decoration: none;
   transition: background-color var(--dur-fast) var(--ease-out),

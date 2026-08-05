@@ -34,9 +34,18 @@ of re-deciding it. The sources of truth are code, not this file:
   the --app-text scale, positive space rides the --app-space rhythm, amber
   only inside criticality-named rules, SeverityTag in lock-step with
   severityBandAppearance, CriticalityChip and the wizard's classification
-  pill in lock-step with criticalityAppearance; a sub-step adds its surfaces
-  to CONVERTED as it converts them). If your change fails one of these, fix
-  the change, not the test.
+  pill in lock-step with criticalityAppearance; from sub-step 4 the amber
+  census reads BOTH registers so a `--doc-*` amber can no longer pass it
+  unseen, the Brief's criticality rules stay in lock-step with the paper
+  mapping, the Brief's margin rail stays paired to its own numeral offset,
+  and `--doc-*` is held to being a colour and face register: no `--doc-*`
+  token may be consumed by a font-size or a spacing property anywhere in the
+  repo, and no `--doc-*` name may imply a type size or a rhythm step. That
+  last guard exists because the Brief's print block HAD become a second
+  scale under `--doc-*`, 37 hand-picked font sizes and 52 hand-picked
+  spacing declarations, and it is what stops a later session rebuilding the
+  fork. A sub-step adds its surfaces to CONVERTED as it converts them.) If
+  your change fails one of these, fix the change, not the test.
 
 This file records the rules and the vocabulary. Where it and the code ever
 disagree, the code wins; update this file in the same commit.
@@ -88,8 +97,21 @@ carries the numeric instrument voice: money, dates, stage numerals,
 criticality scores, reference ids, and every micro-label. Sentence case;
 uppercase only on mono micro-labels. No display faces in-product.
 
-The scale is fixed rem: `--app-text-2xs` 0.6875 / `-xs` 0.75 / `-sm` 0.8125 /
-`-control` 0.875 / `-base` 0.9375 / `-md` 1.0625 / `-lg` 1.375 / `-xl` 1.75.
+The scale is fixed rem: `--app-text-4xs` 0.5625 / `-3xs` 0.625 /
+`-2xs` 0.6875 / `-xs` 0.75 / `-sm` 0.8125 / `-control` 0.875 /
+`-base` 0.9375 / `-md` 1.0625 / `-ml` 1.1875 / `-lg` 1.375 / `-xl` 1.75 /
+`-2xl` 2 / `-3xl` 2.5.
+
+Sub-step 4 added the five outer steps for the **document register** the Brief
+reads in, and they are one scale with the product's, not a second: `4xs` and
+`3xs` below the old 0.6875 floor (mono furniture: matrix axes, authority
+markers, criticality flags); `ml` filling the md-to-lg hole, which was a 1.29
+jump where the rest of the ramp is about 1.08 and the Brief holds four
+distinct sizes inside it; `2xl` and `3xl` as the two bounds of the document
+masthead's fluid clamp, which is deliberately larger than an app page title.
+A fluid size is legal ONLY as `clamp(<scale token>, <vw>, <scale token>)`:
+the bounds ride the scale, the ramp between them does not.
+
 Consume a **role**, not a raw size:
 
 | Role | Face | Weight | Size | Notes |
@@ -108,7 +130,12 @@ Consume a **role**, not a raw size:
 - Rhythm: `--app-space-1` 0.25rem to `--app-space-8` 4rem, a 4px base.
   Micro gaps 1 and 2, control padding 2 and 3, panel padding 4 and 5, block
   gaps 6, section rhythm 7 and 8. New work consumes the scale; shipped
-  surfaces converge as their own sub-steps convert them.
+  surfaces converge as their own sub-steps convert them. The eight steps
+  never grew: a measure they cannot name on their own is **composed** from
+  them in a `calc()` (the Brief's margin rail is a seat plus a gutter; a
+  44px hit area is given back as negative margin), and the guard accepts a
+  calc whose every length is a rhythm token and whose arithmetic carries no
+  bare length.
 - Radii: `--app-radius-sm` 8 (inputs, buttons), `--app-radius` 10,
   `--app-radius-lg` 14 (seated panels). Chips are pills (999px); severity
   tags are 4px. Nothing above 16px.
@@ -153,6 +180,22 @@ status renders as Healthy). The six:
   On course (hollow ring) / Slipping (bright mono disc) / Critical slip
   (amber bullseye). Red is criticality-gated by the engine, so Critical slip
   is the one amber read; the engine keys never appear as words on a surface.
+
+Two companions to the criticality mapping, added in sub-step 4:
+
+- `criticalityMarkAppearance()`: the solid amber glyph that stands in for the
+  Critical pill where no pill fits (a matrix pin, a rank square, a risk
+  number, a milestone dot). The surface fixes the glyph's shape; the
+  language fixes its ink. `scheduleBandAppearance('red')` spends the same
+  amber for the same reason.
+- `onPaper(appearance)`, with `criticalityAppearanceOnPaper(value)` and
+  `criticalityMarkAppearanceOnPaper()`: the same appearance in the Brief's
+  `--doc-*` register. `PAPER_COUNTERPART` is the ONLY place the two
+  registers are tied together, so the document can keep its own ink without
+  becoming a second source of what a colour means. It throws on a token with
+  no counterpart rather than letting a surface pick a `--doc-*` colour
+  locally. (The app's own print block had already remapped
+  `--app-signal-ink` to `#856414`, which is `--doc-ochre` exactly.)
 
 When converting a surface, express these through your module's classes but
 take every colour from the appearance's tokens and keep its label, shape and

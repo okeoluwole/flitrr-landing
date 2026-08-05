@@ -256,15 +256,33 @@
      2xs is the mono micro-label size (eyebrows, chips, badges), promoted
      from the 0.6875rem the shipped modules were each writing out by hand.
      control is the sans label on buttons, links and menu items, promoted
-     from the hand-written 0.875rem for the same reason. */
+     from the hand-written 0.875rem for the same reason.
+
+     Sub-step 4 extended the ramp at both ends and filled its one hole, for
+     the document register the Brief reads in. The five are not a second
+     scale: they are the steps the product scale never had.
+       4xs, 3xs  below 2xs. The app floor was 0.6875; the document sets
+                 mono furniture (matrix axes, authority markers, criticality
+                 flags) down to 0.5625, on screen and harder in print.
+       ml        between md and lg. That jump was 1.29 where the rest of the
+                 ramp is about 1.08, and the Brief holds four distinct sizes
+                 inside it (section title, financial value, key figure,
+                 section numeral).
+       2xl, 3xl  above xl. The document masthead is deliberately larger than
+                 an app page title; these are its fluid clamp's two bounds. */
+  --app-text-4xs:     0.5625rem;
+  --app-text-3xs:     0.625rem;
   --app-text-2xs:     0.6875rem;
   --app-text-xs:      0.75rem;
   --app-text-sm:      0.8125rem;
   --app-text-control: 0.875rem;
   --app-text-base:    0.9375rem;
   --app-text-md:      1.0625rem;
+  --app-text-ml:      1.1875rem;
   --app-text-lg:      1.375rem;
   --app-text-xl:      1.75rem;
+  --app-text-2xl:     2rem;
+  --app-text-3xl:     2.5rem;
 
   /* The named type roles (Session K). A role is a size from the scale plus
      the weight, face and case the language fixes for it; the full contract
