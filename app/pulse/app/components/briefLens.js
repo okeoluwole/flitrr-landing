@@ -1,5 +1,5 @@
 /**
- * Audience lens configuration for the PULSE Brief (Step 8).
+ * Audience lens configuration for the PULSE Brief (Step 9).
  *
  * The lens does three things (M3.5 spec):
  *   1. Re-orders the sections (SECTION_ORDER).
