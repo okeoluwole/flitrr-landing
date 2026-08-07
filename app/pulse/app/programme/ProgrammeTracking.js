@@ -185,7 +185,7 @@ const STATUS_WORDS = {
 const STATUS_CLASS = {
   green: 'stOn',
   amber: 'stSlip',
-  red: 'stCrit',
+  red: 'stCriticalSlip',
 };
 
 // The spoken or written form of a band, lowercase mid-sentence.
@@ -252,7 +252,7 @@ function Tile({ label, children, sub, subSignal }) {
       <span className={styles.tileValue}>{children}</span>
       {sub != null && (
         <span
-          className={`${styles.tileSub} ${subSignal ? styles.tileSubSignal : ''}`}
+          className={`${styles.tileSub} ${subSignal ? styles.tileSubCritical : ''}`}
         >
           {sub}
         </span>
@@ -273,7 +273,7 @@ function Tile({ label, children, sub, subSignal }) {
 // baseline quietly.
 function varianceToneClass(row) {
   if (row.flagged) {
-    return row.flagColour === 'red' ? styles.varCrit : styles.varSlip;
+    return row.flagColour === 'red' ? styles.varCriticalSlip : styles.varSlip;
   }
   if (row.direction === VARIANCE_DIRECTIONS.AHEAD) return styles.varAhead;
   if (row.direction === VARIANCE_DIRECTIONS.BEHIND) return styles.varBehind;
@@ -451,7 +451,7 @@ function PointDetail({
   // and full border; met and watch-band states read from their facts.
   const tone =
     !fields.met && fields.flagged && fields.flagColour === 'red'
-      ? styles.detailCrit
+      ? styles.detailCriticalSlip
       : '';
 
   return (
@@ -496,7 +496,7 @@ function PointDetail({
             <dd className={styles.factValue}>
               <span
                 className={`${styles.factFlag} ${
-                  fields.flagColour === 'red' ? styles.varCrit : styles.varSlip
+                  fields.flagColour === 'red' ? styles.varCriticalSlip : styles.varSlip
                 }`}
               >
                 <RagDot colour={fields.flagColour} decorative />
@@ -590,7 +590,7 @@ function PointDetail({
 function chartPointTone(point) {
   if (point.met) return styles.cxMet;
   if (point.flagged) {
-    return point.flagColour === 'red' ? styles.cxCritSlip : styles.cxSlipping;
+    return point.flagColour === 'red' ? styles.cxCriticalSlip : styles.cxSlipping;
   }
   return styles.cxNeutral;
 }
@@ -599,7 +599,7 @@ function chartPointTone(point) {
 // flagged point, the success green when ahead, quiet otherwise.
 function chartDriftTone(point) {
   if (point.flagged) {
-    return point.flagColour === 'red' ? styles.cxCritSlip : styles.cxSlipping;
+    return point.flagColour === 'red' ? styles.cxCriticalSlip : styles.cxSlipping;
   }
   if (point.direction === VARIANCE_DIRECTIONS.AHEAD) return styles.cxAhead;
   return styles.cxQuietTone;
@@ -1214,7 +1214,7 @@ export default function ProgrammeTracking({
             <RagDot colour={status.colour} large decorative />
             <span
               className={
-                status.colour === 'red' ? styles.tileValueCrit : undefined
+                status.colour === 'red' ? styles.tileValueCritical : undefined
               }
             >
               {STATUS_WORDS[status.colour] ?? 'Not available'}
@@ -1442,7 +1442,7 @@ export default function ProgrammeTracking({
                 <li
                   key={item.key}
                   className={`${styles.card} ${
-                    item.colour === 'red' ? styles.cardCrit : ''
+                    item.colour === 'red' ? styles.cardCriticalSlip : ''
                   }`}
                 >
                   <div className={styles.cardBody}>
@@ -1468,7 +1468,7 @@ export default function ProgrammeTracking({
                         <span
                           className={`${styles.cardFigure} ${
                             item.colour === 'red'
-                              ? styles.cardFigureCrit
+                              ? styles.cardFigureCriticalSlip
                               : styles.cardFigureBehind
                           } tnum`}
                         >

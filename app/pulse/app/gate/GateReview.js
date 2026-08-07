@@ -206,7 +206,7 @@ export default function GateReview({
             {by ? ` by ${by}` : ''}.
           </p>
           {passed.overConstraintAcknowledged && (
-            <p className={styles.passedAck}>Over-constraint acknowledged.</p>
+            <p className={styles.passedAckCritical}>Over-constraint acknowledged.</p>
           )}
           <p className={styles.passedStage}>
             This project is now at Stage 2: Consultant Appointment.
@@ -253,7 +253,7 @@ export default function GateReview({
           <ul className={styles.list}>
             <Item label="Objectives classified and ranked" met />
             {overConstrained ? (
-              <li className={`${styles.item} ${styles.itemCaution}`}>
+              <li className={`${styles.item} ${styles.itemCritical}`}>
                 <OutstandingIcon />
                 <div className={styles.itemText}>
                   <span className={styles.itemLabel}>

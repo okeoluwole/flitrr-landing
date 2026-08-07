@@ -17,7 +17,8 @@
 
 .page {
   max-width: 1000px;
-  padding-block: 2.5rem 5rem;
+  padding-block: calc(var(--app-space-6) + var(--app-space-2))
+    calc(var(--app-space-8) + var(--app-space-4));
 }
 
 /* Header: PageHeader carries the frame; the baseline chip stays local
@@ -25,7 +26,7 @@
 
 .baselineChip {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -45,24 +46,24 @@
   position: sticky;
   top: 56px;
   z-index: 40;
-  margin-top: 1.5rem;
+  margin-top: var(--app-space-5);
   background: var(--app-surface-raised);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-elev-2);
   /* Compact at phone width: the pinned band must leave the viewport mostly
      to the content scrolling beneath it. */
-  padding: 0.65rem 0.65rem 0.7rem;
+  padding: var(--app-space-3);
 }
 
 .bandEyebrow {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--app-ink-secondary);
-  margin: 0 0.15rem 0.6rem;
+  margin: 0 var(--app-space-1) var(--app-space-2);
 }
 
 /* Inset display cells: sunken on the raised band, the 1px gaps reading as
@@ -77,16 +78,16 @@
 
 .tile {
   background: var(--app-surface-sunken);
-  padding: 0.5rem 0.65rem 0.55rem;
+  padding: var(--app-space-2) var(--app-space-3) var(--app-space-2);
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: var(--app-space-1);
   min-width: 0;
 }
 
 .tileLabel {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.625rem;
+  font-size: var(--app-text-3xs);
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -95,34 +96,34 @@
 
 .tileValue {
   font-family: var(--app-font-mono), monospace;
-  font-size: 1.0625rem;
+  font-size: var(--app-text-md);
   font-weight: 500;
   line-height: 1.2;
   color: var(--app-ink);
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: var(--app-space-2);
   min-height: 1.5rem;
   font-variant-numeric: tabular-nums;
 }
 
 .tileSub {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.75rem;
+  font-size: var(--app-text-xs);
   line-height: 1.4;
   color: var(--app-ink-secondary);
 }
 
 /* The Slipping tile's critical subset: a literal criticality read, amber as
    text. The JS gates the class on a live count, so a zero never glows. */
-.tileSubSignal {
+.tileSubCritical {
   color: var(--app-signal-ink);
   font-weight: 600;
 }
 
 /* The critical-slip status word, the band's one amber value, render-gated on
    the red band being live. */
-.tileValueCrit {
+.tileValueCritical {
   color: var(--app-signal-ink);
 }
 
@@ -155,7 +156,7 @@
   background: var(--app-ink);
 }
 
-.stCrit {
+.stCriticalSlip {
   background: radial-gradient(
     circle at center,
     var(--app-ground) 0 22%,
@@ -171,10 +172,10 @@
       outside the pinned mass. ── */
 
 .keyStrip {
-  margin-top: 1rem;
+  margin-top: var(--app-space-4);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--app-space-4);
 }
 
 .key {
@@ -183,15 +184,15 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: var(--app-space-2);
 }
 
 .keyItem {
   display: flex;
   align-items: flex-start;
-  gap: 0.5rem;
+  gap: var(--app-space-2);
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.75rem;
+  font-size: var(--app-text-xs);
   line-height: 1.5;
   color: var(--app-ink-secondary);
   max-width: 62ch;
@@ -210,12 +211,12 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.4rem;
+  gap: var(--app-space-2);
 }
 
 .toleranceLabel {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.625rem;
+  font-size: var(--app-text-3xs);
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -242,13 +243,13 @@
   gap: 1px;
   min-height: 44px;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 500;
   color: var(--app-ink-secondary);
   background: transparent;
   border: none;
   border-radius: 5px;
-  padding: 0.35rem 0.8rem;
+  padding: var(--app-space-1) var(--app-space-3);
   cursor: pointer;
   transition: color var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-out);
@@ -273,7 +274,7 @@
 
 .toleranceWeeks {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   color: var(--app-ink-muted);
 }
@@ -287,9 +288,9 @@
       content, the Overview (3.6) and the Schedule (3.7). ── */
 
 .tabs {
-  margin-top: 1.75rem;
+  margin-top: var(--app-space-6);
   display: flex;
-  gap: 0.25rem;
+  gap: var(--app-space-1);
   border-bottom: 1px solid var(--app-border);
 }
 
@@ -300,7 +301,7 @@
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
   min-height: 44px;
-  padding: 0.55rem 1rem;
+  padding: var(--app-space-2) var(--app-space-4);
   font-family: var(--app-font-mono), monospace;
   font-size: var(--app-text-xs);
   font-weight: 500;
@@ -329,7 +330,7 @@
 }
 
 .panel {
-  padding-top: 1.25rem;
+  padding-top: var(--app-space-5);
   scroll-margin-top: 24rem;
 }
 
@@ -339,7 +340,7 @@
       critical wash and full border, never a side-stripe. ── */
 
 .block {
-  margin-bottom: 1.9rem;
+  margin-bottom: var(--app-space-6);
 }
 
 .block:last-child {
@@ -350,15 +351,15 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: var(--app-space-3);
   border-bottom: 1px solid var(--app-hairline);
-  padding-bottom: 0.5rem;
-  margin-bottom: 0.8rem;
+  padding-bottom: var(--app-space-2);
+  margin-bottom: var(--app-space-3);
 }
 
 .blockTitle {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -367,7 +368,7 @@
 
 .blockMeta {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.75rem;
+  font-size: var(--app-text-xs);
   color: var(--app-ink-secondary);
 }
 
@@ -376,22 +377,22 @@
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
-  padding: 1.1rem 1.2rem;
+  padding: var(--app-space-4);
 }
 
 .blockEmptyLead {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   font-weight: 600;
   color: var(--app-ink);
 }
 
 .blockEmptyNote {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   line-height: 1.55;
   color: var(--app-ink-secondary);
-  margin-top: 0.25rem;
+  margin-top: var(--app-space-1);
   max-width: 56ch;
 }
 
@@ -401,7 +402,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: var(--app-space-2);
 }
 
 .card {
@@ -409,15 +410,15 @@
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-elev-1);
-  padding: 0.85rem 1rem 0.9rem;
+  padding: var(--app-space-3) var(--app-space-4) var(--app-space-4);
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: var(--app-space-3);
 }
 
 /* The critical-slip card: the criticality wash and its full border, the same
    recipe as the register's critical rows. */
-.cardCrit {
+.cardCriticalSlip {
   background: var(--app-critical-bg);
   border-color: var(--app-critical-border);
 }
@@ -428,27 +429,27 @@
 
 .cardName {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   font-weight: 600;
   color: var(--app-ink);
 }
 
 .cardMeta {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--app-ink-secondary);
-  margin-top: 0.25rem;
+  margin-top: var(--app-space-1);
 }
 
 .cardWhy {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   line-height: 1.5;
   color: var(--app-ink-secondary);
-  margin-top: 0.45rem;
+  margin-top: var(--app-space-2);
   max-width: 52ch;
 }
 
@@ -457,9 +458,9 @@
   align-items: center;
   min-height: 44px;
   margin-block: -0.45rem;
-  margin-top: 0.15rem;
+  margin-top: var(--app-space-1);
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 600;
   color: var(--app-ink);
   text-decoration: underline;
@@ -482,19 +483,19 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.3rem;
+  gap: var(--app-space-1);
   flex-shrink: 0;
 }
 
 .cardContribution {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: var(--app-space-2);
 }
 
 .cardFigure {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   color: var(--app-ink);
   font-variant-numeric: tabular-nums;
@@ -506,13 +507,13 @@
 }
 
 /* Behind in the critical-slip band: amber as text, the criticality read. */
-.cardFigureCrit {
+.cardFigureCriticalSlip {
   color: var(--app-signal-ink);
 }
 
 .cardDates {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   color: var(--app-ink-secondary);
   font-variant-numeric: tabular-nums;
 }
@@ -522,7 +523,7 @@
 .statusChip {
   display: inline-flex;
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -580,8 +581,8 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.4rem 0.9rem;
-  padding: 0.7rem 1.8rem 0.7rem 1rem;
+  gap: var(--app-space-2) var(--app-space-4);
+  padding: var(--app-space-3) var(--app-space-6) var(--app-space-3) var(--app-space-4);
   text-align: left;
   font: inherit;
   color: inherit;
@@ -614,18 +615,18 @@
   align-self: center;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--app-space-1);
   min-height: 44px;
-  margin-right: 0.9rem;
+  margin-right: var(--app-space-4);
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.75rem;
+  font-size: var(--app-text-xs);
   font-weight: 600;
   white-space: nowrap;
   color: var(--app-ink);
   background: transparent;
   border: 1px solid var(--app-border-strong);
   border-radius: var(--app-radius-sm);
-  padding: 0.45rem 0.7rem;
+  padding: var(--app-space-2) var(--app-space-3);
   cursor: pointer;
   transition:
     border-color var(--dur-fast) var(--ease-out),
@@ -651,18 +652,18 @@
 .lookNote {
   display: flex;
   align-items: flex-start;
-  gap: 0.45rem;
+  gap: var(--app-space-2);
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 600;
   line-height: 1.5;
   color: var(--app-success);
-  margin: 0 0 0.65rem;
+  margin: 0 0 var(--app-space-3);
 }
 
 .lookNoteTick {
   flex-shrink: 0;
-  margin-top: 0.2rem;
+  margin-top: var(--app-space-1);
 }
 
 .lookNoteQuiet {
@@ -673,14 +674,14 @@
 /* The failure sentence in the block's own flow, above the list rather than
    inside a detail. */
 .lookError {
-  margin: 0 0 0.65rem;
+  margin: 0 0 var(--app-space-3);
 }
 
 .lookDate {
   width: 5.5rem;
   flex-shrink: 0;
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 500;
   color: var(--app-ink);
   font-variant-numeric: tabular-nums;
@@ -694,7 +695,7 @@
 .lookName {
   display: block;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   color: var(--app-ink);
 }
@@ -702,29 +703,30 @@
 .lookMeta {
   display: block;
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--app-ink-secondary);
-  margin-top: 0.1rem;
+  margin-top: 2px;
 }
 
 .lookCriticality {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--app-ink-secondary);
 }
 
-/* The criticality pill, the house Critical read: amber, and only here. */
+/* The criticality pill, the house Critical read: amber, and only here. Its
+   three tokens are criticalityAppearance('critical')'s, never re-picked. */
 .lookCriticalityCritical {
   font-weight: 600;
   color: var(--app-signal-ink);
   background: var(--app-signal-wash);
-  border: 1px solid var(--app-signal-border);
+  border: 1px solid var(--app-critical-border);
   border-radius: 999px;
   padding: 3px 10px;
 }
@@ -732,36 +734,36 @@
 /* ── The no-baseline pointer (server-rendered): set-up first. ── */
 
 .placeholder {
-  margin-top: 1.75rem;
+  margin-top: var(--app-space-6);
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-elev-1);
-  padding: 1.5rem 1.4rem;
+  padding: var(--app-space-5);
 }
 
 .placeholderLead {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   line-height: 1.55;
   color: var(--app-ink);
   max-width: 60ch;
 }
 
 .cta {
-  margin-top: 1.1rem;
+  margin-top: var(--app-space-4);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-height: 44px;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   color: var(--app-primary-ink);
   background: var(--app-primary);
   border: none;
   border-radius: var(--app-radius-sm);
-  padding: 0.6rem 1.1rem;
+  padding: var(--app-space-2) var(--app-space-4);
   text-decoration: none;
   transition: background-color var(--dur-fast) var(--ease-out);
 }
@@ -779,7 +781,7 @@
 
 @media (min-width: 768px) {
   .band {
-    padding: 1.05rem 1.1rem 1.1rem;
+    padding: var(--app-space-4);
   }
 
   .tiles {
@@ -787,12 +789,12 @@
   }
 
   .tile {
-    padding: 0.75rem 0.9rem 0.8rem;
-    gap: 0.25rem;
+    padding: var(--app-space-3) var(--app-space-4) var(--app-space-3);
+    gap: var(--app-space-1);
   }
 
   .tileValue {
-    font-size: 1.1875rem;
+    font-size: var(--app-text-ml);
     min-height: 1.6rem;
   }
 
@@ -800,7 +802,7 @@
     flex-direction: row;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 1.5rem;
+    gap: var(--app-space-5);
   }
 
   .tolerance {
@@ -818,7 +820,7 @@
     flex-direction: row;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 1.25rem;
+    gap: var(--app-space-5);
   }
 
   .cardSide {
@@ -861,7 +863,7 @@
   appearance: none;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.45rem 0.75rem;
+  gap: var(--app-space-2) var(--app-space-3);
   width: 100%;
   min-height: 44px;
   text-align: left;
@@ -869,7 +871,7 @@
   color: inherit;
   background: transparent;
   border: none;
-  padding: 0.7rem 2rem 0.75rem 0.9rem;
+  padding: var(--app-space-3) var(--app-space-6) var(--app-space-3) var(--app-space-4);
   position: relative;
   cursor: pointer;
   transition: background-color var(--dur-fast) var(--ease-out);
@@ -932,7 +934,7 @@
 .pointName {
   display: block;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   color: var(--app-ink);
 }
@@ -940,24 +942,24 @@
 .pointMetaLine {
   display: block;
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--app-ink-secondary);
-  margin-top: 0.15rem;
+  margin-top: var(--app-space-1);
 }
 
 .pointCell {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: var(--app-space-1);
   min-width: 0;
 }
 
 .pointCellLabel {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.625rem;
+  font-size: var(--app-text-3xs);
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -966,7 +968,7 @@
 
 .pointDate {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 500;
   color: var(--app-ink);
   white-space: nowrap;
@@ -984,9 +986,9 @@
   display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.25rem 0.45rem;
+  gap: var(--app-space-1) var(--app-space-2);
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1014,17 +1016,17 @@
   font-weight: 600;
 }
 
-.varCrit {
+.varCriticalSlip {
   color: var(--app-signal-ink);
   font-weight: 600;
 }
 
 .tableNote {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.75rem;
+  font-size: var(--app-text-xs);
   line-height: 1.55;
   color: var(--app-ink-secondary);
-  margin-top: 0.6rem;
+  margin-top: var(--app-space-2);
   max-width: 70ch;
 }
 
@@ -1037,16 +1039,16 @@
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
-  gap: 0.2rem 0.6rem;
+  gap: var(--app-space-1) var(--app-space-2);
   background: var(--app-surface-sunken);
   border-bottom: 1px solid var(--app-hairline);
-  padding: 0.5rem 0.9rem;
+  padding: var(--app-space-2) var(--app-space-4);
   margin: 0;
 }
 
 .stageGroupNum {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -1055,7 +1057,7 @@
 
 .stageGroupName {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.75rem;
+  font-size: var(--app-text-xs);
   font-weight: 600;
   color: var(--app-ink-secondary);
 }
@@ -1073,17 +1075,17 @@
 }
 
 .detail {
-  padding: 0.85rem 0.9rem 1rem;
+  padding: var(--app-space-3) var(--app-space-4) var(--app-space-4);
 }
 
-.detailCrit {
+.detailCriticalSlip {
   background: var(--app-critical-bg);
   box-shadow: inset 0 0 0 1px var(--app-critical-border);
 }
 
 .detailMeta {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -1092,29 +1094,29 @@
 
 .detailName {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   font-weight: 600;
   color: var(--app-ink);
-  margin-top: 0.2rem;
+  margin-top: var(--app-space-1);
 }
 
 .detailFacts {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.6rem 0.9rem;
-  margin: 0.75rem 0 0;
+  gap: var(--app-space-2) var(--app-space-4);
+  margin: var(--app-space-3) 0 0;
 }
 
 .fact {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: var(--app-space-1);
   min-width: 0;
 }
 
 .factLabel {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.625rem;
+  font-size: var(--app-text-3xs);
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1123,7 +1125,7 @@
 
 .factValue {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 500;
   color: var(--app-ink);
   margin: 0;
@@ -1138,17 +1140,17 @@
 .factFlag {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: var(--app-space-2);
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
 }
 
 .detailNote {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   line-height: 1.5;
   color: var(--app-ink-secondary);
-  margin-top: 0.8rem;
+  margin-top: var(--app-space-3);
   max-width: 52ch;
 }
 
@@ -1158,21 +1160,21 @@
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: 0.6rem 0.9rem;
-  margin-top: 0.9rem;
-  padding-top: 0.9rem;
+  gap: var(--app-space-2) var(--app-space-4);
+  margin-top: var(--app-space-4);
+  padding-top: var(--app-space-4);
   border-top: 1px solid var(--app-hairline);
 }
 
 .markField {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: var(--app-space-1);
 }
 
 .markLabel {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.625rem;
+  font-size: var(--app-text-3xs);
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1184,13 +1186,13 @@
    color-scheme keeps the native picker's iconography dark-tuned. */
 .dateInput {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   color: var(--app-ink);
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-sm);
   min-height: 44px;
-  padding: 0.45rem 0.6rem;
+  padding: var(--app-space-2);
   min-width: 0;
   color-scheme: dark;
 }
@@ -1208,7 +1210,7 @@
 .markActions {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: var(--app-space-2);
 }
 
 .markBtn {
@@ -1220,7 +1222,7 @@
   border: none;
   border-radius: var(--app-radius-sm);
   min-height: 44px;
-  padding: 0.5rem 1rem;
+  padding: var(--app-space-2) var(--app-space-4);
   cursor: pointer;
   transition:
     background-color var(--dur-fast) var(--ease-out),
@@ -1250,7 +1252,7 @@
   border: 1px solid var(--app-border-strong);
   border-radius: var(--app-radius-sm);
   min-height: 44px;
-  padding: 0.5rem 0.9rem;
+  padding: var(--app-space-2) var(--app-space-4);
   cursor: pointer;
   transition:
     border-color var(--dur-fast) var(--ease-out),
@@ -1273,10 +1275,10 @@
 
 .markHint {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.75rem;
+  font-size: var(--app-text-xs);
   line-height: 1.55;
   color: var(--app-ink-secondary);
-  margin-top: 0.55rem;
+  margin-top: var(--app-space-2);
   max-width: 60ch;
 }
 
@@ -1284,10 +1286,10 @@
    alone. The one red on the surface. */
 .markError {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 600;
   color: var(--app-danger);
-  margin-top: 0.6rem;
+  margin-top: var(--app-space-2);
 }
 
 /* ── The register view toggle. ── */
@@ -1302,7 +1304,7 @@
   border-radius: var(--app-radius-sm);
   padding: 3px;
   gap: 2px;
-  margin-bottom: 0.9rem;
+  margin-bottom: var(--app-space-4);
 }
 
 .viewBtn {
@@ -1311,13 +1313,13 @@
   justify-content: center;
   min-height: 38px;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 500;
   color: var(--app-ink-secondary);
   background: transparent;
   border: none;
   border-radius: 5px;
-  padding: 0.35rem 1.1rem;
+  padding: var(--app-space-1) var(--app-space-4);
   cursor: pointer;
   transition: color var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-out);
@@ -1355,7 +1357,7 @@
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-elev-1);
-  padding: 0.6rem 0.9rem 0.8rem;
+  padding: var(--app-space-2) var(--app-space-4) var(--app-space-3);
 }
 
 .cxScroll {
@@ -1384,7 +1386,10 @@
   stroke-width: 1;
 }
 
-.cxQuarter {
+/* The drawing's quiet mono micro-label, worn by the quarter along the axis
+   and by the stage extent in the gutter. One treatment, declared once. */
+.cxQuarter,
+.cxStageMeta {
   font-family: var(--app-font-mono), monospace;
   font-size: 10px;
   font-weight: 500;
@@ -1426,12 +1431,8 @@
   fill: var(--app-ink-secondary);
 }
 
-.cxStageMeta {
-  font-family: var(--app-font-mono), monospace;
-  font-size: 10px;
-  font-weight: 500;
-  fill: var(--app-ink-muted);
-}
+/* .cxStageMeta, the stage's extent under its name, wears the shared mono
+   micro-label declared with .cxQuarter above. */
 
 /* The stage bar, its baseline extent, and the faint forecast extension that
    carries a slipped gate rather than a second diamond. The bar has to read
@@ -1511,16 +1512,16 @@
   fill: var(--app-surface);
 }
 
-.cxCritSlip {
+.cxCriticalSlip {
   stroke: var(--app-signal);
   fill: var(--app-signal);
 }
 
-.cxCurrent.cxCritSlip {
+.cxCurrent.cxCriticalSlip {
   fill: var(--app-surface);
 }
 
-text.cxCritSlip {
+text.cxCriticalSlip {
   fill: var(--app-signal-ink);
   stroke: none;
 }
@@ -1574,19 +1575,19 @@ text.cxSlipping {
 
 .cxLegend {
   list-style: none;
-  margin: 0.7rem 0 0;
+  margin: var(--app-space-3) 0 0;
   padding: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem 1rem;
+  gap: var(--app-space-2) var(--app-space-4);
 }
 
 .cxLegendItem {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: var(--app-space-2);
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.75rem;
+  font-size: var(--app-text-xs);
   color: var(--app-ink-secondary);
 }
 
@@ -1648,7 +1649,7 @@ text.cxSlipping {
 
 .cxNote {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   line-height: 1.55;
   color: var(--app-ink-secondary);
   max-width: 70ch;
@@ -1658,10 +1659,10 @@ text.cxSlipping {
    programme fact in the tracker's own variance language. */
 .cxCaption {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   line-height: 1.55;
   color: var(--app-ink-secondary);
-  margin-top: 0.7rem;
+  margin-top: var(--app-space-3);
   max-width: 70ch;
 }
 
@@ -1683,7 +1684,7 @@ text.cxSlipping {
   flex-direction: column;
   /* The gap replaces the blocks' own bottom margin, so the spacing holds
      whichever of the two is drawn first. */
-  gap: 1.9rem;
+  gap: var(--app-space-6);
 }
 
 .schedulePanel .block {
@@ -1741,12 +1742,12 @@ text.cxSlipping {
     grid-template-columns:
       minmax(0, 2.4fr) minmax(0, 1fr) minmax(0, 1fr)
       minmax(0, 1.4fr);
-    gap: 0.75rem 1rem;
-    padding: 0.55rem 2.25rem 0.55rem 1rem;
+    gap: var(--app-space-3) var(--app-space-4);
+    padding: var(--app-space-2) var(--app-space-6) var(--app-space-2) var(--app-space-4);
     background: var(--app-surface-sunken);
     border-bottom: 1px solid var(--app-border);
     font-family: var(--app-font-mono), monospace;
-    font-size: 0.625rem;
+    font-size: var(--app-text-3xs);
     font-weight: 500;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -1757,9 +1758,9 @@ text.cxSlipping {
     grid-template-columns:
       minmax(0, 2.4fr) minmax(0, 1fr) minmax(0, 1fr)
       minmax(0, 1.4fr);
-    gap: 0.75rem 1rem;
+    gap: var(--app-space-3) var(--app-space-4);
     align-items: baseline;
-    padding: 0.65rem 2.25rem 0.7rem 1rem;
+    padding: var(--app-space-3) var(--app-space-6) var(--app-space-3) var(--app-space-4);
   }
 
   .pointChevron {
@@ -1789,11 +1790,11 @@ text.cxSlipping {
   }
 
   .stageGroupHead {
-    padding-inline: 1rem;
+    padding-inline: var(--app-space-4);
   }
 
   .detail {
-    padding: 0.95rem 1rem 1.05rem;
+    padding: var(--app-space-4);
   }
 
   .detailFacts {
@@ -1801,6 +1802,6 @@ text.cxSlipping {
   }
 
   .cxFrame {
-    padding: 0.7rem 1.1rem 0.9rem;
+    padding: var(--app-space-3) var(--app-space-4) var(--app-space-4);
   }
 }

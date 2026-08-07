@@ -16,7 +16,8 @@
 
 .page {
   max-width: 880px;
-  padding-block: 2.5rem 5rem;
+  padding-block: calc(var(--app-space-6) + var(--app-space-2))
+    calc(var(--app-space-8) + var(--app-space-4));
 }
 
 /* Header: PageHeader carries the frame; the two-step read below stays
@@ -29,10 +30,10 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--app-space-2);
   margin-top: calc(-1 * var(--app-space-4));
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -56,10 +57,10 @@
 
 .lead {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   line-height: 1.6;
   color: var(--app-ink);
-  margin-top: 1.75rem;
+  margin-top: var(--app-space-6);
   max-width: 60ch;
 }
 
@@ -69,10 +70,10 @@
 
 .subnote {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   line-height: 1.55;
   color: var(--app-ink-secondary);
-  margin-top: 0.6rem;
+  margin-top: var(--app-space-2);
   max-width: 62ch;
 }
 
@@ -81,15 +82,15 @@
 .cards {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 1.75rem;
+  gap: var(--app-space-3);
+  margin-top: var(--app-space-6);
 }
 
 .card {
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
-  padding: 1.1rem 1.2rem 1.2rem;
+  padding: var(--app-space-4);
   box-shadow: var(--app-elev-1);
 }
 
@@ -97,19 +98,19 @@
    wash and full border, never a side-stripe. */
 .cardCritical {
   border-color: var(--app-critical-border);
-  background: var(--app-critical-bg);
+  background: var(--app-signal-wash);
 }
 
 .cardTop {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 0.9rem;
+  gap: var(--app-space-4);
 }
 
 .cardName {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   font-weight: 600;
   line-height: 1.3;
   color: var(--app-ink);
@@ -117,12 +118,12 @@
 
 .cardMeta {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--app-ink-secondary);
-  margin-top: 0.3rem;
+  margin-top: var(--app-space-1);
 }
 
 /* The tier chip: the house mono pill. The quiet outline carries propose and
@@ -131,7 +132,7 @@
 .tierChip {
   flex-shrink: 0;
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -146,7 +147,7 @@
 .tierChipCritical {
   font-weight: 600;
   background: var(--app-signal-wash);
-  border-color: var(--app-signal-border);
+  border-color: var(--app-critical-border);
   color: var(--app-signal-ink);
 }
 
@@ -156,8 +157,8 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem;
-  margin-top: 1rem;
+  gap: var(--app-space-3);
+  margin-top: var(--app-space-4);
 }
 
 /* Inset display cells, the band-tile recipe: the dates are read, not edited. */
@@ -167,7 +168,7 @@
   border: 1px solid var(--app-hairline);
   border-radius: var(--app-radius-sm);
   background: var(--app-surface-sunken);
-  padding: 0.6rem 0.75rem;
+  padding: var(--app-space-2) var(--app-space-3);
 }
 
 .dateboxRec {
@@ -177,7 +178,7 @@
 .dateLabel {
   display: block;
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.625rem;
+  font-size: var(--app-text-3xs);
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -186,9 +187,9 @@
 
 .dateValue {
   display: block;
-  margin-top: 0.3rem;
+  margin-top: var(--app-space-1);
   font-family: var(--app-font-mono), monospace;
-  font-size: 1.0625rem;
+  font-size: var(--app-text-md);
   font-weight: 500;
   line-height: 1.2;
   color: var(--app-ink);
@@ -198,7 +199,7 @@
 .delta {
   flex-shrink: 0;
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.75rem;
+  font-size: var(--app-text-xs);
   font-weight: 500;
   color: var(--app-ink-secondary);
   white-space: nowrap;
@@ -209,23 +210,23 @@
 
 .why {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   line-height: 1.55;
   color: var(--app-ink-secondary);
-  margin-top: 0.9rem;
+  margin-top: var(--app-space-4);
   max-width: 56ch;
 }
 
 /* ── Decision controls ── */
 
 .controls {
-  margin-top: 1.1rem;
+  margin-top: var(--app-space-4);
 }
 
 .choices {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0.6rem;
+  gap: var(--app-space-2);
 }
 
 /* The decision options: sunken wells, the chosen one taking the bright
@@ -234,7 +235,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.2rem;
+  gap: var(--app-space-1);
   text-align: left;
   width: 100%;
   min-height: 44px;
@@ -242,7 +243,7 @@
   background: var(--app-surface-sunken);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-sm);
-  padding: 0.7rem 0.85rem;
+  padding: var(--app-space-3);
   cursor: pointer;
   transition: border-color var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-out);
@@ -268,14 +269,14 @@
 }
 
 .choiceLead {
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   color: var(--app-ink);
 }
 
 .choiceSub {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.75rem;
+  font-size: var(--app-text-xs);
   font-weight: 500;
   color: var(--app-ink-secondary);
   font-variant-numeric: tabular-nums;
@@ -292,10 +293,10 @@
 
 .forceNote {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   line-height: 1.5;
   color: var(--app-ink);
-  margin-bottom: 0.7rem;
+  margin-bottom: var(--app-space-3);
   max-width: 56ch;
 }
 
@@ -303,16 +304,16 @@
 
 .reasonField {
   display: block;
-  margin-top: 0.85rem;
+  margin-top: var(--app-space-3);
 }
 
 .reasonLabel {
   display: block;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 500;
   color: var(--app-ink);
-  margin-bottom: 0.4rem;
+  margin-bottom: var(--app-space-2);
 }
 
 /* Required-ness is intensity, never amber: a requirement is not criticality. */
@@ -330,13 +331,13 @@
   width: 100%;
   min-height: 44px;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   line-height: 1.5;
   color: var(--app-ink);
   background: var(--app-surface-sunken);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-sm);
-  padding: 0.6rem 0.7rem;
+  padding: var(--app-space-2) var(--app-space-3);
   resize: vertical;
 }
 
@@ -357,19 +358,19 @@
 
 .amendField {
   display: block;
-  margin-top: 0.85rem;
+  margin-top: var(--app-space-3);
 }
 
 .dateInput {
   min-height: 44px;
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-variant-numeric: tabular-nums;
   color: var(--app-ink);
   background: var(--app-surface-sunken);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-sm);
-  padding: 0.55rem 0.7rem;
+  padding: var(--app-space-2) var(--app-space-3);
 }
 
 .dateInput:focus-visible {
@@ -383,11 +384,11 @@
 .amendWarn {
   display: block;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   line-height: 1.5;
   color: var(--app-ink);
   font-weight: 600;
-  margin-top: 0.5rem;
+  margin-top: var(--app-space-2);
   max-width: 56ch;
 }
 
@@ -395,10 +396,10 @@
    check is owed on the Action Log. */
 .deferNote {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   line-height: 1.5;
   color: var(--app-ink-secondary);
-  margin-top: 0.6rem;
+  margin-top: var(--app-space-2);
   max-width: 56ch;
 }
 
@@ -407,9 +408,9 @@
 .verifyCheck {
   display: flex;
   align-items: flex-start;
-  gap: 0.6rem;
+  gap: var(--app-space-2);
   min-height: 44px;
-  padding-block: 0.2rem;
+  padding-block: var(--app-space-1);
   cursor: pointer;
 }
 
@@ -417,7 +418,7 @@
   flex-shrink: 0;
   width: 1.1rem;
   height: 1.1rem;
-  margin-top: 0.1rem;
+  margin-top: 2px;
   accent-color: var(--app-primary);
   cursor: pointer;
 }
@@ -429,7 +430,7 @@
 
 .verifyLabel {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   line-height: 1.5;
   color: var(--app-ink);
 }
@@ -439,15 +440,15 @@
 .footer {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-top: 1.75rem;
-  padding-top: 1.4rem;
+  gap: var(--app-space-4);
+  margin-top: var(--app-space-6);
+  padding-top: var(--app-space-5);
   border-top: 1px solid var(--app-hairline);
 }
 
 .footerSummary {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   line-height: 1.55;
   color: var(--app-ink-secondary);
 }
@@ -464,13 +465,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem;
-}
-
-.proceedHint {
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
-  color: var(--app-ink-secondary);
+  gap: var(--app-space-3);
 }
 
 /* The named blocker beside a disabled action (Note 14). A disabled button with
@@ -480,16 +475,16 @@
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.5rem;
+  gap: var(--app-space-2);
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   line-height: 1.5;
   color: var(--app-ink);
 }
 
 .blockerJump {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 600;
   color: var(--app-ink);
   background: none;
@@ -508,13 +503,13 @@
 .proceedBtn {
   min-height: 44px;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   color: var(--app-primary-ink);
   background: var(--app-primary);
   border: none;
   border-radius: var(--app-radius-sm);
-  padding: 0.6rem 1.1rem;
+  padding: var(--app-space-2) var(--app-space-4);
   cursor: pointer;
   transition: background-color var(--dur-fast) var(--ease-out),
     opacity var(--dur-fast) var(--ease-out);
@@ -536,18 +531,21 @@
 
 /* ── The not-ready and member placeholders ── */
 
-.placeholder {
-  margin-top: 1.75rem;
+/* One seated panel, worn by both the placeholders and the locked record:
+   the same seat, so it is written once rather than twice. */
+.placeholder,
+.lockedPanel {
+  margin-top: var(--app-space-6);
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
-  padding: 1.5rem 1.4rem;
+  padding: var(--app-space-5);
   box-shadow: var(--app-elev-1);
 }
 
 .placeholderLead {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   line-height: 1.55;
   color: var(--app-ink);
   max-width: 60ch;
@@ -558,13 +556,13 @@
   align-items: center;
   min-height: 44px;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 600;
   color: var(--app-ink);
   background: transparent;
   border: 1px solid var(--app-border-strong);
   border-radius: var(--app-radius-sm);
-  padding: 0.5rem 0.9rem;
+  padding: var(--app-space-2) var(--app-space-4);
   cursor: pointer;
   transition: border-color var(--dur-fast) var(--ease-out),
     opacity var(--dur-fast) var(--ease-out);
@@ -587,19 +585,19 @@
 /* A primary link CTA, for the server-rendered not-ready states and the locked
    record's way back. */
 .cta {
-  margin-top: 1.1rem;
+  margin-top: var(--app-space-4);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-height: 44px;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   color: var(--app-primary-ink);
   background: var(--app-primary);
   border: none;
   border-radius: var(--app-radius-sm);
-  padding: 0.6rem 1.1rem;
+  padding: var(--app-space-2) var(--app-space-4);
   text-decoration: none;
   transition: background-color var(--dur-fast) var(--ease-out);
 }
@@ -621,17 +619,17 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem 1.1rem;
-  margin-top: 1.5rem;
+  gap: var(--app-space-2) var(--app-space-4);
+  margin-top: var(--app-space-5);
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.75rem;
+  font-size: var(--app-text-xs);
   color: var(--app-ink-secondary);
 }
 
 .kk {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: var(--app-space-2);
 }
 
 .sw {
@@ -658,7 +656,7 @@
       hairline rows, the same table the tracking surface reads after lock. ── */
 
 .stages {
-  margin-top: 1.5rem;
+  margin-top: var(--app-space-5);
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
@@ -675,23 +673,23 @@
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: baseline;
-  gap: 0.2rem 0.75rem;
-  padding: 0.55rem 1rem;
+  gap: var(--app-space-1) var(--app-space-3);
+  padding: var(--app-space-2) var(--app-space-4);
   border-bottom: 1px solid var(--app-hairline);
   background: var(--app-surface-sunken);
 }
 
 .stageTitle {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.75rem;
+  font-size: var(--app-text-xs);
   font-weight: 600;
   color: var(--app-ink-secondary);
 }
 
 .stageTitle b {
-  margin-right: 0.45rem;
+  margin-right: var(--app-space-2);
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -700,7 +698,7 @@
 
 .stageDur {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   color: var(--app-ink-secondary);
   font-variant-numeric: tabular-nums;
@@ -722,7 +720,7 @@
 
 .stageNaTag {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.625rem;
+  font-size: var(--app-text-3xs);
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -746,8 +744,8 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.4rem 0.6rem;
-  padding: 0.6rem 1rem;
+  gap: var(--app-space-2);
+  padding: var(--app-space-2) var(--app-space-4);
   border-bottom: 1px solid var(--app-hairline);
 }
 
@@ -766,14 +764,14 @@
   flex: 1 1 10rem;
   min-width: 9rem;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   color: var(--app-ink);
 }
 
 .imeta {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -785,7 +783,7 @@
   min-width: 5.5rem;
   text-align: right;
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 500;
   color: var(--app-ink);
   white-space: nowrap;
@@ -794,29 +792,29 @@
 
 /* ── Criticality badges (the one signal use of amber) ── */
 
-.badgeCrit,
-.badgeStd {
+.badgeCritical,
+.badgeStandard {
   flex-shrink: 0;
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
 /* The house criticality pill. */
-.badgeCrit {
+.badgeCritical {
   font-weight: 600;
   padding: 3px 10px;
   border-radius: 999px;
   background: var(--app-signal-wash);
-  border: 1px solid var(--app-signal-border);
+  border: 1px solid var(--app-critical-border);
   color: var(--app-signal-ink);
 }
 
 /* Standard is the calm counterpart: plain mono, no pill, monochrome by
    intensity. Essential classification, so it holds secondary, never muted. */
-.badgeStd {
+.badgeStandard {
   font-weight: 500;
   padding: 3px 0;
   border: 1px solid transparent;
@@ -843,9 +841,9 @@
 .recon {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-  margin-top: 1.5rem;
-  padding: 1rem 1.1rem;
+  gap: var(--app-space-3);
+  margin-top: var(--app-space-5);
+  padding: var(--app-space-4);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius);
   background: var(--app-surface-sunken);
@@ -860,9 +858,9 @@
 .reconLead {
   display: flex;
   align-items: flex-start;
-  gap: 0.5rem;
+  gap: var(--app-space-2);
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   line-height: 1.55;
   color: var(--app-ink);
   max-width: 62ch;
@@ -870,7 +868,7 @@
 
 .reconLeadBad {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   line-height: 1.55;
   color: var(--app-danger);
@@ -879,22 +877,22 @@
 
 .reconList {
   margin: 0;
-  padding-left: 1.1rem;
+  padding-left: var(--app-space-4);
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: var(--app-space-2);
 }
 
 .reconItem {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   line-height: 1.5;
   color: var(--app-ink);
 }
 
 .reconMeta {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   line-height: 1.55;
   color: var(--app-ink-secondary);
   max-width: 62ch;
@@ -905,14 +903,14 @@
 .breach {
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
-  padding-top: 0.85rem;
+  gap: var(--app-space-3);
+  padding-top: var(--app-space-3);
   border-top: 1px solid var(--app-hairline);
 }
 
 .breachText {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   line-height: 1.55;
   color: var(--app-ink);
@@ -924,9 +922,9 @@
 .lockBar {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-top: 1.5rem;
-  padding-top: 1.4rem;
+  gap: var(--app-space-4);
+  margin-top: var(--app-space-5);
+  padding-top: var(--app-space-5);
   border-top: 1px solid var(--app-hairline);
 }
 
@@ -935,8 +933,8 @@
 .confirm {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-  padding: 1rem 1.1rem;
+  gap: var(--app-space-3);
+  padding: var(--app-space-4);
   border: 1px solid var(--app-border-strong);
   border-radius: var(--app-radius);
   background: var(--app-surface-sunken);
@@ -944,7 +942,7 @@
 
 .confirmText {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   line-height: 1.55;
   color: var(--app-ink);
   max-width: 52ch;
@@ -954,39 +952,31 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.6rem;
+  gap: var(--app-space-2);
 }
 
 /* The failed write: the dark-tuned danger, text plus tone, never colour
    alone. The one red on the surface. */
 .lockNote {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   line-height: 1.55;
   color: var(--app-ink-secondary);
-  margin-top: 1.1rem;
+  margin-top: var(--app-space-4);
   max-width: 62ch;
 }
 
-/* ── The locked record (post-lock confirmation and already-locked re-entry) ── */
-
-.lockedPanel {
-  margin-top: 1.75rem;
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
-  padding: 1.5rem 1.4rem;
-  box-shadow: var(--app-elev-1);
-}
+/* ── The locked record (post-lock confirmation and already-locked re-entry) ──
+      Its panel is the shared seat declared beside .placeholder above. */
 
 /* Locked is a state, not a verdict: the workspace's bright monochrome chip
    (its one sanctioned raw value), never green, never amber. */
 .lockedBadge {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: var(--app-space-2);
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -1005,28 +995,28 @@
 
 .lockedLead {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   font-weight: 600;
   color: var(--app-ink);
   line-height: 1.35;
-  margin-top: 0.8rem;
+  margin-top: var(--app-space-3);
 }
 
 .lockedMeta {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 500;
   color: var(--app-ink-secondary);
-  margin-top: 0.35rem;
+  margin-top: var(--app-space-1);
   font-variant-numeric: tabular-nums;
 }
 
 .lockedNote {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   line-height: 1.55;
   color: var(--app-ink-secondary);
-  margin-top: 0.9rem;
+  margin-top: var(--app-space-4);
   max-width: 60ch;
 }
 
@@ -1034,7 +1024,7 @@
 
 @media (min-width: 768px) {
   .page {
-    padding-block: 3rem 6rem;
+    padding-block: var(--app-space-7) calc(var(--app-space-8) + var(--app-space-6));
   }
 
   .choices {

@@ -557,7 +557,7 @@ function MilestoneRow({ milestone }) {
       >
         {dateLabel ?? 'Not dated'}
       </span>
-      <span className={critical ? styles.badgeCrit : styles.badgeStd}>
+      <span className={critical ? styles.badgeCritical : styles.badgeStandard}>
         {critical ? 'Critical' : 'Standard'}
       </span>
     </div>
@@ -583,7 +583,7 @@ function AddedMilestoneRow({ milestone }) {
       >
         {dateLabel ?? 'Not dated'}
       </span>
-      <span className={critical ? styles.badgeCrit : styles.badgeStd}>
+      <span className={critical ? styles.badgeCritical : styles.badgeStandard}>
         {critical ? 'Critical' : 'Standard'}
       </span>
     </div>
@@ -1012,7 +1012,7 @@ export default function ProgrammeSetup({
             milestone
           </span>
           <span className={styles.kk}>
-            <span className={styles.badgeCrit}>Critical</span>
+            <span className={styles.badgeCritical}>Critical</span>
             serves a non-negotiable objective
           </span>
         </div>

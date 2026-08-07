@@ -14,7 +14,8 @@
 ───────────────────────────────────────── */
 
 .page {
-  padding-block: 2.75rem 6rem;
+  padding-block: calc(var(--app-space-6) + var(--app-space-3))
+    calc(var(--app-space-8) + var(--app-space-6));
   max-width: 820px;
 }
 /* Header: PageHeader carries the frame. */
@@ -22,11 +23,11 @@
 
 .intro {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   line-height: 1.55;
   color: var(--app-ink-secondary);
   max-width: 56ch;
-  margin: 0 0 2rem;
+  margin: 0 0 var(--app-space-6);
 }
 
 /* ── Grouped sections ──────────────────── */
@@ -34,7 +35,7 @@
 .groups {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: var(--app-space-5);
 }
 
 .group {
@@ -42,24 +43,24 @@
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-elev-1);
-  padding: 1.35rem 1.5rem 1.5rem;
+  padding: var(--app-space-5);
 }
 
 .groupTitle {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--app-ink-muted);
-  margin: 0 0 1rem;
+  margin: 0 0 var(--app-space-4);
 }
 
 .list {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: var(--app-space-4);
   margin: 0;
   padding: 0;
 }
@@ -67,7 +68,7 @@
 .item {
   display: flex;
   align-items: flex-start;
-  gap: 0.65rem;
+  gap: var(--app-space-3);
 }
 
 /* Met items rest settled: the check sits in the muted grey of the rail's
@@ -75,13 +76,13 @@
    never amber (blocking is not criticality). */
 .iconMet {
   flex: 0 0 auto;
-  margin-top: 0.1rem;
+  margin-top: 2px;
   color: var(--app-ink-muted);
 }
 
 .iconOut {
   flex: 0 0 auto;
-  margin-top: 0.1rem;
+  margin-top: 2px;
   color: var(--app-ink);
 }
 
@@ -89,12 +90,12 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: var(--app-space-1);
 }
 
 .itemLabel {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   font-weight: 500;
   line-height: 1.4;
   color: var(--app-ink);
@@ -105,7 +106,7 @@
 }
 
 .itemOut .itemLabel,
-.itemCaution .itemLabel {
+.itemCritical .itemLabel {
   font-weight: 600;
 }
 
@@ -120,14 +121,14 @@
 /* The over-constraint caution: this screen's one amber spend. Every
    objective non-negotiable is the framework's structural-risk state, so
    the criticality wash and border are earned here and nowhere else. */
-.itemCaution {
+.itemCritical {
   border: 1px solid var(--app-critical-border);
-  background: var(--app-critical-bg);
+  background: var(--app-signal-wash);
   border-radius: var(--app-radius-sm);
-  padding: 0.85rem 1rem;
+  padding: var(--app-space-3) var(--app-space-4);
 }
 
-.itemCaution .iconOut {
+.itemCritical .iconOut {
   color: var(--app-signal-ink);
 }
 
@@ -136,16 +137,16 @@
 .ack {
   display: flex;
   align-items: flex-start;
-  gap: 0.6rem;
+  gap: var(--app-space-2);
   cursor: pointer;
-  margin-top: 0.2rem;
+  margin-top: var(--app-space-1);
 }
 
 .ackBox {
   flex: 0 0 auto;
   width: 18px;
   height: 18px;
-  margin-top: 0.12rem;
+  margin-top: 2px;
   accent-color: var(--app-primary);
   cursor: pointer;
 }
@@ -169,8 +170,8 @@
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 1rem;
-  margin-top: 1.75rem;
+  gap: var(--app-space-4);
+  margin-top: var(--app-space-6);
 }
 
 .confirmHint {
@@ -186,13 +187,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: var(--app-space-2);
   min-height: 44px;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   font-weight: 600;
   border-radius: var(--app-radius-sm);
-  padding: 0.7rem 1.4rem;
+  padding: var(--app-space-3) var(--app-space-5);
   cursor: pointer;
   border: 1px solid transparent;
   background: var(--app-primary);
@@ -225,15 +226,15 @@
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-elev-1);
-  padding: 1.6rem 1.75rem;
+  padding: var(--app-space-5) var(--app-space-6);
 }
 
 .passedBadge {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: var(--app-space-2);
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -242,7 +243,7 @@
   border: 1px solid var(--app-border-strong);
   padding: 3px 10px;
   border-radius: 999px;
-  margin-bottom: 1rem;
+  margin-bottom: var(--app-space-4);
 }
 
 /* Passing the gate is a rare, hard-won moment, so the badge gets a small
@@ -276,53 +277,60 @@
 
 /* The standing record that this project runs with no flexible objective:
    the critical tone, the passed state's one amber line. */
-.passedAck {
+.passedAckCritical {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   color: var(--app-signal-ink);
-  margin: 0.6rem 0 0;
+  margin: var(--app-space-2) 0 0;
 }
 
 .passedStage {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   line-height: 1.55;
   color: var(--app-ink-secondary);
-  margin: 0.75rem 0 0;
+  margin: var(--app-space-3) 0 0;
 }
 
 .afterActions {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: var(--app-space-5);
   flex-wrap: wrap;
-  margin-top: 1.75rem;
+  margin-top: var(--app-space-6);
 }
 
-.secondaryCta {
+/* The quiet outline CTA, worn twice on this screen: after the gate passes,
+   as the way on to the programme; and pre-lock, as the pointer back to the
+   Brief. One button, so it is declared once. The decisive action here is
+   always the white primary, and neither of these is it. */
+.secondaryCta,
+.notAvailableCta {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   color: var(--app-ink);
   background: transparent;
   border: 1px solid var(--app-border-strong);
   border-radius: var(--app-radius-sm);
-  padding: 0.6rem 1.2rem;
+  padding: var(--app-space-2) var(--app-space-4);
   text-decoration: none;
   transition: border-color var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-out);
 }
 
-.secondaryCta:hover {
+.secondaryCta:hover,
+.notAvailableCta:hover {
   border-color: var(--app-ink);
   background: var(--app-hover);
 }
 
-.secondaryCta:focus-visible {
+.secondaryCta:focus-visible,
+.notAvailableCta:focus-visible {
   outline: 2px solid var(--app-focus);
   outline-offset: 2px;
 }
@@ -332,7 +340,7 @@
   align-items: center;
   min-height: 44px;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   color: var(--app-ink-secondary);
   text-decoration: none;
@@ -356,50 +364,25 @@
   background: var(--app-surface-sunken);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
-  padding: 2rem 1.75rem;
+  padding: var(--app-space-6);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 1.1rem;
-  margin-top: 0.5rem;
+  gap: var(--app-space-4);
+  margin-top: var(--app-space-2);
 }
 
 .notAvailableText {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   line-height: 1.55;
   color: var(--app-ink-secondary);
   margin: 0;
 }
 
-/* The screen's decisive action (confirm) does not exist pre-lock, so this
-   pointer to the Brief stays a quiet outline, not the white primary. */
-.notAvailableCta {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--app-ink);
-  background: transparent;
-  border: 1px solid var(--app-border-strong);
-  border-radius: var(--app-radius-sm);
-  padding: 0.6rem 1.2rem;
-  text-decoration: none;
-  transition: border-color var(--dur-fast) var(--ease-out),
-    background-color var(--dur-fast) var(--ease-out);
-}
-
-.notAvailableCta:hover {
-  border-color: var(--app-ink);
-  background: var(--app-hover);
-}
-
-.notAvailableCta:focus-visible {
-  outline: 2px solid var(--app-focus);
-  outline-offset: 2px;
-}
+/* The pre-lock pointer to the Brief wears the quiet outline CTA declared
+   above: the screen's decisive action does not exist yet, so nothing here
+   takes the white primary. */
 
 @media (max-width: 600px) {
   .confirmBar {
@@ -420,7 +403,7 @@
 /* The one sparse line a member sees in place of the confirm bar. */
 .memberNote {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   line-height: 1.5;
   color: var(--app-ink-secondary);
   margin: 0;
