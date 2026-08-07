@@ -565,8 +565,58 @@ p {
     --app-active: transparent;
     --app-fill-strong: rgba(20, 24, 28, 0.14);
     --app-focus-ring: transparent;
-    --app-signal-ink: #856414;
+
+    /* The amber family, completed. This block used to remap the two amber
+       INKS and leave every wash, border and solid at its screen value, so a
+       criticality wash printed as 0.10 alpha of a bright yellow on white
+       and the criticality mark printed as #F4C031: the loudest thing on the
+       instrument became the faintest thing on the page, which inverts the
+       read criticality exists to carry.
+
+       The values are the DOCUMENT register's own answers, written literally
+       rather than as var(--doc-*). The two registers are deliberately
+       independent and lib/design/semantics.js is the ONE place they are
+       tied together, so a var() reference here would make the instrument
+       depend on the document. Each is commented with the --doc-* token it
+       came from, so the pairing is traceable without being structural. */
+
+    /* NOT --doc-signal, which is the same bright #F4C031. On the document
+       that value works because PAPER_COUNTERPART maps --app-ground to
+       --doc-navy, so the criticality mark reads navy on amber at 10.97:1.
+       This block remaps --app-ground to #ffffff, so borrowing the bright
+       amber would import the seat WITHOUT the dark ink that makes it
+       legible: white on #F4C031 is 1.69:1. The ochre carries the same mark
+       at 5.48:1, so the solid takes the ochre here and the bright value
+       stays on paper, where its dark ink travels with it. */
+    --app-signal: #856414;
+    --app-signal-wash: rgba(244, 192, 49, 0.16); /* = --doc-signal-wash */
+    --app-signal-border: rgba(138, 106, 22, 0.45); /* = --doc-signal-border */
+    --app-signal-ink: #856414; /* = --doc-ochre */
     --app-signal-ink-dim: #8a6a1a;
+    /* The dimmed border has no --doc-* counterpart, and this is NOT the
+       guess designSemantics records as a stated hole: that hole is the
+       DOCUMENT's missing dim ochre, whereas this block already took the
+       dim decision when it remapped --app-signal-ink-dim above. Leaving
+       the border behind was the half of it that never landed. The base is
+       the paper border's own rgb(138, 106, 22), at the alpha the screen
+       pair itself sets between the two rungs (0.26 of 0.42, applied to
+       0.45). The ladder's At risk keeps a visible outline on paper, which
+       is its non-colour carrier, and stays a notch under Slipping. */
+    --app-signal-border-dim: rgba(138, 106, 22, 0.28);
+    /* --app-signal-strong is deliberately NOT remapped: it has no consumer
+       anywhere in the repo, so nothing can spend it on paper, and picking a
+       paper value for a spend that does not exist is the same guess the
+       paper register refuses to make. See tests/designPrintGuard.test.js,
+       which is where that decision gets revisited the moment it gains one. */
+
+    /* The danger pair is deliberately NOT remapped either, and unlike amber
+       that is measured rather than assumed. The --doc-* register has no
+       danger family to borrow, and the screen values are not broken on
+       paper the way the amber ones were: the salmon rgb(232, 120, 100) is
+       far darker than the bright amber, so at 0.12 over white the wash
+       still seats the remapped --app-danger ink at 6.00:1, and the 0.45
+       border still reads as an edge. Amber needed the flip because bright
+       amber at a low alpha over white is nothing at all. */
     --app-danger: #9c3d2a;
     --app-success: #2e6b54;
     --app-warning: #7a5e1e;
