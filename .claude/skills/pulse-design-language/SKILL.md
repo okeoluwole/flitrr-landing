@@ -27,8 +27,13 @@ of re-deciding it. The sources of truth are code, not this file:
   `app/pulse/app/components/` (`PageHeader`, `ErrorNote`, `CriticalityChip`,
   `SeverityTag` with its `SeverityLegend`, `ViewOnlyBadge`, `DateField`).
 - **Guard tests**: `tests/designTokenGuard.test.js` (no raw colour literal in
-  any app CSS module), `tests/designSemantics.test.js` (mappings complete,
-  loud on unknown values, in lock-step with the engines),
+  any app CSS module, and no two amber tokens in one register sharing a
+  value: the first seals consumption, the second seals the token layer
+  underneath it, because a name spent by the book is worth nothing if two
+  names offer one meaning), `tests/designSemantics.test.js` (mappings
+  complete, loud on unknown values, in lock-step with the engines, and
+  every appearance either crossing to paper cleanly or named in the stated
+  hole list with a reason),
   `tests/designContrast.test.js` (AA on every semantic pairing), and
   `tests/designSurfaceGuard.test.js` (on every converted surface: type rides
   the --app-text scale, positive space rides the --app-space rhythm, amber

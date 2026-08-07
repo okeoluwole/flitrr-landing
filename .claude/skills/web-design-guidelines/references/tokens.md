@@ -133,7 +133,7 @@ Never a side-stripe. There is exactly ONE name per amber value: the wash
 and the border were once also written as `--app-critical-bg` and
 `--app-critical-border`, byte-identical twins that let a rule spend the
 wrong name and still look right. Both are retired, and a guard in
-`tests/designSurfaceGuard.test.js` fails if any two amber tokens in the
+`tests/designTokenGuard.test.js` fails if any two amber tokens in the
 same register share a value again.
 
 ### Primary action and states
