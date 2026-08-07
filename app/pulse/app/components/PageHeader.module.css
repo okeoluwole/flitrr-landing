@@ -22,7 +22,9 @@
   font-weight: 500;
   color: var(--app-ink-secondary);
   text-decoration: none;
-  margin: -0.6rem 0 0.6rem;
+  /* The 44px target is taller than the link reads, so the overshoot is given
+     back as negative margin: the same composition, negated. */
+  margin: calc(-1 * var(--app-space-2)) 0 var(--app-space-2);
   transition: color var(--dur-fast) var(--ease-out);
 }
 
@@ -53,7 +55,7 @@
 .eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: var(--app-space-2);
   font-family: var(--app-font-mono), monospace;
   font-size: var(--app-text-2xs);
   font-weight: 500;

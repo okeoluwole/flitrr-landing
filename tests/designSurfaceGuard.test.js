@@ -23,6 +23,7 @@ import {
   criticalityMarkAppearanceOnPaper,
   scheduleBandAppearance,
   varianceDirectionAppearance,
+  objectiveStatusAppearance,
 } from '../lib/design/semantics.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -37,10 +38,11 @@ const DEFINED_TOKENS = new Set(
 /** The surfaces the sweep has converted so far. Grows, never shrinks.
  *  Sub-step 3 adds the nine-step initiation flow: the wizard sheet every
  *  step shares, plus the flow's own small companions (CriticalityChip,
- *  DateField, SuiteNudge, ErrorNote). PageHeader stays OUT deliberately:
- *  its pulse-line eyebrow mark is the language's one sanctioned amber
+ *  DateField, SuiteNudge, ErrorNote). PageHeader stayed OUT until sub-step
+ *  6: its pulse-line eyebrow mark is the language's one sanctioned amber
  *  chrome element, and this guard rightly holds no exemption list, so the
- *  header seals with its own sub-step rather than an exception here. */
+ *  header waited for a guard shape that could state the claim rather than
+ *  an exception here. See BRAND MARK below. */
 const CONVERTED = [
   'app/pulse/app/actions/ActionLog.module.css',
   'app/pulse/app/risk/RiskRegister.module.css',
@@ -60,6 +62,14 @@ const CONVERTED = [
   'app/pulse/app/programme/ProgrammeTracking.module.css',
   'app/pulse/app/programme/setup/ProgrammeSetup.module.css',
   'app/pulse/app/gate/GateReview.module.css',
+  // Sub-step 6, the chrome. It must recede: the test of chrome is that
+  // converting it changes nothing a reader would name.
+  'app/pulse/app/components/PageHeader.module.css',
+  'app/pulse/app/components/ViewOnlyBadge.module.css',
+  'app/components/DashboardShell.module.css',
+  // Sub-step 6, the front door: the one surface a reader meets before any
+  // project context exists.
+  'app/pulse/app/page.module.css',
 ];
 
 function read(rel) {
@@ -173,6 +183,65 @@ function svgTextTagSpans(js) {
     spans.push([m.index, i]);
   }
   return spans;
+}
+
+/**
+ * BRAND MARK: the second amber allowance, added in sub-step 6.
+ *
+ * Two rules on the chrome spend amber and are not criticality: PageHeader's
+ * pulse-line eyebrow glyph and DashboardShell's Flitrr brand dot. Renaming
+ * them to declare criticality would be a lie in the file, and an exemption
+ * list is what this guard refuses to hold, so the allowance is a SHAPE.
+ *
+ * The real claim is that these marks MEAN NOTHING. A semantic amber must be
+ * perceivable and labelled: the language's second colour rule says every
+ * state also reads through its label, shape or weight, so a status is always
+ * announced. A brand mark is the exact inverse: it is hidden from assistive
+ * technology entirely, and it is a fixed-size glyph rather than a run of
+ * type or a container. So a rule may spend amber where, for every class in
+ * its selector:
+ *   1. the class is used in the surface's own JS, and EVERY use sits on an
+ *      element carrying aria-hidden, and
+ *   2. the class is drawn at a fixed pixel width AND height in this
+ *      stylesheet, so it is a glyph and not a label or a panel.
+ *
+ * That cannot be abused. To smuggle a status read through it you would have
+ * to hide that status from screen readers and pin it to a fixed glyph box,
+ * which breaks the colour rule far more loudly than a naming slip and fails
+ * the accessibility guards besides. It fails closed: a class the JS never
+ * uses, or uses on a visible element, or that has no fixed glyph box, does
+ * not get the allowance.
+ *
+ * It is NARROWER than "brand mark" as a concept, deliberately. An amber
+ * wordmark set in type would not pass, because it would carry a label and
+ * have no glyph box. Only a decorative fixed-size glyph passes, which is
+ * what both of these actually are.
+ */
+const DECORATIVE = /aria-hidden\s*=\s*(?:"true"|\{\s*true\s*\})/;
+
+/** The source of the JSX opening tag enclosing a given index, brace-aware
+ *  so an expression attribute cannot end the tag early. */
+function openingTagAt(js, index) {
+  const start = js.lastIndexOf('<', index);
+  if (start === -1) return '';
+  let depth = 0;
+  let i = start;
+  for (; i < js.length; i++) {
+    const ch = js[i];
+    if (ch === '{') depth++;
+    else if (ch === '}') depth--;
+    else if (ch === '>' && depth === 0) break;
+  }
+  return js.slice(start, i + 1);
+}
+
+/** Every rule body in a stylesheet whose selector names this class. */
+function bodiesFor(css, name) {
+  const token = new RegExp(`\\.${name}(?![A-Za-z0-9_-])`);
+  return rules(css)
+    .filter(({ selector }) => token.test(selector))
+    .map(({ body }) => body)
+    .join('\n');
 }
 
 /** Every class name mentioned in a selector. */
@@ -338,19 +407,74 @@ describe('amber is spent only by rules named for criticality', () => {
   // passing. A guard that passes for the wrong reason is worse than none,
   // because it gets counted as evidence.
   const AMBER = /--(app|doc)-(signal|critical|ochre)/;
+  const AMBER_TOKEN = /^--(app|doc)-(signal|critical|ochre)/;
 
   for (const rel of CONVERTED) {
     it(rel, () => {
+      const css = stripComments(read(rel));
+      const js = siblingJs(rel);
+
+      /** Category (b): a decorative, fixed-size glyph. See BRAND MARK. */
+      function isBrandMark(selector) {
+        const names = classesIn(selector);
+        if (names.length === 0) return false;
+        return names.every((name) => {
+          const uses = [
+            ...js.matchAll(new RegExp(`\\bstyles\\.${name}\\b`, 'g')),
+          ];
+          if (uses.length === 0) return false;
+          if (!uses.every((u) => DECORATIVE.test(openingTagAt(js, u.index)))) {
+            return false;
+          }
+          const own = bodiesFor(css, name);
+          return (
+            /(?:^|[;{\s])width\s*:\s*[0-9.]+px/.test(own) &&
+            /(?:^|[;{\s])height\s*:\s*[0-9.]+px/.test(own)
+          );
+        });
+      }
+
       const offenders = [];
-      for (const { selector, body } of rules(stripComments(read(rel)))) {
-        if (AMBER.test(body) && !/critical/i.test(selector)) {
-          offenders.push(selector);
-        }
+      for (const { selector, body } of rules(css)) {
+        if (!AMBER.test(body)) continue;
+        if (/critical/i.test(selector)) continue;
+        if (isLadderRung(body)) continue;
+        if (isBrandMark(selector)) continue;
+        offenders.push(selector);
       }
       expect(
         offenders,
         `amber outside a criticality-named rule in ${rel}: ${offenders.join(', ')}`
       ).toEqual([]);
+    });
+  }
+
+  /**
+   * Category (a): the objective status ladder, added in sub-step 6.
+   *
+   * The dashboard's amber is not criticality and renaming it to say so
+   * would be a lie: criticality is what an item THREATENS, the ladder is
+   * how threatened an objective currently IS. objectiveStatusAppearance
+   * gives at_risk and slipping amber deliberately, because on the ladder
+   * amber is EXPOSURE, brightening toward breach while red stays reserved
+   * for breach itself. designSemantics already names those two in its
+   * allowedAmber set. The axes never blur, so the names must not either.
+   *
+   * The permission and the lock-step are the SAME assertion: a rule passes
+   * only if every amber token it spends belongs to ONE ladder rung's
+   * appearance, and it spends at least one. A rule that merely looks like a
+   * status name does not pass; a rule that reaches for any other amber does
+   * not pass, even one resolving to an identical value.
+   */
+  function isLadderRung(body) {
+    const spent = varsIn(body).filter((t) => AMBER_TOKEN.test(t));
+    if (spent.length === 0) return false;
+    return ['at_risk', 'slipping'].some((rung) => {
+      const a = objectiveStatusAppearance(rung);
+      const own = new Set(
+        [a.ink, a.fill, a.border, a.markFill].filter(Boolean)
+      );
+      return spent.every((t) => own.has(t));
     });
   }
 });

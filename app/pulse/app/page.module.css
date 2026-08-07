@@ -7,7 +7,8 @@
 ───────────────────────────────────────── */
 
 .page {
-  padding-block: 2.75rem 6rem;
+  padding-block: calc(var(--app-space-6) + var(--app-space-3))
+    calc(var(--app-space-8) + var(--app-space-6));
 }
 
 /* ── Header: PageHeader carries the frame; only the page's own action
@@ -17,12 +18,12 @@
 .newBtn {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--app-space-2);
   flex-shrink: 0;
   background-color: var(--app-primary);
   color: var(--app-primary-ink);
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   letter-spacing: -0.005em;
   padding: 10px 16px;
@@ -82,8 +83,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 1.05rem 1.35rem;
+  gap: var(--app-space-4);
+  padding: var(--app-space-4) var(--app-space-5);
   text-decoration: none;
   transition: background-color 0.15s ease;
 }
@@ -102,9 +103,13 @@
   border-radius: 2px;
 }
 
-/* A draft row reserves clearance for the floating delete control. */
+/* A draft row reserves clearance for the floating delete control. The
+   composition states what it clears: the 2rem control, its inset, and a
+   gutter, so moving the control moves the clearance with it. */
 .listItem:has(.cardDelete) .cardLink {
-  padding-right: 3.6rem;
+  padding-right: calc(
+    var(--app-space-6) + var(--app-space-4) + var(--app-space-3)
+  );
 }
 
 .cardMain {
@@ -113,19 +118,21 @@
 
 .cardName {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 1rem;
+  /* The card title role. (1rem sat exactly between base and md; the role,
+     not the rounding, settles it.) */
+  font-size: var(--app-text-base);
   font-weight: 600;
   line-height: 1.25;
   letter-spacing: -0.01em;
   color: var(--app-ink);
-  margin: 0 0 0.3rem;
+  margin: 0 0 var(--app-space-1);
   overflow-wrap: break-word;
 }
 
 /* Stage numeral and date: the numeric instrument voice. */
 .cardMeta {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.75rem;
+  font-size: var(--app-text-xs);
   font-weight: 400;
   line-height: 1.5;
   letter-spacing: 0.01em;
@@ -136,7 +143,7 @@
 .cardRight {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: var(--app-space-4);
   flex-shrink: 0;
 }
 
@@ -164,7 +171,7 @@
 .cardDelete {
   position: absolute;
   top: 50%;
-  right: 0.9rem;
+  right: var(--app-space-4);
   transform: translateY(-50%);
   z-index: 1;
   display: inline-flex;
@@ -199,21 +206,21 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: var(--app-space-4);
   background-color: var(--app-danger-wash);
-  padding: 1.05rem 1.35rem;
+  padding: var(--app-space-4) var(--app-space-5);
 }
 
 .confirmText {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--app-space-1);
   min-width: 0;
 }
 
 .confirmTitle {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   font-weight: 600;
   letter-spacing: -0.005em;
   color: var(--app-ink);
@@ -221,7 +228,7 @@
 
 .confirmNote {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   line-height: 1.5;
   color: var(--app-ink-secondary);
   max-width: 60ch;
@@ -229,17 +236,17 @@
 
 .confirmActions {
   display: inline-flex;
-  gap: 0.6rem;
+  gap: var(--app-space-2);
   flex-shrink: 0;
 }
 
 .cancelBtn,
 .deleteBtn {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   border-radius: var(--app-radius-sm);
-  padding: 0.55rem 1rem;
+  padding: var(--app-space-2) var(--app-space-4);
   cursor: pointer;
   transition: background-color 0.15s ease, border-color 0.15s ease,
     filter 0.15s ease, opacity 0.15s ease;
@@ -280,10 +287,10 @@
 
 .deleteError {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 500;
   color: var(--app-danger);
-  margin-top: 1rem;
+  margin-top: var(--app-space-4);
 }
 
 /* ── Status chips ──────────────────────── */
@@ -295,7 +302,7 @@
   display: inline-flex;
   align-items: center;
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -331,7 +338,7 @@
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-elev-1);
-  padding: 3rem 2.5rem;
+  padding: var(--app-space-7) calc(var(--app-space-6) + var(--app-space-2));
   text-align: center;
   max-width: 520px;
   margin-inline: auto;
@@ -339,20 +346,20 @@
 
 .emptyHeading {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 1.1875rem;
+  font-size: var(--app-text-ml);
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--app-ink);
-  margin-bottom: 0.6rem;
+  margin-bottom: var(--app-space-2);
 }
 
 .emptyBody {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 400;
   line-height: 1.55;
   color: var(--app-ink-secondary);
-  margin: 0 auto 1.6rem;
+  margin: 0 auto var(--app-space-5);
   max-width: 400px;
 }
 
@@ -361,7 +368,7 @@
   background-color: var(--app-primary);
   color: var(--app-primary-ink);
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   padding: 10px 18px;
   border: none;

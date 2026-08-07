@@ -47,12 +47,17 @@ of re-deciding it. The sources of truth are code, not this file:
   fork. From sub-step 5 the three Programme surfaces are in CONVERTED, their
   criticality rules are held to `criticalityAppearance` and their band rules
   to `scheduleBandAppearance`, and the tracker's variance ramp is held to
-  both. A sub-step adds its surfaces to CONVERTED as it converts them.) If
-  your change fails one of these, fix the change, not the test.
+  both. Sub-step 6 adds the shared chrome (PageHeader, ViewOnlyBadge,
+  DashboardShell), the project list, the dashboard and the workspace, with
+  the amber census gaining the two shapes below. A sub-step adds its
+  surfaces to CONVERTED as it converts them.) If your change fails one of
+  these, fix the change, not the test.
 
-Two properties sit outside the rhythm and the scale on purpose. Each is
-stated in the guard as a SHAPE, never as a file exemption or a class-name
-allowlist, because the guard holds no exemption list:
+Four things sit outside the plain rules on purpose. Each is stated in the
+guard as a SHAPE, never as a file exemption or a class-name allowlist,
+because the guard holds no exemption list. The first two are properties off
+the rhythm and the scale; the last two are amber spends outside a
+criticality-named rule, added in sub-step 6:
 
 - **`scroll-margin-top` is not positive space.** It compensates for the
   height of sticky chrome so an anchored element lands below the header, so
@@ -70,6 +75,29 @@ allowlist, because the guard holds no exemption list:
   use of that class in the surface's own JS must be on an SVG `<text>` or
   `<tspan>`. It fails closed, so a class the JS never uses, or uses on an
   HTML element, does not get the allowance.
+- **A ladder rung spends amber because exposure is not criticality.**
+  Criticality is what an item THREATENS; the objective status ladder is how
+  threatened an objective currently IS. `objectiveStatusAppearance` gives
+  `at_risk` and `slipping` amber deliberately, because on the ladder amber
+  brightens toward breach while red stays reserved for breach itself. The
+  permission and the lock-step are one assertion: every amber token a rule
+  spends must belong to ONE rung's appearance, and it must spend at least
+  one. A rule that merely looks like a status name does not pass, and
+  neither does one reaching for any other amber, including one that
+  resolves to an identical value.
+- **A brand mark spends amber because it means nothing at all.** A semantic
+  amber must be perceivable and labelled (colour is never the only carrier),
+  so a status is always announced. A brand mark is the inverse: hidden from
+  assistive technology, and a fixed-size glyph rather than a run of type.
+  The guard requires both, per class in the selector: every use in the
+  surface's own JS sits on an `aria-hidden` element, AND the class is drawn
+  at a fixed px width and height in that stylesheet. It admits PageHeader's
+  pulse-line eyebrow mark and DashboardShell's Flitrr dot. It fails closed,
+  and a status read cannot claim it without hiding itself from screen
+  readers, which breaks the colour rule far more loudly. Know its width: it
+  is structural, so it would also admit an amber decorative glyph that is
+  not the brand's (the console chevron is the same shape). The prose rule
+  below stays the authority on which chrome may be amber.
 
 This file records the rules and the vocabulary. Where it and the code ever
 disagree, the code wins; update this file in the same commit.

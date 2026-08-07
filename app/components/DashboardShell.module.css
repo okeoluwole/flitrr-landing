@@ -33,10 +33,13 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: var(--app-space-2);
   font-family: var(--app-font-sans), sans-serif;
   font-weight: 600;
-  font-size: 1rem;
+  /* Brand chrome rather than document type, so it sits one step above body.
+     (1rem sat exactly between base and md; the role, not the rounding,
+     settles it.) */
+  font-size: var(--app-text-md);
   line-height: 1;
   letter-spacing: -0.01em;
   color: var(--app-on-console);
@@ -58,7 +61,7 @@
   height: 6px;
   border-radius: 50%;
   background: var(--app-signal);
-  margin-bottom: 0.45rem;
+  margin-bottom: var(--app-space-2);
   flex: none;
 }
 
@@ -82,11 +85,11 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--app-space-2);
   background: none;
   border: 1px solid transparent;
   border-radius: var(--app-radius-sm);
-  padding: 0.4rem 0.7rem;
+  padding: var(--app-space-2) var(--app-space-3);
   font-family: var(--app-font-sans), sans-serif;
   font-size: var(--app-text-control);
   font-weight: 500;
@@ -136,7 +139,7 @@
   background-color: var(--app-surface-raised);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius);
-  padding: 0.35rem;
+  padding: var(--app-space-1);
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -160,7 +163,7 @@
   background: none;
   border: none;
   border-radius: var(--app-radius-sm);
-  padding: 0.55rem 0.7rem;
+  padding: var(--app-space-2) var(--app-space-3);
   font-family: var(--app-font-sans), sans-serif;
   font-size: var(--app-text-control);
   font-weight: 500;
@@ -183,7 +186,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: var(--app-space-2);
   color: var(--app-ink-muted);
   cursor: default;
 }
