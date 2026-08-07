@@ -25,15 +25,11 @@
    as the page meta it is. */
 
 .baselineChip {
-  font-family: var(--app-font-mono), monospace;
-  font-size: var(--app-text-2xs);
-  font-weight: 500;
+  composes: microLabel from '../../../components/instrument.module.css';
   letter-spacing: 0.05em;
-  text-transform: uppercase;
   color: var(--app-ink-secondary);
   background: transparent;
   border: 1px solid var(--app-border);
-  border-radius: 999px;
   padding: 3px 10px;
   white-space: nowrap;
 }
@@ -406,10 +402,7 @@
 }
 
 .card {
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
-  box-shadow: var(--app-elev-1);
+  composes: seatedPanel from '../../../components/instrument.module.css';
   padding: var(--app-space-3) var(--app-space-4) var(--app-space-4);
   display: flex;
   flex-direction: column;
@@ -521,14 +514,10 @@
 /* The gate card's chip: monochrome status, never amber. Slipping is the
    bright chip, on track the quiet outline. */
 .statusChip {
+  composes: microLabel from '../../../components/instrument.module.css';
   display: inline-flex;
-  font-family: var(--app-font-mono), monospace;
-  font-size: var(--app-text-2xs);
-  font-weight: 500;
   letter-spacing: 0.05em;
-  text-transform: uppercase;
   padding: 3px 10px;
-  border-radius: 999px;
   border: 1px solid transparent;
   white-space: nowrap;
 }
@@ -551,13 +540,10 @@
       stay distinct at a thumb's width. ── */
 
 .look {
+  composes: seatedPanel from '../../../components/instrument.module.css';
   list-style: none;
   margin: 0;
   padding: 0;
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
-  box-shadow: var(--app-elev-1);
   overflow: hidden;
 }
 
@@ -734,11 +720,8 @@
 /* ── The no-baseline pointer (server-rendered): set-up first. ── */
 
 .placeholder {
+  composes: seatedPanel from '../../../components/instrument.module.css';
   margin-top: var(--app-space-6);
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
-  box-shadow: var(--app-elev-1);
   padding: var(--app-space-5);
 }
 
@@ -835,10 +818,7 @@
       header row appears and the per-cell labels go screen-reader-only. ── */
 
 .pointsTable {
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
-  box-shadow: var(--app-elev-1);
+  composes: seatedPanel from '../../../components/instrument.module.css';
   overflow: hidden;
 }
 
@@ -1353,10 +1333,7 @@
       ink, never signal. ── */
 
 .cxFrame {
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
-  box-shadow: var(--app-elev-1);
+  composes: seatedPanel from '../../../components/instrument.module.css';
   padding: var(--app-space-2) var(--app-space-4) var(--app-space-3);
 }
 

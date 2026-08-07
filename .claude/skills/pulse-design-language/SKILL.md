@@ -26,6 +26,9 @@ of re-deciding it. The sources of truth are code, not this file:
 - **Shared chrome**: `app/components/DashboardShell.js` and
   `app/pulse/app/components/` (`PageHeader`, `ErrorNote`, `CriticalityChip`,
   `SeverityTag` with its `SeverityLegend`, `ViewOnlyBadge`, `DateField`).
+- **Composition primitives**: `app/components/instrument.module.css`
+  (`seatedPanel`, `microLabel`, `neutralChip`), consumed with `composes`.
+  Never hand-build one of these recipes again.
 - **Guard tests**: `tests/designTokenGuard.test.js` (no raw colour literal in
   any app CSS module, and no two amber tokens in one register sharing a
   value: the first seals consumption, the second seals the token layer
@@ -252,6 +255,41 @@ Consume a **role**, not a raw size:
   tags are 4px. Nothing above 16px.
 - Depth: `--app-elev-1` on seated panels, `--app-elev-2` on raised popovers.
   Panels seat on hairlines; they never float as gapped cards.
+
+## The composition primitives
+
+`app/components/instrument.module.css`. The token layer names COLOURS and
+`lib/design/semantics.js` names MEANINGS. Neither names SHAPES, so the two
+idioms this file describes by name had no existence in the code: the seated
+panel was spent as four separate properties by 31 rules across 13 files, and
+the mono micro-label pill as five by nine rules across seven. Same disease
+as the token duplication, one level up in the composition layer.
+
+They are CSS Modules `composes` targets, not React components, because they
+are style recipes and not behaviour. That keeps them in the CSS layer,
+invents no component boundary, and leaves every class name and every piece
+of JSX untouched.
+
+- `.seatedPanel`: `--app-surface`, a 1px `--app-border`, `--app-radius-lg`,
+  `--app-elev-1`. Padding is NOT in it: the rhythm step a panel takes is a
+  decision about that panel's density, where the seat is the same everywhere.
+- `.microLabel`: mono, `--app-text-2xs`, 500, uppercase, 999px. The exact
+  intersection of all nine pills. Tracking is NOT in it, because the
+  language gives micro labels two settings (0.14em on eyebrows, 0.05em on
+  chips) and DashboardShell takes a third.
+- `.neutralChip`: composes `.microLabel` and adds the chip box. Three rules
+  carried its eleven declarations byte-identically; the other six pills
+  compose `.microLabel` alone, because composing the box would ADD layout
+  they do not have.
+
+A consumer REMOVES the declarations and composes, so no property is ever set
+in both places and bundle order can never decide anything. Two rules stay
+hand-built on purpose and are not lapses: ProgrammeTracking's `.blockEmpty`
+is a well that always nests inside a panel, so it drops the shadow rather
+than double-seating; Workspace's `.nextStep` sets the same four properties
+from `--app-surface-raised` and `--app-border-strong` and is a raised call
+to action, not a seated panel. The guard fires on the WHOLE recipe at the
+recipe's own VALUES, so it admits both without an allowlist.
 - Focus: `outline: 2px solid var(--app-focus)` with offset 2 (or -2 inside
   rows); `--app-focus-ring` for a paired soft glow. White everywhere.
 - Touch: 44px minimum targets on the phone-first surfaces (use `::after`

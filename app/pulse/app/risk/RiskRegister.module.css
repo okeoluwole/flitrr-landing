@@ -267,15 +267,12 @@
 /* ── Summary bar ───────────────────────── */
 
 .summary {
+  composes: seatedPanel from '../../../components/instrument.module.css';
   display: flex;
   align-items: center;
   gap: var(--app-space-6);
   flex-wrap: wrap;
   padding: var(--app-space-4) var(--app-space-5);
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
-  box-shadow: var(--app-elev-1);
   margin-bottom: var(--app-space-5);
 }
 
@@ -495,10 +492,7 @@
 }
 
 .card {
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
-  box-shadow: var(--app-elev-1);
+  composes: seatedPanel from '../../../components/instrument.module.css';
   padding: var(--app-space-4) var(--app-space-5);
   /* Cards are anchor targets (the Action Log links into the register by
      risk id), so give fragment navigation breathing room at the top. */

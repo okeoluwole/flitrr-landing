@@ -7,17 +7,7 @@
  */
 
 .chip {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--app-font-mono), monospace;
-  font-size: var(--app-text-2xs);
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 3px 10px;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  white-space: nowrap;
+  composes: neutralChip from '../../../components/instrument.module.css';
 }
 
 .critical {

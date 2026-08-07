@@ -196,16 +196,12 @@
 }
 
 .menuSoon {
-  font-family: var(--app-font-mono), monospace;
-  font-size: var(--app-text-2xs);
-  font-weight: 500;
+  composes: microLabel from './instrument.module.css';
   letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--app-ink-secondary);
   background-color: var(--app-surface-sunken);
   border: 1px solid var(--app-hairline);
   padding: 2px 7px;
-  border-radius: 999px;
 }
 
 .menuItemAction {

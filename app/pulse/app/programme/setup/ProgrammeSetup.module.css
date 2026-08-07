@@ -87,11 +87,8 @@
 }
 
 .card {
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
+  composes: seatedPanel from '../../../../components/instrument.module.css';
   padding: var(--app-space-4);
-  box-shadow: var(--app-elev-1);
 }
 
 /* A force breaches a confirmed hard floor: the one critical state, the house
@@ -130,14 +127,10 @@
    flag_verify; the force tier takes the criticality pill, the card's one
    amber read beside its wash. */
 .tierChip {
+  composes: microLabel from '../../../../components/instrument.module.css';
   flex-shrink: 0;
-  font-family: var(--app-font-mono), monospace;
-  font-size: var(--app-text-2xs);
-  font-weight: 500;
   letter-spacing: 0.05em;
-  text-transform: uppercase;
   padding: 3px 10px;
-  border-radius: 999px;
   background: transparent;
   border: 1px solid var(--app-border);
   color: var(--app-ink-secondary);
@@ -533,14 +526,15 @@
 
 /* One seated panel, worn by both the placeholders and the locked record:
    the same seat, so it is written once rather than twice. */
-.placeholder,
-.lockedPanel {
+.placeholder {
+  composes: seatedPanel from '../../../../components/instrument.module.css';
   margin-top: var(--app-space-6);
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
   padding: var(--app-space-5);
-  box-shadow: var(--app-elev-1);
+}
+.lockedPanel {
+  composes: seatedPanel from '../../../../components/instrument.module.css';
+  margin-top: var(--app-space-6);
+  padding: var(--app-space-5);
 }
 
 .placeholderLead {
@@ -656,11 +650,8 @@
       hairline rows, the same table the tracking surface reads after lock. ── */
 
 .stages {
+  composes: seatedPanel from '../../../../components/instrument.module.css';
   margin-top: var(--app-space-5);
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
-  box-shadow: var(--app-elev-1);
   overflow: hidden;
 }
 
@@ -972,16 +963,12 @@
 /* Locked is a state, not a verdict: the workspace's bright monochrome chip
    (its one sanctioned raw value), never green, never amber. */
 .lockedBadge {
+  composes: microLabel from '../../../../components/instrument.module.css';
   display: inline-flex;
   align-items: center;
   gap: var(--app-space-2);
-  font-family: var(--app-font-mono), monospace;
-  font-size: var(--app-text-2xs);
-  font-weight: 500;
   letter-spacing: 0.05em;
-  text-transform: uppercase;
   padding: 3px 10px;
-  border-radius: 999px;
   background: var(--app-fill);
   border: 1px solid var(--app-border-strong);
   color: var(--app-ink);

@@ -29,10 +29,7 @@
 /* modules).                                                           */
 
 .locked {
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
-  box-shadow: var(--app-elev-1);
+  composes: seatedPanel from '../../../components/instrument.module.css';
   padding: var(--app-space-5) var(--app-space-4);
   max-width: 34rem;
 }
@@ -167,10 +164,7 @@
 }
 
 .ladderPanel {
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
-  box-shadow: var(--app-elev-1);
+  composes: seatedPanel from '../../../components/instrument.module.css';
   overflow: hidden;
 }
 
@@ -450,13 +444,10 @@
 }
 
 .attnList {
+  composes: seatedPanel from '../../../components/instrument.module.css';
   list-style: none;
   margin: 0;
   padding: 0;
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
-  box-shadow: var(--app-elev-1);
   overflow: hidden;
 }
 

@@ -62,11 +62,8 @@
 
 /* One seated panel; the rows divide with hairlines. */
 .list {
+  composes: seatedPanel from '../../components/instrument.module.css';
   list-style: none;
-  background-color: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
-  box-shadow: var(--app-elev-1);
   overflow: hidden;
 }
 
@@ -299,17 +296,7 @@
    Intensity carries the read: Active brightest, Draft quieter,
    the rest metadata. */
 .pill {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--app-font-mono), monospace;
-  font-size: var(--app-text-2xs);
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 3px 10px;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  white-space: nowrap;
+  composes: neutralChip from '../../components/instrument.module.css';
   flex-shrink: 0;
 }
 
@@ -334,10 +321,7 @@
 /* ── Empty state ───────────────────────── */
 
 .empty {
-  background-color: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
-  box-shadow: var(--app-elev-1);
+  composes: seatedPanel from '../../components/instrument.module.css';
   padding: var(--app-space-7) calc(var(--app-space-6) + var(--app-space-2));
   text-align: center;
   max-width: 520px;

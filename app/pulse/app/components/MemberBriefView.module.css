@@ -22,11 +22,8 @@
 
 /* No locked baseline yet: a sparse read-only state on a seated panel. */
 .placeholder {
+  composes: seatedPanel from '../../../components/instrument.module.css';
   margin-top: var(--app-space-2);
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
-  box-shadow: var(--app-elev-1);
   padding: var(--app-space-5);
 }
 

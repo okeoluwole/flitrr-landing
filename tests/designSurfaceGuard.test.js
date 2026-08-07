@@ -74,6 +74,11 @@ const CONVERTED = [
   // needs me". The dashboard's spine is the objective status ladder.
   'app/pulse/app/dashboard/ProjectDashboard.module.css',
   'app/pulse/app/workspace/Workspace.module.css',
+  // The follow-on: the composition primitives themselves. The token layer
+  // names colours and semantics.js names meanings; neither named SHAPES,
+  // so the seated panel and the mono micro-label pill existed only as
+  // prose in the language and as N hand-built copies in the surfaces.
+  'app/components/instrument.module.css',
 ];
 
 function read(rel) {
@@ -1157,6 +1162,144 @@ describe('--doc-* stays a colour and face register, never a second scale', () =>
       offenders,
       `--doc-* consumed as type or space:\n  ${offenders.join('\n  ')}`
     ).toEqual([]);
+  });
+});
+
+describe('a composition primitive cannot be hand-built again', () => {
+  /**
+   * The follow-on's other half. The token layer names COLOURS and
+   * lib/design/semantics.js names MEANINGS; neither names SHAPES, so two
+   * idioms the design language describes by name had no existence in the
+   * code. The seated panel was spent as four separate properties by 31
+   * rules across 13 files, and the mono micro-label pill as five by nine
+   * rules across seven. That is the same "one intent expressed N times"
+   * disease the token layer was cured of, one level up.
+   *
+   * app/components/instrument.module.css holds them now, and a consumer
+   * REMOVES the declarations and composes instead. So the claim is simply
+   * that nobody carries a whole recipe by hand any more: if you want it,
+   * you compose it, and then you do not carry it.
+   *
+   * Scoped as a computable SHAPE, not a file allowlist: any rule, in any
+   * authenticated module, that sets every property of a recipe to the
+   * recipe's own value. Two limits, stated rather than hidden:
+   *
+   *   1. It fires on the WHOLE recipe. A rule carrying three of the four
+   *      is a different idiom, not a lapse, and ProgrammeTracking's
+   *      .blockEmpty is today's only one: an empty-state well that always
+   *      nests INSIDE .panel or .block, so it drops the shadow rather than
+   *      double-seating a panel within a panel. The language is explicit
+   *      that panels seat on hairlines and never float as gapped cards.
+   *      Widening this to three-of-four would flag that as a defect and be
+   *      wrong.
+   *   2. It fires on the recipe's own VALUES. Workspace's .nextStep sets
+   *      the same four properties from --app-surface-raised and
+   *      --app-border-strong, and is a raised call to action rather than a
+   *      seated panel. A guard keyed on property names alone would drag it
+   *      in and force a variant that means something else.
+   */
+  const TREES = ['app/pulse/app', 'app/components', 'app/dashboard'];
+  const PRIMITIVE = 'app/components/instrument.module.css';
+
+  const RECIPES = [
+    {
+      name: 'seatedPanel',
+      declarations: [
+        /(?:^|[;{\s])background:\s*var\(--app-surface\)\s*(?:;|$)/,
+        /(?:^|[;{\s])border:\s*1px solid var\(--app-border\)\s*(?:;|$)/,
+        /(?:^|[;{\s])border-radius:\s*var\(--app-radius-lg\)\s*(?:;|$)/,
+        /(?:^|[;{\s])box-shadow:\s*var\(--app-elev-1\)\s*(?:;|$)/,
+      ],
+    },
+    {
+      name: 'microLabel',
+      declarations: [
+        /(?:^|[;{\s])font-family:\s*var\(--app-font-mono\), monospace\s*(?:;|$)/,
+        /(?:^|[;{\s])font-size:\s*var\(--app-text-2xs\)\s*(?:;|$)/,
+        /(?:^|[;{\s])font-weight:\s*500\s*(?:;|$)/,
+        /(?:^|[;{\s])text-transform:\s*uppercase\s*(?:;|$)/,
+        /(?:^|[;{\s])border-radius:\s*999px\s*(?:;|$)/,
+      ],
+    },
+  ];
+
+  function modulesUnder(dir) {
+    const out = [];
+    for (const entry of readdirSync(path.join(ROOT, dir), { withFileTypes: true })) {
+      const rel = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) out.push(...modulesUnder(rel));
+      else if (entry.name.endsWith('.module.css')) out.push(rel);
+    }
+    return out;
+  }
+
+  const modules = TREES.flatMap(modulesUnder).filter((rel) => rel !== PRIMITIVE);
+
+  it('found the modules, so the assertions below can bite', () => {
+    expect(modules.length).toBeGreaterThan(15);
+  });
+
+  it('the primitives really are defined where they claim to be', () => {
+    // Without this the assertion below would pass beautifully on a repo
+    // where the recipes had been deleted and every consumer left bare.
+    const css = stripComments(read(PRIMITIVE));
+    const defined = new Map(
+      rules(css).map(({ selector, body }) => [selector.trim(), body])
+    );
+    for (const recipe of RECIPES) {
+      const body = defined.get(`.${recipe.name}`);
+      expect(body, `.${recipe.name} missing from ${PRIMITIVE}`).toBeTruthy();
+      for (const declaration of recipe.declarations) {
+        // microLabel's own declarations may arrive through its composes
+        // chain, so check the recipe resolves rather than the literal rule.
+        const resolved =
+          body +
+          (body.match(/composes:\s*([A-Za-z][A-Za-z0-9_-]*)/g) || [])
+            .map((c) => defined.get(`.${c.split(/\s+/).pop()}`) ?? '')
+            .join('\n');
+        expect(
+          declaration.test(resolved),
+          `.${recipe.name} no longer carries ${declaration}`
+        ).toBe(true);
+      }
+    }
+  });
+
+  for (const recipe of RECIPES) {
+    it(`no surface hand-builds ${recipe.name}`, () => {
+      const offenders = [];
+      for (const rel of modules) {
+        for (const { selector, body } of rules(stripComments(read(rel)))) {
+          if (recipe.declarations.every((d) => d.test(body))) {
+            offenders.push(`${rel} ${selector.trim()}`);
+          }
+        }
+      }
+      expect(
+        offenders,
+        `${recipe.name} spelled out by hand instead of composed. Remove the ` +
+          `declarations and add:\n  composes: ${recipe.name} from ` +
+          `'<relative path>/instrument.module.css';\n  ${offenders.join('\n  ')}`
+      ).toEqual([]);
+    });
+  }
+
+  it('the primitives are actually consumed, not merely defined', () => {
+    // A recipe nobody composes is a recipe that has quietly been abandoned
+    // while the guard above went on passing for want of anything to catch.
+    const composed = new Map(RECIPES.map((r) => [r.name, 0]));
+    for (const rel of modules) {
+      for (const m of read(rel).matchAll(
+        /composes:\s*([A-Za-z][A-Za-z0-9_-]*)\s+from\s+'[^']*instrument\.module\.css'/g
+      )) {
+        if (composed.has(m[1])) composed.set(m[1], composed.get(m[1]) + 1);
+      }
+    }
+    // neutralChip composes microLabel inside the primitive, so surfaces
+    // reaching for the chip count toward the label too.
+    for (const [name, count] of composed) {
+      expect(count, `nothing composes ${name}`).toBeGreaterThan(0);
+    }
   });
 });
 

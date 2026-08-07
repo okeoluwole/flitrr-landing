@@ -150,13 +150,10 @@
 }
 
 .featured {
+  composes: seatedPanel from '../../../components/instrument.module.css';
   display: flex;
   align-items: center;
   gap: var(--app-space-5);
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
-  box-shadow: var(--app-elev-1);
   padding: var(--app-space-5);
   text-decoration: none;
   margin-bottom: var(--app-space-6);
@@ -242,17 +239,7 @@
 /* The Brief's lock state: monochrome by intensity, like the hub's status
    pills. Locked reads brightest; in setup is the quiet draft read. */
 .chip {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--app-font-mono), monospace;
-  font-size: var(--app-text-2xs);
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 3px 10px;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  white-space: nowrap;
+  composes: neutralChip from '../../../components/instrument.module.css';
 }
 
 .chipLocked {
@@ -306,13 +293,10 @@
 
 /* One seated register; the module rows divide with hairlines. */
 .register {
+  composes: seatedPanel from '../../../components/instrument.module.css';
   list-style: none;
   margin: 0;
   padding: 0;
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
-  box-shadow: var(--app-elev-1);
   overflow: hidden;
 }
 

@@ -1,0 +1,83 @@
+/* ─────────────────────────────────────────
+   The Instrument's composition primitives.
+
+   The token layer names COLOURS and lib/design/semantics.js names MEANINGS.
+   Neither names SHAPES, so two idioms the design language describes by name
+   had no existence in the code: the seated panel and the mono micro-label
+   pill. Both were hand-built from their constituent properties at every
+   appearance, which is the same "one intent expressed N times" disease the
+   token layer was cured of, one level up in the composition layer.
+
+   These are style recipes, not behaviour, so they are CSS Modules
+   `composes` targets rather than React components. That keeps them in the
+   CSS layer where they belong, invents no component boundary no surface
+   asked for, and leaves every existing class name and every piece of JSX
+   untouched.
+
+   A consumer REMOVES the recipe's declarations and composes instead, so no
+   property is ever set in both places. That matters: a composed class lands
+   in its own cascade position, and if a surface both composed a recipe and
+   re-declared one of its properties at the same specificity, the winner
+   would depend on bundle order rather than on the stylesheet. There are no
+   such overlaps; the three rules that do override one of these properties
+   (InitiationWizard's .panel.panel in print, and Workspace's .featured
+   :active and :hover descendants) all carry higher specificity and are
+   unaffected.
+───────────────────────────────────────── */
+
+/* ── The seated panel ──────────────────────
+   The language: "Depth: --app-elev-1 on seated panels. Panels seat on
+   hairlines; they never float as gapped cards." Four properties, spent
+   together 31 times across 13 files before this existed.
+
+   Padding is deliberately NOT part of the recipe. The rhythm step a panel
+   takes is a decision about that panel's density (4 and 5 both appear),
+   where the seat itself is the same everywhere. A recipe that fixed the
+   padding would have to be overridden more often than it was used. */
+.seatedPanel {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-elev-1);
+}
+
+/* ── The mono micro-label, in pill shape ───
+   The language's Micro label type role (mono, 500, 2xs, uppercase) wearing
+   the chip's pill radius. These five declarations were carried identically
+   by all nine pill rules in the app, so this is their exact intersection,
+   not a new opinion about any of them.
+
+   Tracking is NOT in the recipe: the language gives micro labels two
+   settings, 0.14em on eyebrows and 0.05em on chips, and DashboardShell's
+   .menuSoon takes 0.08em. A shared value would be wrong for at least one
+   caller, so each states its own. */
+.microLabel {
+  font-family: var(--app-font-mono), monospace;
+  font-size: var(--app-text-2xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  border-radius: 999px;
+}
+
+/* ── The neutral chip ──────────────────────
+   The micro-label pill with a chip's box: inline, centred, chip-tracked,
+   chip-padded, and holding a transparent border so a variant can colour
+   the edge without moving the text.
+
+   Three rules carried these eleven declarations byte-identically before
+   this existed: CriticalityChip's .chip, Workspace's .chip and the PULSE
+   hub's .pill, which adds only flex-shrink. The other six pills compose
+   .microLabel alone, because each differs from this box in a way that is
+   real: .baselineChip and .tierChip set no display at all, .statusChip
+   does not centre, and the three badge forms carry their own fill and a
+   visible border. Composing this into them would ADD layout they do not
+   have, which is a rendered change wearing a refactor's clothes. */
+.neutralChip {
+  composes: microLabel;
+  display: inline-flex;
+  align-items: center;
+  letter-spacing: 0.05em;
+  padding: 3px 10px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}

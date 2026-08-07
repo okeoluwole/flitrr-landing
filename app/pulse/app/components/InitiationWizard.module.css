@@ -54,14 +54,11 @@
    node the bright ring. Progress is not criticality, so never amber. ── */
 
 .progress {
+  composes: seatedPanel from '../../../components/instrument.module.css';
   /* min-width 0 lets the 1fr track shrink below the node strip's intrinsic
      width on narrow phones; the strip then scrolls inside (.steps). */
   min-width: 0;
-  background-color: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
   padding: var(--app-space-4) var(--app-space-4) var(--app-space-3);
-  box-shadow: var(--app-elev-1);
 }
 
 .steps {
@@ -243,11 +240,8 @@
 /* ── Step panel ── */
 
 .panel {
-  background-color: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
+  composes: seatedPanel from '../../../components/instrument.module.css';
   padding: var(--app-space-5);
-  box-shadow: var(--app-elev-1);
 }
 
 /* Panel padding steps up with the two-column field grid: the rhythm's

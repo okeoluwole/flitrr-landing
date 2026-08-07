@@ -79,11 +79,8 @@
 /* ── Panels ─────────────────────────────── */
 
 .card {
-  background-color: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-lg);
+  composes: seatedPanel from '../../components/instrument.module.css';
   padding: 1.5rem;
-  box-shadow: var(--app-elev-1);
 }
 
 @media (min-width: 768px) {
