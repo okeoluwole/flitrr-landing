@@ -34,6 +34,11 @@ of re-deciding it. The sources of truth are code, not this file:
   complete, loud on unknown values, in lock-step with the engines, and
   every appearance either crossing to paper cleanly or named in the stated
   hole list with a reason),
+  `tests/designPrintGuard.test.js` (the print block's coverage: every
+  `--app-*` colour token either remapped for paper or named, with a reason,
+  in the screen-only list, held in both directions so a new omission fails
+  as unstated and a stale entry fails as rotted; plus the borrowed
+  `--doc-*` values held to the tokens they name),
   `tests/designContrast.test.js` (AA on every semantic pairing), and
   `tests/designSurfaceGuard.test.js` (on every converted surface: type rides
   the --app-text scale, positive space rides the --app-space rhythm, amber
@@ -132,8 +137,27 @@ disagree, the code wins; update this file in the same commit.
 
 All values live in `app/globals.css`; consume by name, never by value. A
 genuinely new shade is added there as a token first. The print block remaps
-the whole `--app-*` group to dark-on-white; a raw literal would not remap,
-which is one of the reasons the guard test exists.
+the `--app-*` group to dark-on-white; a raw literal would not remap, which
+is one of the reasons the guard test exists.
+
+It does not remap every token, and `tests/designPrintGuard.test.js` is where
+the exceptions are stated. The block once remapped only the two amber INKS
+and left every amber wash, border and solid on its screen value, so a
+criticality wash printed as 0.10 alpha of a bright yellow on white and the
+mark printed as `#F4C031`: the loudest thing on the instrument became the
+faintest thing on the page. The amber family is now flipped whole, onto the
+document register's own answers, written literally rather than as
+`var(--doc-*)` so the instrument never depends on the document. One borrow
+was checked and refused: `--doc-signal` is the same bright `#F4C031`, and it
+works on paper only because `PAPER_COUNTERPART` maps `--app-ground` to
+`--doc-navy` (navy on amber, 10.97:1). The print block maps `--app-ground`
+to white, so the same value would be white on amber at 1.69:1. It takes the
+ochre at 5.48:1 instead. A value cannot be borrowed without the context that
+justified it. Twelve tokens stay on their screen values on purpose: the
+console chrome (`.topBar` is `display: none` in print), the two focus
+tokens (paper has no focus state), the danger wash and border (measured, not
+assumed: the salmon still seats its ink at 6.00:1 where the bright amber
+seated nothing), and `--app-signal-strong`, which has no consumer at all.
 
 - Ground and surfaces: `--app-ground`, `--app-surface`,
   `--app-surface-raised`, `--app-surface-sunken`, the `--app-console*` chrome
