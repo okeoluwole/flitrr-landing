@@ -67,10 +67,6 @@
   /* UI-only error token (for form validation) */
   --color-error: #B02A37;
 
-  /* Criticality ochre: amber's text-safe sibling. One meaning everywhere:
-     the thing that matters. Promoted from per-module hardcodes. */
-  --color-ochre: #8A6A16;
-
   /* ── Ink theme: the marketing ground ──────────────────────
      The brand navy pushed to a near-black ramp. The marketing
      surfaces stand on ink; the product app stands on its own
@@ -105,11 +101,6 @@
   --shadow-card:       0 8px 32px rgba(55, 97, 131, 0.06);
   --shadow-card-hover: 0 10px 36px rgba(55, 97, 131, 0.12);
   --shadow-ink:        0 24px 64px rgba(0, 0, 0, 0.45);
-
-  /* Critical cards in the app: a full border and a faint wash
-     replace the old 3px side-stripe. Amber still means one thing. */
-  --color-critical-card-border: rgba(212, 165, 39, 0.55);
-  --color-critical-card-bg: #FFFCF4;
 
   /* Watermark opacities */
   --opacity-watermark-faint: 0.10;

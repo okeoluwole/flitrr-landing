@@ -15,8 +15,7 @@
       done states, not decoration, not chrome (sole exception: the
       pulse-line mark in the shell top bar).
 - [ ] Amber-as-text uses `--app-signal-ink` on the dark instrument and
-      ochre (`--color-ochre` / `--doc-ochre`) on light or paper surfaces;
-      never raw amber as text on light.
+      `--doc-ochre` on paper; never raw amber as text on light.
 - [ ] Product primary actions are structural white (`--app-primary`), never
       amber.
 - [ ] The stage rail stays monochrome: done = grey fill, current = white

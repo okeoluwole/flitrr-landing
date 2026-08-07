@@ -59,7 +59,11 @@ Part D the locked palette). Build to the tokens; don't reinvent.
    - Amber as a **fill or line:** `--color-signal-amber` / `--app-signal`.
    - Amber as **text:** never raw amber on light surfaces (it fails
      contrast). On the dark instrument use `--app-signal-ink` (#ECC172); on
-     light and paper surfaces use ochre (`--color-ochre` / `--doc-ochre`).
+     paper use `--doc-ochre` (#856414), which is exactly what the app's own
+     print block flips `--app-signal-ink` to. There is no third. A
+     marketing-era `--color-ochre` existed for a light app that no longer
+     exists and was deleted unconsumed; if a light surface ever needs
+     amber as text again, add the token then.
    - **The product's primary action is NOT amber.** It is structural white
      (`--app-primary`), and the product focus ring is white too
      (`--app-focus`), so focus is never confusable with the criticality

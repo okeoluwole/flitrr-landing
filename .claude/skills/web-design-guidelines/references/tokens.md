@@ -43,13 +43,17 @@ Photo grade (dusk): `--grade-top` rgba(11,20,30,.10) · `--grade-bottom`
 rgba(11,20,30,.62) · `--grade-amber` rgba(244,192,49,.07).
 
 ## Amber-as-text / criticality (light surfaces)
-- `--color-ochre` **#8A6A16**: amber's text-safe sibling on light. One
-  meaning everywhere: the thing that matters. Use wherever amber would be
-  text on a light surface (on the dark instrument use `--app-signal-ink`).
-- `--color-critical-card-border` rgba(212,165,39,.55) ·
-  `--color-critical-card-bg` #FFFCF4. *Legacy of the light app; currently
-  unreferenced by any module. Product criticality now uses
-  `--app-critical-*`.*
+Nothing lives here any more. `--color-ochre`, `--color-critical-card-bg`
+and `--color-critical-card-border` were the light app's criticality
+tokens, and all three were deleted with zero consumers each. Two of them
+were the marketing-era ancestors of the `--app-critical-*` duplication
+that was collapsed at the same time, and `--color-ochre`'s own comment
+claimed "One meaning everywhere: the thing that matters" while nothing
+consumed it, which is a token asserting a rule it never had a chance to
+break.
+
+Amber as text now has exactly two homes: `--app-signal-ink` on the dark
+instrument, `--doc-ochre` on paper.
 
 ## Buttons (marketing)
 - **Primary:** `--color-button-primary-bg` (deep-blue) ·
