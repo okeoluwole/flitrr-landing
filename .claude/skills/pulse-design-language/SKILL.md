@@ -62,12 +62,24 @@ of re-deciding it. The sources of truth are code, not this file:
   the amber census gaining the two shapes below, and holds the dashboard's
   ladder to `objectiveStatusAppearance` rung by rung across both its
   carriers. Sub-step 6 also makes CONVERTED's completeness COMPUTED: every
-  `.module.css` under `app/pulse/app` and `app/components` must be either
-  converted or named in an explicit EXCLUDED list with a reason, both lists
-  are held to the filesystem so a stale entry fails, and a new module fails
-  the suite until someone decides which it is. That is what stops the sweep
-  reading as complete on the strength of memory.) If your change fails one
-  of these, fix the change, not the test.
+  `.module.css` under the authenticated trees must be either converted or
+  named in an explicit list with a reason, every list is held to the
+  filesystem so a stale entry fails, and a new module fails the suite until
+  someone decides which it is. That is what stops the sweep reading as
+  complete on the strength of memory. The follow-on added `app/dashboard`
+  to those trees. Sub-step 6 had counted `app/pulse/app` and
+  `app/components` while `designTokenGuard` counted `app/pulse/app` and
+  `app/dashboard`, so `/dashboard` and `/dashboard/team` were held to "no
+  raw colour literal" and were UNREACHABLE by the completeness check:
+  neither converted nor excluded, invisible to it. Both are real
+  authenticated surfaces, and `/dashboard` is where every signed-in reader
+  lands. They are now named in a third list, UNCONVERTED, which is NOT a
+  softer EXCLUDED: excluded means on another system and out of Note 15 (the
+  two marketing modules), whereas these are squarely in its remit and were
+  simply never swept. Each states the work it still needs, and the list is
+  held from both sides, so an entry that has since been converted fails as
+  a parking space.) If your change fails one of these, fix the change, not
+  the test.
 
 Four things sit outside the plain rules on purpose. Each is stated in the
 guard as a SHAPE, never as a file exemption or a class-name allowlist,

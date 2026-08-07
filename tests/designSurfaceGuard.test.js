@@ -279,7 +279,23 @@ describe('CONVERTED covers every authenticated module, computed not remembered',
    * CONVERTED or named here with a reason. Adding a module to the app now
    * fails this test until someone decides which it is.
    */
-  const TREES = ['app/pulse/app', 'app/components'];
+  /**
+   * app/dashboard joined the trees in the Note 15 follow-on, and its
+   * absence was the exact false-green shape this block exists to kill.
+   *
+   * designTokenGuard's SCOPE_DIRS were ['app/pulse/app', 'app/dashboard'];
+   * these TREES were ['app/pulse/app', 'app/components']. So
+   * app/dashboard/page.module.css and app/dashboard/team/page.module.css
+   * were held to "no raw colour literal" and were UNREACHABLE by the
+   * completeness check: neither converted nor excluded, simply invisible
+   * to it. Both are real authenticated surfaces. /dashboard is where every
+   * signed-in reader lands (middleware, the login form, the auth callback
+   * and the reset-password flow all default there, and DashboardShell's
+   * wordmark links to it), and /dashboard/team is the team and access
+   * engine. The sweep that was meant to make this list computable had
+   * counted its own trees and not the guard's.
+   */
+  const TREES = ['app/pulse/app', 'app/components', 'app/dashboard'];
 
   const EXCLUDED = [
     // The marketing system. Both stand on the scoped .page token set of the
@@ -287,6 +303,41 @@ describe('CONVERTED covers every authenticated module, computed not remembered',
     'app/components/considered/SiteFooter.module.css',
     'app/components/considered/SiteNav.module.css',
   ];
+
+  /**
+   * A third category, and it is NOT a softer EXCLUDED.
+   *
+   * EXCLUDED means "on another system, out of Note 15 entirely", which is
+   * true of the two marketing modules and false of these two. Calling
+   * these excluded would be the same species of lie the chain keeps
+   * finding: a list that reads as complete because nobody can see what is
+   * missing from it. They are in Note 15's remit, on --app-*, behind auth,
+   * and simply never put through a sub-step.
+   *
+   * So they are stated instead, with the work each still needs. This turns
+   * an invisible hole into a recorded one, which is the whole discipline
+   * designSemantics' STATED_HOLES embodies: the hole is not the failure,
+   * a hole nobody can see is.
+   *
+   * Held from BOTH sides. An entry must still genuinely fail conversion
+   * (the assertion below re-runs the real checks), so this can never
+   * become a parking space for a surface that has since been converted and
+   * left here out of habit.
+   */
+  const UNCONVERTED = new Map([
+    [
+      'app/dashboard/page.module.css',
+      {
+        why: 'The product launcher every signed-in reader lands on. On the colour tokens, never on the type scale or the space rhythm: 7 font-size declarations write 0.9375rem, 1.1875rem and 0.875rem as literals, and all three ARE --app-text-base, -ml and -control exactly, so that half is mechanical and moves nothing rendered. The 10 spacing declarations are not: 2.75rem, 6rem, 0.6rem, 2.25rem, 0.35rem and 2.5rem are on no rhythm step, so snapping them MOVES geometry. That is a decision about this surface, not a refactor, and it belongs to a sub-step that can look at the result.',
+      },
+    ],
+    [
+      'app/dashboard/team/page.module.css',
+      {
+        why: 'The team and access engine: invites, seat count, role chips, deactivation. Same shape as the launcher and further from the language. All 7 distinct sizes across its 16 font-size declarations are exact scale steps written as literals (base, 2xs, md, control, sm, xs, 3xs), so the type is mechanical here too. Its 18 spacing declarations include 1.25rem, 0.3rem, 1.6rem, 1.75rem, 1.1rem, 0.9rem, 0.4rem and 0.6rem, none of them rhythm steps. It also hand-builds both primitives this session extracted, so converting it wants doing after that landing, not before.',
+      },
+    ],
+  ]);
 
   function modulesUnder(dir) {
     const out = [];
@@ -305,86 +356,126 @@ describe('CONVERTED covers every authenticated module, computed not remembered',
     expect(found.length).toBeGreaterThan(10);
   });
 
-  it('every module is either converted or excluded with a reason', () => {
-    const accounted = new Set([...CONVERTED, ...EXCLUDED]);
+  it('every module is either converted, excluded, or stated unconverted', () => {
+    const accounted = new Set([...CONVERTED, ...EXCLUDED, ...UNCONVERTED.keys()]);
     const orphans = found.filter((rel) => !accounted.has(rel));
     expect(
       orphans,
       `unhomed authenticated modules. Convert them, or name them in ` +
-        `EXCLUDED with a reason:\n  ${orphans.join('\n  ')}`
+        `EXCLUDED or UNCONVERTED with a reason:\n  ${orphans.join('\n  ')}`
     ).toEqual([]);
   });
 
   it('names nothing that has stopped existing', () => {
-    // A stale entry is how a list starts lying. Both lists are held to the
-    // filesystem, so a deleted or moved module fails here rather than
+    // A stale entry is how a list starts lying. All three lists are held to
+    // the filesystem, so a deleted or moved module fails here rather than
     // quietly padding the count.
     const real = new Set(found);
-    const ghosts = [...CONVERTED, ...EXCLUDED].filter((rel) => !real.has(rel));
+    const ghosts = [...CONVERTED, ...EXCLUDED, ...UNCONVERTED.keys()].filter(
+      (rel) => !real.has(rel)
+    );
     expect(
       ghosts,
       `listed but not on disk:\n  ${ghosts.join('\n  ')}`
     ).toEqual([]);
   });
 
-  it('excludes nothing it also claims to have converted', () => {
+  it('files nothing under two headings at once', () => {
     const converted = new Set(CONVERTED);
     expect(EXCLUDED.filter((rel) => converted.has(rel))).toEqual([]);
+    const excluded = new Set(EXCLUDED);
+    expect(
+      [...UNCONVERTED.keys()].filter(
+        (rel) => converted.has(rel) || excluded.has(rel)
+      )
+    ).toEqual([]);
+  });
+
+  it('gives every stated-unconverted module a reason, not just a name', () => {
+    for (const [rel, { why }] of UNCONVERTED) {
+      expect(typeof why, rel).toBe('string');
+      expect(why.length, `${rel} needs a real reason`).toBeGreaterThan(60);
+    }
+  });
+
+  it('every stated-unconverted module really is still unconverted', () => {
+    // The other direction, and the one that stops this becoming a parking
+    // space. A surface listed here must STILL fail the converted-surface
+    // checks; the moment someone puts it through a sub-step, this fails and
+    // says where it belongs. The checks are the real ones, called through
+    // the same helpers the CONVERTED assertions use, so the two can never
+    // mean different things.
+    for (const [rel] of UNCONVERTED) {
+      const offenders = [...typeOffenders(rel), ...spaceOffenders(rel)];
+      expect(
+        offenders.length,
+        `${rel} now passes the converted-surface checks. It is converted: ` +
+          `move it from UNCONVERTED to CONVERTED.`
+      ).toBeGreaterThan(0);
+    }
   });
 });
+
+/**
+ * Every font-size in a module that is not on the --app-text scale.
+ *
+ * Hoisted out of the assertion below so the UNCONVERTED list can be held
+ * from the other side: an entry there must still PRODUCE offenders, or it
+ * has quietly become converted and the list has become a parking space.
+ * The assertion itself is unchanged; this is the same check, called twice.
+ */
+function typeOffenders(rel) {
+  const css = stripComments(read(rel));
+  const js = siblingJs(rel);
+  const spans = svgTextTagSpans(js);
+
+  /** True when every class in the selector is used in the sibling JS,
+   *  and every one of those uses is on an SVG text element. */
+  function drawnInSvgCoordinates(selector) {
+    const names = classesIn(selector);
+    if (names.length === 0) return false;
+    return names.every((name) => {
+      const uses = [...js.matchAll(new RegExp(`\\bstyles\\.${name}\\b`, 'g'))];
+      if (uses.length === 0) return false;
+      return uses.every((u) =>
+        spans.some(([start, end]) => u.index > start && u.index < end)
+      );
+    });
+  }
+
+  const offenders = [];
+  for (const { selector, body } of rules(css)) {
+    for (const m of body.matchAll(/font-size\s*:\s*([^;}]+)/g)) {
+      const value = m[1]
+        .trim()
+        .replace(/\s*!important$/, '')
+        .replace(/\s+/g, ' ');
+      const token = value.match(/^var\((--app-text-[a-z0-9]+)\)$/);
+      const named = varsIn(value);
+      if (token) {
+        if (!DEFINED_TOKENS.has(token[1])) {
+          offenders.push(`${selector}: ${value} (token not in globals.css)`);
+        }
+      } else if (FLUID_ON_SCALE.test(value)) {
+        for (const t of named) {
+          if (!DEFINED_TOKENS.has(t)) {
+            offenders.push(`${selector}: ${value} (${t} not in globals.css)`);
+          }
+        }
+      } else if (/^[0-9.]+px$/.test(value) && drawnInSvgCoordinates(selector)) {
+        // Chart text: part of the drawing, not of the document's type.
+      } else {
+        offenders.push(`${selector}: ${value}`);
+      }
+    }
+  }
+  return offenders;
+}
 
 describe('type on a converted surface rides the --app-text scale', () => {
   for (const rel of CONVERTED) {
     it(rel, () => {
-      const css = stripComments(read(rel));
-      const js = siblingJs(rel);
-      const spans = svgTextTagSpans(js);
-
-      /** True when every class in the selector is used in the sibling JS,
-       *  and every one of those uses is on an SVG text element. */
-      function drawnInSvgCoordinates(selector) {
-        const names = classesIn(selector);
-        if (names.length === 0) return false;
-        return names.every((name) => {
-          const uses = [
-            ...js.matchAll(new RegExp(`\\bstyles\\.${name}\\b`, 'g')),
-          ];
-          if (uses.length === 0) return false;
-          return uses.every((u) =>
-            spans.some(([start, end]) => u.index > start && u.index < end)
-          );
-        });
-      }
-
-      const offenders = [];
-      for (const { selector, body } of rules(css)) {
-        for (const m of body.matchAll(/font-size\s*:\s*([^;}]+)/g)) {
-          const value = m[1]
-            .trim()
-            .replace(/\s*!important$/, '')
-            .replace(/\s+/g, ' ');
-          const token = value.match(/^var\((--app-text-[a-z0-9]+)\)$/);
-          const named = varsIn(value);
-          if (token) {
-            if (!DEFINED_TOKENS.has(token[1])) {
-              offenders.push(`${selector}: ${value} (token not in globals.css)`);
-            }
-          } else if (FLUID_ON_SCALE.test(value)) {
-            for (const t of named) {
-              if (!DEFINED_TOKENS.has(t)) {
-                offenders.push(`${selector}: ${value} (${t} not in globals.css)`);
-              }
-            }
-          } else if (
-            /^[0-9.]+px$/.test(value) &&
-            drawnInSvgCoordinates(selector)
-          ) {
-            // Chart text: part of the drawing, not of the document's type.
-          } else {
-            offenders.push(`${selector}: ${value}`);
-          }
-        }
-      }
+      const offenders = typeOffenders(rel);
       expect(
         offenders,
         `font sizes off the scale in ${rel}:\n  ${offenders.join('\n  ')}`
@@ -393,7 +484,11 @@ describe('type on a converted surface rides the --app-text scale', () => {
   }
 });
 
-describe('positive space on a converted surface rides the --app-space rhythm', () => {
+/**
+ * Every positive-space declaration in a module that is off the --app-space
+ * rhythm. Hoisted for the same reason as typeOffenders above.
+ */
+const spaceOffenders = (() => {
   // scroll-margin-top is deliberately NOT in this list, from sub-step 5.
   // The rhythm models positive space between things. scroll-margin-top is
   // not that: it is a compensation for the height of sticky chrome, so that
@@ -444,28 +539,35 @@ describe('positive space on a converted surface rides the --app-space rhythm', (
     return !BARE_LENGTH.test(withoutVars(part));
   }
 
-  for (const rel of CONVERTED) {
-    it(rel, () => {
-      const css = stripComments(read(rel));
-      const offenders = [];
-      for (const m of css.matchAll(SPACING_PROP)) {
-        // !important is a flag on the declaration, not a part of its value.
-        const value = m[2]
-          .trim()
-          .replace(/\s*!important$/, '')
-          .replace(/\s+/g, ' ');
-        for (const part of splitTop(value)) {
-          const token = part.match(/^var\((--app-space-[0-9])\)$/);
-          if (!LEGAL.test(part) && !calcOnRhythm(part)) {
-            offenders.push(`${m[1]}: ${value}`);
-            break;
-          }
-          if (token && !DEFINED_TOKENS.has(token[1])) {
-            offenders.push(`${m[1]}: ${value} (token not in globals.css)`);
-            break;
-          }
+  return function spaceOffenders(rel) {
+    const css = stripComments(read(rel));
+    const offenders = [];
+    for (const m of css.matchAll(SPACING_PROP)) {
+      // !important is a flag on the declaration, not a part of its value.
+      const value = m[2]
+        .trim()
+        .replace(/\s*!important$/, '')
+        .replace(/\s+/g, ' ');
+      for (const part of splitTop(value)) {
+        const token = part.match(/^var\((--app-space-[0-9])\)$/);
+        if (!LEGAL.test(part) && !calcOnRhythm(part)) {
+          offenders.push(`${m[1]}: ${value}`);
+          break;
+        }
+        if (token && !DEFINED_TOKENS.has(token[1])) {
+          offenders.push(`${m[1]}: ${value} (token not in globals.css)`);
+          break;
         }
       }
+    }
+    return offenders;
+  };
+})();
+
+describe('positive space on a converted surface rides the --app-space rhythm', () => {
+  for (const rel of CONVERTED) {
+    it(rel, () => {
+      const offenders = spaceOffenders(rel);
       expect(
         offenders,
         `space off the rhythm in ${rel}:\n  ${offenders.join('\n  ')}`
