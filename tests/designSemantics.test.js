@@ -20,6 +20,8 @@ import {
   programmeVarianceAppearance,
   scheduleBandAppearance,
   varianceDirectionAppearance,
+  criticalityMarkAppearance,
+  onPaper,
   SEMANTIC_MAPPINGS,
 } from '../lib/design/semantics.js';
 import { CRITICALITY } from '../lib/engine/criticality.js';
@@ -227,6 +229,198 @@ describe('the colour discipline holds across the whole language', () => {
     }
     for (const value of ['serious', 'moderate', 'minor', 'unscored']) {
       expect(severityBandAppearance(value).shape).toBe('tag');
+    }
+  });
+});
+
+describe('the paper register states its holes instead of hiding them', () => {
+  /**
+   * PAPER_COUNTERPART is the ONE place the instrument's --app-* register is
+   * tied to the document's --doc-*, so a surface can never pick a paper
+   * colour locally. It does not cover every token, and it should not: the
+   * --doc-* register belongs to the document, and inventing a paper value
+   * for a mapping no document renders would be picking a colour with
+   * nothing to check it against.
+   *
+   * The hole is not the failure. A hole NOBODY CAN SEE is: onPaper throws
+   * at the call site, so a mapping that cannot cross to paper looks exactly
+   * like one that has simply never been asked to. Ten of the twenty six
+   * appearances were in that state, and the two most recently found were
+   * found by someone calling them by hand.
+   *
+   * This table is the record. It is held in both directions so it cannot
+   * rot: an unlisted hole fails as a hole nobody stated, a listed hole that
+   * has since been closed fails as a stale entry, and a listed hole whose
+   * missing tokens have changed fails as a hole that moved. That is the
+   * same discipline sub-step 6 gave CONVERTED and EXCLUDED.
+   *
+   * Every entry shares one root cause: the Brief renders criticality and
+   * nothing else, so these are exactly the mappings no document has ever
+   * shown. Close one by rendering it on paper first, then naming the
+   * counterpart the document actually needs.
+   */
+  const STATED_HOLES = new Map([
+    [
+      'objective-status:at_risk',
+      {
+        missing: ['--app-signal-ink-dim', '--app-signal-border-dim'],
+        why: 'The dimmed amber voice, one notch below Slipping at the same shape. The Brief renders no ladder, so no document has ever had to hold two amber rungs apart on paper, and the gap between a dim ochre and --doc-ochre is precisely the thing that cannot be guessed: too close and the ladder levels, too far and At risk reads as calm.',
+      },
+    ],
+    [
+      'objective-status:compromised',
+      {
+        missing: ['--app-danger', '--app-danger-wash', '--app-danger-border'],
+        why: 'Breach red. The --doc-* register has no danger family at all, and the app red is tuned for a dark ground (the global navy red is illegible there, which is why --app-danger exists). A document red is a decision nobody has taken.',
+      },
+    ],
+    [
+      'severity-band:serious',
+      {
+        missing: ['--app-primary-ink'],
+        why: 'The loud end of the severity ramp is ink INVERTED onto a bright fill, so its text colour is the console dark. On paper that inversion has no meaning: the fill would already be dark on light.',
+      },
+    ],
+    [
+      'severity-band:moderate',
+      {
+        missing: ['--app-fill-strong'],
+        why: "A step on the translucent-light ramp: white at 14% over a dark ground. Over paper the same alpha reads as nothing at all. A paper intensity ramp has to be rebuilt against paper, not translated step by step.",
+      },
+    ],
+    [
+      'severity-band:minor',
+      {
+        missing: ['--app-fill'],
+        why: 'The same ramp at 7%. Same reason as moderate: the ramp is a property of the dark ground, not a colour that can cross.',
+      },
+    ],
+    [
+      'stage-state:sequential',
+      {
+        missing: ['--app-surface-raised'],
+        why: 'A stage bar seats on the raised panel surface. Paper has one surface and earns its depth from type and the drop shadow, never from a lifted fill, so the counterpart is a question about the document, not about this token.',
+      },
+    ],
+    [
+      'stage-state:concurrent',
+      {
+        missing: ['--app-fill'],
+        why: 'The translucent-light ramp again. The dashed border is what carries "running beside", and that carrier crosses to paper already.',
+      },
+    ],
+    [
+      'stage-state:complete',
+      {
+        missing: ['--app-fill-faint', '--app-hairline'],
+        why: 'The quiet past: the faintest fill on the ramp under the faintest line. Both are alphas over dark. The label carries the meaning, so a document could render this rung today with no fill at all.',
+      },
+    ],
+    [
+      'programme-variance:baseline',
+      {
+        missing: ['--app-surface-raised'],
+        why: 'The chart series seat. The Brief renders no chart, so there is no document geometry for a series to sit in yet.',
+      },
+    ],
+    [
+      'variance-direction:ahead',
+      {
+        missing: ['--app-success'],
+        why: 'Recorded-fact green. The --doc-* register has no green, and the one rule green must obey (a recorded fact, never a status verdict) is about WHEN it is spent, not what shade a document should spend.',
+      },
+    ],
+  ]);
+
+  /** Every --app-* token PAPER_COUNTERPART knows how to cross, read from
+   *  the module's own source so this can never drift from the real table. */
+  const COVERED = new Set(
+    [
+      ...readFileSync(
+        path.join(HERE, '..', 'lib', 'design', 'semantics.js'),
+        'utf8'
+      )
+        .match(/const PAPER_COUNTERPART = Object\.freeze\(\{([\s\S]*?)\}\);/)[1]
+        .matchAll(/'(--app-[a-z0-9-]+)'\s*:/g),
+    ].map((m) => m[1])
+  );
+
+  /** Every appearance in the language, including the criticality mark,
+   *  which has its own paper export and sits outside SEMANTIC_MAPPINGS. */
+  const EVERY_APPEARANCE = [
+    ...SEMANTIC_MAPPINGS.flatMap((m) =>
+      m.values.map((v) => [`${m.id}:${v}`, m.appearance(v)])
+    ),
+    ['criticality-mark:mark', criticalityMarkAppearance()],
+  ];
+
+  /** The tokens onPaper translates. markFill is deliberately NOT one of
+   *  them: it passes through untranslated, so a paper appearance can still
+   *  carry an --app-* mark colour. No caller hits that today (the Brief
+   *  renders only the criticality pill and its mark, and the mark's colour
+   *  travels as `fill`), so this is a stated limit rather than a hole to
+   *  close by guessing. Widening onPaper is a change to a shared function
+   *  and belongs to whoever first renders a marked appearance on paper. */
+  const CROSSING = ['ink', 'fill', 'border'];
+
+  function holesIn(appearance) {
+    return CROSSING.map((part) => appearance[part]).filter(
+      (token) => token != null && !COVERED.has(token)
+    );
+  }
+
+  it('finds a hole in exactly the appearances the table states', () => {
+    const found = EVERY_APPEARANCE.filter(([, a]) => holesIn(a).length > 0).map(
+      ([key]) => key
+    );
+    expect(
+      [...found].sort(),
+      'an appearance with an unstated paper hole, or a stated hole that has since been closed'
+    ).toEqual([...STATED_HOLES.keys()].sort());
+  });
+
+  it('states the exact tokens each hole is missing', () => {
+    for (const [key, appearance] of EVERY_APPEARANCE) {
+      const stated = STATED_HOLES.get(key);
+      if (!stated) continue;
+      expect(
+        holesIn(appearance),
+        `${key}: the stated hole has moved. Update the entry, do not widen it.`
+      ).toEqual(stated.missing);
+    }
+  });
+
+  it('gives every stated hole a reason, not just a name', () => {
+    // A bare allowlist would be the failure mode wearing a test's clothes.
+    for (const [key, { why }] of STATED_HOLES) {
+      expect(typeof why, key).toBe('string');
+      expect(why.length, `${key} needs a real reason`).toBeGreaterThan(60);
+    }
+  });
+
+  it('every appearance the table does NOT state crosses to paper cleanly', () => {
+    // The other half of the claim: onPaper is not merely un-thrown, it is
+    // called, and every token it returns is a --doc-* token.
+    for (const [key, appearance] of EVERY_APPEARANCE) {
+      if (STATED_HOLES.has(key)) continue;
+      const onPaperAppearance = onPaper(appearance);
+      for (const part of CROSSING) {
+        const token = onPaperAppearance[part];
+        if (token != null) {
+          expect(token, `${key}.${part} should be a --doc-* token`).toMatch(
+            /^--doc-/
+          );
+        }
+      }
+    }
+  });
+
+  it('a stated hole really does throw, so the record is not theoretical', () => {
+    for (const [key, appearance] of EVERY_APPEARANCE) {
+      if (!STATED_HOLES.has(key)) continue;
+      expect(() => onPaper(appearance), `${key} should throw`).toThrow(
+        /No paper counterpart/
+      );
     }
   });
 });
