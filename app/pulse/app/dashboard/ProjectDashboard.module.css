@@ -18,7 +18,7 @@
  */
 
 .page {
-  padding: 2rem 0 5rem;
+  padding: var(--app-space-6) 0 calc(var(--app-space-8) + var(--app-space-4));
 }
 
 /* ------------------------------------------------------------------ */
@@ -33,7 +33,7 @@
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-elev-1);
-  padding: 1.5rem 1.25rem;
+  padding: var(--app-space-5) var(--app-space-4);
   max-width: 34rem;
 }
 
@@ -42,7 +42,7 @@
   font-size: var(--app-text-base);
   line-height: 1.6;
   color: var(--app-ink);
-  margin-bottom: 1.1rem;
+  margin-bottom: var(--app-space-4);
 }
 
 .lockedCta {
@@ -50,7 +50,7 @@
   align-items: center;
   justify-content: center;
   min-height: 44px;
-  padding: 0 1.1rem;
+  padding: 0 var(--app-space-4);
   font-family: var(--app-font-sans), sans-serif;
   font-size: var(--app-text-sm);
   font-weight: 600;
@@ -83,7 +83,7 @@
   grid-template-columns: 1fr 1fr;
   border-top: 1px solid var(--app-hairline);
   border-bottom: 1px solid var(--app-hairline);
-  margin-bottom: 2.25rem;
+  margin-bottom: var(--app-space-6);
 }
 
 @media (min-width: 900px) {
@@ -93,12 +93,12 @@
 }
 
 .stripCell {
-  padding: 0.9rem 1rem 0.95rem 0;
+  padding: var(--app-space-4) var(--app-space-4) var(--app-space-4) 0;
   min-width: 0;
 }
 
 .stripCell + .stripCell {
-  padding-left: 1rem;
+  padding-left: var(--app-space-4);
   border-left: 1px solid var(--app-hairline);
 }
 
@@ -121,13 +121,13 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--app-ink-muted);
-  margin-bottom: 0.35rem;
+  margin-bottom: var(--app-space-1);
 }
 
 .stripBody {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: var(--app-space-1);
 }
 
 .stripValue {
@@ -155,7 +155,7 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--app-ink-muted);
-  margin-bottom: 0.75rem;
+  margin-bottom: var(--app-space-3);
 }
 
 /* ------------------------------------------------------------------ */
@@ -163,7 +163,7 @@
 /* protected block leading, group captions in the mono micro voice.    */
 
 .heroBand {
-  margin-bottom: 2.25rem;
+  margin-bottom: var(--app-space-6);
 }
 
 .ladderPanel {
@@ -183,7 +183,7 @@
   color: var(--app-ink-muted);
   background: var(--app-surface-sunken);
   border-bottom: 1px solid var(--app-border);
-  padding: 0.45rem 1.1rem;
+  padding: var(--app-space-2) var(--app-space-4);
 }
 
 .ladderPanel section + section .ladderGroup {
@@ -232,12 +232,12 @@
 
 .rowEdgeLine::before {
   width: 2px;
-  background: var(--app-signal);
+  background: var(--app-signal-ink);
 }
 
 .rowEdgeThin::before {
   width: 1px;
-  background: var(--app-signal-border);
+  background: var(--app-signal-ink-dim);
 }
 
 .rowEdgeDashed::before {
@@ -252,9 +252,9 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.85rem;
+  gap: var(--app-space-3);
   min-height: 44px;
-  padding: 0.85rem 1.1rem;
+  padding: var(--app-space-3) var(--app-space-4);
   text-decoration: none;
   color: inherit;
 }
@@ -271,7 +271,7 @@
 .ladderMain {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: var(--app-space-1);
   min-width: 0;
 }
 
@@ -333,9 +333,10 @@
 .ladderAside {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: var(--app-space-2);
   flex: 0 0 auto;
-  padding-top: 0.1rem;
+  /* An optical nudge under a single rhythm step: control geometry. */
+  padding-top: 2px;
 }
 
 /* The status label: the loud element on the row. Every treatment keeps the
@@ -400,10 +401,10 @@
 /* The honesty lines under the hero: the read's own blind spots, small
    print, never dressed up. */
 .support {
-  margin-top: 0.85rem;
+  margin-top: var(--app-space-3);
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: var(--app-space-2);
 }
 
 .supportLine {
@@ -437,7 +438,7 @@
 /* flexible) already carries the priority.                             */
 
 .attnBand {
-  margin-bottom: 2.25rem;
+  margin-bottom: var(--app-space-6);
 }
 
 .attnEmpty {
@@ -471,9 +472,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: var(--app-space-3);
   min-height: 44px;
-  padding: 0.85rem 1.1rem;
+  padding: var(--app-space-3) var(--app-space-4);
   text-decoration: none;
   color: inherit;
 }
@@ -490,7 +491,7 @@
 .attnMain {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: var(--app-space-1);
   min-width: 0;
 }
 
@@ -514,7 +515,7 @@
 .attnMeta {
   display: flex;
   align-items: baseline;
-  gap: 0.55rem;
+  gap: var(--app-space-2);
   flex-wrap: wrap;
   min-width: 0;
 }
@@ -553,7 +554,7 @@
 }
 
 .attnFooter {
-  padding: 0.9rem 0 0;
+  padding: var(--app-space-4) 0 0;
 }
 
 .attnFooterLink {
@@ -584,7 +585,7 @@
 /* column on the phone, two from 640px.                                */
 
 .railBand {
-  margin-bottom: 1rem;
+  margin-bottom: var(--app-space-4);
 }
 
 .rail {
@@ -593,7 +594,7 @@
   padding: 0;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0.6rem;
+  gap: var(--app-space-2);
 }
 
 @media (min-width: 640px) {
@@ -606,9 +607,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: var(--app-space-3);
   min-height: 44px;
-  padding: 0.8rem 1rem;
+  padding: var(--app-space-3) var(--app-space-4);
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius);
@@ -629,7 +630,7 @@
 .railMain {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: var(--app-space-1);
   min-width: 0;
 }
 
@@ -656,7 +657,7 @@
 }
 
 .railFoot {
-  margin-top: 0.85rem;
+  margin-top: var(--app-space-3);
 }
 
 .railFootLink {

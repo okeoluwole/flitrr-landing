@@ -70,6 +70,10 @@ const CONVERTED = [
   // Sub-step 6, the front door: the one surface a reader meets before any
   // project context exists.
   'app/pulse/app/page.module.css',
+  // Sub-step 6: the cockpit and the launcher. "Where do I go, and what
+  // needs me". The dashboard's spine is the objective status ladder.
+  'app/pulse/app/dashboard/ProjectDashboard.module.css',
+  'app/pulse/app/workspace/Workspace.module.css',
 ];
 
 function read(rel) {
@@ -788,6 +792,135 @@ describe("the tracker's variance ramp is its two engine vocabularies", () => {
     );
     const bandInks = ['amber', 'red'].map((b) => scheduleBandAppearance(b).ink);
     for (const ink of bandInks) expect(directionInks).not.toContain(ink);
+  });
+});
+
+describe("the dashboard's ladder is objectiveStatusAppearance, rung by rung", () => {
+  // Sub-step 6. The ladder is the cockpit's spine and its whole argument is
+  // GRADIENT: calm spends no colour, exposure brightens, breach is the one
+  // filled label. Each rung reads twice, as a status label and as a painted
+  // left edge, and the JS maps both straight off LADDER_STATUSES. These
+  // assertions hold every rung of both carriers to the mapping, so a later
+  // edit cannot flatten two rungs into one look without failing here.
+  //
+  // Sub-step 6 found the edges out of step: At risk was painted in
+  // --app-signal-border, which is SLIPPING's token, and Slipping in the raw
+  // --app-signal, which belongs to no rung at all. A cross-rung bleed is
+  // exactly what these tables exist to catch.
+  const css = stripComments(
+    read('app/pulse/app/dashboard/ProjectDashboard.module.css')
+  );
+  const blocks = new Map(
+    rules(css).map(({ selector, body }) => [selector.trim(), body])
+  );
+
+  // Selector -> the rung it wears and the parts of that appearance it sets.
+  // The label family carries ink, fill and border; the edge family is a
+  // painted stripe, so it carries the rung's ink as its paint.
+  const RUNGS = [
+    ['.statusQuiet', 'healthy', ['ink']],
+    ['.statusOutlinedDim', 'at_risk', ['ink', 'border']],
+    ['.statusOutlined', 'slipping', ['ink', 'border']],
+    ['.statusDanger', 'compromised', ['ink', 'fill', 'border']],
+    ['.statusDashed', 'not_scored', ['ink', 'border']],
+    ['.rowEdgeThin::before', 'at_risk', ['ink']],
+    ['.rowEdgeLine::before', 'slipping', ['ink']],
+    ['.rowEdgeBar::before', 'compromised', ['ink']],
+    ['.rowEdgeDashed::before', 'not_scored', ['border']],
+  ];
+
+  for (const [selector, rung, parts] of RUNGS) {
+    it(`${selector} is objectiveStatusAppearance('${rung}')`, () => {
+      const a = objectiveStatusAppearance(rung);
+      const body = blocks.get(selector);
+      expect(body, `${selector} missing from ProjectDashboard.module.css`)
+        .toBeTruthy();
+      for (const part of parts) {
+        expect(
+          body,
+          `${selector} should spend ${part} = var(${a[part]})`
+        ).toContain(`var(${a[part]})`);
+      }
+      // The non-colour carrier travels with the colour: a rung the mapping
+      // marks dashed must read dashed, so the ramp survives without hue.
+      if (a.borderStyle === 'dashed') expect(body).toContain('dashed');
+    });
+  }
+
+  it('no ladder rule re-picks an amber the mapping does not name', () => {
+    // A hand-picked amber fails here even where it resolves to an identical
+    // value, which is how the two edge rules above were found.
+    const legal = new Set(
+      ['healthy', 'at_risk', 'slipping', 'compromised', 'not_scored'].flatMap(
+        (r) => {
+          const a = objectiveStatusAppearance(r);
+          return [a.ink, a.fill, a.border, a.markFill].filter(Boolean);
+        }
+      )
+    );
+    const offenders = [];
+    for (const [selector] of RUNGS) {
+      for (const token of varsIn(blocks.get(selector) || '')) {
+        if (/signal|ochre|critical/.test(token) && !legal.has(token)) {
+          offenders.push(`${selector}: ${token}`);
+        }
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  it('the two amber rungs never collapse into one look', () => {
+    // The gradient IS the read. At risk and Slipping share the amber voice
+    // and are separated by token, so a later edit that levels them fails.
+    const dim = objectiveStatusAppearance('at_risk');
+    const bright = objectiveStatusAppearance('slipping');
+    expect(dim.ink).not.toBe(bright.ink);
+    expect(dim.border).not.toBe(bright.border);
+    for (const [a, b] of [
+      ['.statusOutlinedDim', '.statusOutlined'],
+      ['.rowEdgeThin::before', '.rowEdgeLine::before'],
+    ]) {
+      expect(blocks.get(a)).not.toBe(blocks.get(b));
+    }
+  });
+
+  it('calm spends no colour and breach is the one filled rung', () => {
+    // Stated from the mapping, not from a copy of it: the surface may not
+    // quietly give Healthy a fill or take Compromised's away.
+    expect(objectiveStatusAppearance('healthy').fill).toBeNull();
+    expect(objectiveStatusAppearance('healthy').border).toBeNull();
+    expect(blocks.get('.statusQuiet')).toContain('background: transparent');
+    for (const rung of ['at_risk', 'slipping']) {
+      expect(objectiveStatusAppearance(rung).fill).toBeNull();
+    }
+    expect(objectiveStatusAppearance('compromised').fill).toBeTruthy();
+  });
+});
+
+describe("the workspace's critical read is the criticality mapping", () => {
+  // The one amber on the launcher: an open critical action in a module's
+  // live read. It passes the census on its name, and a name is not
+  // evidence, so it is held to the mapping like every other named rule.
+  const blocks = new Map(
+    rules(stripComments(read('app/pulse/app/workspace/Workspace.module.css'))).map(
+      ({ selector, body }) => [selector.trim(), body]
+    )
+  );
+
+  it('.footCritical spends the critical appearance ink', () => {
+    const a = criticalityAppearance('critical');
+    const body = blocks.get('.footCritical');
+    expect(body, '.footCritical missing from Workspace.module.css').toBeTruthy();
+    expect(body).toContain(`var(${a.ink})`);
+  });
+
+  it('.footCritical re-picks no other amber', () => {
+    const a = criticalityAppearance('critical');
+    const legal = new Set([a.ink, a.fill, a.border].filter(Boolean));
+    const offenders = varsIn(blocks.get('.footCritical') || '').filter(
+      (t) => /signal|ochre|critical/.test(t) && !legal.has(t)
+    );
+    expect(offenders).toEqual([]);
   });
 });
 

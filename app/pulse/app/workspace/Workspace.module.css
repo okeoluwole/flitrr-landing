@@ -7,7 +7,8 @@
 ───────────────────────────────────────── */
 
 .page {
-  padding-block: 2.75rem 6rem;
+  padding-block: calc(var(--app-space-6) + var(--app-space-3))
+    calc(var(--app-space-8) + var(--app-space-6));
 }
 
 /* ── Header: PageHeader carries the frame (back link, title, stage line,
@@ -24,14 +25,14 @@
 .nextStep {
   display: flex;
   align-items: center;
-  gap: 1.35rem;
+  gap: var(--app-space-5);
   background: var(--app-surface-raised);
   border: 1px solid var(--app-border-strong);
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-elev-1);
-  padding: 1.45rem 1.6rem;
+  padding: var(--app-space-5);
   text-decoration: none;
-  margin-bottom: 0.85rem;
+  margin-bottom: var(--app-space-3);
   transition: border-color var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-out);
 }
@@ -51,12 +52,12 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: var(--app-space-1);
 }
 
 .nextStepEyebrow {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -66,7 +67,7 @@
 
 .nextStepTitle {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 1.1875rem;
+  font-size: var(--app-text-ml);
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--app-ink);
@@ -75,7 +76,7 @@
 
 .nextStepBody {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   line-height: 1.5;
   color: var(--app-ink-secondary);
   max-width: 54ch;
@@ -86,15 +87,15 @@
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: var(--app-space-2);
   min-height: 44px;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   color: var(--app-primary-ink);
   background: var(--app-primary);
   border-radius: var(--app-radius-sm);
-  padding: 0.6rem 1.05rem;
+  padding: var(--app-space-2) var(--app-space-4);
   white-space: nowrap;
 }
 
@@ -107,12 +108,12 @@
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.45rem;
+  gap: var(--app-space-2);
   list-style: none;
-  margin: 0 0 2.25rem;
+  margin: 0 0 var(--app-space-6);
   padding: 0;
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -139,7 +140,7 @@
   .nextStep {
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
+    gap: var(--app-space-4);
   }
 
   .nextStepCta {
@@ -151,14 +152,14 @@
 .featured {
   display: flex;
   align-items: center;
-  gap: 1.35rem;
+  gap: var(--app-space-5);
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-elev-1);
-  padding: 1.45rem 1.6rem;
+  padding: var(--app-space-5);
   text-decoration: none;
-  margin-bottom: 2.25rem;
+  margin-bottom: var(--app-space-6);
   transition: border-color var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-out);
 }
@@ -199,12 +200,12 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: var(--app-space-1);
 }
 
 .featuredEyebrow {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -214,7 +215,7 @@
 
 .featuredTitle {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 1.1875rem;
+  font-size: var(--app-text-ml);
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--app-ink);
@@ -223,7 +224,7 @@
 
 .featuredDesc {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   line-height: 1.5;
   color: var(--app-ink-secondary);
   max-width: 54ch;
@@ -235,7 +236,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0.55rem;
+  gap: var(--app-space-2);
 }
 
 /* The Brief's lock state: monochrome by intensity, like the hub's status
@@ -244,7 +245,7 @@
   display: inline-flex;
   align-items: center;
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -269,9 +270,9 @@
 .featuredCta {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--app-space-1);
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   color: var(--app-ink-secondary);
   transition: color var(--dur-fast) var(--ease-out);
@@ -295,12 +296,12 @@
 
 .sectionLabel {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--app-ink-muted);
-  margin: 0 0 0.85rem;
+  margin: 0 0 var(--app-space-3);
 }
 
 /* One seated register; the module rows divide with hairlines. */
@@ -326,8 +327,8 @@
 .row {
   display: flex;
   align-items: flex-start;
-  gap: 1.05rem;
-  padding: 1.15rem 1.35rem;
+  gap: var(--app-space-4);
+  padding: var(--app-space-4) var(--app-space-5);
   text-decoration: none;
 }
 
@@ -379,12 +380,12 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: var(--app-space-1);
 }
 
 .rowTitle {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   font-weight: 600;
   line-height: 1.3;
   letter-spacing: -0.005em;
@@ -399,7 +400,7 @@
 
 .rowDesc {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   line-height: 1.5;
   color: var(--app-ink-secondary);
   max-width: 60ch;
@@ -412,12 +413,12 @@
    criticality, nothing else). Gate hints read quiet, never amber. */
 .rowFoot {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 500;
   line-height: 1.5;
   color: var(--app-ink-secondary);
   margin: 0;
-  padding-top: 0.35rem;
+  padding-top: var(--app-space-1);
 }
 
 .footAlert {
@@ -463,18 +464,18 @@
   .featured {
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
+    gap: var(--app-space-4);
   }
 
   .featuredAside {
     flex-direction: row;
     align-items: center;
-    gap: 1rem;
+    gap: var(--app-space-4);
   }
 }
 
 @media (max-width: 640px) {
   .row {
-    padding: 1.05rem 1.1rem;
+    padding: var(--app-space-4);
   }
 }
