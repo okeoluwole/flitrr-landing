@@ -19,6 +19,7 @@ import {
   stageStateAppearance,
   programmeVarianceAppearance,
   scheduleBandAppearance,
+  varianceDirectionAppearance,
   SEMANTIC_MAPPINGS,
 } from '../lib/design/semantics.js';
 import { CRITICALITY } from '../lib/engine/criticality.js';
@@ -121,15 +122,36 @@ describe('the mappings stay in lock-step with the engine vocabularies', () => {
     }
   });
 
-  it('the variance directions vocabulary still exists for sub-step 5', () => {
-    // The chart series mapping is the language-level read; the per-row
-    // direction ramp converts with the tracker in its own sub-step. This
-    // pin only keeps the vocabulary from moving underneath that plan.
-    expect(Object.values(VARIANCE_DIRECTIONS)).toEqual([
-      'ahead',
-      'on_baseline',
-      'behind',
-    ]);
+  it('variance direction covers the engine vocabulary, and only it', () => {
+    // Sub-step 5 converted the tracker, so the pin that used to sit here
+    // (a bare assertion that the vocabulary had not moved) is replaced by
+    // the real lock-step: every direction the engine emits has an
+    // appearance, and the mapping invents none the engine does not emit.
+    // The tracker's variance cell shows five rungs; the other two are the
+    // schedule band's, taken first when a row is flagged, so this table is
+    // deliberately three and must stay three.
+    const engine = Object.values(VARIANCE_DIRECTIONS);
+    for (const direction of engine) {
+      expect(() => varianceDirectionAppearance(direction)).not.toThrow();
+    }
+    const mapped = SEMANTIC_MAPPINGS.find(
+      (m) => m.id === 'variance-direction'
+    );
+    expect([...mapped.values].sort()).toEqual([...engine].sort());
+  });
+
+  it('the loud two rungs of the tracker ramp belong to the schedule band', () => {
+    // The five-rung CSS ladder is two engine vocabularies composed, never a
+    // five-value vocabulary of its own. This states the seam: a direction is
+    // never allowed to spend a band's ink, so a later edit cannot quietly
+    // move the watch band or the critical slip into the direction table.
+    const bandInks = ['amber', 'red'].map((b) => scheduleBandAppearance(b).ink);
+    for (const direction of Object.values(VARIANCE_DIRECTIONS)) {
+      expect(
+        bandInks,
+        `${direction} must not spend a schedule band's ink`
+      ).not.toContain(varianceDirectionAppearance(direction).ink);
+    }
   });
 });
 
@@ -174,14 +196,27 @@ describe('the colour discipline holds across the whole language', () => {
     }
   });
 
-  it('no status verdict spends success green', () => {
+  it('success green appears only on a recorded fact, never a status verdict', () => {
+    // The rule (Note 15) is that green marks a recorded fact (met, ahead)
+    // and never a status verdict. Until sub-step 5 no mapping had a value
+    // that WAS a recorded fact, so this assertion could be a blanket ban and
+    // still be right by accident. The tracker's variance direction brought
+    // the first one: 'ahead' states an observed position, not a judgement
+    // about it. So the assertion now takes the same shape as the amber
+    // census above, an explicit allowed set, and still bites on every other
+    // value in the language.
+    const allowedSuccess = new Set(['variance-direction:ahead']);
     for (const mapping of SEMANTIC_MAPPINGS) {
       for (const value of mapping.values) {
         const a = mapping.appearance(value);
         const spendsSuccess = [a.ink, a.fill, a.border].some(
           (t) => t != null && successTokens.test(t)
         );
-        expect(spendsSuccess, `${mapping.id}:${value}`).toBe(false);
+        const key = `${mapping.id}:${value}`;
+        expect(
+          spendsSuccess,
+          `${key} ${spendsSuccess ? 'spends' : 'does not spend'} success green`
+        ).toBe(allowedSuccess.has(key));
       }
     }
   });

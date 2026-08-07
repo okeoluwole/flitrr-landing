@@ -44,8 +44,32 @@ of re-deciding it. The sources of truth are code, not this file:
   last guard exists because the Brief's print block HAD become a second
   scale under `--doc-*`, 37 hand-picked font sizes and 52 hand-picked
   spacing declarations, and it is what stops a later session rebuilding the
-  fork. A sub-step adds its surfaces to CONVERTED as it converts them.) If
+  fork. From sub-step 5 the three Programme surfaces are in CONVERTED, their
+  criticality rules are held to `criticalityAppearance` and their band rules
+  to `scheduleBandAppearance`, and the tracker's variance ramp is held to
+  both. A sub-step adds its surfaces to CONVERTED as it converts them.) If
   your change fails one of these, fix the change, not the test.
+
+Two properties sit outside the rhythm and the scale on purpose. Each is
+stated in the guard as a SHAPE, never as a file exemption or a class-name
+allowlist, because the guard holds no exemption list:
+
+- **`scroll-margin-top` is not positive space.** It compensates for the
+  height of sticky chrome so an anchored element lands below the header, so
+  its correct value is whatever that chrome measures (the tracker's 24rem
+  and 14rem). Snapping to the nearest step would be a 320px error that
+  silently breaks scroll anchoring, and no static render would show it. Same
+  category as the Brief's margin rail and the negative hit-area margins:
+  geometry derived from another measurement, not a step on a scale.
+- **A `font-size` may be a px length in an SVG-coordinate context.** A chart
+  is drawn in a fixed viewBox, so its text sits in the same coordinate space
+  as its bars and gridlines; a rem would scale with the root font size while
+  the geometry did not, and labels would overrun their gridlines at exactly
+  the accessibility setting meant to help. Chart text is part of the
+  drawing, not of the document's type. The guard tests the real claim: every
+  use of that class in the surface's own JS must be on an SVG `<text>` or
+  `<tspan>`. It fails closed, so a class the JS never uses, or uses on an
+  HTML element, does not get the allowance.
 
 This file records the rules and the vocabulary. Where it and the code ever
 disagree, the code wins; update this file in the same commit.
@@ -157,7 +181,7 @@ the `--ease-out` family; everything behind
 
 `lib/design/semantics.js` is the ONLY place a domain value becomes a token.
 Each function throws on an unknown value (a silent fallback is how a wrong
-status renders as Healthy). The six:
+status renders as Healthy). The seven:
 
 - `criticalityAppearance`: `critical` / `standard` / `unlinked`. Pill shape.
   Critical is the amber wash plus full border; Standard the quiet outline;
@@ -180,6 +204,11 @@ status renders as Healthy). The six:
   On course (hollow ring) / Slipping (bright mono disc) / Critical slip
   (amber bullseye). Red is criticality-gated by the engine, so Critical slip
   is the one amber read; the engine keys never appear as words on a surface.
+- `varianceDirectionAppearance`: `ahead` / `on_baseline` / `behind`
+  (`VARIANCE_DIRECTIONS` in `scheduleModel.js`), added in sub-step 5. The
+  tone a tracker row reads in when it is NOT flagged. Ahead spends the
+  success green because ahead is a recorded fact, not a verdict; on baseline
+  spends no colour and drops to weight 500.
 
 Two companions to the criticality mapping, added in sub-step 4:
 
@@ -199,9 +228,15 @@ Two companions to the criticality mapping, added in sub-step 4:
 
 When converting a surface, express these through your module's classes but
 take every colour from the appearance's tokens and keep its label, shape and
-weight carriers. The per-row variance direction ramp (`ahead` /
-`on_baseline` / `behind`) converts with the Programme tracker in its own
-sub-step.
+weight carriers.
+
+The tracker's variance cell is the worked example of composing two mappings
+rather than inventing a third. Its CSS shows five rungs, and the engine has
+no five-value vocabulary: a flagged row takes its BAND
+(`scheduleBandAppearance`), an unflagged row its DIRECTION
+(`varianceDirectionAppearance`), in that precedence. When a surface's ramp
+has more rungs than any one engine vocabulary, find the vocabularies it
+composes. Never add the missing values to the design layer.
 
 ## The shared chrome
 

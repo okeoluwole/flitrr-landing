@@ -21,6 +21,8 @@ import {
   criticalityAppearance,
   criticalityAppearanceOnPaper,
   criticalityMarkAppearanceOnPaper,
+  scheduleBandAppearance,
+  varianceDirectionAppearance,
 } from '../lib/design/semantics.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -52,6 +54,12 @@ const CONVERTED = [
   // read-only frame around the same sheet.
   'app/pulse/app/components/Brief.module.css',
   'app/pulse/app/components/MemberBriefView.module.css',
+  // Sub-step 5: the three Programme surfaces. The tracker is the live
+  // instrument, set-up is where a curated template becomes this project's
+  // baseline, and the gate review is the go or no-go decision.
+  'app/pulse/app/programme/ProgrammeTracking.module.css',
+  'app/pulse/app/programme/setup/ProgrammeSetup.module.css',
+  'app/pulse/app/gate/GateReview.module.css',
 ];
 
 function read(rel) {
@@ -129,51 +137,148 @@ const BARE_LENGTH = /[0-9.]+(rem|em|px|%|ch|v[hwminax]+)/;
 const FLUID_ON_SCALE =
   /^clamp\(\s*var\(--app-text-[a-z0-9]+\)\s*,\s*[0-9.]+(?:vw|vh|vmin|vmax)\s*,\s*var\(--app-text-[a-z0-9]+\)\s*\)$/;
 
+/**
+ * The one px font-size the language permits, added in sub-step 5: type
+ * inside an SVG-coordinate context.
+ *
+ * A chart is drawn in a fixed viewBox, so its text is positioned in the same
+ * coordinate space as its bars and gridlines. A rem size would scale with the
+ * user's root font size while the geometry around it did not, so labels would
+ * overrun their gridlines and collide at exactly the accessibility setting
+ * meant to help. Chart text is part of the drawing, not part of the
+ * document's type.
+ *
+ * The allowance is a SHAPE, not a file exemption and not a class-name
+ * allowlist: a class may hold a px font-size only if every use of it in the
+ * surface's own JS is on an SVG <text> or <tspan> element. That cannot be
+ * abused, because claiming it requires the class to genuinely be chart text.
+ * It fails closed: a class the JS never uses, or uses on an HTML element, or
+ * reaches only through a string rather than `styles.<name>`, does not get it.
+ */
+const SVG_TEXT_TAGS = /<(text|tspan)\b/g;
+
+/** The [start, end) spans of every SVG text opening tag in a JS source,
+ *  brace-aware so an expression attribute cannot end the tag early. */
+function svgTextTagSpans(js) {
+  const spans = [];
+  for (const m of js.matchAll(SVG_TEXT_TAGS)) {
+    let depth = 0;
+    let i = m.index;
+    for (; i < js.length; i++) {
+      const ch = js[i];
+      if (ch === '{') depth++;
+      else if (ch === '}') depth--;
+      else if (ch === '>' && depth === 0) break;
+    }
+    spans.push([m.index, i]);
+  }
+  return spans;
+}
+
+/** Every class name mentioned in a selector. */
+function classesIn(selector) {
+  return [...selector.matchAll(/\.([A-Za-z][A-Za-z0-9_-]*)/g)].map((m) => m[1]);
+}
+
+/** The component a CSS module dresses: Foo.module.css -> Foo.js beside it. */
+function siblingJs(rel) {
+  const guess = rel.replace(/\.module\.css$/, '.js');
+  try {
+    return read(guess);
+  } catch {
+    return '';
+  }
+}
+
 describe('type on a converted surface rides the --app-text scale', () => {
   for (const rel of CONVERTED) {
     it(rel, () => {
       const css = stripComments(read(rel));
+      const js = siblingJs(rel);
+      const spans = svgTextTagSpans(js);
+
+      /** True when every class in the selector is used in the sibling JS,
+       *  and every one of those uses is on an SVG text element. */
+      function drawnInSvgCoordinates(selector) {
+        const names = classesIn(selector);
+        if (names.length === 0) return false;
+        return names.every((name) => {
+          const uses = [
+            ...js.matchAll(new RegExp(`\\bstyles\\.${name}\\b`, 'g')),
+          ];
+          if (uses.length === 0) return false;
+          return uses.every((u) =>
+            spans.some(([start, end]) => u.index > start && u.index < end)
+          );
+        });
+      }
+
       const offenders = [];
-      for (const m of css.matchAll(/font-size\s*:\s*([^;}]+)/g)) {
-        const value = m[1]
-          .trim()
-          .replace(/\s*!important$/, '')
-          .replace(/\s+/g, ' ');
-        const token = value.match(/^var\((--app-text-[a-z0-9]+)\)$/);
-        const named = varsIn(value);
-        if (token) {
-          if (!DEFINED_TOKENS.has(token[1])) {
-            offenders.push(`${value} (token not in globals.css)`);
-          }
-        } else if (FLUID_ON_SCALE.test(value)) {
-          for (const t of named) {
-            if (!DEFINED_TOKENS.has(t)) {
-              offenders.push(`${value} (${t} not in globals.css)`);
+      for (const { selector, body } of rules(css)) {
+        for (const m of body.matchAll(/font-size\s*:\s*([^;}]+)/g)) {
+          const value = m[1]
+            .trim()
+            .replace(/\s*!important$/, '')
+            .replace(/\s+/g, ' ');
+          const token = value.match(/^var\((--app-text-[a-z0-9]+)\)$/);
+          const named = varsIn(value);
+          if (token) {
+            if (!DEFINED_TOKENS.has(token[1])) {
+              offenders.push(`${selector}: ${value} (token not in globals.css)`);
             }
+          } else if (FLUID_ON_SCALE.test(value)) {
+            for (const t of named) {
+              if (!DEFINED_TOKENS.has(t)) {
+                offenders.push(`${selector}: ${value} (${t} not in globals.css)`);
+              }
+            }
+          } else if (
+            /^[0-9.]+px$/.test(value) &&
+            drawnInSvgCoordinates(selector)
+          ) {
+            // Chart text: part of the drawing, not of the document's type.
+          } else {
+            offenders.push(`${selector}: ${value}`);
           }
-        } else {
-          offenders.push(value);
         }
       }
       expect(
         offenders,
-        `font sizes off the scale in ${rel}: ${offenders.join(', ')}`
+        `font sizes off the scale in ${rel}:\n  ${offenders.join('\n  ')}`
       ).toEqual([]);
     });
   }
 });
 
 describe('positive space on a converted surface rides the --app-space rhythm', () => {
+  // scroll-margin-top is deliberately NOT in this list, from sub-step 5.
+  // The rhythm models positive space between things. scroll-margin-top is
+  // not that: it is a compensation for the height of sticky chrome, so that
+  // an anchored element lands below the header instead of under it, and its
+  // correct value is whatever that chrome measures. The tracker carries
+  // 24rem and 14rem for exactly that reason. The nearest rhythm step is
+  // 4rem, so snapping would be a 320px error that silently breaks scroll
+  // anchoring, a defect no test would catch and no static render would show.
+  // It is the same category as the Brief's margin rail and the negative
+  // hit-area margins this guard already exempts: geometry derived from
+  // another measurement, not a step on a scale.
   const SPACING_PROP =
-    /(?:^|[;{])\s*(padding(?:-block|-inline|-top|-right|-bottom|-left)?|margin(?:-block|-inline|-top|-right|-bottom|-left)?|gap|row-gap|column-gap|scroll-margin-top)\s*:\s*([^;}]+)/g;
+    /(?:^|[;{])\s*(padding(?:-block|-inline|-top|-right|-bottom|-left)?|margin(?:-block|-inline|-top|-right|-bottom|-left)?|gap|row-gap|column-gap)\s*:\s*([^;}]+)/g;
 
   // A value part is legal if it is a rhythm token that exists, a zero, auto,
   // a pixel length (control geometry: hairlines, insets, hit minima), or a
   // NEGATIVE rem (a hit-area or optical compensation, which the rhythm does
   // not model). A positive rem or em literal is exactly the drift this
   // guard exists to stop.
+  //
+  // The px arm is signed from sub-step 5. It always meant to be: a negative
+  // px is the intersection of the two categories already named above, a
+  // hairline overlap given back (the tracker's tab pulls its 2px underline
+  // over the bar's 1px border with margin-bottom: -1px) and the standard
+  // visually-hidden clip's margin: -1px. No converted surface had needed one
+  // before, so the omission had never bitten.
   const LEGAL =
-    /^(var\(--app-space-[0-9]\)|0|auto|-[0-9.]+rem|[0-9.]+px)$/;
+    /^(var\(--app-space-[0-9]\)|0|auto|-[0-9.]+rem|-?[0-9.]+px)$/;
 
   /**
    * A calc() is on the rhythm when every length inside it is a rhythm token
@@ -404,6 +509,161 @@ describe("the Brief's criticality rules spend the mapping, in paper ink", () => 
       }
     }
     expect(offenders).toEqual([]);
+  });
+});
+
+describe('the Programme surfaces spend the mappings, not a local amber', () => {
+  // Sub-step 5. Thirteen rules here were named so that the amber census
+  // could see them, and a name is not evidence: /critical/i in a selector
+  // proves nothing about what the rule spends. These tables are the durable
+  // half. Every expectation is computed from semantics.js, so a correction
+  // to a mapping propagates here without reopening the surfaces, and a rule
+  // that drifts off its mapping fails whether or not it is still named for
+  // criticality.
+  //
+  // Two mappings are in play, and which one a rule answers to is the point.
+  // scheduleBandAppearance('red') is the tracker's live Critical slip, an
+  // engine verdict about a point's position. criticalityAppearance
+  // ('critical') is the classification itself. They spend the same amber
+  // for the same reason (the red band is criticality-gated), but they are
+  // different reads and the tables keep them apart.
+  const band = scheduleBandAppearance('red');
+  const critical = criticalityAppearance('critical');
+
+  const SURFACES = [
+    [
+      'app/pulse/app/programme/ProgrammeTracking.module.css',
+      [
+        // The live band verdict.
+        ['.cardCriticalSlip', band, ['fill', 'border']],
+        ['.detailCriticalSlip', band, ['fill', 'border']],
+        ['.tileValueCritical', band, ['ink']],
+        ['.cardFigureCriticalSlip', band, ['ink']],
+        ['.varCriticalSlip', band, ['ink']],
+        ['.stCriticalSlip', band, ['markFill']],
+        ['.cxCriticalSlip', band, ['markFill']],
+        ['text.cxCriticalSlip', band, ['ink']],
+        // The classification itself: a count of critical points, and the
+        // house Critical pill on a lookahead row.
+        ['.tileSubCritical', critical, ['ink']],
+        ['.lookCriticalityCritical', critical, ['ink', 'fill', 'border']],
+      ],
+    ],
+    [
+      'app/pulse/app/programme/setup/ProgrammeSetup.module.css',
+      [
+        ['.cardCritical', critical, ['fill', 'border']],
+        ['.tierChipCritical', critical, ['ink', 'fill', 'border']],
+        ['.badgeCritical', critical, ['ink', 'fill', 'border']],
+      ],
+    ],
+    [
+      'app/pulse/app/gate/GateReview.module.css',
+      [
+        // Every objective non-negotiable IS the framework's structural-risk
+        // state, so the over-constraint caution earns the criticality wash,
+        // and .passedAckCritical is the standing record of the same read.
+        ['.itemCritical', critical, ['fill', 'border']],
+        ['.itemCritical .iconOut', critical, ['ink']],
+        ['.passedAckCritical', critical, ['ink']],
+      ],
+    ],
+  ];
+
+  for (const [rel, table] of SURFACES) {
+    const blocks = new Map(
+      rules(stripComments(read(rel))).map(({ selector, body }) => [
+        selector.trim(),
+        body,
+      ])
+    );
+
+    for (const [selector, appearance, parts] of table) {
+      it(`${rel.split('/').pop()} ${selector} spends the mapping`, () => {
+        const body = blocks.get(selector);
+        expect(body, `${selector} missing from ${rel}`).toBeTruthy();
+        for (const part of parts) {
+          expect(
+            body,
+            `${selector} should spend ${part} = var(${appearance[part]})`
+          ).toContain(`var(${appearance[part]})`);
+        }
+      });
+    }
+
+    it(`${rel.split('/').pop()} re-picks no amber locally`, () => {
+      // Whatever amber any of these rules spends must be a token one of the
+      // two mappings names. A hand-picked amber fails here even where it
+      // happens to resolve to an identical value, which is exactly how the
+      // five that did (--app-signal-border and --app-critical-bg for the
+      // mapping's --app-critical-border and --app-signal-wash) were found.
+      const legal = new Set(
+        [band, critical].flatMap((a) => [a.ink, a.fill, a.border, a.markFill])
+      );
+      const offenders = [];
+      for (const [selector] of table) {
+        for (const token of varsIn(blocks.get(selector) || '')) {
+          if (/signal|ochre|critical/.test(token) && !legal.has(token)) {
+            offenders.push(`${selector}: ${token}`);
+          }
+        }
+      }
+      expect(offenders).toEqual([]);
+    });
+  }
+});
+
+describe("the tracker's variance ramp is its two engine vocabularies", () => {
+  // The CSS shows five rungs. The engine has no five-value vocabulary, and
+  // inventing one in the design layer is the drift these mappings exist to
+  // stop. It is the three directions composed with the three-band axis:
+  // a flagged row takes its BAND, an unflagged row its DIRECTION. These
+  // assertions hold each rung to whichever vocabulary owns it.
+  const css = stripComments(
+    read('app/pulse/app/programme/ProgrammeTracking.module.css')
+  );
+  const blocks = new Map(
+    rules(css).map(({ selector, body }) => [selector.trim(), body])
+  );
+
+  const DIRECTION_RUNGS = [
+    ['.varAhead', 'ahead'],
+    ['.varQuiet', 'on_baseline'],
+    ['.varBehind', 'behind'],
+  ];
+
+  for (const [selector, direction] of DIRECTION_RUNGS) {
+    it(`${selector} is varianceDirectionAppearance('${direction}')`, () => {
+      const a = varianceDirectionAppearance(direction);
+      const body = blocks.get(selector);
+      expect(body, `${selector} missing`).toBeTruthy();
+      expect(body).toContain(`color: var(${a.ink})`);
+      // Weight is the non-colour carrier: calm reads at 500, a stated
+      // direction at 600, so the ramp survives a colour-blind read.
+      expect(body).toContain(`font-weight: ${a.weight}`);
+    });
+  }
+
+  for (const [selector, key] of [
+    ['.varSlip', 'amber'],
+    ['.varCriticalSlip', 'red'],
+  ]) {
+    it(`${selector} is scheduleBandAppearance('${key}')`, () => {
+      const body = blocks.get(selector);
+      expect(body, `${selector} missing`).toBeTruthy();
+      expect(body).toContain(`color: var(${scheduleBandAppearance(key).ink})`);
+    });
+  }
+
+  it('the two vocabularies never bleed into each other', () => {
+    // A direction must not wear a band's ink, and a band rung must not wear
+    // a direction's. This is what stops a later edit collapsing the five
+    // rungs into one invented ladder.
+    const directionInks = DIRECTION_RUNGS.map(
+      ([, d]) => varianceDirectionAppearance(d).ink
+    );
+    const bandInks = ['amber', 'red'].map((b) => scheduleBandAppearance(b).ink);
+    for (const ink of bandInks) expect(directionInks).not.toContain(ink);
   });
 });
 
