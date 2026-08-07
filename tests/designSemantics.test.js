@@ -354,14 +354,28 @@ describe('the paper register states its holes instead of hiding them', () => {
     ['criticality-mark:mark', criticalityMarkAppearance()],
   ];
 
-  /** The tokens onPaper translates. markFill is deliberately NOT one of
-   *  them: it passes through untranslated, so a paper appearance can still
-   *  carry an --app-* mark colour. No caller hits that today (the Brief
-   *  renders only the criticality pill and its mark, and the mark's colour
-   *  travels as `fill`), so this is a stated limit rather than a hole to
-   *  close by guessing. Widening onPaper is a change to a shared function
-   *  and belongs to whoever first renders a marked appearance on paper. */
-  const CROSSING = ['ink', 'fill', 'border'];
+  /**
+   * The tokens onPaper translates.
+   *
+   * This list is deliberately a SECOND, hand-maintained copy of the one in
+   * lib/design/semantics.js rather than an import of it. Importing would
+   * make the module both the thing under test and the definition of what
+   * counts as tested: a part dropped from onPaper would vanish from this
+   * list at the same instant and every assertion below would still pass,
+   * on a language that had quietly stopped crossing it. The copy is the
+   * expectation; the module has to meet it. The pairing is held by the
+   * assertion at the end of this block, which proves each part named here
+   * really is translated rather than merely un-thrown.
+   *
+   * markFill joined the list when it was found missing. It had passed
+   * through untranslated, so a paper appearance could still hand back an
+   * --app-* mark colour: the glyph would keep its screen ink while the
+   * label around it moved to --doc-*. Nothing hit it, because the only
+   * marked appearance any document renders is the criticality mark, whose
+   * colour travels as `fill`. That is why it never bit, not why it was
+   * safe.
+   */
+  const CROSSING = ['ink', 'fill', 'border', 'markFill'];
 
   function holesIn(appearance) {
     return CROSSING.map((part) => appearance[part]).filter(
@@ -420,6 +434,47 @@ describe('the paper register states its holes instead of hiding them', () => {
       if (!STATED_HOLES.has(key)) continue;
       expect(() => onPaper(appearance), `${key} should throw`).toThrow(
         /No paper counterpart/
+      );
+    }
+  });
+
+  it('translates every part it names, so the list above is not decorative', () => {
+    // The other direction of the hand-maintained copy. A part named in
+    // CROSSING that onPaper does not actually translate would hand back an
+    // --app-* token inside a paper appearance, which IS the markFill
+    // defect. Proven on the real appearances, and the second loop is what
+    // stops it passing vacuously: a part no appearance carries would be
+    // checked zero times and prove nothing, so it has to fail instead.
+    const carriers = new Map(CROSSING.map((part) => [part, 0]));
+    for (const [key, appearance] of EVERY_APPEARANCE) {
+      if (STATED_HOLES.has(key)) continue;
+      const crossed = onPaper(appearance);
+      for (const part of CROSSING) {
+        if (appearance[part] == null) continue;
+        carriers.set(part, carriers.get(part) + 1);
+        expect(
+          crossed[part],
+          `${key}.${part} = ${appearance[part]} was left untranslated`
+        ).toMatch(/^--doc-/);
+      }
+    }
+    for (const [part, count] of carriers) {
+      expect(
+        count,
+        `no appearance carries a ${part}, so naming it in CROSSING proves nothing`
+      ).toBeGreaterThan(0);
+    }
+  });
+
+  it('crossing to paper changes the medium, never the fields', () => {
+    // onPaper is a change of register, so an appearance and its paper
+    // counterpart describe the same thing and must have the same shape.
+    // Only three of the twenty six appearances carry a markFill at all;
+    // translating it must not hand the other twenty three a null one.
+    for (const [key, appearance] of EVERY_APPEARANCE) {
+      if (STATED_HOLES.has(key)) continue;
+      expect(Object.keys(onPaper(appearance)).sort(), key).toEqual(
+        Object.keys(appearance).sort()
       );
     }
   });

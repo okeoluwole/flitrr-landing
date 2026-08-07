@@ -300,6 +300,17 @@ Two companions to the criticality mapping, added in sub-step 4:
   no counterpart rather than letting a surface pick a `--doc-*` colour
   locally. (The app's own print block had already remapped
   `--app-signal-ink` to `#856414`, which is `--doc-ochre` exactly.)
+  It crosses four parts: `ink`, `fill`, `border` and `markFill`. Everything
+  else on an appearance is medium-independent by construction, since a
+  label is a word, a weight is a number, and `borderStyle`, `shape` and
+  `mark` are the carriers whose whole point is surviving the loss of
+  colour. `markFill` was missing from that list until sub-step 6's
+  follow-on: a paper appearance could hand back an `--app-*` mark colour,
+  so the glyph kept its screen ink while the label around it moved to
+  `--doc-*`. Nothing hit it, because the one marked appearance any document
+  renders is the criticality mark, whose colour travels as `fill`. Crossing
+  it needed no new counterpart and opened no new hole. `onPaper` is
+  shape-preserving: it changes a value's medium, never the fields it has.
 
 When converting a surface, express these through your module's classes but
 take every colour from the appearance's tokens and keep its label, shape and
