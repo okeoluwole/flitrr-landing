@@ -49,9 +49,15 @@ of re-deciding it. The sources of truth are code, not this file:
   to `scheduleBandAppearance`, and the tracker's variance ramp is held to
   both. Sub-step 6 adds the shared chrome (PageHeader, ViewOnlyBadge,
   DashboardShell), the project list, the dashboard and the workspace, with
-  the amber census gaining the two shapes below. A sub-step adds its
-  surfaces to CONVERTED as it converts them.) If your change fails one of
-  these, fix the change, not the test.
+  the amber census gaining the two shapes below, and holds the dashboard's
+  ladder to `objectiveStatusAppearance` rung by rung across both its
+  carriers. Sub-step 6 also makes CONVERTED's completeness COMPUTED: every
+  `.module.css` under `app/pulse/app` and `app/components` must be either
+  converted or named in an explicit EXCLUDED list with a reason, both lists
+  are held to the filesystem so a stale entry fails, and a new module fails
+  the suite until someone decides which it is. That is what stops the sweep
+  reading as complete on the strength of memory.) If your change fails one
+  of these, fix the change, not the test.
 
 Four things sit outside the plain rules on purpose. Each is stated in the
 guard as a SHAPE, never as a file exemption or a class-name allowlist,

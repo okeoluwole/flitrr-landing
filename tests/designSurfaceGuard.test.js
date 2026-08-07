@@ -263,6 +263,80 @@ function siblingJs(rel) {
   }
 }
 
+describe('CONVERTED covers every authenticated module, computed not remembered', () => {
+  /**
+   * Sub-step 6 closes Note 15, so the sweep must leave behind proof that it
+   * closed rather than a claim resting on somebody's memory.
+   *
+   * Without this, CONVERTED reads as complete because nobody can see what is
+   * missing from it. That is the same false-green shape the amber census had
+   * before sub-step 4 widened it to both registers, and the same shape that
+   * left four authenticated modules unhomed until sub-step 5 counted them:
+   * DashboardShell had never belonged to any sub-step at all, and it carries
+   * an amber spend. A list that cannot say what it omits is not evidence.
+   *
+   * So every .module.css under the two authenticated trees must be either
+   * CONVERTED or named here with a reason. Adding a module to the app now
+   * fails this test until someone decides which it is.
+   */
+  const TREES = ['app/pulse/app', 'app/components'];
+
+  const EXCLUDED = [
+    // The marketing system. Both stand on the scoped .page token set of the
+    // public site, not on --app-*, and are out of Note 15 entirely.
+    'app/components/considered/SiteFooter.module.css',
+    'app/components/considered/SiteNav.module.css',
+    // The sweep's own review route, linked from no navigation. It exists to
+    // show the language back to itself while the sweep runs, and the last
+    // sub-step deletes it; this entry goes in the same commit.
+    'app/pulse/app/design/Design.module.css',
+  ];
+
+  function modulesUnder(dir) {
+    const out = [];
+    const abs = path.join(ROOT, dir);
+    for (const entry of readdirSync(abs, { withFileTypes: true })) {
+      const rel = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) out.push(...modulesUnder(rel));
+      else if (entry.name.endsWith('.module.css')) out.push(rel);
+    }
+    return out;
+  }
+
+  const found = TREES.flatMap(modulesUnder).sort();
+
+  it('finds modules at all, so the assertions below can bite', () => {
+    expect(found.length).toBeGreaterThan(10);
+  });
+
+  it('every module is either converted or excluded with a reason', () => {
+    const accounted = new Set([...CONVERTED, ...EXCLUDED]);
+    const orphans = found.filter((rel) => !accounted.has(rel));
+    expect(
+      orphans,
+      `unhomed authenticated modules. Convert them, or name them in ` +
+        `EXCLUDED with a reason:\n  ${orphans.join('\n  ')}`
+    ).toEqual([]);
+  });
+
+  it('names nothing that has stopped existing', () => {
+    // A stale entry is how a list starts lying. Both lists are held to the
+    // filesystem, so a deleted or moved module fails here rather than
+    // quietly padding the count.
+    const real = new Set(found);
+    const ghosts = [...CONVERTED, ...EXCLUDED].filter((rel) => !real.has(rel));
+    expect(
+      ghosts,
+      `listed but not on disk:\n  ${ghosts.join('\n  ')}`
+    ).toEqual([]);
+  });
+
+  it('excludes nothing it also claims to have converted', () => {
+    const converted = new Set(CONVERTED);
+    expect(EXCLUDED.filter((rel) => converted.has(rel))).toEqual([]);
+  });
+});
+
 describe('type on a converted surface rides the --app-text scale', () => {
   for (const rel of CONVERTED) {
     it(rel, () => {
