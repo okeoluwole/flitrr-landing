@@ -141,9 +141,21 @@ which is one of the reasons the guard test exists.
   `--app-hairline` .08 (dividers), `--app-active` .09 (press state),
   `--app-fill-strong` .14 (mid intensity fill), `--app-border` .15,
   `--app-border-strong` .28. Do not invent a ninth alpha.
-- Signal: `--app-signal`, `--app-signal-ink`, `--app-signal-ink-dim`,
-  `--app-signal-wash`, `--app-critical-bg`, `--app-critical-border`. A
-  criticality wash always takes a full border, never a side-stripe.
+- Signal, the whole amber family and the only amber there is:
+  `--app-signal`, `--app-signal-strong`, `--app-signal-wash`,
+  `--app-signal-ink`, `--app-signal-border`, plus the dimmed voice
+  `--app-signal-ink-dim` and `--app-signal-border-dim`. Seven names, seven
+  distinct values. A criticality wash always takes a full border, never a
+  side-stripe.
+  The wash and the border were once written twice, as `--app-critical-bg`
+  and `--app-critical-border`: byte-identical twins of `--app-signal-wash`
+  and `--app-signal-border`. That is the same duplication the semantic
+  mappings exist to prevent, one level down in the token layer, and it is
+  why five rules in sub-step 5 could spend the wrong token and still look
+  right. Both are retired. The rule that replaced them: this layer names
+  the COLOUR, `lib/design/semantics.js` names the MEANING, so a token
+  called `--app-critical-*` was lying every time the ladder spent it for
+  exposure or the schedule band spent it for a criticality-gated red.
 - Action and states: `--app-primary(-ink/-hover)`, `--app-focus`,
   `--app-focus-ring`, `--app-danger(-wash/-border)`, `--app-success`,
   `--app-warning`.

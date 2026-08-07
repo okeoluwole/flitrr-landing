@@ -419,8 +419,8 @@
 /* The critical-slip card: the criticality wash and its full border, the same
    recipe as the register's critical rows. */
 .cardCriticalSlip {
-  background: var(--app-critical-bg);
-  border-color: var(--app-critical-border);
+  background: var(--app-signal-wash);
+  border-color: var(--app-signal-border);
 }
 
 .cardBody {
@@ -726,7 +726,7 @@
   font-weight: 600;
   color: var(--app-signal-ink);
   background: var(--app-signal-wash);
-  border: 1px solid var(--app-critical-border);
+  border: 1px solid var(--app-signal-border);
   border-radius: 999px;
   padding: 3px 10px;
 }
@@ -1079,8 +1079,8 @@
 }
 
 .detailCriticalSlip {
-  background: var(--app-critical-bg);
-  box-shadow: inset 0 0 0 1px var(--app-critical-border);
+  background: var(--app-signal-wash);
+  box-shadow: inset 0 0 0 1px var(--app-signal-border);
 }
 
 .detailMeta {

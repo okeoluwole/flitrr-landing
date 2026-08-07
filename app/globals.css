@@ -182,7 +182,15 @@
 
   /* Signal: amber keeps one meaning, criticality. On the calm
      cool field it reads louder, so proportional monitoring
-     shows itself. --app-signal-ink is amber as text on dark. */
+     shows itself. --app-signal-ink is amber as text on dark.
+     The wash and the border are the criticality read's own pair:
+     a wash under a FULL border, never a side-stripe.
+     They were once written twice, as --app-critical-bg and
+     --app-critical-border, byte-identical twins of the two below.
+     That let a rule spend the wrong name and still look right,
+     which is the duplication the semantic mappings exist to
+     prevent, one level down. This layer names the COLOUR;
+     lib/design/semantics.js names the MEANING. One name each. */
   --app-signal:        #F4C031;
   --app-signal-strong: #D9A61F;
   --app-signal-wash:   rgba(244, 192, 49, 0.10);
@@ -195,11 +203,6 @@
      paper the same way it re-tunes --app-signal-ink. */
   --app-signal-ink-dim:    #C9A75F;
   --app-signal-border-dim: rgba(244, 192, 49, 0.26);
-
-  /* Criticality: the cascade's loud end. A wash and a full
-     border, never a side-stripe. */
-  --app-critical-bg:     rgba(244, 192, 49, 0.10);
-  --app-critical-border: rgba(244, 192, 49, 0.42);
 
   /* Primary action: structural white. Ink on it is the console
      dark, so the button reads as an inverted surface. */

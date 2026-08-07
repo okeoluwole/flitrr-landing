@@ -793,8 +793,13 @@ describe('the Programme surfaces spend the mappings, not a local amber', () => {
       // Whatever amber any of these rules spends must be a token one of the
       // two mappings names. A hand-picked amber fails here even where it
       // happens to resolve to an identical value, which is exactly how the
-      // five that did (--app-signal-border and --app-critical-bg for the
-      // mapping's --app-critical-border and --app-signal-wash) were found.
+      // five that did were found: they spent the retired --app-signal-border
+      // and --app-critical-bg where the mapping named --app-critical-border
+      // and --app-signal-wash. Those two pairs were byte-identical twins,
+      // which is why the wrong name still looked right, and the reason a
+      // later session collapsed the four names into --app-signal-wash and
+      // --app-signal-border. Both retired names are gone; the shape of the
+      // mistake they made possible is what this assertion still catches.
       const legal = new Set(
         [band, critical].flatMap((a) => [a.ink, a.fill, a.border, a.markFill])
       );

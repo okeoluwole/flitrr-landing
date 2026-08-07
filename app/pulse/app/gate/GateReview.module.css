@@ -122,7 +122,7 @@
    objective non-negotiable is the framework's structural-risk state, so
    the criticality wash and border are earned here and nowhere else. */
 .itemCritical {
-  border: 1px solid var(--app-critical-border);
+  border: 1px solid var(--app-signal-border);
   background: var(--app-signal-wash);
   border-radius: var(--app-radius-sm);
   padding: var(--app-space-3) var(--app-space-4);

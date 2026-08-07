@@ -60,7 +60,7 @@
 - [ ] Work surfaces use the register panel pattern: one seated panel,
       hairline-divided rows, `--app-hover` row hover. Not floating card
       grids.
-- [ ] Critical = `--app-critical-bg` wash + full `--app-critical-border`;
+- [ ] Critical = `--app-signal-wash` + full `--app-signal-border`;
       never a side-stripe. Severity reads monochrome apart from critical:
       no RAG traffic lights in the register.
 - [ ] Chips: mono, 11px, uppercase, monochrome by intensity; no amber for

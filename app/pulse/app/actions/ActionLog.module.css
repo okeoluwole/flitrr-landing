@@ -134,8 +134,8 @@
    card in the register, so the one functional colour means the same thing
    on both surfaces. */
 .pushItemCritical {
-  border-color: var(--app-critical-border);
-  background: var(--app-critical-bg);
+  border-color: var(--app-signal-border);
+  background: var(--app-signal-wash);
 }
 
 /* The item itself leads the row: identity first, state second. */
@@ -513,7 +513,7 @@
   border-radius: 999px;
   background: var(--app-signal-wash);
   color: var(--app-signal-ink);
-  border: 1px solid var(--app-critical-border);
+  border: 1px solid var(--app-signal-border);
   white-space: nowrap;
 }
 
@@ -591,8 +591,8 @@
    in the Brief and the register. The one functional colour, meaning the
    same thing. */
 .cardCritical {
-  border-color: var(--app-critical-border);
-  background: var(--app-critical-bg);
+  border-color: var(--app-signal-border);
+  background: var(--app-signal-wash);
 }
 
 /* One consistent tag row under the description, so the eye can track the

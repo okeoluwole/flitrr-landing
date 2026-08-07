@@ -23,7 +23,7 @@
 .critical {
   background: var(--app-signal-wash);
   color: var(--app-signal-ink);
-  border-color: var(--app-critical-border);
+  border-color: var(--app-signal-border);
 }
 
 .standard {

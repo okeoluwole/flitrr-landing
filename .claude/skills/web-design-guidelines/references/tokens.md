@@ -128,8 +128,13 @@ All lines are translucent light, so they seat on any app surface.
 rgba(244,192,49,.10) · `--app-signal-ink` **#ECC172** (amber as text on
 dark) · `--app-signal-border` rgba(244,192,49,.42).
 
-Critical items: `--app-critical-bg` rgba(244,192,49,.10) plus a full
-`--app-critical-border` rgba(244,192,49,.42). Never a side-stripe.
+Critical items: `--app-signal-wash` plus a full `--app-signal-border`.
+Never a side-stripe. There is exactly ONE name per amber value: the wash
+and the border were once also written as `--app-critical-bg` and
+`--app-critical-border`, byte-identical twins that let a rule spend the
+wrong name and still look right. Both are retired, and a guard in
+`tests/designSurfaceGuard.test.js` fails if any two amber tokens in the
+same register share a value again.
 
 ### Primary action and states
 - **Primary is structural white, never honey:** `--app-primary` #F1F3F5 ·

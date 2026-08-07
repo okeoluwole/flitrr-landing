@@ -97,7 +97,7 @@
 /* A force breaches a confirmed hard floor: the one critical state, the house
    wash and full border, never a side-stripe. */
 .cardCritical {
-  border-color: var(--app-critical-border);
+  border-color: var(--app-signal-border);
   background: var(--app-signal-wash);
 }
 
@@ -147,7 +147,7 @@
 .tierChipCritical {
   font-weight: 600;
   background: var(--app-signal-wash);
-  border-color: var(--app-critical-border);
+  border-color: var(--app-signal-border);
   color: var(--app-signal-ink);
 }
 
@@ -808,7 +808,7 @@
   padding: 3px 10px;
   border-radius: 999px;
   background: var(--app-signal-wash);
-  border: 1px solid var(--app-critical-border);
+  border: 1px solid var(--app-signal-border);
   color: var(--app-signal-ink);
 }
 

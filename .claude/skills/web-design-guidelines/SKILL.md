@@ -96,8 +96,8 @@ groups you'll reach for:
 - **Product (Instrument, dark):** chrome `--app-console*`; ground
   `--app-ground` with `--app-surface/-raised/-sunken`;
   ink `--app-ink/-secondary/-muted`; lines `--app-hairline`, `--app-border`,
-  `--app-border-strong`, `--app-hover`; signal `--app-signal*` and
-  `--app-critical-*`; the white `--app-primary/-ink/-hover` and
+  `--app-border-strong`, `--app-hover`; signal `--app-signal*` (the whole
+  amber family, one name per value); the white `--app-primary/-ink/-hover` and
   `--app-focus`; states `--app-danger(-wash/-border)/success/warning`;
   fonts `--app-font-sans/-mono`.
 - **Document:** `--doc-paper(-2)`, the `--doc-ink` ramp, `--doc-line`,
@@ -183,8 +183,8 @@ Details in **[references/conventions.md](references/conventions.md)**.
   focus ring; placeholders in `--app-ink-muted`. Errors via `--app-danger`
   (dark-tuned): text plus colour, never colour alone. Marketing forms use
   `--color-input-*` with the `--color-input-focus` ring.
-- **Criticality:** critical items take `--app-critical-bg` plus a full
-  `--app-critical-border`, never a side-stripe. The severity read is
+- **Criticality:** critical items take `--app-signal-wash` plus a full
+  `--app-signal-border`, never a side-stripe. The severity read is
   monochrome apart from critical: no RAG traffic lights in the register
   (the Programme module's schedule RAG is a separate axis).
 - **Stage rail:** monochrome (`--app-rail-*`): done is a grey fill, current

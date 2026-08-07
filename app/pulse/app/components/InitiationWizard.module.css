@@ -837,7 +837,7 @@
   padding: 3px 10px;
   border-radius: 999px;
   background-color: var(--app-signal-wash);
-  border: 1px solid var(--app-critical-border);
+  border: 1px solid var(--app-signal-border);
   color: var(--app-signal-ink);
 }
 
@@ -901,8 +901,8 @@
   display: flex;
   align-items: flex-start;
   gap: var(--app-space-3);
-  background-color: var(--app-critical-bg);
-  border: 1px solid var(--app-critical-border);
+  background-color: var(--app-signal-wash);
+  border: 1px solid var(--app-signal-border);
   border-radius: var(--app-radius);
   padding: var(--app-space-4) var(--app-space-4);
   margin-top: var(--app-space-4);

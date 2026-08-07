@@ -116,8 +116,8 @@
    too, the same wash as their card in the list, so the one functional
    colour means the same thing on both surfaces. */
 .attnItemCritical {
-  border-color: var(--app-critical-border);
-  background: var(--app-critical-bg);
+  border-color: var(--app-signal-border);
+  background: var(--app-signal-wash);
 }
 
 /* The risk itself, a jump link to its full card below. Identity reads
@@ -508,8 +508,8 @@
 /* Critical (non-negotiable objective) risks carry the amber accent, as in
    the Brief. The one functional colour, meaning the same thing. */
 .cardCritical {
-  border-color: var(--app-critical-border);
-  background: var(--app-critical-bg);
+  border-color: var(--app-signal-border);
+  background: var(--app-signal-wash);
 }
 
 /* One consistent tag row under the name, so the eye can track the chip
