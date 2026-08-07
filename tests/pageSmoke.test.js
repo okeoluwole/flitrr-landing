@@ -889,14 +889,6 @@ const ROUTES = [
       },
     ],
   },
-  {
-    route: '/pulse/app/design',
-    importer: () => import('../app/pulse/app/design/page.js'),
-    states: [
-      { name: 'signed out (redirects)', redirects: true, fx: () => world({ signedIn: false }) },
-      { name: 'signed in', fx: () => world() },
-    ],
-  },
 ];
 
 /* ------------------------------------------------------------------ */

@@ -315,10 +315,13 @@ stays governance-shaped: never owner or due-date on the register or the
 Action Log. Stage names come from `lib/engine/stageNames.js`, verbatim,
 never re-typed.
 
-## The review route
+## The review route (gone)
 
-`/pulse/app/design` renders the whole language behind auth: palette, type
-roles, spacing, radii and focus, and every semantic mapping as labelled
-swatches. It is a review surface for the Note 15 sweep only, linked from no
-navigation. **The last sub-step of the sweep deletes the route
-(`app/pulse/app/design/`).**
+`/pulse/app/design` rendered the whole language behind auth while the sweep
+ran: palette, type roles, spacing, radii and focus, and every semantic
+mapping as labelled swatches. It was scaffolding for Note 15, linked from no
+navigation, and sub-step 6 deleted it along with its `pageSmoke` census
+entry. Do not recreate it. The language's authority is the code the app
+actually ships: the tokens in `app/globals.css`, the mappings in
+`lib/design/semantics.js`, and the guards that hold every converted surface
+to both. A swatch page can drift from those; a guard cannot.

@@ -286,10 +286,6 @@ describe('CONVERTED covers every authenticated module, computed not remembered',
     // public site, not on --app-*, and are out of Note 15 entirely.
     'app/components/considered/SiteFooter.module.css',
     'app/components/considered/SiteNav.module.css',
-    // The sweep's own review route, linked from no navigation. It exists to
-    // show the language back to itself while the sweep runs, and the last
-    // sub-step deletes it; this entry goes in the same commit.
-    'app/pulse/app/design/Design.module.css',
   ];
 
   function modulesUnder(dir) {
