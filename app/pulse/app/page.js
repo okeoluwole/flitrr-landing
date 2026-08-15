@@ -36,7 +36,7 @@ export default async function PulseAppPage() {
     supabase.from('profiles').select('full_name').eq('id', user.id).single(),
     supabase
       .from('projects')
-      .select('id, name, status, current_stage, updated_at')
+      .select('id, name, status, current_stage, updated_at, archived_at')
       .order('updated_at', { ascending: false }),
   ]);
 
@@ -107,7 +107,7 @@ export default async function PulseAppPage() {
             )}
           </div>
         ) : (
-          <ProjectList projects={list} canEdit={canEdit} />
+          <ProjectList projects={list} canEdit={canEdit} viewerId={user.id} />
         )}
       </main>
     </DashboardShell>

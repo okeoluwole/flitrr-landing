@@ -301,6 +301,8 @@ function projectRow(overrides = {}) {
     created_by: USER.id,
     created_at: NOW_ISO,
     updated_at: NOW_ISO,
+    archived_at: null,
+    archived_by: null,
     ...overrides,
   };
 }
@@ -453,6 +455,7 @@ function moduleRows() {
  *   membership    'active' | 'deactivated' | 'none' (access-deactivated)
  *   products      false empties the launcher's product access
  *   project       false removes the project row (the not-found path)
+ *   archived      adds a second, archived project row (the shelf render)
  */
 function world(opts = {}) {
   const {
@@ -468,14 +471,28 @@ function world(opts = {}) {
     membership = 'active',
     products = true,
     project = true,
+    archived = false,
     startDate = START,
   } = opts;
 
   const tables = {
     profiles: [PROFILE],
-    projects: project
-      ? [projectRow({ current_stage: currentStage, entry_stage: entryStage, start_date: startDate })]
-      : [],
+    projects: [
+      ...(project
+        ? [projectRow({ current_stage: currentStage, entry_stage: entryStage, start_date: startDate })]
+        : []),
+      ...(archived
+        ? [
+            projectRow({
+              id: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+              name: 'Shelved Development',
+              status: 'archived',
+              archived_at: NOW_ISO,
+              archived_by: USER.id,
+            }),
+          ]
+        : []),
+    ],
     project_briefs: [
       {
         id: 'brief-1',
@@ -695,6 +712,8 @@ const ROUTES = [
       { name: 'admin with projects', fx: () => world() },
       { name: 'admin empty list', fx: () => world({ project: false }) },
       { name: 'member with projects', fx: () => world({ admin: false }) },
+      { name: 'admin with the archived shelf', fx: () => world({ archived: true }) },
+      { name: 'admin, everything archived', fx: () => world({ project: false, archived: true }) },
     ],
   },
   {

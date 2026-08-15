@@ -94,6 +94,14 @@ async function main() {
     return;
   }
   for (const p of targets) {
+    // The 037 guard refuses to delete a project that holds brief rows (ever
+    // locked means governance record). This teardown destroys the fixture
+    // deliberately, so it removes the briefs first and then passes the guard.
+    const { error: briefErr } = await supabase
+      .from('project_briefs')
+      .delete()
+      .eq('project_id', p.id);
+    if (briefErr) throw new Error(`delete briefs ${p.id}: ${briefErr.message}`);
     const { error: delErr } = await supabase.from('projects').delete().eq('id', p.id);
     if (delErr) throw new Error(`delete ${p.id}: ${delErr.message}`);
     console.log(`Deleted project ${p.id} ("${p.name}") and all cascaded rows.`);

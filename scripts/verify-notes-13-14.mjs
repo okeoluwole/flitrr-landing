@@ -257,6 +257,13 @@ async function main() {
     .select('id')
     .eq('name', FIXTURE_NAME);
   for (const p of prior ?? []) {
+    // The 037 guard refuses to delete a project that holds brief rows (ever
+    // locked means governance record). The fixture is destroyed deliberately,
+    // so its briefs go first and the project delete then passes the guard.
+    must(
+      await supabase.from('project_briefs').delete().eq('project_id', p.id),
+      'delete prior fixture briefs'
+    );
     must(await supabase.from('projects').delete().eq('id', p.id), 'delete prior fixture');
     log(`Removed prior fixture project ${p.id}`);
   }

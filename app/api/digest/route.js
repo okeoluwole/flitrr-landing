@@ -114,9 +114,9 @@ export async function GET(request) {
   // digest candidates across them: all open tracked actions, from which the
   // pure model selects the live must-hold ones (A6) and reads the gate.
   const userIds = recipients.map((u) => u.id);
-  const { data: projects, error: projectsErr } = await admin
+  const { data: projectRows, error: projectsErr } = await admin
     .from('projects')
-    .select('id, name, user_id, current_stage')
+    .select('id, name, user_id, current_stage, status')
     .in('user_id', userIds);
   if (projectsErr) {
     return NextResponse.json(
@@ -124,6 +124,11 @@ export async function GET(request) {
       { status: 500 }
     );
   }
+
+  // An archived project has left the working list, so it leaves the digest
+  // with it: a shelf that keeps emailing is not a shelf. Filtered here in
+  // plain code rather than in the query, so the rule reads beside its reason.
+  const projects = (projectRows ?? []).filter((p) => p.status !== 'archived');
 
   const projectIds = (projects ?? []).map((p) => p.id);
   let actions = [];

@@ -100,10 +100,11 @@
   border-radius: 2px;
 }
 
-/* A draft row reserves clearance for the floating delete control. The
-   composition states what it clears: the 2rem control, its inset, and a
-   gutter, so moving the control moves the clearance with it. */
-.listItem:has(.cardDelete) .cardLink {
+/* A row with a floating removal control (delete on a draft, archive on a
+   record) reserves clearance for it. The composition states what it clears:
+   the 2rem control, its inset, and a gutter, so moving the control moves the
+   clearance with it. */
+.listItem:has(.rowControl) .cardLink {
   padding-right: calc(
     var(--app-space-6) + var(--app-space-4) + var(--app-space-3)
   );
@@ -163,9 +164,11 @@
   }
 }
 
-/* ── Delete a draft (two-step) ─────────── */
+/* ── Remove a row (two-step) ───────────── */
 
-.cardDelete {
+/* The floating row control: one seat, two occupants. Delete on a draft,
+   archive on a record; each states only its own hover voice. */
+.rowControl {
   position: absolute;
   top: 50%;
   right: var(--app-space-4);
@@ -185,27 +188,51 @@
     border-color 0.15s ease;
 }
 
+.rowControl:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+}
+
+.cardDelete {
+  composes: rowControl;
+}
+
 .cardDelete:hover {
   background: var(--app-danger-wash);
   border-color: var(--app-danger-border);
   color: var(--app-danger);
 }
 
-.cardDelete:focus-visible {
-  outline: 2px solid var(--app-focus);
-  outline-offset: 2px;
+/* Archive is reversible, so its hover stays neutral: no danger read on a
+   control that shelves a record it cannot harm. */
+.cardArchive {
+  composes: rowControl;
 }
 
-/* The confirm prompt replaces the row. Destructive, so it carries the
-   danger wash, never the amber criticality read. */
+.cardArchive:hover {
+  background: var(--app-hover);
+  border-color: var(--app-border-strong);
+  color: var(--app-ink);
+}
+
+/* The confirm prompt replaces the row: one layout, two voices. Delete is
+   destructive and carries the danger wash; archive is reversible and sits on
+   the neutral fill. Neither is the amber criticality read. */
 .confirm {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--app-space-4);
-  background-color: var(--app-danger-wash);
   padding: var(--app-space-4) var(--app-space-5);
+}
+
+.confirmDanger {
+  background-color: var(--app-danger-wash);
+}
+
+.confirmQuiet {
+  background-color: var(--app-fill);
 }
 
 .confirmText {
@@ -238,7 +265,8 @@
 }
 
 .cancelBtn,
-.deleteBtn {
+.deleteBtn,
+.archiveConfirmBtn {
   font-family: var(--app-font-sans), sans-serif;
   font-size: var(--app-text-control);
   font-weight: 600;
@@ -270,14 +298,29 @@
   filter: brightness(1.06);
 }
 
+/* The archive confirm's primary: structural white, the app's one primary
+   voice. Reversible acts do not borrow the danger red. */
+.archiveConfirmBtn {
+  color: var(--app-primary-ink);
+  background: var(--app-primary);
+  border: 1px solid var(--app-primary);
+}
+
+.archiveConfirmBtn:hover:not(:disabled) {
+  background: var(--app-primary-hover);
+  border-color: var(--app-primary-hover);
+}
+
 .cancelBtn:disabled,
-.deleteBtn:disabled {
+.deleteBtn:disabled,
+.archiveConfirmBtn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 
 .cancelBtn:focus-visible,
-.deleteBtn:focus-visible {
+.deleteBtn:focus-visible,
+.archiveConfirmBtn:focus-visible {
   outline: 2px solid var(--app-focus);
   outline-offset: 2px;
 }
@@ -316,6 +359,91 @@
   background-color: transparent;
   color: var(--app-ink-muted);
   border-color: var(--app-hairline);
+}
+
+/* ── The archived shelf ────────────────── */
+
+/* Working list empty while the shelf holds rows: a quiet line, not the
+   page-level empty state, because projects exist. */
+.workingEmpty {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-sm);
+  line-height: 1.5;
+  color: var(--app-ink-secondary);
+  margin: 0;
+}
+
+.archivedSection {
+  margin-top: calc(var(--app-space-6) + var(--app-space-2));
+}
+
+/* The shelf's eyebrow: the mono micro label, with the count in its own
+   quiet register. */
+.archivedHead {
+  composes: microLabel from '../../components/instrument.module.css';
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+  letter-spacing: 0.14em;
+  color: var(--app-ink-muted);
+  margin: 0 0 var(--app-space-3);
+}
+
+.archivedCount {
+  font-family: var(--app-font-mono), monospace;
+  font-size: var(--app-text-2xs);
+  color: var(--app-ink-secondary);
+}
+
+/* An archived row: the card layout without the link affordance. The record
+   is shelved, so its name sits a register quieter than a working row's. */
+.archivedRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--app-space-4);
+  padding: var(--app-space-4) var(--app-space-5);
+}
+
+.archivedName {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-base);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--app-ink-secondary);
+  margin: 0 0 var(--app-space-1);
+  overflow-wrap: break-word;
+}
+
+.restoreBtn {
+  flex-shrink: 0;
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-control);
+  font-weight: 600;
+  color: var(--app-ink);
+  background: transparent;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-sm);
+  padding: var(--app-space-2) var(--app-space-4);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.restoreBtn:hover:not(:disabled) {
+  border-color: var(--app-border-strong);
+  background: var(--app-hover);
+}
+
+.restoreBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.restoreBtn:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
 }
 
 /* ── Empty state ───────────────────────── */
