@@ -96,7 +96,22 @@ async function main() {
   for (const p of targets) {
     // The 037 guard refuses to delete a project that holds brief rows (ever
     // locked means governance record). This teardown destroys the fixture
-    // deliberately, so it removes the briefs first and then passes the guard.
+    // deliberately, so the guard's prerequisites go first, in dependency
+    // order: the two NO ACTION pins on briefs (029 reconcile decisions, 020
+    // baselines), then the briefs, then the project; the cascade takes the
+    // rest. The reconcile-decisions delete uses the ADMIN client because 029
+    // made that table append-only (no DELETE policy): in product a decision
+    // cannot be un-made, and destroying a fixture is an operator act.
+    const { error: recErr } = await admin
+      .from('project_reconcile_decisions')
+      .delete()
+      .eq('project_id', p.id);
+    if (recErr) throw new Error(`delete reconcile decisions ${p.id}: ${recErr.message}`);
+    const { error: baseErr } = await supabase
+      .from('programme_baselines')
+      .delete()
+      .eq('project_id', p.id);
+    if (baseErr) throw new Error(`delete baselines ${p.id}: ${baseErr.message}`);
     const { error: briefErr } = await supabase
       .from('project_briefs')
       .delete()

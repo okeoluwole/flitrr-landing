@@ -19,8 +19,10 @@
  * API and then does every write through the PUBLISHABLE client, so row level
  * security is enforced on all of it exactly as it is for a signed-in developer.
  * This is the pattern seed-eko-pods-phase2.mjs already established. The admin
- * key is used only to look the user up and mint the session; no write below
- * bypasses a policy.
+ * key is used to look the user up, mint the session, and for exactly one
+ * teardown write: clearing the append-only reconcile-decisions table (029
+ * gives it no DELETE policy on purpose), which fixture destruction requires.
+ * No VERIFICATION write bypasses a policy.
  *
  * THE FIXTURE. It creates one clearly-named project, walks it through the whole
  * sequence, and leaves it in place for the browser walkthrough. It touches no
@@ -259,7 +261,23 @@ async function main() {
   for (const p of prior ?? []) {
     // The 037 guard refuses to delete a project that holds brief rows (ever
     // locked means governance record). The fixture is destroyed deliberately,
-    // so its briefs go first and the project delete then passes the guard.
+    // so the guard's prerequisites go first, in dependency order: the two NO
+    // ACTION pins on briefs (029 reconcile decisions, 020 baselines), then
+    // the briefs, then the project; the cascade takes everything else.
+    //
+    // The reconcile-decisions delete is the one write here that must use the
+    // ADMIN client: 029 made that table append-only (SELECT and INSERT
+    // policies only), because in product a decision cannot be un-made.
+    // Destroying a fixture is an operator act, which is exactly what the
+    // service role is for; every other write stays RLS-enforced.
+    must(
+      await admin.from('project_reconcile_decisions').delete().eq('project_id', p.id),
+      'delete prior fixture reconcile decisions'
+    );
+    must(
+      await supabase.from('programme_baselines').delete().eq('project_id', p.id),
+      'delete prior fixture baselines'
+    );
     must(
       await supabase.from('project_briefs').delete().eq('project_id', p.id),
       'delete prior fixture briefs'
