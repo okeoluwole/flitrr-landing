@@ -1,12 +1,12 @@
 /*
- * STACK tool styles. Product Instrument surface: a dark console header over the
- * light paper canvas, all from the --app-* tokens. Mobile-first; the 768px
+ * STACK tool styles. Product Instrument surface: the console header over the
+ * dark work canvas, all from the --app-* tokens. Mobile-first; the 768px
  * breakpoint is the only one in play. No hardcoded colours or magic sizes.
  */
 
 .page {
   min-height: 100vh;
-  background: var(--app-paper);
+  background: var(--app-ground);
   color: var(--app-ink);
   font-family: var(--font-body);
 }

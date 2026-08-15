@@ -10,8 +10,8 @@ import styles from './stack.module.css';
  * schemes save to and load from the organisation's store, an admin writes and
  * a member reads, the same access rule as every product surface. The
  * attachment to the shared Flitrr project spine comes later. It sits on the
- * product Instrument surface: a dark console header over the light paper
- * canvas.
+ * product Instrument surface: the console header over the dark work canvas,
+ * all from the --app-* tokens.
  */
 export default async function StackPage() {
   const supabase = await createClient();

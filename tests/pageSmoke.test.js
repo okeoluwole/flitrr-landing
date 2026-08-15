@@ -452,6 +452,7 @@ function moduleRows() {
  *   currentStage  projects.current_stage
  *   populated     false empties every module table (the empty state)
  *   actuals       adds a met milestone row to the actuals store
+ *   schemes       adds saved STACK schemes to the organisation's store
  *   membership    'active' | 'deactivated' | 'none' (access-deactivated)
  *   products      false empties the launcher's product access
  *   project       false removes the project row (the not-found path)
@@ -468,6 +469,7 @@ function world(opts = {}) {
     entryStage = 1,
     populated = true,
     actuals = false,
+    schemes = false,
     membership = 'active',
     products = true,
     project = true,
@@ -551,6 +553,29 @@ function world(opts = {}) {
               deactivated_at: membership === 'deactivated' ? NOW_ISO : null,
             },
           ],
+    // Saved STACK schemes when the option asks for them. The list surface
+    // reads newest first (updated_at DESC), so the two rows exercise the
+    // ordering as well as the render.
+    stack_schemes: schemes
+      ? [
+          {
+            id: 'scheme-1',
+            organisation_id: ORG_ID,
+            name: 'Eko Pods JV base case',
+            engine_version: '1.0.0',
+            created_at: NOW_ISO,
+            updated_at: NOW_ISO,
+          },
+          {
+            id: 'scheme-2',
+            organisation_id: ORG_ID,
+            name: 'Eko Pods self funded',
+            engine_version: '1.0.0',
+            created_at: '2026-06-20T09:00:00.000Z',
+            updated_at: '2026-06-20T09:00:00.000Z',
+          },
+        ]
+      : [],
     ...(populated
       ? moduleRows()
       : {
@@ -610,9 +635,9 @@ const withProject = { searchParams: { project: PROJECT_ID } };
  *   app/auth/callback/route.js
  *     Route handlers, not pages: they export GET/POST functions, not a
  *     rendered component, so there is no render path to smoke.
- *   app/layout.js, app/pulse/layout.js
+ *   app/layout.js, app/pulse/layout.js, app/stack/layout.js
  *     Layouts, not routes: the root layout also loads next/font, which only
- *     resolves inside the Next build, and neither renders on its own.
+ *     resolves inside the Next build, and none of them renders on its own.
  */
 const ROUTES = [
   {
@@ -905,6 +930,21 @@ const ROUTES = [
         redirects: true,
         fx: () => world({ ...RUN, entryStage: 3, currentStage: 3 }),
         ...withProject,
+      },
+    ],
+  },
+  {
+    // /stack has no redirect states: the auth gate is the middleware's
+    // PROTECTED_PREFIXES entry, not a page-level check, so the page renders
+    // for whoever reaches it and row level security holds the data line.
+    route: '/stack',
+    importer: () => import('../app/stack/page.js'),
+    states: [
+      { name: 'admin, saved schemes', fx: () => world({ schemes: true }) },
+      { name: 'admin, empty store', fx: () => world() },
+      {
+        name: 'member (view only)',
+        fx: () => world({ schemes: true, admin: false }),
       },
     ],
   },
