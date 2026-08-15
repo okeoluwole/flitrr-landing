@@ -37,6 +37,9 @@ export default function SiteNav({ user = null, current = null, product = null })
         {current !== 'pulse' && (
           <Link href="/pulse">PULSE</Link>
         )}
+        {current !== 'stack' && (
+          <Link href="/stack">STACK</Link>
+        )}
         {signedIn ? (
           <Link href="/dashboard" className={styles.signin}>
             Dashboard

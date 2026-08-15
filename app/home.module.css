@@ -989,6 +989,16 @@
 .suite__row:last-child {
   border-bottom: 1px solid var(--line);
 }
+/* A live product's row is a link; the hover stays quiet. */
+a.suite__row {
+  transition: background 0.25s;
+}
+a.suite__row:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+a.suite__row:hover .suite__nm {
+  color: #fff;
+}
 .suite__nm {
   display: flex;
   align-items: center;

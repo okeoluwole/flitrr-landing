@@ -518,19 +518,19 @@ export default function HomeMain({ user }) {
           <div className={styles.wrap}>
             <div className={styles.suite__intro}>
               <h2 id="suite-heading">The suite.</h2>
-              <p>PULSE leads the suite. More follow it across the lifecycle, each built to the same discipline.</p>
+              <p>PULSE and STACK lead the suite. More follow across the lifecycle, each built to the same discipline.</p>
             </div>
             <div className={styles.suite__list}>
-              <div className={`${styles.suite__row} ${styles.live}`}>
+              <Link href="/pulse" className={`${styles.suite__row} ${styles.live}`}>
                 <span className={styles.suite__nm}><span className={styles.dot} />PULSE</span>
                 <span className={styles.suite__st}>Live</span>
                 <span className={styles.suite__ds}>Project delivery and programme management.</span>
-              </div>
-              <div className={styles.suite__row}>
+              </Link>
+              <Link href="/stack" className={`${styles.suite__row} ${styles.live}`}>
                 <span className={styles.suite__nm}><span className={styles.dot} />STACK</span>
-                <span className={styles.suite__st}>In design</span>
+                <span className={styles.suite__st}>Live</span>
                 <span className={styles.suite__ds}>Feasibility, budgets, and funding.</span>
-              </div>
+              </Link>
               <div className={styles.suite__row}>
                 <span className={styles.suite__nm}><span className={styles.dot} />ROUTE</span>
                 <span className={styles.suite__st}>In design</span>

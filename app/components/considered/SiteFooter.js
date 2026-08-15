@@ -3,17 +3,23 @@ import styles from './SiteFooter.module.css';
 
 /**
  * Shared footer for the "Considered" marketing surfaces. `variant` picks the
- * Flitrr lockup (landing / framework) or the "Flitrr / PULSE" lockup (PULSE).
+ * Flitrr lockup (landing / framework) or a product lockup ("Flitrr / PULSE",
+ * "Flitrr / STACK") on that product's own page.
  */
+const PRODUCT_BLURB = {
+  pulse: 'PULSE is the project delivery product, built by Flitrr.',
+  stack: 'STACK is the feasibility and funding product, built by Flitrr.',
+};
+
 export default function SiteFooter({ variant = 'flitrr' }) {
-  const isPulse = variant === 'pulse';
+  const productName = variant === 'pulse' ? 'PULSE' : variant === 'stack' ? 'STACK' : null;
   return (
     <footer className={styles.foot} role="contentinfo">
       <div className={styles.wrap}>
         <div className={styles.top}>
           <div className={styles.brandCol}>
-            {isPulse ? (
-              <div className={styles.lockup}>Flitrr / PULSE</div>
+            {productName ? (
+              <div className={styles.lockup}>Flitrr / {productName}</div>
             ) : (
               <Link href="/" className={styles.brand} aria-label="Flitrr home">
                 Flitrr
@@ -21,14 +27,14 @@ export default function SiteFooter({ variant = 'flitrr' }) {
               </Link>
             )}
             <p>
-              {isPulse
-                ? 'PULSE is the project delivery product, built by Flitrr.'
+              {productName
+                ? PRODUCT_BLURB[variant]
                 : 'One platform for the whole property development lifecycle.'}
             </p>
           </div>
           <nav aria-label="Footer">
             <a href="mailto:hello@flitrr.com">hello@flitrr.com</a>
-            {isPulse ? (
+            {productName ? (
               <Link href="/">Back to Flitrr</Link>
             ) : (
               <Link href="/pulse">PULSE</Link>

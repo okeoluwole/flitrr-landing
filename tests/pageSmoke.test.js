@@ -657,6 +657,14 @@ const ROUTES = [
     ],
   },
   {
+    route: '/stack',
+    importer: () => import('../app/stack/page.js'),
+    states: [
+      { name: 'signed out', fx: () => world({ signedIn: false }) },
+      { name: 'signed in', fx: () => world() },
+    ],
+  },
+  {
     route: '/framework',
     importer: () => import('../app/framework/page.js'),
     states: [
