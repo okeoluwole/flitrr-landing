@@ -1,12 +1,13 @@
-import { createClient } from '../../lib/supabase/server.js';
-import { resolveProjectAccess } from '../../lib/team/access.js';
-import { listSchemes, schemeSummary } from '../../lib/stack/schemeStore.js';
+import { createClient } from '../../../lib/supabase/server.js';
+import { resolveProjectAccess } from '../../../lib/team/access.js';
+import { listSchemes, schemeSummary } from '../../../lib/stack/schemeStore.js';
 import StackTool from './StackTool';
 import styles from './stack.module.css';
 
 /**
- * /stack: the STACK development appraisal and funding model. Fully behind auth
- * (the middleware gates the /stack prefix), for the signed-in organisation:
+ * /stack/app: the STACK development appraisal and funding model. Fully behind
+ * auth (the middleware gates the /stack/app prefix), for the signed-in
+ * organisation:
  * schemes save to and load from the organisation's store, an admin writes and
  * a member reads, the same access rule as every product surface. The
  * attachment to the shared Flitrr project spine comes later. It sits on the

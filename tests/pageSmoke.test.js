@@ -934,11 +934,11 @@ const ROUTES = [
     ],
   },
   {
-    // /stack has no redirect states: the auth gate is the middleware's
+    // /stack/app has no redirect states: the auth gate is the middleware's
     // PROTECTED_PREFIXES entry, not a page-level check, so the page renders
     // for whoever reaches it and row level security holds the data line.
-    route: '/stack',
-    importer: () => import('../app/stack/page.js'),
+    route: '/stack/app',
+    importer: () => import('../app/stack/app/page.js'),
     states: [
       { name: 'admin, saved schemes', fx: () => world({ schemes: true }) },
       { name: 'admin, empty store', fx: () => world() },

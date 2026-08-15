@@ -6,7 +6,7 @@
  * site for tabular figures.
  */
 
-import { resolveCurrencySymbol } from '../../lib/stack/engine/inputs.js';
+import { resolveCurrencySymbol } from '../../../lib/stack/engine/inputs.js';
 
 // Empty-value glyph. Not an em or en dash (house rule); "n/a" is what the engine
 // and the workbook use for an undefined figure.

@@ -19,10 +19,10 @@ import {
   computeAppraisal,
   baseCaseInputs,
   ENGINE_VERSION,
-} from '../../lib/stack/engine/index.js';
-import { writeWorkbook } from '../../lib/stack/excel/xlsxWriter.js';
+} from '../../../lib/stack/engine/index.js';
+import { writeWorkbook } from '../../../lib/stack/excel/xlsxWriter.js';
 import { buildWorkbook } from './workbookModel';
-import { createClient } from '../../lib/supabase/server.js';
+import { createClient } from '../../../lib/supabase/server.js';
 import {
   listSchemes,
   insertScheme,
@@ -31,7 +31,7 @@ import {
   deleteScheme,
   engineVersionNote,
   schemeSummary,
-} from '../../lib/stack/schemeStore.js';
+} from '../../../lib/stack/schemeStore.js';
 
 // The input fields that are numbers. Everything else is an enum string or a
 // date string. Optional per-unit metrics stay null unless a value is given.

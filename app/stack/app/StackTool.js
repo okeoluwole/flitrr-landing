@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { runAppraisal, saveScheme, openScheme, removeScheme, exportWorkbook } from './actions';
-import { baseCaseInputs, resolveCurrencySymbol } from '../../lib/stack/engine/inputs.js';
+import { baseCaseInputs, resolveCurrencySymbol } from '../../../lib/stack/engine/inputs.js';
 import { toDisplayValues, toEngineInputs, applyGuards, validate } from './formModel';
 import StackSchemes from './StackSchemes';
 import StackForm from './StackForm';

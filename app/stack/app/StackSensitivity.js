@@ -1,7 +1,7 @@
 'use client';
 
 import { percent, multiple } from './format';
-import { FUNDING_STRATEGY } from '../../lib/stack/engine/inputs.js';
+import { FUNDING_STRATEGY } from '../../../lib/stack/engine/inputs.js';
 import styles from './stack.module.css';
 
 /**

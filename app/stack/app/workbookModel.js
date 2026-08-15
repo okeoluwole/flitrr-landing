@@ -17,7 +17,7 @@
 import {
   FUNDING_STRATEGY,
   resolveCurrencySymbol,
-} from '../../lib/stack/engine/inputs.js';
+} from '../../../lib/stack/engine/inputs.js';
 import { SECTIONS } from './formModel.js';
 
 // Cell constructors. A null or undefined value reads "n/a", matching the

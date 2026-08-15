@@ -21,7 +21,7 @@ import {
   FUNDING_SEQUENCE,
   YES,
   NO,
-} from '../../lib/stack/engine/inputs.js';
+} from '../../../lib/stack/engine/inputs.js';
 
 const yesNo = [
   { value: YES, label: 'Yes' },

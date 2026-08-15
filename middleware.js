@@ -7,7 +7,7 @@ import { PASSWORD_RESET_PENDING_COOKIE } from './lib/auth/resetPending';
  * starting with one of these strings, including deeper paths, is
  * gated. Everything else is public.
  */
-const PROTECTED_PREFIXES = ['/dashboard', '/pulse/app', '/stack'];
+const PROTECTED_PREFIXES = ['/dashboard', '/pulse/app', '/stack/app'];
 
 /**
  * Query params on /login that signal a banner state we don't want

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import ViewOnlyBadge from '../pulse/app/components/ViewOnlyBadge';
+import ViewOnlyBadge from '../../pulse/app/components/ViewOnlyBadge';
 import styles from './stack.module.css';
 
 /**

@@ -4,7 +4,7 @@ import {
   baseCaseInputs,
   FUNDING_STRATEGY,
 } from '../lib/stack/engine/index.js';
-import { buildWorkbook } from '../app/stack/workbookModel';
+import { buildWorkbook } from '../app/stack/app/workbookModel';
 
 /**
  * Bucket 3.5: the workbook model. The tests prove the six sheets carry the
