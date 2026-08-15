@@ -1,0 +1,817 @@
+/*
+ * STACK tool styles. Product Instrument surface: a dark console header over the
+ * light paper canvas, all from the --app-* tokens. Mobile-first; the 768px
+ * breakpoint is the only one in play. No hardcoded colours or magic sizes.
+ */
+
+.page {
+  min-height: 100vh;
+  background: var(--app-paper);
+  color: var(--app-ink);
+  font-family: var(--font-body);
+}
+
+/* Console header, the dark chrome. */
+.topbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem 1.5rem;
+  background: var(--app-console);
+  color: var(--app-on-console);
+  box-shadow: var(--app-elev-console);
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+
+.brandFlitrr {
+  color: var(--app-on-console-secondary);
+  font-size: var(--app-text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.brandProduct {
+  color: var(--app-on-console);
+  font-size: var(--app-text-lg);
+}
+
+.tagline {
+  color: var(--app-on-console-secondary);
+  font-size: var(--app-text-sm);
+}
+
+/* Paper canvas. */
+.canvas {
+  max-width: 900px;
+  margin-inline: auto;
+  padding: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .topbar {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-inline: 2.5rem;
+  }
+  .canvas {
+    padding: 2.5rem;
+  }
+}
+
+.tool {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Form. */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.section {
+  border: 1px solid var(--app-hairline);
+  border-radius: var(--app-radius-lg);
+  background: var(--app-surface);
+  padding: 1.25rem;
+  margin: 0;
+  box-shadow: var(--app-elev-1);
+  min-width: 0;
+}
+
+.sectionTitle {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: var(--app-text-md);
+  letter-spacing: -0.015em;
+  color: var(--app-ink);
+  padding: 0;
+}
+
+.sectionBlurb {
+  margin-top: 0.35rem;
+  color: var(--app-ink-secondary);
+  font-size: var(--app-text-sm);
+  line-height: 1.5;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.fieldLabel {
+  font-size: var(--app-text-sm);
+  font-weight: 600;
+  color: var(--app-ink);
+}
+
+.inputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input,
+.select {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-sm);
+  background: var(--app-surface);
+  color: var(--app-ink);
+  font-family: var(--font-body);
+  font-size: var(--app-text-base);
+}
+
+.input {
+  font-variant-numeric: tabular-nums;
+}
+
+.inputPad {
+  padding-left: 1.6rem;
+}
+
+.select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--app-ink-secondary) 50%),
+    linear-gradient(135deg, var(--app-ink-secondary) 50%, transparent 50%);
+  background-position: calc(100% - 1rem) 55%, calc(100% - 0.75rem) 55%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 2rem;
+}
+
+.input:focus,
+.select:focus {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 1px;
+  border-color: var(--app-focus);
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--app-danger);
+}
+
+.unitPre,
+.unitPost {
+  position: absolute;
+  color: var(--app-ink-secondary);
+  font-size: var(--app-text-sm);
+  pointer-events: none;
+}
+
+.unitPre {
+  left: 0.75rem;
+}
+
+.unitPost {
+  right: 0.85rem;
+}
+
+.guide {
+  color: var(--app-ink-secondary);
+  font-size: var(--app-text-xs);
+  line-height: 1.45;
+}
+
+.fieldError {
+  color: var(--app-danger);
+  font-size: var(--app-text-xs);
+  font-weight: 600;
+}
+
+/* The advanced options collapsible. */
+.advanced {
+  border: 1px solid var(--app-hairline);
+  border-radius: var(--app-radius-lg);
+  background: var(--app-surface);
+  box-shadow: var(--app-elev-1);
+}
+
+.advancedSummary {
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: var(--app-text-base);
+  color: var(--app-ink);
+  list-style: none;
+}
+
+.advancedSummary::-webkit-details-marker {
+  display: none;
+}
+
+.advancedSummary::before {
+  content: '+ ';
+  color: var(--app-ink-secondary);
+}
+
+.advanced[open] .advancedSummary::before {
+  content: '– ';
+}
+
+.advancedBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0 1.25rem 1.25rem;
+}
+
+.advancedBody .section {
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.actions {
+  display: flex;
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Primary action: a solid dark button on the paper. Amber is held back for the
+   verdict signal, so the action stays neutral-but-strong. */
+.runButton {
+  align-self: flex-start;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: var(--app-radius);
+  background: var(--app-console);
+  color: var(--app-on-console);
+  font-family: var(--font-body);
+  font-size: var(--app-text-base);
+  font-weight: 600;
+  box-shadow: var(--app-elev-1);
+}
+
+.runButton:disabled {
+  opacity: 0.6;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .runButton {
+    transition: transform var(--dur-press) var(--ease-out);
+  }
+  .runButton:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+}
+
+.error {
+  color: var(--app-danger);
+  font-size: var(--app-text-sm);
+}
+
+/* Saved schemes (Bucket 3.2): the save and load panel above the form. It
+   reuses .card for the shell; these classes lay out the save row and the
+   list. */
+.schemes {
+  gap: 0.75rem;
+}
+
+.schemesHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.saveRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.nameInput {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.schemeList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.schemeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--app-hairline);
+}
+
+.schemeRow:last-child {
+  border-bottom: none;
+}
+
+.schemeInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.schemeName {
+  font-size: var(--app-text-sm);
+  font-weight: 600;
+  color: var(--app-ink);
+  overflow-wrap: anywhere;
+}
+
+.schemeLoaded {
+  font-weight: 400;
+  color: var(--app-ink-secondary);
+}
+
+.schemeMeta {
+  font-size: var(--app-text-xs);
+  color: var(--app-ink-secondary);
+}
+
+.schemeActions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Small secondary action, the downloadBtn register at list scale. The 44px
+   minimum target height holds. */
+.miniBtn {
+  min-height: 44px;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--app-border-strong);
+  border-radius: var(--app-radius);
+  background: var(--app-surface);
+  color: var(--app-ink);
+  font-family: var(--font-body);
+  font-size: var(--app-text-sm);
+  font-weight: 600;
+}
+
+.miniBtn:disabled {
+  opacity: 0.6;
+}
+
+.miniBtnDanger {
+  color: var(--app-danger);
+}
+
+.schemesEmpty,
+.notice {
+  color: var(--app-ink-secondary);
+  font-size: var(--app-text-sm);
+}
+
+/* Read-only summary: a stack of cards. */
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: var(--app-surface);
+  border: 1px solid var(--app-hairline);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-elev-1);
+}
+
+.cardTitle {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: var(--app-text-md);
+  letter-spacing: -0.015em;
+  color: var(--app-ink);
+}
+
+/* A label / value line in the credit and sources lists. */
+.line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--app-hairline);
+  font-size: var(--app-text-sm);
+}
+
+.line:last-child {
+  border-bottom: none;
+}
+
+.lineLabel {
+  color: var(--app-ink-secondary);
+}
+
+.lineValue {
+  color: var(--app-ink);
+  font-weight: 600;
+  text-align: right;
+}
+
+.twoCol {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.subhead {
+  font-size: var(--app-text-sm);
+  font-weight: 700;
+  color: var(--app-ink-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.35rem;
+}
+
+/* Metric tables. Scroll sideways on a narrow screen rather than break the page. */
+.tableScroll {
+  overflow-x: auto;
+  margin: 0 -0.25rem;
+}
+
+.metricTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--app-text-sm);
+}
+
+.metricTable th,
+.metricTable td {
+  padding: 0.5rem 0.5rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.metricTable th[scope='row'] {
+  padding-left: 0;
+}
+
+/* A faint qualifier on a row label (unlevered, levered), kept compact. */
+.rowHint {
+  color: var(--app-ink-muted);
+  font-weight: 400;
+  font-size: var(--app-text-xs);
+}
+
+.metricTable thead th {
+  color: var(--app-ink-secondary);
+  font-weight: 600;
+  font-size: var(--app-text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--app-border);
+}
+
+.metricTable th[scope='row'] {
+  text-align: left;
+  color: var(--app-ink);
+  font-weight: 600;
+}
+
+.metricTable tbody tr + tr th,
+.metricTable tbody tr + tr td {
+  border-top: 1px solid var(--app-hairline);
+}
+
+.metricTable thead th:first-child {
+  text-align: left;
+}
+
+@media (min-width: 768px) {
+  .twoCol {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Report header: on screen, the download actions; in print, the report banner. */
+.reportHead {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.downloadBtn {
+  padding: 0.6rem 1.1rem;
+  border: 1px solid var(--app-border-strong);
+  border-radius: var(--app-radius);
+  background: var(--app-surface);
+  color: var(--app-ink);
+  font-family: var(--font-body);
+  font-size: var(--app-text-sm);
+  font-weight: 600;
+}
+
+.downloadBtn:disabled {
+  opacity: 0.6;
+}
+
+/* Print-only report chrome, hidden on screen. */
+.printBanner,
+.printStamp,
+.cashflowPrint {
+  display: none;
+}
+
+.cardNote {
+  color: var(--app-ink-secondary);
+  font-size: var(--app-text-sm);
+  line-height: 1.5;
+  max-width: 60ch;
+}
+
+/* Cashflow table: phases down, months across, first column pinned. */
+.cashflowTable {
+  border-collapse: collapse;
+  font-size: var(--app-text-xs);
+}
+
+.cashflowTable th,
+.cashflowTable td {
+  padding: 0.4rem 0.6rem;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--app-hairline);
+}
+
+.cashflowTable thead th {
+  color: var(--app-ink-secondary);
+  font-weight: 600;
+  border-bottom: 1px solid var(--app-border);
+}
+
+.stickyCol {
+  position: sticky;
+  left: 0;
+  background: var(--app-surface);
+  text-align: left !important;
+  color: var(--app-ink);
+  font-weight: 600;
+  box-shadow: 1px 0 0 var(--app-hairline);
+}
+
+.cashflowStrong th,
+.cashflowStrong td {
+  font-weight: 700;
+  color: var(--app-ink);
+  border-top: 1px solid var(--app-border);
+}
+
+/* Comparison: the selected route stands out with a faint amber wash. */
+.rowSelected th,
+.rowSelected td {
+  background: var(--app-signal-wash);
+}
+
+.routeNote {
+  display: block;
+  color: var(--app-ink-muted);
+  font-weight: 400;
+  font-size: var(--app-text-xs);
+}
+
+/* Sensitivity grids. */
+.grid2 + .grid2 {
+  margin-top: 1.5rem;
+}
+
+.gridNote {
+  color: var(--app-ink-secondary);
+  font-size: var(--app-text-xs);
+  line-height: 1.45;
+  margin-bottom: 0.5rem;
+}
+
+.gridTable {
+  border-collapse: collapse;
+  font-size: var(--app-text-xs);
+}
+
+.gridTable th,
+.gridTable td {
+  padding: 0.4rem 0.55rem;
+  text-align: right;
+  white-space: nowrap;
+  border: 1px solid var(--app-hairline);
+}
+
+.gridTable thead th,
+.gridTable th[scope='row'] {
+  color: var(--app-ink-secondary);
+  font-weight: 600;
+  background: var(--app-surface-sunken);
+}
+
+.gridCorner {
+  color: var(--app-ink-muted) !important;
+  font-weight: 400 !important;
+}
+
+.cellBase {
+  outline: 2px solid var(--app-ink);
+  outline-offset: -2px;
+  font-weight: 700;
+}
+
+/* Go / consider / no-go cell text, the same language as the verdict. */
+.cell--go {
+  color: var(--app-success);
+}
+
+.cell--consider {
+  color: var(--app-signal-ink);
+}
+
+.cell--nogo {
+  color: var(--app-danger);
+}
+
+/*
+ * Print: the PDF report. Hide the form and the app chrome, show the report
+ * banner and the stamp, and lay the cards out in normal document flow so the
+ * per-card page breaks land cleanly. The global @media print (globals.css) sets
+ * A4 and a zero page margin, so the padding here supplies the report's margins.
+ */
+@media print {
+  .topbar,
+  .form,
+  .error,
+  .schemes,
+  .downloadBtn {
+    display: none !important;
+  }
+
+  .reportHead {
+    display: block;
+  }
+
+  .page {
+    background: #ffffff;
+  }
+
+  .canvas {
+    max-width: 100%;
+    padding: 1.4cm;
+  }
+
+  .results {
+    gap: 0.6cm;
+  }
+
+  .card,
+  .grid2 {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid var(--app-border);
+  }
+
+  .printBanner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--app-ink);
+    margin-bottom: 0.3rem;
+  }
+
+  .printBrand {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: var(--app-text-lg);
+    letter-spacing: -0.015em;
+    color: var(--app-ink);
+  }
+
+  .printReportTitle {
+    font-size: var(--app-text-base);
+    color: var(--app-ink);
+  }
+
+  .printMeta {
+    font-size: var(--app-text-sm);
+    color: var(--app-ink-secondary);
+  }
+
+  .printStamp {
+    display: block;
+    margin-top: 0.3rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--app-border);
+    color: var(--app-ink-secondary);
+    font-size: var(--app-text-xs);
+    line-height: 1.5;
+  }
+
+  /* The month-by-month cashflow grid is far too wide for A4, so in the report it
+     gives way to a compact phase-totals summary; the full grid stays in the app. */
+  .cashflowScroll {
+    display: none;
+  }
+
+  .cashflowPrint {
+    display: block;
+  }
+}
+
+/* The verdict badge. Amber (signal) for CONSIDER, green for GO, red for NO GO.
+   Amber text uses ochre to hold contrast. */
+.decision {
+  align-self: flex-start;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--app-radius-sm);
+  background: var(--app-surface-sunken);
+  border: 1px solid var(--app-border);
+  font-size: var(--app-text-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* GO reads green, NO GO reads red, both on the neutral sunken surface. CONSIDER
+   takes the amber signal wash, ochre text for contrast. */
+.decision--go {
+  color: var(--app-success);
+  border-color: var(--app-success);
+}
+
+.decision--consider {
+  background: var(--app-signal-wash);
+  color: var(--app-signal-ink);
+  border-color: var(--app-signal-border);
+}
+
+.decision--nogo {
+  color: var(--app-danger);
+  border-color: var(--app-danger);
+}
+
+.figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.figure {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.figureLabel {
+  color: var(--app-ink-secondary);
+  font-size: var(--app-text-sm);
+}
+
+.figureValue {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: var(--app-text-xl);
+  letter-spacing: -0.015em;
+}
+
+.verdict {
+  color: var(--app-ink-secondary);
+  font-size: var(--app-text-base);
+  line-height: 1.6;
+  max-width: 60ch;
+}
