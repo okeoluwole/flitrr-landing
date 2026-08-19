@@ -58,11 +58,116 @@
 .signin {
   font-weight: 520;
 }
+
+/* Products disclosure. Click-to-open; the panel seats on the same scoped ink
+   tokens the page defines, since the nav always renders inside a .page scope. */
+.products {
+  position: relative;
+  display: inline-flex;
+}
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.94rem;
+  font-weight: 460;
+  color: rgba(255, 255, 255, 0.82);
+  transition: color 0.25s;
+}
+.trigger:hover,
+.trigger[aria-expanded='true'] {
+  color: #fff;
+}
+.chev {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  margin-top: 1px;
+}
+.trigger[aria-expanded='true'] .chev {
+  transform: rotate(180deg);
+}
+.panel {
+  position: absolute;
+  top: calc(100% + 0.85rem);
+  right: -0.6rem;
+  width: 330px;
+  padding: 0.45rem;
+  background: var(--deep-2);
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  box-shadow: var(--shadow-ink);
+  transform-origin: top right;
+}
+.panel .row {
+  display: block;
+  padding: 0.72rem 0.85rem;
+  border-radius: 8px;
+}
+.panel .row + .row {
+  margin-top: 2px;
+}
+.panel a.row:hover {
+  background: var(--deep-3);
+}
+.rowName {
+  display: block;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 540;
+  letter-spacing: -0.01em;
+}
+.rowDesc {
+  display: block;
+  margin-top: 0.18rem;
+  color: var(--on-deep-mut);
+  font-size: 0.83rem;
+  line-height: 1.45;
+}
+.rowCurrent {
+  cursor: default;
+}
+.rowCurrent .rowName {
+  color: var(--on-deep-mut);
+}
+.rowCurrent .rowDesc {
+  color: var(--on-deep-dim);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .panel {
+    animation: flitrr-pop var(--dur-fast) var(--ease-out) both;
+  }
+  .chev {
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+}
+
 @media (max-width: 680px) {
   .navlinks {
     gap: 1rem;
   }
   .navlinks a {
     font-size: 0.9rem;
+  }
+  .trigger {
+    font-size: 0.9rem;
+  }
+  /* Anchor the panel to the bar itself so it can never clip a narrow
+     viewport: the wrap goes static and the panel spans the nav padding. */
+  .products {
+    position: static;
+  }
+  .panel {
+    top: calc(100% - 0.35rem);
+    left: var(--pad);
+    right: var(--pad);
+    width: auto;
+    transform-origin: top center;
   }
 }
