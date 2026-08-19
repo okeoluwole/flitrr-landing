@@ -962,9 +962,10 @@ const ROUTES = [
     ],
   },
   {
-    // /stack/app is gated twice, like every PULSE page since the loose-ends
-    // arc: the middleware's PROTECTED_PREFIXES entry is the real gate, and
-    // the page holds the same belt-and-braces redirect as its siblings.
+    // STACK's home: the scheme register, the product's spine surface the way
+    // /pulse/app is PULSE's. Gated twice like every product page: the
+    // middleware's PROTECTED_PREFIXES entry is the real gate, and the page
+    // holds the same belt-and-braces redirect as its siblings.
     route: '/stack/app',
     importer: () => import('../app/stack/app/page.js'),
     states: [
@@ -974,6 +975,33 @@ const ROUTES = [
       {
         name: 'member (view only)',
         fx: () => world({ schemes: true, admin: false }),
+      },
+    ],
+  },
+  {
+    // The appraisal, STACK's first feature, one level under the home the way
+    // every PULSE module sits under its hub. ?scheme= opens a saved scheme
+    // recomputed on the server; an unloadable id degrades to a fresh tool
+    // with the refusal stated, so that state renders rather than redirects.
+    route: '/stack/app/appraisal',
+    importer: () => import('../app/stack/app/appraisal/page.js'),
+    states: [
+      { name: 'signed out (redirects)', redirects: true, fx: () => world({ signedIn: false }) },
+      { name: 'admin, fresh appraisal', fx: () => world() },
+      {
+        name: 'admin, saved scheme loaded',
+        fx: () => world({ schemes: true }),
+        searchParams: { scheme: 'scheme-1' },
+      },
+      {
+        name: 'admin, scheme that cannot load',
+        fx: () => world(),
+        searchParams: { scheme: 'no-such-scheme' },
+      },
+      {
+        name: 'member (view only, no save panel)',
+        fx: () => world({ schemes: true, admin: false }),
+        searchParams: { scheme: 'scheme-2' },
       },
     ],
   },

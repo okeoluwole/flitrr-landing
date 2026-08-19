@@ -27,10 +27,13 @@ export const SUITE_NUDGES = {
   },
   stack: {
     name: 'STACK',
-    // STACK has not shipped. Used by Step 6 (added in a later sub-step).
-    available: false,
+    // STACK is live (the appraisal shipped 2026-08-15 and joined the product
+    // launcher in the loose-ends arc), so the Step 6 nudge speaks: this is
+    // the PULSE-to-STACK seam of the two-product model, the system advising
+    // where a sibling develops the numbers.
+    available: true,
     blurb: 'STACK can build the financial model behind the budget you are setting.',
-    cta: 'Explore STACK',
-    href: null,
+    cta: 'Open STACK',
+    href: '/stack/app/appraisal',
   },
 };

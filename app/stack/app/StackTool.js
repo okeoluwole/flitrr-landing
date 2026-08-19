@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { runAppraisal, saveScheme, openScheme, removeScheme, exportWorkbook } from './actions';
+import { useRouter } from 'next/navigation';
+import { runAppraisal, saveScheme, exportWorkbook } from './actions';
 import { baseCaseInputs, resolveCurrencySymbol } from '../../../lib/stack/engine/inputs.js';
 import { toDisplayValues, toEngineInputs, applyGuards, validate } from './formModel';
-import StackSchemes from './StackSchemes';
+import StackSavePanel from './StackSavePanel';
 import StackForm from './StackForm';
 import StackSummary from './StackSummary';
 import StackCashflow from './StackCashflow';
@@ -13,45 +14,52 @@ import StackSensitivity from './StackSensitivity';
 import styles from './stack.module.css';
 
 /**
- * The STACK tool (sub-step 2.3). Holds the form's display values, validates and
+ * The STACK appraisal tool (sub-step 2.3, re-homed under /stack/app/appraisal
+ * in the two-product arc). Holds the form's display values, validates and
  * guards them, runs the appraisal through the server action, and renders the
- * read-only appraisal summary.
+ * read-only report.
  *
- * Saved schemes (Bucket 3.2): the tool also owns the organisation's scheme
- * list. Saving stores the current inputs under a name; loading puts a stored
- * input set back into the form and recomputes it under the current engine. The
- * server actions and row level security decide what the viewer may write;
- * canEdit only makes the surface match that.
+ * Schemes: the register lives on STACK's home; this tool receives at most
+ * ONE scheme, loaded by the page from ?scheme= (inputs recomputed under the
+ * current engine on the server). An admin saves from here: the current
+ * inputs under a name, new or over the loaded scheme, optionally linked to
+ * the project it appraises (039). The server actions and row level security
+ * decide what the viewer may write; canEdit only makes the surface match
+ * that.
  *
  * Props:
- *   initialSchemes  the organisation's saved schemes, from the server render
- *   canEdit         whether the viewer is an organisation admin (may save and
- *                   delete); a member gets the list and load only
- *   adminContact    the contact line for the View only badge, member only
- *   projects        the organisation's active projects, for the scheme
- *                   project link (039); [] renders the picker with only the
- *                   unlinked option
+ *   canEdit             whether the viewer is an organisation admin (may
+ *                       save); a member runs and reads only
+ *   projects            the organisation's active projects, for the scheme
+ *                       project link
+ *   initialScheme       { scheme, inputs, result, meta, engineNote } when
+ *                       the page loaded one, or null for a fresh appraisal
+ *   initialSchemeError  the plain sentence when a named scheme could not be
+ *                       loaded (the tool opens fresh with it stated)
  */
 
 export default function StackTool({
-  initialSchemes = [],
   canEdit = false,
-  adminContact = null,
   projects = [],
+  initialScheme = null,
+  initialSchemeError = null,
 }) {
-  const [values, setValues] = useState(() => toDisplayValues(baseCaseInputs()));
+  const router = useRouter();
+
+  const [values, setValues] = useState(() =>
+    toDisplayValues(initialScheme?.inputs ?? baseCaseInputs())
+  );
   const [errors, setErrors] = useState({});
-  const [result, setResult] = useState(null);
-  const [meta, setMeta] = useState(null);
+  const [result, setResult] = useState(initialScheme?.result ?? null);
+  const [meta, setMeta] = useState(initialScheme?.meta ?? null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
-  const [schemes, setSchemes] = useState(initialSchemes);
-  const [activeScheme, setActiveScheme] = useState(null);
-  const [engineNote, setEngineNote] = useState(null);
+  const [activeScheme, setActiveScheme] = useState(initialScheme?.scheme ?? null);
+  const [engineNote, setEngineNote] = useState(initialScheme?.engineNote ?? null);
   const [schemeBusy, setSchemeBusy] = useState(false);
   const [schemeNotice, setSchemeNotice] = useState(null);
-  const [schemeError, setSchemeError] = useState(null);
+  const [schemeError, setSchemeError] = useState(initialSchemeError);
 
   const [exportBusy, setExportBusy] = useState(false);
   const [exportError, setExportError] = useState(null);
@@ -111,53 +119,18 @@ export default function StackTool({
     setSchemeBusy(false);
 
     if (response.ok) {
-      setSchemes(response.schemes);
+      const wasActive = activeScheme?.id;
       setActiveScheme(response.scheme);
       // The stored stamp is now the current engine, so any stale note clears.
       setEngineNote(null);
       setSchemeNotice(`Saved "${response.scheme.name}".`);
-    } else {
-      setSchemeError(response.error);
-    }
-  }
-
-  // Load a scheme back: the stored inputs into the form, and the recomputed
-  // result straight onto the report.
-  async function handleLoadScheme(id) {
-    setSchemeNotice(null);
-    setSchemeError(null);
-    setSchemeBusy(true);
-    const response = await openScheme(id);
-    setSchemeBusy(false);
-
-    if (response.ok) {
-      setValues(toDisplayValues(response.inputs));
-      setErrors({});
-      setError(null);
-      setResult(response.result);
-      setMeta(response.meta);
-      setActiveScheme(response.scheme);
-      setEngineNote(response.engineNote);
-      setSchemeNotice(`Loaded "${response.scheme.name}".`);
-    } else {
-      setSchemeError(response.error);
-    }
-  }
-
-  async function handleDeleteScheme(id) {
-    setSchemeNotice(null);
-    setSchemeError(null);
-    setSchemeBusy(true);
-    const response = await removeScheme(id);
-    setSchemeBusy(false);
-
-    if (response.ok) {
-      setSchemes(response.schemes);
-      if (activeScheme?.id === id) {
-        setActiveScheme(null);
-        setEngineNote(null);
+      // Keep the address truthful: a save that produced a NEW scheme means
+      // the page now shows that scheme, so a reload or a share lands on it.
+      if (response.scheme.id !== wasActive) {
+        router.replace(`/stack/app/appraisal?scheme=${response.scheme.id}`, {
+          scroll: false,
+        });
       }
-      setSchemeNotice('Scheme deleted.');
     } else {
       setSchemeError(response.error);
     }
@@ -223,20 +196,18 @@ export default function StackTool({
 
   return (
     <div className={styles.tool}>
-      <StackSchemes
-        schemes={schemes}
-        activeScheme={activeScheme}
-        canEdit={canEdit}
-        adminContact={adminContact}
-        projects={projects}
-        busy={schemeBusy}
-        notice={schemeNotice}
-        error={schemeError}
-        engineNote={engineNote}
-        onSave={handleSaveScheme}
-        onLoad={handleLoadScheme}
-        onDelete={handleDeleteScheme}
-      />
+      {canEdit && (
+        <StackSavePanel
+          activeScheme={activeScheme}
+          projects={projects}
+          busy={schemeBusy}
+          notice={schemeNotice}
+          onSave={handleSaveScheme}
+        />
+      )}
+
+      {schemeError && <p className={styles.error} role="alert">{schemeError}</p>}
+      {engineNote && <p className={styles.notice}>{engineNote}</p>}
 
       <StackForm
         values={values}

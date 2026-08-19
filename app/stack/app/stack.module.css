@@ -28,6 +28,75 @@
   gap: var(--app-space-5);
 }
 
+/* ── The home: "New appraisal" and the empty state ── */
+/* The primary action, structural white, PULSE's New project idiom. */
+.newBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--app-space-2);
+  flex-shrink: 0;
+  background-color: var(--app-primary);
+  color: var(--app-primary-ink);
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-control);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  padding: var(--app-space-2) var(--app-space-4);
+  border-radius: var(--app-radius);
+  text-decoration: none;
+}
+
+.newBtn:hover,
+.newBtn:focus-visible {
+  background-color: var(--app-primary-hover);
+}
+
+.newBtn:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 3px;
+}
+
+.newBtn svg {
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .newBtn {
+    transition: background-color var(--dur-fast) var(--ease-out),
+      transform var(--dur-press) var(--ease-out);
+  }
+  .newBtn:active {
+    transform: scale(0.97);
+  }
+}
+
+.empty {
+  composes: seatedPanel from '../../components/instrument.module.css';
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--app-space-3);
+  padding: var(--app-space-6) var(--app-space-5);
+}
+
+.emptyHeading {
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-md);
+  font-weight: 600;
+  color: var(--app-ink);
+}
+
+.emptyBody {
+  font-size: var(--app-text-base);
+  line-height: 1.55;
+  color: var(--app-ink-secondary);
+  max-width: 56ch;
+}
+
+.emptyCta {
+  composes: newBtn;
+}
+
 /* ── The guided form ───────────────────── */
 
 .form {
@@ -258,13 +327,6 @@
   gap: var(--app-space-3);
 }
 
-.schemesHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--app-space-4);
-}
-
 .saveRow {
   display: flex;
   flex-wrap: wrap;
@@ -322,11 +384,6 @@
   overflow-wrap: anywhere;
 }
 
-.schemeLoaded {
-  font-weight: 400;
-  color: var(--app-ink-secondary);
-}
-
 .schemeMeta {
   font-size: var(--app-text-xs);
   color: var(--app-ink-secondary);
@@ -338,9 +395,12 @@
   flex-shrink: 0;
 }
 
-/* Small secondary action, the downloadBtn register at list scale. The 44px
-   minimum target height holds. */
+/* Small secondary action, the downloadBtn register at list scale, worn by
+   buttons and by the register's Open link alike. The 44px minimum target
+   height holds. */
 .miniBtn {
+  display: inline-flex;
+  align-items: center;
   min-height: 44px;
   padding: var(--app-space-2) var(--app-space-3);
   border: 1px solid var(--app-border-strong);
@@ -350,6 +410,7 @@
   font-family: var(--app-font-sans), sans-serif;
   font-size: var(--app-text-sm);
   font-weight: 600;
+  text-decoration: none;
 }
 
 .miniBtn:focus-visible {

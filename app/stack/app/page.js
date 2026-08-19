@@ -1,23 +1,32 @@
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '../../../lib/supabase/server.js';
 import { resolveProjectAccess } from '../../../lib/team/access.js';
 import { listSchemes, schemeSummary } from '../../../lib/stack/schemeStore.js';
 import DashboardShell from '../../components/DashboardShell';
 import PageHeader from '../../pulse/app/components/PageHeader';
-import StackTool from './StackTool';
+import ViewOnlyBadge from '../../pulse/app/components/ViewOnlyBadge';
+import SchemeRegister from './SchemeRegister';
 import styles from './stack.module.css';
 
 /**
- * /stack/app: the STACK development appraisal and funding model, on the
- * product Instrument like every authenticated surface: DashboardShell for
- * the platform chrome, PageHeader for the frame, the --app-* tokens for
- * everything on the canvas. Fully behind auth (the middleware gates the
- * /stack/app prefix, and the page holds the same belt-and-braces redirect
- * as its PULSE siblings). Schemes save to and load from the signed-in
- * organisation's store, an admin writes and a member reads, and a scheme
- * may name the project it appraises (039, the spine attachment).
+ * /stack/app: STACK's home, the way /pulse/app is PULSE's home. The two are
+ * peer products under one launcher: a developer can start in either, and the
+ * platform connects them (a scheme may name the project it appraises, and
+ * PULSE's initiation points here where numbers need developing).
+ *
+ * PULSE's home is its spine register, the projects; STACK's spine is
+ * schemes, so its home is the organisation's saved schemes, each opening
+ * the appraisal loaded, with "New appraisal" as the primary action. Future
+ * STACK features land as siblings under this page, never as second front
+ * doors. The appraisal itself lives one level down at /stack/app/appraisal.
+ *
+ * Auth: the middleware gates the /stack/app prefix, and the page holds the
+ * same belt-and-braces redirect as every product surface. An admin saves and
+ * deletes; a member reads and can still run an appraisal (running writes
+ * nothing).
  */
-export default async function StackPage() {
+export default async function StackHomePage() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -28,20 +37,11 @@ export default async function StackPage() {
     redirect('/login');
   }
 
-  // The shell greeting, the viewer's role, the organisation's saved schemes
-  // for the first paint, and its projects for the scheme link picker. All
-  // degrade cleanly: a failed read renders the tool with an empty list and a
-  // read-only surface, and row level security holds the real line
-  // underneath either way.
-  const [{ data: profile }, { canEdit, adminContact }, { schemes }, { data: projectRows }] =
+  const [{ data: profile }, { canEdit, adminContact }, { schemes }] =
     await Promise.all([
       supabase.from('profiles').select('full_name').eq('id', user.id).single(),
       resolveProjectAccess(supabase),
       listSchemes(supabase),
-      supabase
-        .from('projects')
-        .select('id, name, archived_at')
-        .order('name', { ascending: true }),
     ]);
 
   const navUser = {
@@ -50,32 +50,60 @@ export default async function StackPage() {
     full_name: profile?.full_name ?? null,
   };
 
-  const initialSchemes = (schemes ?? []).map(schemeSummary);
-  // Active projects only: an archived project is not offered for a NEW link
-  // (a scheme already linked to one keeps its name via the scheme summary).
-  const projects = (projectRows ?? [])
-    .filter((p) => !p.archived_at)
-    .map(({ id, name }) => ({ id, name }));
+  const list = (schemes ?? []).map(schemeSummary);
 
   return (
     <DashboardShell user={navUser}>
       <main className={`container ${styles.page}`} id="main-content">
-        {/* The frame is screen chrome: the print report carries its own
-            banner, so the whole header leaves the sheet. */}
-        <div className={styles.pageHead}>
-          <PageHeader
-            eyebrow="STACK"
-            title="Development appraisal"
-            sub="Appraise a scheme and test how it should be funded. Saved schemes belong to the organisation."
-          />
-        </div>
-
-        <StackTool
-          initialSchemes={initialSchemes}
-          canEdit={canEdit}
-          adminContact={adminContact}
-          projects={projects}
+        <PageHeader
+          eyebrow="STACK"
+          title="Your schemes"
+          sub={
+            canEdit
+              ? 'The appraisals your organisation has saved. Open one to pick it up, or run a new one.'
+              : 'The appraisals your organisation has saved. Open one to see its numbers, or run your own.'
+          }
+          badge={!canEdit ? <ViewOnlyBadge adminContact={adminContact} /> : null}
+          actions={
+            <Link href="/stack/app/appraisal" className={styles.newBtn}>
+              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+                <path
+                  d="M8 3v10M3 8h10"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                />
+              </svg>
+              New appraisal
+            </Link>
+          }
         />
+
+        {list.length === 0 ? (
+          <div className={styles.empty}>
+            <h2 className={styles.emptyHeading}>No saved schemes yet.</h2>
+            {canEdit ? (
+              <>
+                <p className={styles.emptyBody}>
+                  A scheme starts as a development appraisal: enter the
+                  numbers, run it, and save what stacks up. Saved schemes sit
+                  here for the whole organisation.
+                </p>
+                <Link href="/stack/app/appraisal" className={styles.emptyCta}>
+                  Run your first appraisal
+                </Link>
+              </>
+            ) : (
+              <p className={styles.emptyBody}>
+                Only an admin can save a scheme. You can still run an
+                appraisal.
+              </p>
+            )}
+          </div>
+        ) : (
+          <SchemeRegister schemes={list} canEdit={canEdit} />
+        )}
       </main>
     </DashboardShell>
   );
