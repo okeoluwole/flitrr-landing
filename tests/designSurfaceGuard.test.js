@@ -24,6 +24,7 @@ import {
   scheduleBandAppearance,
   varianceDirectionAppearance,
   objectiveStatusAppearance,
+  stackVerdictAppearance,
 } from '../lib/design/semantics.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -79,6 +80,11 @@ const CONVERTED = [
   // so the seated panel and the mono micro-label pill existed only as
   // prose in the language and as N hand-built copies in the surfaces.
   'app/components/instrument.module.css',
+  // The loose-ends arc: STACK's tool joins the language. Authored before
+  // Note 15 on the marketing faces and a hand-picked rhythm, converted
+  // whole: shared chrome, the app faces, the --app-space rhythm, composed
+  // panels, and the verdict on stackVerdictAppearance.
+  'app/stack/app/stack.module.css',
 ];
 
 function read(rel) {
@@ -300,7 +306,7 @@ describe('CONVERTED covers every authenticated module, computed not remembered',
    * engine. The sweep that was meant to make this list computable had
    * counted its own trees and not the guard's.
    */
-  const TREES = ['app/pulse/app', 'app/components', 'app/dashboard'];
+  const TREES = ['app/pulse/app', 'app/components', 'app/dashboard', 'app/stack/app'];
 
   const EXCLUDED = [
     // The marketing system. All three stand on the scoped .page token set of
@@ -632,7 +638,8 @@ describe('amber is spent only by rules named for criticality', () => {
   }
 
   /**
-   * Category (a): the objective status ladder, added in sub-step 6.
+   * Category (a): the exposure reads, added in sub-step 6 and widened by
+   * the STACK conversion.
    *
    * The dashboard's amber is not criticality and renaming it to say so
    * would be a lie: criticality is what an item THREATENS, the ladder is
@@ -640,19 +647,26 @@ describe('amber is spent only by rules named for criticality', () => {
    * gives at_risk and slipping amber deliberately, because on the ladder
    * amber is EXPOSURE, brightening toward breach while red stays reserved
    * for breach itself. designSemantics already names those two in its
-   * allowedAmber set. The axes never blur, so the names must not either.
+   * allowedAmber set. STACK's CONSIDER verdict is the same argument in the
+   * appraisal's vocabulary (inside the consider band: exposed, not
+   * failed), and stackVerdictAppearance spends exactly the ladder's bright
+   * amber for it. The axes never blur, so the names must not either.
    *
    * The permission and the lock-step are the SAME assertion: a rule passes
-   * only if every amber token it spends belongs to ONE ladder rung's
-   * appearance, and it spends at least one. A rule that merely looks like a
-   * status name does not pass; a rule that reaches for any other amber does
-   * not pass, even one resolving to an identical value.
+   * only if every amber token it spends belongs to ONE exposure
+   * appearance, and it spends at least one. A rule that merely looks like
+   * a status name does not pass; a rule that reaches for any other amber
+   * does not pass, even one resolving to an identical value.
    */
   function isLadderRung(body) {
     const spent = varsIn(body).filter((t) => AMBER_TOKEN.test(t));
     if (spent.length === 0) return false;
-    return ['at_risk', 'slipping'].some((rung) => {
-      const a = objectiveStatusAppearance(rung);
+    const EXPOSURE = [
+      objectiveStatusAppearance('at_risk'),
+      objectiveStatusAppearance('slipping'),
+      stackVerdictAppearance('CONSIDER'),
+    ];
+    return EXPOSURE.some((a) => {
       const own = new Set(
         [a.ink, a.fill, a.border, a.markFill].filter(Boolean)
       );
@@ -1107,6 +1121,84 @@ describe("the workspace's critical read is the criticality mapping", () => {
   });
 });
 
+describe("the STACK verdict wears stackVerdictAppearance, tag and cells alike", () => {
+  // The loose-ends arc. Before conversion the tool told three colour
+  // stories of its own: GO wore the success green (a status verdict, which
+  // is exactly what the green rule excludes), CONSIDER a hand-picked amber
+  // wash, and the comparison's selected route a decorative amber. The
+  // verdict now has one mapping, and these assertions are computed from it
+  // so a corrected mapping propagates here without reopening the surface.
+  const css = stripComments(read('app/stack/app/stack.module.css'));
+  const blocks = new Map(
+    rules(css).map(({ selector, body }) => [selector.trim(), body])
+  );
+
+  // Selector -> the decision it wears and the parts of the appearance that
+  // rule sets. The tag family carries the full read; the sensitivity cells
+  // spend the ink alone, weight marking the two flagged reads.
+  const RULES = [
+    ['.decisionGo', 'GO', ['ink', 'border']],
+    ['.decisionConsider', 'CONSIDER', ['ink', 'border']],
+    ['.decisionNoGo', 'NO GO', ['ink', 'fill', 'border']],
+    ['.cellGo', 'GO', ['ink']],
+    ['.cellConsider', 'CONSIDER', ['ink']],
+    ['.cellNoGo', 'NO GO', ['ink']],
+  ];
+
+  for (const [selector, decision, parts] of RULES) {
+    it(`${selector} spends the '${decision}' appearance`, () => {
+      const a = stackVerdictAppearance(decision);
+      const body = blocks.get(selector);
+      expect(body, `${selector} missing from stack.module.css`).toBeTruthy();
+      for (const part of parts) {
+        expect(
+          body,
+          `${selector} should spend ${part} = var(${a[part]})`
+        ).toContain(`var(${a[part]})`);
+      }
+    });
+  }
+
+  it('the tag family states its fill either way, so calm stays hollow', () => {
+    // GO and CONSIDER have no fill in the mapping and must say so rather
+    // than inherit whatever the base rule carries; NO GO is the one filled
+    // read.
+    expect(stackVerdictAppearance('GO').fill).toBeNull();
+    expect(stackVerdictAppearance('CONSIDER').fill).toBeNull();
+    expect(blocks.get('.decisionGo')).toContain('background: transparent');
+    expect(blocks.get('.decisionConsider')).toContain('background: transparent');
+    expect(stackVerdictAppearance('NO GO').fill).toBeTruthy();
+  });
+
+  it('no verdict rule re-picks a signal or danger colour locally', () => {
+    // Whatever loud token any of these rules spends must be one the
+    // mapping names. A hand-picked amber or red fails here even where it
+    // resolves to an identical value.
+    const legal = new Set(
+      ['GO', 'CONSIDER', 'NO GO'].flatMap((d) => {
+        const a = stackVerdictAppearance(d);
+        return [a.ink, a.fill, a.border, a.markFill].filter(Boolean);
+      })
+    );
+    const offenders = [];
+    for (const [selector] of RULES) {
+      for (const token of varsIn(blocks.get(selector) || '')) {
+        if (/signal|ochre|critical|danger/.test(token) && !legal.has(token)) {
+          offenders.push(`${selector}: ${token}`);
+        }
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  it('the tool spends no success green: a verdict is not a recorded fact', () => {
+    // The green rule, held at the stylesheet: the report's one green left
+    // with the conversion, and nothing may bring one back without a value
+    // that IS a recorded fact.
+    expect(/--app-success/.test(css)).toBe(false);
+  });
+});
+
 describe('--doc-* stays a colour and face register, never a second scale', () => {
   // This is the thing that blocked sub-step 4 in the first place: the print
   // block had grown 37 hand-picked font sizes and 52 hand-picked spacings
@@ -1199,7 +1291,7 @@ describe('a composition primitive cannot be hand-built again', () => {
    *      seated panel. A guard keyed on property names alone would drag it
    *      in and force a variant that means something else.
    */
-  const TREES = ['app/pulse/app', 'app/components', 'app/dashboard'];
+  const TREES = ['app/pulse/app', 'app/components', 'app/dashboard', 'app/stack/app'];
   const PRIMITIVE = 'app/components/instrument.module.css';
 
   const RECIPES = [

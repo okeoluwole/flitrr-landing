@@ -20,6 +20,7 @@ import {
   programmeVarianceAppearance,
   scheduleBandAppearance,
   varianceDirectionAppearance,
+  stackVerdictAppearance,
   criticalityMarkAppearance,
   onPaper,
   SEMANTIC_MAPPINGS,
@@ -30,6 +31,7 @@ import { SEVERITY_BANDS, deriveSeverity } from '../lib/engine/severity.js';
 import { STAGE_STATE } from '../lib/engine/stageStates.js';
 import { VARIANCE_DIRECTIONS } from '../app/pulse/app/programme/scheduleModel.js';
 import { LADDER_LABELS } from '../app/pulse/app/dashboard/dashboardRead.js';
+import { decisionBand } from '../lib/stack/engine/verdict.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const GLOBALS = readFileSync(path.join(HERE, '..', 'app', 'globals.css'), 'utf8');
@@ -46,6 +48,7 @@ const ALL_FUNCTIONS = [
   { fn: stageStateAppearance, domain: 'stage state' },
   { fn: programmeVarianceAppearance, domain: 'programme variance' },
   { fn: scheduleBandAppearance, domain: 'schedule band' },
+  { fn: stackVerdictAppearance, domain: 'STACK verdict' },
 ];
 
 describe('unknown values fail loudly', () => {
@@ -142,6 +145,26 @@ describe('the mappings stay in lock-step with the engine vocabularies', () => {
     expect([...mapped.values].sort()).toEqual([...engine].sort());
   });
 
+  it("the STACK verdict covers the engine's decisions, and only them", () => {
+    // The mapping's keys are decisionBand's own literals, unmapped, so the
+    // lock-step is proven by running the real engine into all three states
+    // rather than by trusting a copied list. And the mapping invents no
+    // decision the engine cannot emit.
+    const target = { targetProfitOnCost: 0.2, considerBand: 0.05 };
+    const emitted = [
+      decisionBand(target, { projectProfit: 1, profitOnCost: 0.25 }).decision,
+      decisionBand(target, { projectProfit: 1, profitOnCost: 0.17 }).decision,
+      decisionBand(target, { projectProfit: 1, profitOnCost: 0.1 }).decision,
+      decisionBand(target, { projectProfit: -1, profitOnCost: 0.25 }).decision,
+    ];
+    expect(new Set(emitted)).toEqual(new Set(['GO', 'CONSIDER', 'NO GO']));
+    for (const decision of emitted) {
+      expect(() => stackVerdictAppearance(decision)).not.toThrow();
+    }
+    const mapped = SEMANTIC_MAPPINGS.find((m) => m.id === 'stack-verdict');
+    expect([...mapped.values].sort()).toEqual(['CONSIDER', 'GO', 'NO GO']);
+  });
+
   it('the loud two rungs of the tracker ramp belong to the schedule band', () => {
     // The five-rung CSS ladder is two engine vocabularies composed, never a
     // five-value vocabulary of its own. This states the seam: a direction is
@@ -162,12 +185,16 @@ describe('the colour discipline holds across the whole language', () => {
   const dangerTokens = /--app-danger/;
   const successTokens = /--app-success/;
 
-  it('amber appears only where the value is live criticality', () => {
+  it('amber appears only on live criticality or a stated exposure read', () => {
+    // The exposure reads: the ladder's two amber rungs, and STACK's
+    // CONSIDER verdict, which makes the same argument in the appraisal's
+    // vocabulary (inside the consider band: exposed, not failed).
     const allowedAmber = new Set([
       'criticality:critical',
       'objective-status:at_risk',
       'objective-status:slipping',
       'schedule-band:red',
+      'stack-verdict:CONSIDER',
     ]);
     for (const mapping of SEMANTIC_MAPPINGS) {
       for (const value of mapping.values) {
@@ -184,7 +211,14 @@ describe('the colour discipline holds across the whole language', () => {
     }
   });
 
-  it('danger red appears only on Compromised: breach, never exposure', () => {
+  it('danger red appears only on a breach state, never exposure', () => {
+    // Two breach reads in the language: an objective Compromised, and a
+    // STACK scheme below its consider band. Both are the line crossed, not
+    // approached, which is what separates red from amber.
+    const allowedDanger = new Set([
+      'objective-status:compromised',
+      'stack-verdict:NO GO',
+    ]);
     for (const mapping of SEMANTIC_MAPPINGS) {
       for (const value of mapping.values) {
         const a = mapping.appearance(value);
@@ -192,7 +226,7 @@ describe('the colour discipline holds across the whole language', () => {
           (t) => t != null && dangerTokens.test(t)
         );
         expect(spendsDanger, `${mapping.id}:${value}`).toBe(
-          mapping.id === 'objective-status' && value === 'compromised'
+          allowedDanger.has(`${mapping.id}:${value}`)
         );
       }
     }
@@ -328,6 +362,13 @@ describe('the paper register states its holes instead of hiding them', () => {
       {
         missing: ['--app-success'],
         why: 'Recorded-fact green. The --doc-* register has no green, and the one rule green must obey (a recorded fact, never a status verdict) is about WHEN it is spent, not what shade a document should spend.',
+      },
+    ],
+    [
+      'stack-verdict:NO GO',
+      {
+        missing: ['--app-danger', '--app-danger-wash', '--app-danger-border'],
+        why: "Breach red again, Compromised's exact gap in the appraisal's vocabulary. The STACK report prints through the whole-register flip, not through --doc-*, so no --doc document has ever rendered a verdict and the paper red stays the decision nobody has taken.",
       },
     ],
   ]);

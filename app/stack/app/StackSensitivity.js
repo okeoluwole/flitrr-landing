@@ -23,10 +23,12 @@ function rate(value) {
 }
 
 // The go / consider / no-go class for a profit on cost, matching the verdict.
+// The classes spend stackVerdictAppearance's tokens (the guard holds them to
+// the mapping), so a cell and the decision tag can never tell two stories.
 function pocClass(poc, target, band) {
-  if (poc >= target) return styles['cell--go'];
-  if (poc >= target - band) return styles['cell--consider'];
-  return styles['cell--nogo'];
+  if (poc >= target) return styles.cellGo;
+  if (poc >= target - band) return styles.cellConsider;
+  return styles.cellNoGo;
 }
 
 function Grid({ title, note, colHeader, rowHeader, cols, rows, grid, renderCell, baseRow, baseCol }) {

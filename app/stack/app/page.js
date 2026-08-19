@@ -1,29 +1,41 @@
+import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server.js';
 import { resolveProjectAccess } from '../../../lib/team/access.js';
 import { listSchemes, schemeSummary } from '../../../lib/stack/schemeStore.js';
+import DashboardShell from '../../components/DashboardShell';
+import PageHeader from '../../pulse/app/components/PageHeader';
 import StackTool from './StackTool';
 import styles from './stack.module.css';
 
 /**
- * /stack/app: the STACK development appraisal and funding model. Fully behind
- * auth (the middleware gates the /stack/app prefix), for the signed-in
- * organisation:
- * schemes save to and load from the organisation's store, an admin writes and
- * a member reads, the same access rule as every product surface. The
- * attachment to the shared Flitrr project spine comes later. It sits on the
- * product Instrument surface: the console header over the dark work canvas,
- * all from the --app-* tokens.
+ * /stack/app: the STACK development appraisal and funding model, on the
+ * product Instrument like every authenticated surface: DashboardShell for
+ * the platform chrome, PageHeader for the frame, the --app-* tokens for
+ * everything on the canvas. Fully behind auth (the middleware gates the
+ * /stack/app prefix, and the page holds the same belt-and-braces redirect
+ * as its PULSE siblings). Schemes save to and load from the signed-in
+ * organisation's store, an admin writes and a member reads, and a scheme
+ * may name the project it appraises (039, the spine attachment).
  */
 export default async function StackPage() {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  // The viewer's role, resolved once; the organisation's saved schemes for
-  // the first paint; and its active projects for the scheme project link
-  // (039). All degrade cleanly: a failed read renders the tool with an empty
-  // list and a read-only surface, and row level security holds the real line
+  // Belt-and-braces. Middleware should have caught this already.
+  if (!user) {
+    redirect('/login');
+  }
+
+  // The shell greeting, the viewer's role, the organisation's saved schemes
+  // for the first paint, and its projects for the scheme link picker. All
+  // degrade cleanly: a failed read renders the tool with an empty list and a
+  // read-only surface, and row level security holds the real line
   // underneath either way.
-  const [{ canEdit, adminContact }, { schemes }, { data: projectRows }] =
+  const [{ data: profile }, { canEdit, adminContact }, { schemes }, { data: projectRows }] =
     await Promise.all([
+      supabase.from('profiles').select('full_name').eq('id', user.id).single(),
       resolveProjectAccess(supabase),
       listSchemes(supabase),
       supabase
@@ -31,6 +43,12 @@ export default async function StackPage() {
         .select('id, name, archived_at')
         .order('name', { ascending: true }),
     ]);
+
+  const navUser = {
+    id: user.id,
+    email: user.email,
+    full_name: profile?.full_name ?? null,
+  };
 
   const initialSchemes = (schemes ?? []).map(schemeSummary);
   // Active projects only: an archived project is not offered for a NEW link
@@ -40,23 +58,25 @@ export default async function StackPage() {
     .map(({ id, name }) => ({ id, name }));
 
   return (
-    <main className={styles.page}>
-      <header className={styles.topbar}>
-        <div className={styles.brand}>
-          <span className={styles.brandFlitrr}>Flitrr</span>
-          <span className={styles.brandProduct}>STACK</span>
+    <DashboardShell user={navUser}>
+      <main className={`container ${styles.page}`} id="main-content">
+        {/* The frame is screen chrome: the print report carries its own
+            banner, so the whole header leaves the sheet. */}
+        <div className={styles.pageHead}>
+          <PageHeader
+            eyebrow="STACK"
+            title="Development appraisal"
+            sub="Appraise a scheme and test how it should be funded. Saved schemes belong to the organisation."
+          />
         </div>
-        <p className={styles.tagline}>Development appraisal and funding model</p>
-      </header>
 
-      <div className={styles.canvas}>
         <StackTool
           initialSchemes={initialSchemes}
           canEdit={canEdit}
           adminContact={adminContact}
           projects={projects}
         />
-      </div>
-    </main>
+      </main>
+    </DashboardShell>
   );
 }

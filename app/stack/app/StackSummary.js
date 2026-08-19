@@ -2,19 +2,22 @@
 
 import { money, percent, multiple, irr } from './format';
 import { FUNDING_STRATEGY } from '../../../lib/stack/engine/inputs.js';
+import { stackVerdictAppearance } from '../../../lib/design/semantics.js';
 import styles from './stack.module.css';
 
 /**
  * The appraisal summary (sub-step 2.3). The read-only review surface: the
  * verdict, the headline, the return metrics in three views, the partnership
  * split for a joint venture, the sources and uses, and the credit, margin and
- * residual land value. Every figure comes straight from the engine result.
+ * residual land value. Every figure comes straight from the engine result,
+ * and the verdict's word and colour come from stackVerdictAppearance, the
+ * language's one value-to-token place.
  */
 
 const DECISION_CLASS = {
-  GO: styles['decision--go'],
-  CONSIDER: styles['decision--consider'],
-  'NO GO': styles['decision--nogo'],
+  GO: styles.decisionGo,
+  CONSIDER: styles.decisionConsider,
+  'NO GO': styles.decisionNoGo,
 };
 
 function Card({ title, children }) {
@@ -89,7 +92,7 @@ export default function StackSummary({ result, meta }) {
       {/* Verdict */}
       <Card>
         <span className={`${styles.decision} ${DECISION_CLASS[decision.decision]}`}>
-          {decision.decision}
+          {stackVerdictAppearance(decision.decision).label}
         </span>
         <div className={styles.figures}>
           <div className={styles.figure}>

@@ -962,12 +962,13 @@ const ROUTES = [
     ],
   },
   {
-    // /stack/app has no redirect states: the auth gate is the middleware's
-    // PROTECTED_PREFIXES entry, not a page-level check, so the page renders
-    // for whoever reaches it and row level security holds the data line.
+    // /stack/app is gated twice, like every PULSE page since the loose-ends
+    // arc: the middleware's PROTECTED_PREFIXES entry is the real gate, and
+    // the page holds the same belt-and-braces redirect as its siblings.
     route: '/stack/app',
     importer: () => import('../app/stack/app/page.js'),
     states: [
+      { name: 'signed out (redirects)', redirects: true, fx: () => world({ signedIn: false }) },
       { name: 'admin, saved schemes', fx: () => world({ schemes: true }) },
       { name: 'admin, empty store', fx: () => world() },
       {

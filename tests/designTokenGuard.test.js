@@ -26,6 +26,7 @@ const ROOT = path.join(HERE, '..');
 const SCOPE_DIRS = [
   path.join(ROOT, 'app', 'pulse', 'app'),
   path.join(ROOT, 'app', 'dashboard'),
+  path.join(ROOT, 'app', 'stack', 'app'),
 ];
 const SCOPE_FILES = [
   path.join(ROOT, 'app', 'components', 'DashboardShell.module.css'),
