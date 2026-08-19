@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { createClient } from '../lib/supabase/client';
 import SiteNav from './components/considered/SiteNav';
 import SiteFooter from './components/considered/SiteFooter';
+import StackGlance from './components/considered/StackGlance';
 import styles from './home.module.css';
 
 function usePrefersReducedMotion() {
@@ -128,7 +129,10 @@ function LifecycleReel() {
         </div>
         <div className={styles.life__foot}>
           <span className={styles['cover-note']}>
-            <span className={styles.sw} /> PULSE monitors stages 02 to 07, where a scheme is won or lost
+            <b>STACK</b> proves the scheme before you commit to it
+          </span>
+          <span className={styles['cover-note']}>
+            <b>PULSE</b> monitors stages 02 to 07, where a scheme is won or lost
           </span>
         </div>
       </div>
@@ -410,12 +414,13 @@ export default function HomeMain({ user }) {
             <div className={styles.wrap}>
               <h1>One platform for the whole property development lifecycle.</h1>
               <p className={styles.hero__sub}>
-                Institutional delivery discipline for independent and SME property developers: objectives defined
-                and classified. Monitor what matters. From initiation to completion.
+                Institutional delivery discipline for independent and SME property developers.
+                STACK proves a scheme stacks up before you commit. PULSE delivers it, stage by
+                stage, on one framework.
               </p>
               <div className={styles.hero__cta}>
-                <Link href="/pulse" className={`${styles.btn} ${styles.btnSolid}`}>
-                  Discover PULSE <span className={styles.arw} aria-hidden="true">&rarr;</span>
+                <Link href="#products" className={`${styles.btn} ${styles.btnSolid}`}>
+                  See the products <span className={styles.arw} aria-hidden="true">&rarr;</span>
                 </Link>
                 <Link href="#design-partner" className={`${styles.btn} ${styles.btnGhost}`}>
                   Become a design partner
@@ -490,11 +495,47 @@ export default function HomeMain({ user }) {
           <LifecycleReel />
         </section>
 
-        {/* PULSE */}
-        <section className={styles.pulse} id="pulse" aria-labelledby="pulse-heading">
+        {/* PRODUCTS */}
+        <section className={styles.prods} id="products" aria-labelledby="prods-heading">
+          <div className={styles.wrap}>
+            <div className={styles.prods__head}>
+              <div className={styles.label}>The products</div>
+              <h2 id="prods-heading">Decide, then deliver.</h2>
+              <p>
+                <b>STACK produces the decision. PULSE delivers it.</b> Two live products on one
+                framework, reading one discipline from feasibility to disposal.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* STACK */}
+        <section className={`${styles.prod} ${styles.rev}`} id="stack" aria-labelledby="stack-heading">
           <div className={styles.wrap}>
             <div className={styles.lead}>
-              <p className={styles.kick}>Our first product</p>
+              <p className={styles.kick}>The decision</p>
+              <h2 id="stack-heading">STACK.</h2>
+              <p>
+                Feasibility, budgets and funding. It answers the two questions every scheme starts
+                with: does this stack up, and how do I fund it.
+              </p>
+              <div className={styles.cta}>
+                <Link href="/stack" className={`${styles.btn} ${styles.btnWarm}`}>
+                  Discover STACK <span className={styles.arw} aria-hidden="true">&rarr;</span>
+                </Link>
+              </div>
+            </div>
+            <div className={styles.glance}>
+              <StackGlance />
+            </div>
+          </div>
+        </section>
+
+        {/* PULSE */}
+        <section className={styles.prod} id="pulse" aria-labelledby="pulse-heading">
+          <div className={styles.wrap}>
+            <div className={styles.lead}>
+              <p className={styles.kick}>The delivery</p>
               <h2 id="pulse-heading">PULSE.</h2>
               <p>
                 Project delivery and programme management. One screen tells you where a scheme stands, and
@@ -504,33 +545,20 @@ export default function HomeMain({ user }) {
                 <Link href="/pulse" className={`${styles.btn} ${styles.btnWarm}`}>
                   Discover PULSE <span className={styles.arw} aria-hidden="true">&rarr;</span>
                 </Link>
-                <Link href="#design-partner" className={`${styles.btn} ${styles.btnDim}`}>
-                  Become a design partner
-                </Link>
               </div>
             </div>
             <PulseInstrument />
           </div>
         </section>
 
-        {/* SUITE */}
+        {/* ROADMAP */}
         <section className={styles.suite} id="roadmap" aria-labelledby="suite-heading">
           <div className={styles.wrap}>
             <div className={styles.suite__intro}>
-              <h2 id="suite-heading">The suite.</h2>
-              <p>PULSE and STACK lead the suite. More follow across the lifecycle, each built to the same discipline.</p>
+              <h2 id="suite-heading">Next in the suite.</h2>
+              <p>Each new product carries the same discipline into another part of the lifecycle.</p>
             </div>
             <div className={styles.suite__list}>
-              <Link href="/pulse" className={`${styles.suite__row} ${styles.live}`}>
-                <span className={styles.suite__nm}><span className={styles.dot} />PULSE</span>
-                <span className={styles.suite__st}>Live</span>
-                <span className={styles.suite__ds}>Project delivery and programme management.</span>
-              </Link>
-              <Link href="/stack" className={`${styles.suite__row} ${styles.live}`}>
-                <span className={styles.suite__nm}><span className={styles.dot} />STACK</span>
-                <span className={styles.suite__st}>Live</span>
-                <span className={styles.suite__ds}>Feasibility, budgets, and funding.</span>
-              </Link>
               <div className={styles.suite__row}>
                 <span className={styles.suite__nm}><span className={styles.dot} />ROUTE</span>
                 <span className={styles.suite__st}>In design</span>
@@ -572,13 +600,14 @@ export default function HomeMain({ user }) {
                 The whole lifecycle, <em>under control</em>.
               </h2>
               <div className={styles.cta}>
-                <Link href="/pulse" className={`${styles.btn} ${styles.btnSolid}`}>
-                  Discover PULSE <span className={styles.arw} aria-hidden="true">&rarr;</span>
-                </Link>
-                <Link href="#design-partner" className={`${styles.btn} ${styles.btnDim}`}>
-                  Become a design partner
+                <Link href="#design-partner" className={`${styles.btn} ${styles.btnSolid}`}>
+                  Become a design partner <span className={styles.arw} aria-hidden="true">&rarr;</span>
                 </Link>
               </div>
+              <p className={styles.close__alt}>
+                Or start where your scheme is: <Link href="/stack">STACK</Link> for the decision,{' '}
+                <Link href="/pulse">PULSE</Link> for delivery.
+              </p>
             </div>
           </div>
         </section>

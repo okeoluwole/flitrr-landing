@@ -690,20 +690,34 @@ export default function PulseMain({ user }) {
           </div>
         </section>
 
-        {/* FRAMEWORK CREDIT */}
-        <section className={styles.fwc} id="framework-credit">
+        {/* ONE PLATFORM */}
+        <section className={styles.fwc} id="framework-credit" aria-label="One platform">
           <div className={styles.wrap}>
-            <Link href="/framework">
-              <span>
-                <span className={styles.ey}>Built on the Flitrr Framework</span>
-                <span className={styles.ln}>
-                  The delivery discipline behind every Flitrr product. PULSE is the first to run on it.
+            <div className={styles.fwc__grid}>
+              <Link href="/stack" className={styles.scard}>
+                <span>
+                  <span className={styles.ey}>One platform</span>
+                  <span className={styles.ln}>
+                    Before you commit, STACK proves the scheme stacks up: feasibility, budgets and
+                    funding on the same framework.
+                  </span>
                 </span>
-              </span>
-              <span className={styles.cta}>
-                Explore the Framework <span className={styles.arw} aria-hidden="true">&rarr;</span>
-              </span>
-            </Link>
+                <span className={styles.cta}>
+                  Discover STACK <span className={styles.arw} aria-hidden="true">&rarr;</span>
+                </span>
+              </Link>
+              <Link href="/framework" className={styles.scard}>
+                <span>
+                  <span className={styles.ey}>Built on the Flitrr Framework</span>
+                  <span className={styles.ln}>
+                    The delivery discipline behind every Flitrr product. PULSE runs it end to end.
+                  </span>
+                </span>
+                <span className={styles.cta}>
+                  Explore the Framework <span className={styles.arw} aria-hidden="true">&rarr;</span>
+                </span>
+              </Link>
+            </div>
           </div>
         </section>
 

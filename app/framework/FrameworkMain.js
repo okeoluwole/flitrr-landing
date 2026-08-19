@@ -382,19 +382,21 @@ export default function FrameworkMain({ user }) {
                 The framework, and the products <em>built on it</em>.
               </h2>
               <p className={styles.body}>
-                The framework is the method. The products are how you run it. PULSE is the first product
-                built on the Flitrr Framework: it sets a project up properly, classifies its objectives,
-                locks the brief, then monitors only what matters across every stage. More will follow it
-                across the lifecycle, each built to the same discipline.
+                The framework is the method. The products are how you run it. STACK carries it
+                upstream to the decision: feasibility, budgets and funding, proven before you
+                commit. PULSE runs the delivery: objectives classified, the brief locked, and only
+                what matters monitored across every stage. More follow across the lifecycle, each
+                built to the same discipline.
               </p>
               <div className={styles.cta}>
-                <Link href="/pulse" className={`${styles.btn} ${styles.btnSolid}`}>
-                  Discover PULSE <span className={styles.arw} aria-hidden="true">&rarr;</span>
-                </Link>
-                <Link href="/#design-partner" className={`${styles.btn} ${styles.btnDim}`}>
-                  Become a design partner
+                <Link href="/#design-partner" className={`${styles.btn} ${styles.btnSolid}`}>
+                  Become a design partner <span className={styles.arw} aria-hidden="true">&rarr;</span>
                 </Link>
               </div>
+              <p className={styles.close__alt}>
+                Or meet the products: <Link href="/stack">STACK</Link> for the decision,{' '}
+                <Link href="/pulse">PULSE</Link> for delivery.
+              </p>
             </div>
           </div>
         </section>

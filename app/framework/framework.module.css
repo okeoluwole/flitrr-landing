@@ -975,6 +975,21 @@
   gap: 0.8rem;
   flex-wrap: wrap;
 }
+.close__alt {
+  margin: 1.2rem 0 0;
+  color: var(--on-deep-mut);
+  font-size: 0.94rem;
+}
+.close__alt a {
+  color: var(--on-deep);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(255, 255, 255, 0.35);
+  transition: color 0.25s;
+}
+.close__alt a:hover {
+  color: #fff;
+}
 
 @media (prefers-reduced-motion: no-preference) {
   .hero__bg img {

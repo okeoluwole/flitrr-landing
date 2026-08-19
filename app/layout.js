@@ -47,7 +47,7 @@ const archivo = Archivo({
 
 const SITE_TITLE = 'Flitrr. One platform for property development';
 const SITE_DESCRIPTION =
-  'One platform for the whole property development lifecycle. Practical delivery solutions for independent and SME property developers, from land acquisition to asset disposal. PULSE is the first product.';
+  'One platform for the whole property development lifecycle. STACK proves a scheme stacks up; PULSE delivers it. Built for independent and SME property developers, from land acquisition to asset disposal.';
 const SITE_URL = 'https://flitrr.com';
 
 // themeColor belongs on the viewport export in Next 14 (on metadata it warns).

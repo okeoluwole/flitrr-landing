@@ -37,7 +37,10 @@ export default function SiteFooter({ variant = 'flitrr' }) {
             {productName ? (
               <Link href="/">Back to Flitrr</Link>
             ) : (
-              <Link href="/pulse">PULSE</Link>
+              <>
+                <Link href="/pulse">PULSE</Link>
+                <Link href="/stack">STACK</Link>
+              </>
             )}
             <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>

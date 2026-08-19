@@ -1274,27 +1274,37 @@
   color: var(--on-deep-dim);
 }
 
-/* FRAMEWORK CREDIT */
+/* ONE PLATFORM: the two link cards (STACK, Framework) */
 .fwc {
   padding: clamp(3rem, 7vh, 5rem) 0;
   border-top: 1px solid var(--line);
 }
-.fwc a {
+.fwc__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+@media (min-width: 860px) {
+  .fwc__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.scard {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.2rem;
   justify-content: space-between;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-  padding: 1.6rem clamp(1.3rem, 3vw, 2.2rem);
+  padding: 1.6rem clamp(1.3rem, 3vw, 2.2rem) 1.5rem;
   border-radius: 12px;
   border: 1px solid var(--line);
   background: linear-gradient(160deg, #171c24, #12161c);
   transition: border-color 0.3s;
 }
-.fwc a:hover {
+.scard:hover {
   border-color: rgba(199, 126, 51, 0.4);
 }
-.fwc .ey {
+.scard .ey {
   display: block;
   font-size: 0.66rem;
   letter-spacing: 0.16em;
@@ -1303,14 +1313,14 @@
   font-weight: 560;
   margin-bottom: 0.5rem;
 }
-.fwc .ln {
+.scard .ln {
   color: #fff;
   font-weight: 400;
   font-size: clamp(1.1rem, 2vw, 1.4rem);
   letter-spacing: -0.01em;
   max-width: 34ch;
 }
-.fwc .cta {
+.scard .cta {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -1318,10 +1328,10 @@
   font-weight: 520;
   white-space: nowrap;
 }
-.fwc a:hover .cta .arw {
+.scard:hover .cta .arw {
   transform: translateX(3px);
 }
-.fwc .cta .arw {
+.scard .cta .arw {
   transition: transform 0.25s;
 }
 

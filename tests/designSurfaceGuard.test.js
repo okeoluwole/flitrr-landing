@@ -303,10 +303,11 @@ describe('CONVERTED covers every authenticated module, computed not remembered',
   const TREES = ['app/pulse/app', 'app/components', 'app/dashboard'];
 
   const EXCLUDED = [
-    // The marketing system. Both stand on the scoped .page token set of the
-    // public site, not on --app-*, and are out of Note 15 entirely.
+    // The marketing system. All three stand on the scoped .page token set of
+    // the public site, not on --app-*, and are out of Note 15 entirely.
     'app/components/considered/SiteFooter.module.css',
     'app/components/considered/SiteNav.module.css',
+    'app/components/considered/StackGlance.module.css',
   ];
 
   /**
