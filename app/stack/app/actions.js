@@ -177,6 +177,11 @@ function writeErrorSentence(error, fallback) {
   if (error?.code === 'PGRST116') {
     return 'That scheme could not be found.';
   }
+  // The 039 same-organisation trigger: a link to a project the organisation
+  // does not own, or to a project that has since been deleted.
+  if (/own organisation/i.test(error?.message ?? '')) {
+    return 'That project is not in your organisation.';
+  }
   return fallback;
 }
 
@@ -208,18 +213,35 @@ export async function fetchSchemes() {
  * Save a scheme: a new one when schemeId is null, a save-over otherwise. The
  * raw form values are normalised to the complete input set here, so what is
  * stored always computes, and the current ENGINE_VERSION is stamped on.
+ * projectId is the optional spine link (039): the project this scheme
+ * appraises, set absolutely on every save so unlinking is a save away.
  * Returns the stored scheme and the refreshed list.
  *
- * @param {{ name: string, raw: object, schemeId?: string|null }} payload
+ * @param {{ name: string, raw: object, schemeId?: string|null, projectId?: string|null }} payload
  * @returns {Promise<{ ok: boolean, scheme?: object, schemes?: object[], error?: string }>}
  */
-export async function saveScheme({ name, raw, schemeId = null }) {
+export async function saveScheme({ name, raw, schemeId = null, projectId = null }) {
   const supabase = await createClient();
   const inputs = normaliseInputs(raw);
 
+  // The picker sends a string id or ''; anything unusable saves unlinked.
+  const cleanProjectId =
+    typeof projectId === 'string' && projectId.trim() !== '' ? projectId : null;
+
   const { scheme, error } = schemeId
-    ? await updateScheme(supabase, { id: schemeId, name, inputs, engineVersion: ENGINE_VERSION })
-    : await insertScheme(supabase, { name, inputs, engineVersion: ENGINE_VERSION });
+    ? await updateScheme(supabase, {
+        id: schemeId,
+        name,
+        inputs,
+        engineVersion: ENGINE_VERSION,
+        projectId: cleanProjectId,
+      })
+    : await insertScheme(supabase, {
+        name,
+        inputs,
+        engineVersion: ENGINE_VERSION,
+        projectId: cleanProjectId,
+      });
 
   if (error) {
     return { ok: false, error: writeErrorSentence(error, 'The scheme could not be saved.') };

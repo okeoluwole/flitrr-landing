@@ -32,6 +32,7 @@ export default function StackSchemes({
   activeScheme,
   canEdit,
   adminContact,
+  projects = [],
   busy,
   notice,
   error,
@@ -41,13 +42,32 @@ export default function StackSchemes({
   onDelete,
 }) {
   const [name, setName] = useState('');
+  const [projectId, setProjectId] = useState('');
   const [confirmingId, setConfirmingId] = useState(null);
 
-  // A freshly loaded scheme prefills the name, so Save changes reads true and a
-  // rename is one edit away.
+  // A freshly loaded scheme prefills the name and the project link, so Save
+  // changes reads true and a rename or a relink is one edit away.
   useEffect(() => {
-    if (activeScheme) setName(activeScheme.name);
+    if (activeScheme) {
+      setName(activeScheme.name);
+      setProjectId(activeScheme.projectId ?? '');
+    }
   }, [activeScheme?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // The picker offers the organisation's active projects. A loaded scheme may
+  // be linked to a project the list no longer carries (archived since), so
+  // that one is appended from the scheme's own summary rather than lost.
+  const projectOptions = [...projects];
+  if (
+    projectId &&
+    activeScheme?.projectId === projectId &&
+    !projectOptions.some((p) => p.id === projectId)
+  ) {
+    projectOptions.push({
+      id: projectId,
+      name: activeScheme.projectName ?? 'Linked project',
+    });
+  }
 
   function handleDeleteClick(id) {
     if (confirmingId === id) {
@@ -79,12 +99,26 @@ export default function StackSchemes({
             maxLength={120}
             disabled={busy}
           />
+          <select
+            className={`${styles.select} ${styles.projectSelect}`}
+            value={projectId}
+            onChange={(e) => setProjectId(e.target.value)}
+            aria-label="Linked project"
+            disabled={busy}
+          >
+            <option value="">No linked project</option>
+            {projectOptions.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
           {activeScheme ? (
             <>
               <button
                 type="button"
                 className={styles.miniBtn}
-                onClick={() => onSave(name, 'over')}
+                onClick={() => onSave(name, 'over', projectId)}
                 disabled={busy}
               >
                 Save changes
@@ -92,7 +126,7 @@ export default function StackSchemes({
               <button
                 type="button"
                 className={styles.miniBtn}
-                onClick={() => onSave(name, 'new')}
+                onClick={() => onSave(name, 'new', projectId)}
                 disabled={busy}
               >
                 Save as new
@@ -102,7 +136,7 @@ export default function StackSchemes({
             <button
               type="button"
               className={styles.miniBtn}
-              onClick={() => onSave(name, 'new')}
+              onClick={() => onSave(name, 'new', projectId)}
               disabled={busy}
             >
               Save scheme
@@ -124,6 +158,7 @@ export default function StackSchemes({
                 </span>
                 <span className={styles.schemeMeta}>
                   Saved {formatSavedDate(scheme.updatedAt)}
+                  {scheme.projectName ? `, linked to ${scheme.projectName}` : ''}
                 </span>
               </div>
               <div className={styles.schemeActions}>

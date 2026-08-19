@@ -30,10 +30,17 @@ const ORG = 'org-1';
 const OTHER_ORG = 'org-2';
 const ADMIN = 'user-admin';
 
-// ── A faithful in-memory fake of the migration 028 store ────────────────────
-// One table, stack_schemes. The caller identity carries an organisation and a
-// role; RLS scopes every read to the organisation and every write to an admin.
-function makeFakeSupabase({ organisationId = ORG, role = 'admin', rows = [] } = {}) {
+// ── A faithful in-memory fake of the migration 028 + 039 store ──────────────
+// One table, stack_schemes, plus a projects lookup for the 039 spine
+// attachment. The caller identity carries an organisation and a role; RLS
+// scopes every read to the organisation and every write to an admin, and the
+// 039 trigger refuses a link to another organisation's project.
+function makeFakeSupabase({
+  organisationId = ORG,
+  role = 'admin',
+  rows = [],
+  projects = {},
+} = {}) {
   const table = rows.map((r) => ({ ...r }));
   let idSeq = 0;
   let clock = 0;
@@ -43,12 +50,37 @@ function makeFakeSupabase({ organisationId = ORG, role = 'admin', rows = [] } = 
 
   const visible = () => table.filter((r) => r.organisation_id === organisationId);
 
+  // The 039 BEFORE trigger: a non-null link must name a project of the
+  // scheme's own organisation. Returns the error, or null when the write may
+  // proceed.
+  function validateProjectLink(projectId, schemeOrg) {
+    if (projectId == null) return null;
+    const linked = projects[projectId];
+    if (!linked || linked.organisation_id !== schemeOrg) {
+      return {
+        code: 'P0001',
+        message: 'a scheme can only link a project in its own organisation',
+      };
+    }
+    return null;
+  }
+
   // Project the requested columns, as PostgREST does, so a summary read really
-  // comes back without the inputs payload.
+  // comes back without the inputs payload. The embedded projects(name) read
+  // resolves the link the way the FK join does: the row's project, or null.
   function project(row, columns) {
     const wanted = columns.split(',').map((c) => c.trim());
     const out = {};
-    for (const key of wanted) out[key] = row[key];
+    for (const key of wanted) {
+      if (key === 'projects(name)') {
+        out.projects =
+          row.project_id != null && projects[row.project_id]
+            ? { name: projects[row.project_id].name }
+            : null;
+      } else {
+        out[key] = row[key];
+      }
+    }
     return out;
   }
 
@@ -113,16 +145,20 @@ function makeFakeSupabase({ organisationId = ORG, role = 'admin', rows = [] } = 
                   error: { code: '23514', message: 'new row violates check constraint "stack_schemes_name_not_blank"' },
                 };
               }
+              // The 028 tenant trigger fills the organisation first; the 039
+              // link check then sees the populated value, as in the database.
+              const schemeOrg = values.organisation_id ?? organisationId;
+              const linkError = validateProjectLink(values.project_id ?? null, schemeOrg);
+              if (linkError) return { data: null, error: linkError };
               writes.inserts += 1;
               const now = stamp();
               const row = {
                 id: `scheme-${++idSeq}`,
-                // The 028 BEFORE INSERT trigger: tenant to the caller when the
-                // insert does not set an organisation.
-                organisation_id: values.organisation_id ?? organisationId,
+                organisation_id: schemeOrg,
                 name: values.name,
                 inputs: values.inputs,
                 engine_version: values.engine_version,
+                project_id: values.project_id ?? null,
                 created_by: ADMIN,
                 created_at: now,
                 updated_at: now,
@@ -157,8 +193,15 @@ function makeFakeSupabase({ organisationId = ORG, role = 'admin', rows = [] } = 
                   error: { code: 'PGRST116', message: 'JSON object requested, multiple (or no) rows returned' },
                 };
               }
-              writes.updates += 1;
               const row = table.find((r) => r.id === targets[0].id);
+              if ('project_id' in patch) {
+                const linkError = validateProjectLink(
+                  patch.project_id,
+                  row.organisation_id
+                );
+                if (linkError) return { data: null, error: linkError };
+              }
+              writes.updates += 1;
               Object.assign(row, patch, { updated_at: stamp() });
               return { data: project(row, columns), error: null };
             });
@@ -267,7 +310,39 @@ describe('schemeSummary', () => {
       engineVersion: '1.0.0',
       createdAt: 'a',
       updatedAt: 'b',
+      projectId: null,
+      projectName: null,
     });
+  });
+
+  it('carries the project link when the row holds one (039)', () => {
+    const summary = schemeSummary({
+      id: 's1',
+      name: 'Riverside Yard',
+      engine_version: '1.0.0',
+      created_at: 'a',
+      updated_at: 'b',
+      project_id: 'proj-1',
+      projects: { name: 'Riverside Yard Phase 1' },
+    });
+    expect(summary.projectId).toBe('proj-1');
+    expect(summary.projectName).toBe('Riverside Yard Phase 1');
+  });
+
+  it('reads a link whose project row is gone as a plain link, not a crash', () => {
+    // ON DELETE SET NULL clears project_id, but a row read mid-delete or a
+    // join the policy hides must not take the summary down with it.
+    const summary = schemeSummary({
+      id: 's1',
+      name: 'Riverside Yard',
+      engine_version: '1.0.0',
+      created_at: 'a',
+      updated_at: 'b',
+      project_id: 'proj-1',
+      projects: null,
+    });
+    expect(summary.projectId).toBe('proj-1');
+    expect(summary.projectName).toBeNull();
   });
 });
 
@@ -275,6 +350,12 @@ describe('column sets', () => {
   it('keeps the inputs payload out of the summary read', () => {
     expect(SCHEME_SUMMARY_COLUMNS).not.toContain('inputs');
     expect(SCHEME_FULL_COLUMNS).toContain('inputs');
+  });
+
+  it('both reads carry the project link and its name (039)', () => {
+    expect(SCHEME_SUMMARY_COLUMNS).toContain('project_id');
+    expect(SCHEME_SUMMARY_COLUMNS).toContain('projects(name)');
+    expect(SCHEME_FULL_COLUMNS).toContain('project_id');
   });
 });
 
@@ -439,6 +520,101 @@ describe('deleteScheme', () => {
     expect(error).toBeNull();
     const { schemes } = await listSchemes(supabase);
     expect(schemes).toHaveLength(1);
+  });
+});
+
+// ── The spine attachment (039) ───────────────────────────────────────────────
+
+const ORG_PROJECTS = {
+  'proj-1': { name: 'Riverside Yard Phase 1', organisation_id: ORG },
+  'proj-foreign': { name: 'Someone else', organisation_id: OTHER_ORG },
+};
+
+describe('the scheme project link (039)', () => {
+  it('saves a linked scheme and lists it with the project name', async () => {
+    const supabase = makeFakeSupabase({ projects: ORG_PROJECTS });
+    const { scheme, error } = await insertScheme(supabase, {
+      name: 'Linked scheme',
+      inputs: INPUTS,
+      engineVersion: '1.0.0',
+      projectId: 'proj-1',
+    });
+    expect(error).toBeNull();
+    expect(scheme.project_id).toBe('proj-1');
+
+    const { schemes } = await listSchemes(supabase);
+    expect(schemes[0].projects).toEqual({ name: 'Riverside Yard Phase 1' });
+  });
+
+  it('saves unlinked by default, exactly as every scheme was before 039', async () => {
+    const supabase = makeFakeSupabase({ projects: ORG_PROJECTS });
+    const { scheme, error } = await insertScheme(supabase, {
+      name: 'Plain scheme',
+      inputs: INPUTS,
+      engineVersion: '1.0.0',
+    });
+    expect(error).toBeNull();
+    expect(scheme.project_id).toBeNull();
+  });
+
+  it('a save-over with no link UNLINKS rather than preserving a stale one', async () => {
+    const supabase = makeFakeSupabase({ projects: ORG_PROJECTS });
+    const { scheme: saved } = await insertScheme(supabase, {
+      name: 'Was linked',
+      inputs: INPUTS,
+      engineVersion: '1.0.0',
+      projectId: 'proj-1',
+    });
+
+    const { scheme: updated, error } = await updateScheme(supabase, {
+      id: saved.id,
+      name: 'Was linked',
+      inputs: INPUTS,
+      engineVersion: '1.0.0',
+    });
+    expect(error).toBeNull();
+    expect(updated.project_id).toBeNull();
+  });
+
+  it('refuses a link to another organisation\'s project, on insert and on save-over', async () => {
+    const supabase = makeFakeSupabase({ projects: ORG_PROJECTS });
+
+    const denied = await insertScheme(supabase, {
+      name: 'Cross tenant',
+      inputs: INPUTS,
+      engineVersion: '1.0.0',
+      projectId: 'proj-foreign',
+    });
+    expect(denied.scheme).toBeNull();
+    expect(denied.error?.message).toContain('own organisation');
+    expect(supabase._writes.inserts).toBe(0);
+
+    const { scheme: saved } = await insertScheme(supabase, {
+      name: 'Honest scheme',
+      inputs: INPUTS,
+      engineVersion: '1.0.0',
+    });
+    const overwrite = await updateScheme(supabase, {
+      id: saved.id,
+      name: 'Honest scheme',
+      inputs: INPUTS,
+      engineVersion: '1.0.0',
+      projectId: 'proj-foreign',
+    });
+    expect(overwrite.scheme).toBeNull();
+    expect(overwrite.error?.message).toContain('own organisation');
+  });
+
+  it('refuses a link to a project that does not exist', async () => {
+    const supabase = makeFakeSupabase({ projects: ORG_PROJECTS });
+    const { scheme, error } = await insertScheme(supabase, {
+      name: 'Ghost link',
+      inputs: INPUTS,
+      engineVersion: '1.0.0',
+      projectId: 'no-such-project',
+    });
+    expect(scheme).toBeNull();
+    expect(error?.message).toContain('own organisation');
   });
 });
 

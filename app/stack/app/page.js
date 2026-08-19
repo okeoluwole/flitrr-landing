@@ -17,14 +17,27 @@ import styles from './stack.module.css';
 export default async function StackPage() {
   const supabase = await createClient();
 
-  // The viewer's role, resolved once, and the organisation's saved schemes for
-  // the first paint. Both degrade cleanly: a failed read renders the tool with
-  // an empty list and a read-only surface, and row level security holds the
-  // real line underneath either way.
-  const { canEdit, adminContact } = await resolveProjectAccess(supabase);
-  const { schemes } = await listSchemes(supabase);
+  // The viewer's role, resolved once; the organisation's saved schemes for
+  // the first paint; and its active projects for the scheme project link
+  // (039). All degrade cleanly: a failed read renders the tool with an empty
+  // list and a read-only surface, and row level security holds the real line
+  // underneath either way.
+  const [{ canEdit, adminContact }, { schemes }, { data: projectRows }] =
+    await Promise.all([
+      resolveProjectAccess(supabase),
+      listSchemes(supabase),
+      supabase
+        .from('projects')
+        .select('id, name, archived_at')
+        .order('name', { ascending: true }),
+    ]);
 
   const initialSchemes = (schemes ?? []).map(schemeSummary);
+  // Active projects only: an archived project is not offered for a NEW link
+  // (a scheme already linked to one keeps its name via the scheme summary).
+  const projects = (projectRows ?? [])
+    .filter((p) => !p.archived_at)
+    .map(({ id, name }) => ({ id, name }));
 
   return (
     <main className={styles.page}>
@@ -41,6 +54,7 @@ export default async function StackPage() {
           initialSchemes={initialSchemes}
           canEdit={canEdit}
           adminContact={adminContact}
+          projects={projects}
         />
       </div>
     </main>

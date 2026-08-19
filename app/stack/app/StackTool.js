@@ -28,12 +28,16 @@ import styles from './stack.module.css';
  *   canEdit         whether the viewer is an organisation admin (may save and
  *                   delete); a member gets the list and load only
  *   adminContact    the contact line for the View only badge, member only
+ *   projects        the organisation's active projects, for the scheme
+ *                   project link (039); [] renders the picker with only the
+ *                   unlinked option
  */
 
 export default function StackTool({
   initialSchemes = [],
   canEdit = false,
   adminContact = null,
+  projects = [],
 }) {
   const [values, setValues] = useState(() => toDisplayValues(baseCaseInputs()));
   const [errors, setErrors] = useState({});
@@ -79,8 +83,8 @@ export default function StackTool({
 
   // Save the current form values as a scheme: a new one, or over the loaded
   // one. The same validation as a run applies, so what is stored always
-  // computes.
-  async function handleSaveScheme(name, mode) {
+  // computes. projectId is the optional spine link ('' saves unlinked).
+  async function handleSaveScheme(name, mode, projectId = '') {
     setSchemeNotice(null);
     setSchemeError(null);
 
@@ -102,6 +106,7 @@ export default function StackTool({
       name,
       raw,
       schemeId: mode === 'over' ? activeScheme?.id ?? null : null,
+      projectId: projectId || null,
     });
     setSchemeBusy(false);
 
@@ -223,6 +228,7 @@ export default function StackTool({
         activeScheme={activeScheme}
         canEdit={canEdit}
         adminContact={adminContact}
+        projects={projects}
         busy={schemeBusy}
         notice={schemeNotice}
         error={schemeError}

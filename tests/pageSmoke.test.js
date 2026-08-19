@@ -568,7 +568,10 @@ function world(opts = {}) {
           ],
     // Saved STACK schemes when the option asks for them. The list surface
     // reads newest first (updated_at DESC), so the two rows exercise the
-    // ordering as well as the render.
+    // ordering as well as the render. The first is linked to the world's
+    // project (the 039 spine attachment: project_id plus the embedded
+    // projects(name) the join returns), the second unlinked, so both the
+    // linked meta line and the plain one render.
     stack_schemes: schemes
       ? [
           {
@@ -578,6 +581,8 @@ function world(opts = {}) {
             engine_version: '1.0.0',
             created_at: NOW_ISO,
             updated_at: NOW_ISO,
+            project_id: PROJECT_ID,
+            projects: { name: 'Smoke Development' },
           },
           {
             id: 'scheme-2',
@@ -586,6 +591,8 @@ function world(opts = {}) {
             engine_version: '1.0.0',
             created_at: '2026-06-20T09:00:00.000Z',
             updated_at: '2026-06-20T09:00:00.000Z',
+            project_id: null,
+            projects: null,
           },
         ]
       : [],
