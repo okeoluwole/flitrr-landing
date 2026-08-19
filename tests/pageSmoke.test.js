@@ -524,6 +524,8 @@ function world(opts = {}) {
     project_budget: [
       { project_id: PROJECT_ID, funding_structure_type: 'debt_equity' },
     ],
+    // The two live products (038), so the launcher renders both cards and
+    // its lifecycle sort (STACK before PULSE) is exercised by the render.
     product_access: products
       ? [
           {
@@ -534,6 +536,17 @@ function world(opts = {}) {
               slug: 'pulse',
               name: 'PULSE',
               description: 'Project delivery and programme management.',
+              status: 'live',
+            },
+          },
+          {
+            user_id: USER.id,
+            granted_at: NOW_ISO,
+            granted_by: null,
+            products: {
+              slug: 'stack',
+              name: 'STACK',
+              description: 'Feasibility, budgets and funding.',
               status: 'live',
             },
           },

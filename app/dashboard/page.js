@@ -21,14 +21,20 @@ function deriveFirstName({ full_name, email }) {
 }
 
 /**
- * Stable sort: PULSE first, then alphabetical by product name.
+ * Stable sort in lifecycle order, the same story the marketing pages tell:
+ * STACK produces the decision, PULSE delivers it. Anything else follows
+ * alphabetically.
  */
+const LIFECYCLE_ORDER = ['stack', 'pulse'];
+
 function sortProducts(rows) {
+  const rank = (row) => {
+    const i = LIFECYCLE_ORDER.indexOf(row.products.slug);
+    return i === -1 ? LIFECYCLE_ORDER.length : i;
+  };
   return [...rows].sort((a, b) => {
-    const aIsPulse = a.products.slug === 'pulse';
-    const bIsPulse = b.products.slug === 'pulse';
-    if (aIsPulse && !bIsPulse) return -1;
-    if (!aIsPulse && bIsPulse) return 1;
+    const byRank = rank(a) - rank(b);
+    if (byRank !== 0) return byRank;
     return a.products.name.localeCompare(b.products.name);
   });
 }
