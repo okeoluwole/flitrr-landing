@@ -180,21 +180,21 @@
     padding-right: 1rem;
   }
   .navlinks {
-    gap: 0.6rem;
+    gap: 0.55rem;
   }
   .navlinks a,
   .trigger {
     font-size: 0.85rem;
   }
   .brand {
-    font-size: 1.14rem;
+    font-size: 1.1rem;
     gap: 0.4rem;
   }
   .b1 {
-    font-size: 0.88rem;
+    font-size: 0.84rem;
   }
   .b2 {
-    font-size: 1.14rem;
-    gap: 0.35rem;
+    font-size: 1.04rem;
+    gap: 0.32rem;
   }
 }
