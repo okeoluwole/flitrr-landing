@@ -13,7 +13,12 @@
 /* ── Back link ── */
 
 .backLink {
-  display: inline-flex;
+  /* Block-level, so it takes its own line: the canonical order in
+     PageHeader.js is a stack, and inline-level was the one thing that
+     broke it. fit-content keeps the 44px target the width of the link
+     rather than the width of the page. */
+  display: flex;
+  width: fit-content;
   align-items: center;
   gap: var(--app-space-2);
   min-height: 44px;
@@ -53,7 +58,13 @@
 /* ── Eyebrow: the mono micro-label role ── */
 
 .eyebrow {
-  display: inline-flex;
+  /* Block-level for the same reason as .backLink. Inline-level put it on
+     the same line as the back link, so surfaces passing both read as one
+     run-on string ("< All projectsPROJECT DASHBOARD"). Going block also
+     drops the line-box leading that used to pad it, so the gap below is
+     now the declared --app-space-2 and nothing else. */
+  display: flex;
+  width: fit-content;
   align-items: center;
   gap: var(--app-space-2);
   font-family: var(--app-font-mono), monospace;
