@@ -1,120 +1,43 @@
-/* Flitrr landing, "Considered" dark system. Tokens scoped to .page so the light
-   product app is untouched. Ported from the approved design comp. */
+/* Flitrr landing, "Considered" dark system. The shared ground (tokens,
+   buttons, the form voice) lives in components/considered/considered.module.css;
+   this module keeps only the home page's own sections. */
 
 .page {
-  --deep: #0f1216;
-  --deep-2: #14181e;
-  --deep-3: #1b212a;
-  --raise: #1c232c;
-  --on-deep: #eceae4;
-  --on-deep-mut: #93908a;
-  --on-deep-dim: #6d6b66;
-  --line: rgba(255, 255, 255, 0.09);
-  --line-2: rgba(255, 255, 255, 0.14);
-  --warm: #c77e33;
-  --warm-2: #e0a05b;
-  --warm-ink: #a25e1c;
-  --f: var(--font-archivo), 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --maxw: 1220px;
-  --pad: clamp(1.25rem, 4vw, 3.25rem);
+  composes: page from './components/considered/considered.module.css';
+  /* Home breathes wider between sections than the product pages. */
   --sect: clamp(5rem, 11vh, 9rem);
-
-  min-height: 100dvh;
-  background: var(--deep);
-  color: var(--on-deep);
-  font-family: var(--f);
-  font-weight: 420;
-  font-size: 17px;
-  line-height: 1.62;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  overflow-x: clip;
-}
-.page ::selection {
-  background: var(--warm);
-  color: #fff;
-}
-.page :is(h1, h2, h3, h4, h5, h6) {
-  font: inherit;
-  color: #fff;
-  letter-spacing: inherit;
-}
-.page p {
-  color: inherit;
-}
-.page a {
-  color: inherit;
-  text-decoration: none;
 }
 .wrap {
-  max-width: var(--maxw);
-  margin: 0 auto;
-  padding-left: var(--pad);
-  padding-right: var(--pad);
+  composes: wrap from './components/considered/considered.module.css';
 }
 .label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  font-weight: 560;
-  color: var(--on-deep-mut);
+  composes: label from './components/considered/considered.module.css';
 }
 
-/* BUTTONS */
+/* BUTTONS: composed from the shared Considered ground. */
 .btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  font-family: var(--f);
-  font-size: 0.98rem;
-  font-weight: 520;
-  letter-spacing: -0.005em;
-  padding: 0.85rem 1.5rem;
-  border-radius: 3px;
-  border: 1px solid transparent;
-  transition: transform 0.2s cubic-bezier(0.2, 0.7, 0.3, 1), background 0.25s,
-    border-color 0.25s, color 0.25s;
-}
-.btn:active {
-  transform: translateY(1px);
+  composes: btn from './components/considered/considered.module.css';
 }
 .btnSolid {
-  background: #fff;
-  color: #14161a;
-}
-.btnSolid:hover {
-  background: #ebe8e1;
+  composes: btnSolid from './components/considered/considered.module.css';
 }
 .btnWarm {
-  background: var(--warm);
-  color: #fff;
-}
-.btnWarm:hover {
-  background: #b96f24;
+  composes: btnWarm from './components/considered/considered.module.css';
 }
 .btnGhost {
-  background: transparent;
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.4);
-}
-.btnGhost:hover {
-  border-color: #fff;
+  composes: btnGhost from './components/considered/considered.module.css';
 }
 .btnDim {
-  background: transparent;
-  color: var(--on-deep);
-  border-color: var(--line-2);
-}
-.btnDim:hover {
-  border-color: rgba(255, 255, 255, 0.5);
-  color: #fff;
+  composes: btnDim from './components/considered/considered.module.css';
 }
 .arw {
-  transition: transform 0.25s;
+  composes: arw from './components/considered/considered.module.css';
 }
-.btn:hover .arw {
-  transform: translateX(3px);
+
+/* <Photo> wraps its <img> in a <picture>; the wrapper must not become the
+   layout box, so it fills its container and lets the img keep its own rules. */
+.page picture {
+  display: contents;
 }
 
 /* HERO */
@@ -159,35 +82,16 @@
   padding-top: clamp(6.5rem, 6vw, 8rem);
   padding-bottom: clamp(3rem, 8vh, 6rem);
 }
-.hero__pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.74rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  font-weight: 540;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 100px;
-  padding: 0.4rem 0.85rem 0.4rem 0.7rem;
-  margin-bottom: clamp(1.4rem, 3vh, 2.2rem);
-  backdrop-filter: blur(2px);
-}
-.hero__pill .live {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--warm);
-}
+/* Measure holds the headline to three balanced lines at desktop; the old
+   15ch measure set it five lines deep over the photograph. */
 .hero h1 {
   margin: 0;
   color: #fff;
   font-weight: 320;
-  font-size: clamp(2.7rem, 6.4vw, 5.7rem);
+  font-size: clamp(2.5rem, 5.6vw, 5rem);
   line-height: 1.015;
   letter-spacing: -0.03em;
-  max-width: 15ch;
+  max-width: 24ch;
   text-wrap: balance;
 }
 .hero__sub {
@@ -397,7 +301,7 @@
 }
 .stage {
   position: relative;
-  border-radius: 6px;
+  border-radius: var(--r-card);
   overflow: hidden;
   aspect-ratio: 16 / 8.4;
   background: #0b0e12;
@@ -1100,9 +1004,37 @@ a.suite__row:hover .suite__nm {
 
 /* DESIGN PARTNER */
 .dp {
+  position: relative;
+  overflow: hidden;
   background: var(--deep-2);
   padding: var(--sect) 0;
   border-top: 1px solid var(--line);
+}
+.dp__bg {
+  position: absolute;
+  inset: 0;
+}
+.dp__bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 45%;
+  filter: saturate(0.7) brightness(0.32);
+}
+.dp__bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 18, 22, 0.94),
+    rgba(15, 18, 22, 0.78) 55%,
+    rgba(15, 18, 22, 0.94)
+  );
+}
+.dp .wrap {
+  position: relative;
+  z-index: 2;
 }
 .dp .wrap {
   display: grid;
@@ -1139,84 +1071,6 @@ a.suite__row:hover .suite__nm {
 .dp .reassure a {
   color: var(--warm-2);
   border-bottom: 1px solid rgba(224, 160, 91, 0.35);
-}
-.dp form {
-  display: grid;
-  gap: 1.2rem;
-}
-.dp .frow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.2rem;
-}
-@media (max-width: 520px) {
-  .dp .frow {
-    grid-template-columns: 1fr;
-  }
-}
-.dp .field {
-  display: grid;
-  gap: 0.4rem;
-}
-.dp .flab {
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-weight: 560;
-  color: var(--on-deep-mut);
-}
-.dp .in {
-  font-family: var(--f);
-  font-size: 1rem;
-  color: #fff;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid var(--line-2);
-  padding: 0.55rem 0;
-  transition: border-color 0.25s;
-}
-.dp .in::placeholder {
-  color: var(--on-deep-dim);
-}
-.dp .in:focus {
-  outline: none;
-  border-bottom-color: var(--warm);
-  border-bottom-width: 2px;
-  margin-bottom: -1px;
-}
-.dp select.in {
-  appearance: none;
-  cursor: pointer;
-}
-.dp select.in option {
-  background: var(--deep-2);
-  color: #fff;
-}
-.dp .submit {
-  justify-self: start;
-  margin-top: 0.4rem;
-}
-.dp .err {
-  color: #f2a28d;
-  font-size: 0.9rem;
-}
-.dp__done {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  color: var(--on-deep);
-  font-size: 1rem;
-  padding: 1.1rem 0;
-}
-.dp__done .tk {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: 2px solid var(--warm);
-  display: grid;
-  place-items: center;
-  color: var(--warm-2);
-  flex: none;
 }
 
 /* CLOSE */

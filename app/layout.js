@@ -51,8 +51,10 @@ const SITE_DESCRIPTION =
 const SITE_URL = 'https://flitrr.com';
 
 // themeColor belongs on the viewport export in Next 14 (on metadata it warns).
+// Ink, matching the Considered marketing ground and the dark product app;
+// the light legal pages override it with their own viewport export.
 export const viewport = {
-  themeColor: '#F4C031',
+  themeColor: '#0f1216',
 };
 
 export const metadata = {
@@ -68,7 +70,7 @@ export const metadata = {
     siteName: 'Flitrr',
     images: [
       {
-        url: '/og-image.png',
+        url: '/og-image.jpg',
         width: 1200,
         height: 630,
         alt: 'Flitrr. One platform for property development.',
@@ -79,7 +81,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    images: ['/og-image.png'],
+    images: ['/og-image.jpg'],
   },
 };
 

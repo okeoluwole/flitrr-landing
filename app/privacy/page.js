@@ -12,6 +12,11 @@ export const metadata = {
   description: 'How Flitrr collects and uses information on flitrr.com.',
 };
 
+// Light page: override the root's ink themeColor for the browser chrome.
+export const viewport = {
+  themeColor: '#F2F0F4',
+};
+
 export default function PrivacyPage() {
   return (
     <main className={styles.page} id="main-content">

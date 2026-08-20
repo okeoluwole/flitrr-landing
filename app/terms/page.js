@@ -11,6 +11,11 @@ export const metadata = {
   description: 'The terms that cover your use of flitrr.com.',
 };
 
+// Light page: override the root's ink themeColor for the browser chrome.
+export const viewport = {
+  themeColor: '#F2F0F4',
+};
+
 export default function TermsPage() {
   return (
     <main className={styles.page} id="main-content">

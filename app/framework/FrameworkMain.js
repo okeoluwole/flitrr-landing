@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePrefersReducedMotion, useInViewOnce, CountTo } from '../components/considered/hooks';
+import Photo from '../components/considered/Photo';
 import SiteNav from '../components/considered/SiteNav';
 import SiteFooter from '../components/considered/SiteFooter';
 import styles from './framework.module.css';
@@ -34,19 +36,14 @@ const STAGES = [
   ['Sales and Disposal', 'Realise the value the whole project was built to create, and close the loop on the case you set.', '/images/lifecycle/disposal.jpg', 'Sales'],
 ];
 
-const pad = (n) => String(n).padStart(2, '0');
+const MANDATE = [
+  ['Purpose', 'What the stage is for, and what done well looks like.'],
+  ['Establish or achieve', 'The decisions to lock and the objectives to set or advance.'],
+  ['Produce', 'The outputs the stage must deliver to be done.'],
+  ['Success factors', 'What decides whether the stage succeeded, and where developers come unstuck.'],
+];
 
-function usePrefersReducedMotion() {
-  const [reduce, setReduce] = useState(false);
-  useEffect(() => {
-    const m = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReduce(m.matches);
-    const h = () => setReduce(m.matches);
-    m.addEventListener?.('change', h);
-    return () => m.removeEventListener?.('change', h);
-  }, []);
-  return reduce;
-}
+const pad = (n) => String(n).padStart(2, '0');
 
 function Check() {
   return (
@@ -80,7 +77,7 @@ function CriticalityInstrument() {
     setObjs((prev) => prev.map((o, idx) => (idx === i ? { ...o, prot: !o.prot } : o)));
 
   return (
-    <div className={styles.inst} aria-label="Classify the five objectives">
+    <div className={styles.inst} data-reveal aria-label="Classify the five objectives">
       <div className={styles.inst__head}>
         <div className={styles.pj}>
           Five objectives<small>Weigh each by criticality, once, at the outset</small>
@@ -141,11 +138,10 @@ function GateWalk() {
 
   return (
     <>
-      <div className={styles.walk}>
+      <div className={styles.walk} data-reveal>
         <div className={styles.walk__stage}>
           <div className={styles.walk__frame}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={img} alt={name} />
+            <Photo src={img} alt={name} sizes="(max-width: 820px) 100vw, 640px" />
             <div className={styles.walk__grad} aria-hidden="true" />
             <span className={styles.walk__num} aria-hidden="true">
               <b className="tnum">{pad(cur + 1)}</b>
@@ -210,6 +206,8 @@ function GateWalk() {
 
 export default function FrameworkMain({ user }) {
   const [ready, setReady] = useState(false);
+  const reduce = usePrefersReducedMotion();
+  const [sigRef, sigSeen] = useInViewOnce(0.3);
   useEffect(() => {
     const r = requestAnimationFrame(() => requestAnimationFrame(() => setReady(true)));
     return () => cancelAnimationFrame(r);
@@ -222,10 +220,10 @@ export default function FrameworkMain({ user }) {
         {/* HERO */}
         <section className={styles.hero} aria-labelledby="fw-heading">
           <div className={styles.hero__bg}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Photo
               src="/images/hero-aerial-aylesbury-dusk.jpg"
               alt="A property development at dusk seen from the air, the whole scheme in one view"
+              priority
             />
           </div>
           <div className={styles.wrap}>
@@ -236,8 +234,7 @@ export default function FrameworkMain({ user }) {
             <p className={styles.hero__sub}>
               One method for running a property development the way an institution would, from
               land acquisition to delivery and sales. Set the discipline once, and every stage,
-              decision and risk answers to it. Eight stages, six principles, four mandates, with
-              objective criticality at the centre.
+              decision and risk answers to it.
             </p>
           </div>
         </section>
@@ -245,9 +242,9 @@ export default function FrameworkMain({ user }) {
         {/* 8-6-4 SIGNATURE / SPINE */}
         <section className={styles.sigband} aria-label="The shape of the method">
           <div className={styles.wrap}>
-            <nav className={styles.sig__grid} aria-label="The three parts of the method">
+            <nav className={styles.sig__grid} ref={sigRef} aria-label="The three parts of the method">
               <a className={styles.sig__item} href="#stages">
-                <span className={`${styles.sig__n} tnum`}>8</span>
+                <span className={`${styles.sig__n} tnum`}><CountTo to={8} play={sigSeen && !reduce} /></span>
                 <span className={styles.sig__lab}>
                   Eight stages <span className={styles.sig__jump} aria-hidden="true">&darr;</span>
                 </span>
@@ -256,7 +253,7 @@ export default function FrameworkMain({ user }) {
                 </span>
               </a>
               <a className={styles.sig__item} href="#principles">
-                <span className={`${styles.sig__n} tnum`}>6</span>
+                <span className={`${styles.sig__n} tnum`}><CountTo to={6} play={sigSeen && !reduce} delay={120} /></span>
                 <span className={styles.sig__lab}>
                   Six principles <span className={styles.sig__jump} aria-hidden="true">&darr;</span>
                 </span>
@@ -265,7 +262,7 @@ export default function FrameworkMain({ user }) {
                 </span>
               </a>
               <a className={styles.sig__item} href="#mandate">
-                <span className={`${styles.sig__n} tnum`}>4</span>
+                <span className={`${styles.sig__n} tnum`}><CountTo to={4} play={sigSeen && !reduce} delay={240} /></span>
                 <span className={styles.sig__lab}>
                   Four mandates <span className={styles.sig__jump} aria-hidden="true">&darr;</span>
                 </span>
@@ -280,7 +277,7 @@ export default function FrameworkMain({ user }) {
         {/* CRITICALITY */}
         <section className={styles.crit} id="criticality" aria-labelledby="crit-h">
           <div className={styles.wrap}>
-            <div className={styles.crit__copy}>
+            <div className={styles.crit__copy} data-reveal>
               <h2 id="crit-h">Criticality is the centre of the method.</h2>
               <p className={styles.intro}>
                 Every development is judged on five objectives. The framework&rsquo;s first move is to
@@ -315,7 +312,7 @@ export default function FrameworkMain({ user }) {
         {/* EIGHT STAGES: the gate walk */}
         <section className={styles.stages} id="stages" aria-labelledby="stages-h">
           <div className={styles.wrap}>
-            <div className={styles.stages__head}>
+            <div className={styles.stages__head} data-reveal>
               <h2 id="stages-h">
                 Eight stages, and a gate between each.
               </h2>
@@ -334,13 +331,13 @@ export default function FrameworkMain({ user }) {
         {/* SIX PRINCIPLES */}
         <section className={styles.principles} id="principles" aria-labelledby="prin-h">
           <div className={styles.wrap}>
-            <div className={styles.shead}>
+            <div className={styles.shead} data-reveal>
               <h2 id="prin-h">Six principles hold it together.</h2>
               <p>They apply at every stage, on every scheme, whatever its size.</p>
             </div>
             <div className={styles.prin__list}>
               {PRINCIPLES.map(([nm, gloss], i) => (
-                <div className={styles.prin} key={nm}>
+                <div className={styles.prin} key={nm} data-reveal>
                   <span className={`${styles.prin__n} tnum`}>{pad(i + 1)}</span>
                   <div>
                     <h3 className={styles.prin__name}>{nm}</h3>
@@ -355,7 +352,7 @@ export default function FrameworkMain({ user }) {
         {/* FOUR-PART MANDATE */}
         <section className={styles.mandate} id="mandate" aria-labelledby="mand-h">
           <div className={styles.wrap}>
-            <div className={styles.mandate__mark}>
+            <div className={styles.mandate__mark} data-reveal>
               <b className="tnum">4</b>
               <span>
                 mandates,
@@ -363,13 +360,24 @@ export default function FrameworkMain({ user }) {
                 one standard
               </span>
             </div>
-            <div className={styles.mandate__copy}>
+            <div className={styles.mandate__copy} data-reveal>
               <h2 id="mand-h">Every stage meets a four-part mandate.</h2>
               <p>
                 Every stage you step through is defined the same way, against the same four-part mandate.
                 It is how the framework holds eight different phases, from land acquisition to delivery and
                 sales, to a single standard.
               </p>
+              <div className={styles.mand__list}>
+                {MANDATE.map(([nm, gloss], i) => (
+                  <div className={styles.mand} key={nm}>
+                    <span className={`${styles.mand__n} tnum`}>{pad(i + 1)}</span>
+                    <div>
+                      <h3 className={styles.mand__name}>{nm}</h3>
+                      <p className={styles.mand__gloss}>{gloss}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -377,7 +385,7 @@ export default function FrameworkMain({ user }) {
         {/* CLOSE */}
         <section className={styles.close} id="close" aria-labelledby="close-h">
           <div className={styles.wrap}>
-            <div className={styles.close__inner}>
+            <div className={styles.close__inner} data-reveal>
               <h2 id="close-h">
                 The framework, and the products <em>built on it</em>.
               </h2>

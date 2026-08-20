@@ -1,112 +1,38 @@
-/* PULSE landing, "Considered" dark system. Tokens scoped to .page so the light
-   product app is untouched. Ported from the approved design comp. */
+/* PULSE landing, "Considered" dark system. The shared ground (tokens,
+   buttons, the form voice) lives in components/considered/considered.module.css;
+   this module keeps only this page's own sections. */
 
 .page {
-  --deep: #0f1216;
-  --deep-2: #14181e;
-  --deep-3: #1b212a;
-  --raise: #1c232c;
-  --on-deep: #eceae4;
-  --on-deep-mut: #93908a;
-  --on-deep-dim: #6d6b66;
-  --line: rgba(255, 255, 255, 0.09);
-  --line-2: rgba(255, 255, 255, 0.14);
-  --warm: #c77e33;
-  --warm-2: #e0a05b;
-  --warm-ink: #a25e1c;
-  --f: var(--font-archivo), 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --maxw: 1220px;
-  --pad: clamp(1.25rem, 4vw, 3.25rem);
-  --sect: clamp(4.5rem, 10vh, 8rem);
-
-  min-height: 100dvh;
-  background: var(--deep);
-  color: var(--on-deep);
-  font-family: var(--f);
-  font-weight: 420;
-  font-size: 17px;
-  line-height: 1.62;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  overflow-x: clip;
-}
-.page ::selection {
-  background: var(--warm);
-  color: #fff;
-}
-.page :is(h1, h2, h3, h4, h5, h6) {
-  font: inherit;
-  color: #fff;
-  letter-spacing: inherit;
-}
-.page p {
-  color: inherit;
-}
-.page a {
-  color: inherit;
-  text-decoration: none;
+  composes: page from '../components/considered/considered.module.css';
 }
 .wrap {
-  max-width: var(--maxw);
-  margin: 0 auto;
-  padding-left: var(--pad);
-  padding-right: var(--pad);
+  composes: wrap from '../components/considered/considered.module.css';
 }
 .label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  font-weight: 560;
-  color: var(--on-deep-mut);
+  composes: label from '../components/considered/considered.module.css';
 }
 
-/* BUTTONS */
+/* BUTTONS: composed from the shared Considered ground. */
 .btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  font-family: var(--f);
-  font-size: 0.98rem;
-  font-weight: 520;
-  letter-spacing: -0.005em;
-  padding: 0.85rem 1.5rem;
-  border-radius: 3px;
-  border: 1px solid transparent;
-  transition: transform 0.2s cubic-bezier(0.2, 0.7, 0.3, 1), background 0.25s,
-    border-color 0.25s, color 0.25s;
-}
-.btn:active {
-  transform: translateY(1px);
+  composes: btn from '../components/considered/considered.module.css';
 }
 .btnWarm {
-  background: var(--warm);
-  color: #fff;
-}
-.btnWarm:hover {
-  background: #b96f24;
+  composes: btnWarm from '../components/considered/considered.module.css';
 }
 .btnSolid {
-  background: #fff;
-  color: #14161a;
-}
-.btnSolid:hover {
-  background: #ebe8e1;
+  composes: btnSolid from '../components/considered/considered.module.css';
 }
 .btnDim {
-  background: transparent;
-  color: var(--on-deep);
-  border-color: var(--line-2);
-}
-.btnDim:hover {
-  border-color: rgba(255, 255, 255, 0.5);
-  color: #fff;
+  composes: btnDim from '../components/considered/considered.module.css';
 }
 .arw {
-  transition: transform 0.25s;
+  composes: arw from '../components/considered/considered.module.css';
 }
-.btn:hover .arw {
-  transform: translateX(3px);
+
+/* <Photo> wraps its <img> in a <picture>; the wrapper must not become the
+   layout box, so it fills its container and lets the img keep its own rules. */
+.page picture {
+  display: contents;
 }
 
 /* HERO */
@@ -124,18 +50,20 @@
   height: 100%;
   object-fit: cover;
   object-position: center 30%;
-  filter: saturate(0.6) brightness(0.24);
+  filter: saturate(0.7) brightness(0.42);
 }
+/* The scrim protects the copy column and lets the texture read elsewhere. */
 .hero__bg::after {
   content: '';
   position: absolute;
   inset: 0;
   background: radial-gradient(
-      120% 90% at 20% 10%,
-      rgba(15, 18, 22, 0.5),
-      rgba(15, 18, 22, 0.92) 70%
+      110% 130% at 22% 20%,
+      rgba(15, 18, 22, 0.8),
+      rgba(15, 18, 22, 0.32) 62%,
+      rgba(15, 18, 22, 0.55)
     ),
-    linear-gradient(180deg, rgba(15, 18, 22, 0.6), var(--deep));
+    linear-gradient(180deg, rgba(15, 18, 22, 0.3), var(--deep) 97%);
 }
 .hero .wrap {
   position: relative;
@@ -149,7 +77,7 @@
 }
 @media (min-width: 980px) {
   .hero .wrap {
-    grid-template-columns: 0.92fr 1.08fr;
+    grid-template-columns: 1fr 1fr;
   }
 }
 .hero__pill {
@@ -172,14 +100,16 @@
   border-radius: 50%;
   background: var(--warm);
 }
+/* Sized with the copy column so the headline sets three balanced lines;
+   the old 14ch measure at 4.4rem set five, with an orphaned last word. */
 .hero h1 {
   margin: 0;
   color: #fff;
   font-weight: 320;
-  font-size: clamp(2.4rem, 5.2vw, 4.4rem);
-  line-height: 1.03;
-  letter-spacing: -0.03em;
-  max-width: 14ch;
+  font-size: clamp(2.3rem, 4.2vw, 3.45rem);
+  line-height: 1.06;
+  letter-spacing: -0.028em;
+  max-width: 21ch;
   text-wrap: balance;
 }
 .hero__sub {
@@ -200,7 +130,7 @@
 /* INSTRUMENT shell (hero board) */
 .inst {
   position: relative;
-  border-radius: 16px;
+  border-radius: var(--r-inst);
   padding: clamp(1.15rem, 2vw, 1.6rem);
   background: linear-gradient(168deg, #1e2530 0%, #13171d 62%);
   border: 1px solid rgba(255, 255, 255, 0.09);
@@ -334,7 +264,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.8rem 0.9rem;
-  border-radius: 8px;
+  border-radius: var(--r-inner);
   background: rgba(199, 126, 51, 0.1);
   border: 1px solid rgba(199, 126, 51, 0.22);
 }
@@ -450,7 +380,7 @@
   font-weight: 500;
 }
 .ledger {
-  border-radius: 12px;
+  border-radius: var(--r-card);
   border: 1px solid var(--line);
   background: linear-gradient(160deg, #181d25, #11151b);
   padding: 1.4rem 1.5rem;
@@ -552,7 +482,7 @@
   position: relative;
 }
 .beat__mini {
-  border-radius: 10px;
+  border-radius: var(--r-card);
   border: 1px solid var(--line);
   background: linear-gradient(160deg, #191e26, #12161c);
   padding: 1rem;
@@ -727,19 +657,22 @@
   align-items: center;
   gap: 0.8rem;
 }
+/* The Brief stands on the document register (--doc-* in globals.css), the
+   one light surface in the marketing system: a real page on a dark desk,
+   exactly as the product frames it. */
 .doc {
   position: relative;
   width: 100%;
   max-width: 380px;
   aspect-ratio: 5 / 5.6;
-  border-radius: 12px;
-  background: linear-gradient(165deg, #1c232c, #141a21);
-  border: 1px solid var(--line-2);
+  border-radius: var(--doc-radius);
+  background: var(--doc-paper);
+  border: 1px solid var(--doc-line-strong);
   box-shadow: 0 60px 100px -50px rgba(0, 0, 0, 0.9);
   cursor: pointer;
   overflow: hidden;
   font-family: var(--f);
-  color: inherit;
+  color: var(--doc-ink);
   text-align: left;
 }
 .doc__c {
@@ -753,55 +686,65 @@
   font-size: 0.62rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--on-deep-mut);
+  color: var(--doc-ink-3);
   font-weight: 560;
 }
 .doc__t {
   margin-top: 0.5rem;
-  font-weight: 560;
-  font-size: 1.3rem;
-  color: #fff;
-  letter-spacing: -0.01em;
+  font-family: var(--doc-font-serif);
+  font-weight: 700;
+  font-size: 1.35rem;
+  color: var(--doc-ink);
+  letter-spacing: -0.005em;
 }
 .doc__s {
-  color: var(--on-deep-mut);
+  color: var(--doc-ink-3);
   font-size: 0.82rem;
-  margin-top: 0.1rem;
+  margin-top: 0.15rem;
 }
 .doc__v {
   margin: 0.9rem 0 0;
-  color: var(--on-deep);
-  font-size: 0.86rem;
-  line-height: 1.5;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--doc-line);
+  font-family: var(--doc-font-serif);
+  color: var(--doc-ink-2);
+  font-size: 0.88rem;
+  line-height: 1.55;
 }
 .doc__oh {
   margin-top: 1rem;
   font-size: 0.62rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--on-deep-mut);
+  color: var(--doc-ink-3);
   font-weight: 560;
 }
 .doc__ol {
-  margin-top: 0.5rem;
+  margin-top: 0.4rem;
   display: grid;
-  gap: 0.3rem;
+  gap: 0;
 }
 .doc__or {
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-size: 0.84rem;
+  color: var(--doc-ink);
+  padding: 0.34rem 0;
+}
+.doc__or + .doc__or {
+  border-top: 1px solid var(--doc-line);
 }
 .doc__or .cls {
   font-size: 0.6rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  font-weight: 560;
-  color: var(--on-deep-mut);
+  font-weight: 620;
+  color: var(--doc-ink-3);
 }
+/* Amber as text on paper is the ochre, the document register's own rule. */
 .doc__or .cls.hot {
-  color: var(--warm-2);
+  color: var(--doc-ochre);
 }
 .doc__cover {
   position: absolute;
@@ -885,7 +828,7 @@
   font-style: italic;
 }
 .clpanel {
-  border-radius: 14px;
+  border-radius: var(--r-card);
   border: 1px solid var(--line);
   background: linear-gradient(160deg, #1a2028, #12161c);
   padding: 1.4rem;
@@ -973,7 +916,7 @@
   }
 }
 .actionlog {
-  border-radius: 16px;
+  border-radius: var(--r-inst);
   border: 1px solid rgba(199, 126, 51, 0.28);
   background: linear-gradient(160deg, #20262e, #13181e);
   padding: clamp(1.3rem, 2.5vw, 1.8rem);
@@ -1002,7 +945,7 @@
   align-items: center;
   gap: 0.8rem;
   padding: 0.78rem 0.85rem;
-  border-radius: 8px;
+  border-radius: var(--r-inner);
   background: rgba(255, 255, 255, 0.025);
   border: 1px solid var(--line);
 }
@@ -1062,7 +1005,7 @@
 }
 .feeder__vg {
   height: 46px;
-  border-radius: 6px;
+  border-radius: var(--r-inner);
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--line);
   padding: 0.4rem 0.45rem;
@@ -1093,7 +1036,7 @@
   align-items: center;
   margin-top: 1rem;
   padding: 1rem;
-  border-radius: 10px;
+  border-radius: var(--r-card);
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.02);
 }
@@ -1142,11 +1085,14 @@
 .fvg-dot.cool {
   background: var(--on-deep-dim);
 }
-.fvg-t {
-  flex: 1;
-  height: 4px;
-  border-radius: 100px;
-  background: rgba(255, 255, 255, 0.12);
+.fvg-lab {
+  font-size: 0.6rem;
+  color: var(--on-deep-mut);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
 }
 .fvg-bar {
   height: 4px;
@@ -1155,6 +1101,13 @@
 }
 .fvg-bar.hot {
   background: var(--warm);
+}
+.fvg-var {
+  font-size: 0.58rem;
+  color: var(--warm-2);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  line-height: 1;
 }
 .fvg-kpi {
   font-size: 0.72rem;
@@ -1197,7 +1150,7 @@
   max-width: 42ch;
 }
 .pbcard {
-  border-radius: 14px;
+  border-radius: var(--r-card);
   border: 1px solid var(--line);
   background: linear-gradient(160deg, #1a2028, #12161c);
   padding: 1.5rem;
@@ -1257,7 +1210,7 @@
 }
 .pbbtn.acc {
   background: var(--warm);
-  color: #fff;
+  color: var(--on-warm);
 }
 .pbbtn.acc:hover {
   background: #b96f24;
@@ -1299,7 +1252,7 @@
   gap: 1.2rem;
   justify-content: space-between;
   padding: 1.6rem clamp(1.3rem, 3vw, 2.2rem) 1.5rem;
-  border-radius: 12px;
+  border-radius: var(--r-card);
   border: 1px solid var(--line);
   background: linear-gradient(160deg, #171c24, #12161c);
   transition: border-color 0.3s;
@@ -1340,9 +1293,37 @@
 
 /* DESIGN PARTNER */
 .dp {
+  position: relative;
+  overflow: hidden;
   background: var(--deep-2);
   padding: var(--sect) 0;
   border-top: 1px solid var(--line);
+}
+.dp__bg {
+  position: absolute;
+  inset: 0;
+}
+.dp__bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  filter: saturate(0.7) brightness(0.32);
+}
+.dp__bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 18, 22, 0.94),
+    rgba(15, 18, 22, 0.78) 55%,
+    rgba(15, 18, 22, 0.94)
+  );
+}
+.dp .wrap {
+  position: relative;
+  z-index: 2;
 }
 .dp .wrap {
   display: grid;
@@ -1378,83 +1359,6 @@
 .dp .reassure a {
   color: var(--warm-2);
   border-bottom: 1px solid rgba(224, 160, 91, 0.35);
-}
-.dp form {
-  display: grid;
-  gap: 1.2rem;
-}
-.dp .frow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.2rem;
-}
-@media (max-width: 520px) {
-  .dp .frow {
-    grid-template-columns: 1fr;
-  }
-}
-.dp .field {
-  display: grid;
-  gap: 0.4rem;
-}
-.dp .flab {
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-weight: 560;
-  color: var(--on-deep-mut);
-}
-.dp .in {
-  font-family: var(--f);
-  font-size: 1rem;
-  color: #fff;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid var(--line-2);
-  padding: 0.55rem 0;
-  transition: border-color 0.25s;
-}
-.dp .in::placeholder {
-  color: var(--on-deep-dim);
-}
-.dp .in:focus {
-  outline: none;
-  border-bottom-color: var(--warm);
-  border-bottom-width: 2px;
-  margin-bottom: -1px;
-}
-.dp select.in {
-  appearance: none;
-  cursor: pointer;
-}
-.dp select.in option {
-  background: var(--deep-2);
-  color: #fff;
-}
-.dp .submit {
-  justify-self: start;
-  margin-top: 0.4rem;
-}
-.dp .err {
-  color: #f2a28d;
-  font-size: 0.9rem;
-}
-.dp__done {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  color: var(--on-deep);
-  padding: 1.1rem 0;
-}
-.dp__done .tk {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: 2px solid var(--warm);
-  display: grid;
-  place-items: center;
-  color: var(--warm-2);
-  flex: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {

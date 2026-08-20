@@ -2,23 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { createClient } from '../lib/supabase/client';
+import { usePrefersReducedMotion, useInViewOnce, CountTo } from './components/considered/hooks';
+import Photo from './components/considered/Photo';
 import SiteNav from './components/considered/SiteNav';
+import DesignPartnerForm from './components/considered/DesignPartnerForm';
 import SiteFooter from './components/considered/SiteFooter';
 import StackGlance from './components/considered/StackGlance';
 import styles from './home.module.css';
-
-function usePrefersReducedMotion() {
-  const [reduce, setReduce] = useState(false);
-  useEffect(() => {
-    const m = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReduce(m.matches);
-    const h = () => setReduce(m.matches);
-    m.addEventListener?.('change', h);
-    return () => m.removeEventListener?.('change', h);
-  }, []);
-  return reduce;
-}
 
 const pad = (n) => String(n).padStart(2, '0');
 
@@ -79,18 +69,17 @@ function LifecycleReel() {
   return (
     <div className={styles.life}>
       <div className={styles.wrap}>
-        <div className={styles.life__head}>
+        <div className={styles.life__head} data-reveal>
           <h2>One continuous line of sight.</h2>
           <p>
             Eight stages, each with a single job. Between every stage sits a gate, a deliberate decision
             that the stage is genuinely done before the project advances.
           </p>
         </div>
-        <div className={styles.stage} ref={rootRef}>
+        <div className={styles.stage} ref={rootRef} data-reveal>
           {LIFE.map(([nm, , img], i) => (
             <div key={nm} className={`${styles.stage__frame} ${i === cur ? styles.on : ''}`}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={img} alt="" loading={i === 0 ? 'eager' : 'lazy'} />
+              <Photo src={img} priority={i === 0} sizes="(max-width: 900px) 100vw, 1160px" />
             </div>
           ))}
           <div className={styles.stage__grad} />
@@ -171,14 +160,16 @@ function PulseInstrument() {
   const [sel, setSel] = useState(1);
   const [num, setNum] = useState(reduce ? 82 : 0);
   const [drawn, setDrawn] = useState(false);
+  const [instRef, instSeen] = useInViewOnce(0.35);
   const spark = useRef(buildSpark()).current;
 
   useEffect(() => {
     if (reduce) {
       setNum(82);
       setDrawn(true);
-      return;
+      return undefined;
     }
+    if (!instSeen) return undefined;
     const t = setTimeout(() => {
       setDrawn(true);
       const start = performance.now();
@@ -195,7 +186,7 @@ function PulseInstrument() {
       clearTimeout(t);
       clearTimeout(done);
     };
-  }, [reduce]);
+  }, [reduce, instSeen]);
 
   const o = OBJ[sel];
   const mag = Math.min(Math.abs(o.dev), 100) / 2;
@@ -204,7 +195,7 @@ function PulseInstrument() {
   const nowStage = 6;
 
   return (
-    <div className={`${styles.inst} ${styles['live-on']}`} aria-label="A glance inside PULSE">
+    <div className={`${styles.inst} ${styles['live-on']}`} ref={instRef} data-reveal aria-label="A glance inside PULSE">
       <div className={styles.inst__head}>
         <div className={styles.pj}>
           Holloway Place<small>Mixed-use, 42 units &nbsp;&middot;&nbsp; In construction</small>
@@ -231,7 +222,12 @@ function PulseInstrument() {
               </linearGradient>
             </defs>
             <path className={styles.fillarea} d={spark.fill} style={{ opacity: drawn ? 0.5 : 0, transition: 'opacity 1s ease' }} />
-            <path className={styles.ln} d={spark.d} />
+            <path
+              className={styles.ln}
+              d={spark.d}
+              pathLength="1"
+              style={{ strokeDasharray: 1, strokeDashoffset: drawn ? 0 : 1, transition: 'stroke-dashoffset 1.2s ease 0.15s' }}
+            />
             <circle className={styles.endc} cx={spark.ex} cy={spark.ey} r="3.2" style={{ opacity: drawn ? 1 : 0, transition: 'opacity 0.4s ease 1.2s' }} />
           </svg>
         </div>
@@ -303,94 +299,10 @@ function PulseInstrument() {
   );
 }
 
-function DesignPartnerForm() {
-  const supabase = createClient();
-  const [email, setEmail] = useState('');
-  const [company, setCompany] = useState('');
-  const [portfolio, setPortfolio] = useState('');
-  const [market, setMarket] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(null);
-  const [done, setDone] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !company.trim() || !portfolio || !market) {
-      setError('Please complete every field with a valid value.');
-      return;
-    }
-    setBusy(true);
-    const { error: insertError } = await supabase.from('design_partner_submissions').insert({
-      email,
-      company_name: company.trim(),
-      portfolio_size: portfolio,
-      primary_market: market,
-      source_page: 'flitrr_com',
-    });
-    setBusy(false);
-    if (insertError) {
-      setError('Something went wrong. Please try again or email hello@flitrr.com.');
-      return;
-    }
-    setDone(true);
-  };
-
-  if (done) {
-    return (
-      <div className={styles.dp__done} role="status">
-        <span className={styles.tk}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </span>
-        <span>
-          <strong>Request received.</strong> We will be in touch within 48 hours.
-        </span>
-      </div>
-    );
-  }
-
-  return (
-    <form onSubmit={handleSubmit} noValidate>
-      <div className={styles.field}>
-        <label className={styles.flab} htmlFor="hdp-email">Email address</label>
-        <input className={styles.in} id="hdp-email" type="email" placeholder="your@email.com" autoComplete="email" value={email} onChange={(e) => { setEmail(e.target.value); if (error) setError(null); }} />
-      </div>
-      <div className={styles.field}>
-        <label className={styles.flab} htmlFor="hdp-company">Company name</label>
-        <input className={styles.in} id="hdp-company" type="text" placeholder="e.g. Northpoint Developments" autoComplete="organization" value={company} onChange={(e) => { setCompany(e.target.value); if (error) setError(null); }} />
-      </div>
-      <div className={styles.frow}>
-        <div className={styles.field}>
-          <label className={styles.flab} htmlFor="hdp-portfolio">Portfolio size</label>
-          <select className={styles.in} id="hdp-portfolio" value={portfolio} onChange={(e) => { setPortfolio(e.target.value); if (error) setError(null); }}>
-            <option value="">Select...</option>
-            <option value="1">1 project</option>
-            <option value="2_to_3">2 to 3 projects</option>
-            <option value="4_plus">4 plus projects</option>
-          </select>
-        </div>
-        <div className={styles.field}>
-          <label className={styles.flab} htmlFor="hdp-market">Primary market</label>
-          <select className={styles.in} id="hdp-market" value={market} onChange={(e) => { setMarket(e.target.value); if (error) setError(null); }}>
-            <option value="">Select...</option>
-            <option value="uk">UK</option>
-            <option value="nigeria">Nigeria</option>
-            <option value="both">Both</option>
-          </select>
-        </div>
-      </div>
-      {error && <p className={styles.err} role="alert">{error}</p>}
-      <button type="submit" className={`${styles.btn} ${styles.btnWarm} ${styles.submit}`} disabled={busy}>
-        {busy ? 'Sending...' : 'Become a design partner'}
-      </button>
-    </form>
-  );
-}
-
 export default function HomeMain({ user }) {
   const [ready, setReady] = useState(false);
+  const reduce = usePrefersReducedMotion();
+  const [sigRef, sigSeen] = useInViewOnce(0.3);
   useEffect(() => {
     const r = requestAnimationFrame(() => requestAnimationFrame(() => setReady(true)));
     return () => cancelAnimationFrame(r);
@@ -403,10 +315,10 @@ export default function HomeMain({ user }) {
         {/* HERO */}
         <header className={styles.hero}>
           <div className={styles.hero__img}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Photo
               src="/images/hero-aerial-aylesbury-dusk.jpg"
               alt="A town at dusk seen from the air, the whole development context in one view"
+              priority
             />
           </div>
           <div className={styles.hero__scrim} />
@@ -415,8 +327,7 @@ export default function HomeMain({ user }) {
               <h1>One platform for the whole property development lifecycle.</h1>
               <p className={styles.hero__sub}>
                 Institutional delivery discipline for independent and SME property developers.
-                STACK proves a scheme stacks up before you commit. PULSE delivers it, stage by
-                stage, on one framework.
+                STACK proves a scheme stacks up. PULSE delivers it, stage by stage.
               </p>
               <div className={styles.hero__cta}>
                 <Link href="#products" className={`${styles.btn} ${styles.btnSolid}`}>
@@ -433,18 +344,17 @@ export default function HomeMain({ user }) {
         {/* PROBLEM */}
         <section className={styles.problem} aria-label="The problem Flitrr exists to solve">
           <div className={styles.problem__bg}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/hero-crane-dusk.jpg" alt="" />
+            <Photo src="/images/hero-crane-dusk.jpg" />
           </div>
           <div className={styles.problem__scrim} />
           <div className={`${styles.wrap} ${styles.problem__grid}`}>
-            <p className={styles.problem__setup}>
+            <p className={styles.problem__setup} data-reveal>
               Property development is one of the most demanding delivery environments there is. Long
               lifecycles, high capital exposure, many parties, and decisions whose consequences surface
               years later. Major property developers meet it with programme offices and dedicated delivery
               infrastructure.
             </p>
-            <p className={styles.problem__turn}>
+            <p className={styles.problem__turn} data-reveal>
               At independent and SME scale, that infrastructure has never existed. Flitrr is building it.
             </p>
           </div>
@@ -456,7 +366,7 @@ export default function HomeMain({ user }) {
             <div className={styles.wrap}>
               <div>
                 <div className={styles.label}>The Flitrr Framework</div>
-                <h2 id="fw-heading">The backbone behind everything we build.</h2>
+                <h2 id="fw-heading" data-reveal>The backbone behind everything we build.</h2>
               </div>
               <div>
                 <p>
@@ -473,19 +383,19 @@ export default function HomeMain({ user }) {
           </div>
           <div className={styles.sig}>
             <div className={styles.wrap}>
-              <div className={styles.sig__grid}>
-                <div className={styles.sig__item}>
-                  <span className={`${styles.sig__n} tnum`}>8</span>
+              <div className={styles.sig__grid} ref={sigRef}>
+                <div className={styles.sig__item} data-reveal>
+                  <span className={`${styles.sig__n} tnum`}><CountTo to={8} play={sigSeen && !reduce} /></span>
                   <span className={styles.sig__lab}>Eight stages</span>
                   <p className={styles.sig__gloss}>The lifecycle of a development, from securing the land to realising the finished asset.</p>
                 </div>
-                <div className={styles.sig__item}>
-                  <span className={`${styles.sig__n} tnum`}>6</span>
+                <div className={styles.sig__item} data-reveal>
+                  <span className={`${styles.sig__n} tnum`}><CountTo to={6} play={sigSeen && !reduce} delay={120} /></span>
                   <span className={styles.sig__lab}>Six principles</span>
                   <p className={styles.sig__gloss}>The rules that govern how a project is run, at every stage.</p>
                 </div>
-                <div className={styles.sig__item}>
-                  <span className={`${styles.sig__n} tnum`}>4</span>
+                <div className={styles.sig__item} data-reveal>
+                  <span className={`${styles.sig__n} tnum`}><CountTo to={4} play={sigSeen && !reduce} delay={240} /></span>
                   <span className={styles.sig__lab}>Four mandates</span>
                   <p className={styles.sig__gloss}>What each stage must deliver to be done well.</p>
                 </div>
@@ -498,7 +408,7 @@ export default function HomeMain({ user }) {
         {/* PRODUCTS */}
         <section className={styles.prods} id="products" aria-labelledby="prods-heading">
           <div className={styles.wrap}>
-            <div className={styles.prods__head}>
+            <div className={styles.prods__head} data-reveal>
               <div className={styles.label}>The products</div>
               <h2 id="prods-heading">Decide, then deliver.</h2>
               <p>
@@ -512,7 +422,7 @@ export default function HomeMain({ user }) {
         {/* STACK */}
         <section className={`${styles.prod} ${styles.rev}`} id="stack" aria-labelledby="stack-heading">
           <div className={styles.wrap}>
-            <div className={styles.lead}>
+            <div className={styles.lead} data-reveal>
               <p className={styles.kick}>The decision</p>
               <h2 id="stack-heading">STACK.</h2>
               <p>
@@ -525,7 +435,7 @@ export default function HomeMain({ user }) {
                 </Link>
               </div>
             </div>
-            <div className={styles.glance}>
+            <div className={styles.glance} data-reveal>
               <StackGlance />
             </div>
           </div>
@@ -534,7 +444,7 @@ export default function HomeMain({ user }) {
         {/* PULSE */}
         <section className={styles.prod} id="pulse" aria-labelledby="pulse-heading">
           <div className={styles.wrap}>
-            <div className={styles.lead}>
+            <div className={styles.lead} data-reveal>
               <p className={styles.kick}>The delivery</p>
               <h2 id="pulse-heading">PULSE.</h2>
               <p>
@@ -554,19 +464,18 @@ export default function HomeMain({ user }) {
         {/* ROADMAP */}
         <section className={styles.suite} id="roadmap" aria-labelledby="suite-heading">
           <div className={styles.wrap}>
-            <div className={styles.suite__intro}>
+            <div className={styles.suite__intro} data-reveal>
               <h2 id="suite-heading">Next in the suite.</h2>
               <p>Each new product carries the same discipline into another part of the lifecycle.</p>
             </div>
             <div className={styles.suite__list}>
-              <div className={styles.suite__row}>
+              <div className={styles.suite__row} data-reveal>
                 <span className={styles.suite__nm}><span className={styles.dot} />ROUTE</span>
                 <span className={styles.suite__st}>In design</span>
                 <span className={styles.suite__ds}>Strategy, tenders, and appointments.</span>
               </div>
-              <div className={`${styles.suite__row} ${styles.ghost}`}>
+              <div className={`${styles.suite__row} ${styles.ghost}`} data-reveal>
                 <span className={styles.suite__nm}><span className={styles.dot} />And more</span>
-                <span className={styles.suite__st}>&nbsp;</span>
                 <span className={styles.suite__ds}>Across the lifecycle, each to the same discipline.</span>
               </div>
             </div>
@@ -575,9 +484,12 @@ export default function HomeMain({ user }) {
 
         {/* DESIGN PARTNER */}
         <section className={styles.dp} id="design-partner" aria-labelledby="dp-heading">
+          <div className={styles.dp__bg}>
+            <Photo src="/images/texture-site-overview.jpg" />
+          </div>
           <div className={styles.wrap}>
             <div>
-              <h2 id="dp-heading">Built with property developers, not just for them.</h2>
+              <h2 id="dp-heading" data-reveal>Built with property developers, not just for them.</h2>
               <p className={styles.sub}>
                 Flitrr is being shaped with a small group of property developers. If you want the
                 infrastructure before everyone else has it, talk to us.
@@ -586,8 +498,8 @@ export default function HomeMain({ user }) {
                 Prefer email? Reach us directly at <a href="mailto:hello@flitrr.com">hello@flitrr.com</a>.
               </p>
             </div>
-            <div>
-              <DesignPartnerForm />
+            <div data-reveal>
+              <DesignPartnerForm sourcePage="flitrr_com" />
             </div>
           </div>
         </section>
@@ -596,7 +508,7 @@ export default function HomeMain({ user }) {
         <section className={styles.close}>
           <div className={styles.wrap}>
             <div>
-              <h2>
+              <h2 data-reveal>
                 The whole lifecycle, <em>under control</em>.
               </h2>
               <div className={styles.cta}>

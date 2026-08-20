@@ -1,108 +1,36 @@
-/* The Flitrr Framework, "Considered" dark system. All tokens are scoped to
-   .page so nothing leaks to the light product app; nav and footer inherit them
-   through the cascade. Ported from the approved design comp. */
+/* The Flitrr Framework, "Considered" dark system. The shared ground (tokens,
+   buttons) lives in components/considered/considered.module.css; this module
+   keeps only this page's own sections. */
 
 .page {
-  --deep: #0f1216;
-  --deep-2: #14181e;
-  --deep-3: #1b212a;
-  --raise: #1c232c;
-  --on-deep: #eceae4;
-  --on-deep-mut: #93908a;
-  --on-deep-dim: #6d6b66;
-  --line: rgba(255, 255, 255, 0.09);
-  --line-2: rgba(255, 255, 255, 0.14);
-  --warm: #c77e33;
-  --warm-2: #e0a05b;
-  --warm-ink: #a25e1c;
-  --f: var(--font-archivo), 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --maxw: 1220px;
-  --pad: clamp(1.25rem, 4vw, 3.25rem);
-  --sect: clamp(4.5rem, 10vh, 8rem);
-
-  min-height: 100dvh;
-  background: var(--deep);
-  color: var(--on-deep);
-  font-family: var(--f);
-  font-weight: 420;
-  font-size: 17px;
-  line-height: 1.62;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  overflow-x: clip;
-}
-.page ::selection {
-  background: var(--warm);
-  color: #fff;
-}
-/* neutralise the app's global heading/p styles inside the marketing page */
-.page :is(h1, h2, h3, h4, h5, h6) {
-  font: inherit;
-  color: #fff;
-  letter-spacing: inherit;
-}
-.page p {
-  color: inherit;
-}
-.page a {
-  color: inherit;
-  text-decoration: none;
+  composes: page from '../components/considered/considered.module.css';
 }
 
 .wrap {
-  max-width: var(--maxw);
-  margin: 0 auto;
-  padding-left: var(--pad);
-  padding-right: var(--pad);
+  composes: wrap from '../components/considered/considered.module.css';
 }
 .label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  font-weight: 560;
-  color: var(--on-deep-mut);
+  composes: label from '../components/considered/considered.module.css';
 }
 
-/* BUTTONS */
+/* BUTTONS: composed from the shared Considered ground. */
 .btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  font-family: var(--f);
-  font-size: 0.98rem;
-  font-weight: 520;
-  letter-spacing: -0.005em;
-  padding: 0.85rem 1.5rem;
-  border-radius: 3px;
-  border: 1px solid transparent;
-  transition: transform 0.2s cubic-bezier(0.2, 0.7, 0.3, 1), background 0.25s,
-    border-color 0.25s, color 0.25s;
-}
-.btn:active {
-  transform: translateY(1px);
+  composes: btn from '../components/considered/considered.module.css';
 }
 .btnSolid {
-  background: #fff;
-  color: #14161a;
-}
-.btnSolid:hover {
-  background: #ebe8e1;
+  composes: btnSolid from '../components/considered/considered.module.css';
 }
 .btnDim {
-  background: transparent;
-  color: var(--on-deep);
-  border-color: var(--line-2);
-}
-.btnDim:hover {
-  border-color: rgba(255, 255, 255, 0.5);
-  color: #fff;
+  composes: btnDim from '../components/considered/considered.module.css';
 }
 .arw {
-  transition: transform 0.25s;
+  composes: arw from '../components/considered/considered.module.css';
 }
-.btn:hover .arw {
-  transform: translateX(3px);
+
+/* <Photo> wraps its <img> in a <picture>; the wrapper must not become the
+   layout box, so it fills its container and lets the img keep its own rules. */
+.page picture {
+  display: contents;
 }
 
 /* HERO */
@@ -120,18 +48,20 @@
   height: 100%;
   object-fit: cover;
   object-position: center 42%;
-  filter: saturate(0.62) brightness(0.26);
+  filter: saturate(0.85) brightness(0.55);
 }
+/* The scrim protects the copy and lets the dusk aerial read, as on home. */
 .hero__bg::after {
   content: '';
   position: absolute;
   inset: 0;
   background: radial-gradient(
-      130% 100% at 18% 6%,
-      rgba(15, 18, 22, 0.42),
-      rgba(15, 18, 22, 0.9) 68%
+      120% 130% at 20% 16%,
+      rgba(15, 18, 22, 0.68),
+      rgba(15, 18, 22, 0.26) 60%,
+      rgba(15, 18, 22, 0.5)
     ),
-    linear-gradient(180deg, rgba(15, 18, 22, 0.55), var(--deep));
+    linear-gradient(180deg, rgba(15, 18, 22, 0.3), var(--deep) 97%);
 }
 .hero .wrap {
   position: relative;
@@ -208,7 +138,7 @@
 .sig__item:focus-visible {
   outline: 2px solid var(--warm-2);
   outline-offset: 8px;
-  border-radius: 4px;
+  border-radius: var(--r-btn);
 }
 .sig__n {
   font-size: clamp(4.2rem, 9vw, 7rem);
@@ -356,7 +286,7 @@
 /* CRITICALITY INSTRUMENT */
 .inst {
   position: relative;
-  border-radius: 16px;
+  border-radius: var(--r-inst);
   padding: clamp(1.2rem, 2.4vw, 1.8rem);
   background: linear-gradient(168deg, #1e2530 0%, #13171d 62%);
   border: 1px solid rgba(255, 255, 255, 0.09);
@@ -506,7 +436,7 @@
   align-items: center;
   gap: 0.85rem;
   padding: 0.9rem 1rem;
-  border-radius: 9px;
+  border-radius: var(--r-inner);
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   transition: background 0.3s, border-color 0.3s;
@@ -571,7 +501,7 @@
   line-height: 1.58;
 }
 .walk {
-  border-radius: 16px;
+  border-radius: var(--r-inst);
   overflow: hidden;
   background: linear-gradient(168deg, #1b222c 0%, #12161c 66%);
   border: 1px solid var(--line);
@@ -731,7 +661,7 @@
   white-space: nowrap;
   font-size: 0.9rem;
   font-weight: 540;
-  color: #fff;
+  color: var(--on-warm);
   background: var(--warm);
   border: 1px solid transparent;
   border-radius: 3px;
@@ -939,6 +869,47 @@
   font-size: 1.08rem;
   line-height: 1.62;
   max-width: 46ch;
+}
+.mand__list {
+  margin-top: 1.9rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  column-gap: clamp(1.6rem, 3vw, 3rem);
+}
+@media (min-width: 720px) {
+  .mand__list {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.mand {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: clamp(0.85rem, 1.6vw, 1.2rem);
+  align-items: start;
+  padding: 1.05rem 0;
+  border-top: 1px solid var(--line);
+}
+.mand__n {
+  font-size: 0.92rem;
+  font-weight: 560;
+  letter-spacing: 0.02em;
+  color: var(--warm-2);
+  padding-top: 0.22rem;
+}
+.mand__name {
+  margin: 0;
+  font-weight: 500;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  color: #fff;
+  line-height: 1.2;
+}
+.mand__gloss {
+  margin: 0.4rem 0 0;
+  color: var(--on-deep-mut);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  max-width: 34ch;
 }
 
 /* CLOSE */

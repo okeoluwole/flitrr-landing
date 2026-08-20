@@ -1,0 +1,238 @@
+/* The Considered system's shared ground. One token block, one button set and
+   one form voice for the four marketing pages (home, /pulse, /stack,
+   /framework). Each page module composes these classes and keeps only its own
+   sections, so a change here lands on every page at once.
+
+   Ordering note: page modules import this file through `composes`, which makes
+   it an earlier chunk in the CSS output. A page-level override of a token
+   (home's taller --sect) therefore wins by source order at equal specificity;
+   keep importing this file first if a page module ever imports it directly. */
+
+.page {
+  --deep: #0f1216;
+  --deep-2: #14181e;
+  --deep-3: #1b212a;
+  --raise: #1c232c;
+  --on-deep: #eceae4;
+  --on-deep-mut: #93908a;
+  /* Dim is the floor, not a whisper: 4.6:1 on --deep-2 so the smallest hints
+     and footers still clear AA. (The old #6d6b66 sat at 3.6:1.) */
+  --on-deep-dim: #85827a;
+  --line: rgba(255, 255, 255, 0.09);
+  --line-2: rgba(255, 255, 255, 0.14);
+  --warm: #c77e33;
+  --warm-2: #e0a05b;
+  --warm-ink: #a25e1c;
+  /* Label ink on a copper fill: 5.7:1 on --warm, 4.7:1 on its hover. */
+  --on-warm: #16130e;
+  --err-ink: #f2a28d;
+  --f: var(--font-archivo), 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --maxw: 1220px;
+  --pad: clamp(1.25rem, 4vw, 3.25rem);
+  --sect: clamp(4.5rem, 10vh, 8rem);
+
+  /* Radii, four steps: buttons sharp, inner rows soft, cards, instruments.
+     Chips and pills stay full-radius. */
+  --r-btn: 3px;
+  --r-inner: 8px;
+  --r-card: 12px;
+  --r-inst: 16px;
+
+  min-height: 100dvh;
+  background: var(--deep);
+  color: var(--on-deep);
+  font-family: var(--f);
+  font-weight: 420;
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+.page ::selection {
+  background: var(--warm);
+  color: #fff;
+}
+/* Neutralise the app's global heading and paragraph styles inside the
+   marketing pages. */
+.page :is(h1, h2, h3, h4, h5, h6) {
+  font: inherit;
+  color: #fff;
+  letter-spacing: inherit;
+}
+.page p {
+  color: inherit;
+}
+.page a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.wrap {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding-left: var(--pad);
+  padding-right: var(--pad);
+}
+.label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-weight: 560;
+  color: var(--on-deep-mut);
+}
+
+/* BUTTONS */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-family: var(--f);
+  font-size: 0.98rem;
+  font-weight: 520;
+  letter-spacing: -0.005em;
+  padding: 0.85rem 1.5rem;
+  border-radius: var(--r-btn);
+  border: 1px solid transparent;
+  transition: transform 0.2s cubic-bezier(0.2, 0.7, 0.3, 1), background 0.25s,
+    border-color 0.25s, color 0.25s;
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn:focus-visible {
+  outline: 2px solid var(--warm-2);
+  outline-offset: 3px;
+}
+/* Variants carry the .page prefix so their colour out-ranks the
+   `.page a { color: inherit }` reset when the button is an <a>. */
+.page .btnSolid {
+  background: #fff;
+  color: #14161a;
+}
+.page .btnSolid:hover {
+  background: #ebe8e1;
+}
+.page .btnWarm {
+  background: var(--warm);
+  color: var(--on-warm);
+}
+.page .btnWarm:hover {
+  background: #b96f24;
+}
+.page .btnGhost {
+  background: transparent;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+.page .btnGhost:hover {
+  border-color: #fff;
+}
+.page .btnDim {
+  background: transparent;
+  color: var(--on-deep);
+  border-color: var(--line-2);
+}
+.page .btnDim:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #fff;
+}
+.arw {
+  transition: transform 0.25s;
+}
+.btn:hover .arw {
+  transform: translateX(3px);
+}
+
+/* DESIGN-PARTNER FORM (shared component) */
+.form {
+  display: grid;
+  gap: 1.2rem;
+}
+.frow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+}
+@media (max-width: 520px) {
+  .frow {
+    grid-template-columns: 1fr;
+  }
+}
+.field {
+  display: grid;
+  gap: 0.4rem;
+}
+.flab {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 560;
+  color: var(--on-deep-mut);
+}
+.in {
+  font-family: var(--f);
+  font-size: 1rem;
+  color: #fff;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--line-2);
+  border-radius: 0;
+  padding: 0.55rem 0;
+  transition: border-color 0.25s;
+}
+.in::placeholder {
+  color: var(--on-deep-dim);
+}
+.in:focus {
+  outline: none;
+  border-bottom-color: var(--warm);
+  border-bottom-width: 2px;
+  margin-bottom: -1px;
+}
+/* Keyboard focus gets a ring on top of the underline shift. */
+.in:focus-visible {
+  outline: 2px solid var(--warm-2);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+select.in {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 1.5rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2393908A' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.15rem center;
+  background-size: 10px 6px;
+}
+select.in option {
+  background: var(--deep-2);
+  color: #fff;
+}
+.submit {
+  justify-self: start;
+  margin-top: 0.4rem;
+}
+.err {
+  color: var(--err-ink);
+  font-size: 0.9rem;
+}
+.done {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  color: var(--on-deep);
+  font-size: 1rem;
+  padding: 1.1rem 0;
+}
+.done .tk {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid var(--warm);
+  display: grid;
+  place-items: center;
+  color: var(--warm-2);
+  flex: none;
+}

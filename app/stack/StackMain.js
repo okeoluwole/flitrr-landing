@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { createClient } from '../../lib/supabase/client';
+import Photo from '../components/considered/Photo';
 import SiteNav from '../components/considered/SiteNav';
+import DesignPartnerForm from '../components/considered/DesignPartnerForm';
 import SiteFooter from '../components/considered/SiteFooter';
 import StackGlance from '../components/considered/StackGlance';
 import styles from './stackLanding.module.css';
@@ -17,141 +18,124 @@ import styles from './stackLanding.module.css';
  * worked illustration in the engine's own vocabulary (GO, CONSIDER, NO GO).
  */
 
-function DesignPartnerForm() {
-  const supabase = createClient();
-  const [email, setEmail] = useState('');
-  const [company, setCompany] = useState('');
-  const [portfolio, setPortfolio] = useState('');
-  const [market, setMarket] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(null);
-  const [done, setDone] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-    if (
-      !email ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
-      !company.trim() ||
-      !portfolio ||
-      !market
-    ) {
-      setError('Please complete every field with a valid value.');
-      return;
-    }
-    setBusy(true);
-    const { error: insertError } = await supabase.from('design_partner_submissions').insert({
-      email,
-      company_name: company.trim(),
-      portfolio_size: portfolio,
-      primary_market: market,
-      source_page: 'stack_page',
-    });
-    setBusy(false);
-    if (insertError) {
-      setError('Something went wrong. Please try again or email hello@flitrr.com.');
-      return;
-    }
-    setDone(true);
-  };
+/* The appraisal, live: drag the value or the build cost and the verdict
+   recomputes. The same worked Fenwick Yard scheme as the hero glance
+   (GDV 4,200,000; build 2,400,000 of a 3,458,000 total), so the two panels
+   corroborate each other. Deterministic: the verdict is a pure function of
+   the two adjustments. */
+const SENS_BASE = { gdv: 4200000, build: 2400000, other: 1058000 };
 
-  if (done) {
-    return (
-      <div className={styles.dp__done} role="status">
-        <span className={styles.tk}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </span>
-        <span>
-          <strong>Request received.</strong> We will be in touch within 48 hours.
-        </span>
-      </div>
-    );
-  }
+function fmtMoney(n) {
+  const v = Math.round(Math.abs(n));
+  return (n < 0 ? '-\u00A3' : '\u00A3') + v.toLocaleString('en-GB');
+}
+
+function SensitivityInstrument() {
+  const [gdvAdj, setGdvAdj] = useState(0);
+  const [buildAdj, setBuildAdj] = useState(0);
+
+  const gdv = SENS_BASE.gdv * (1 + gdvAdj / 100);
+  const cost = SENS_BASE.other + SENS_BASE.build * (1 + buildAdj / 100);
+  const profit = gdv - cost;
+  const poc = (profit / cost) * 100;
+  const verdict = poc >= 20 ? 'GO' : poc >= 12 ? 'CONSIDER' : 'NO GO';
+  const verdictText =
+    verdict === 'GO'
+      ? 'On or above target, with the funding sized.'
+      : verdict === 'CONSIDER'
+        ? 'Below the 20% target. Workable, if the scheme or the price tightens.'
+        : 'The margin is gone. Do not commit on these numbers.';
+  const touched = gdvAdj !== 0 || buildAdj !== 0;
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
-      <div className={styles.field}>
-        <label className={styles.flab} htmlFor="sdp-email">
-          Email address
-        </label>
-        <input
-          className={styles.in}
-          id="sdp-email"
-          type="email"
-          placeholder="your@email.com"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-            if (error) setError(null);
-          }}
-        />
-      </div>
-      <div className={styles.field}>
-        <label className={styles.flab} htmlFor="sdp-company">
-          Company / practice name
-        </label>
-        <input
-          className={styles.in}
-          id="sdp-company"
-          type="text"
-          placeholder="e.g. Northpoint Developments"
-          autoComplete="organization"
-          value={company}
-          onChange={(e) => {
-            setCompany(e.target.value);
-            if (error) setError(null);
-          }}
-        />
-      </div>
-      <div className={styles.frow}>
-        <div className={styles.field}>
-          <label className={styles.flab} htmlFor="sdp-portfolio">
-            Portfolio size
-          </label>
-          <select
-            className={styles.in}
-            id="sdp-portfolio"
-            value={portfolio}
-            onChange={(e) => {
-              setPortfolio(e.target.value);
-              if (error) setError(null);
-            }}
-          >
-            <option value="">Select...</option>
-            <option value="1">1 project</option>
-            <option value="2_to_3">2 to 3 projects</option>
-            <option value="4_plus">4 plus projects</option>
-          </select>
+    <div className={styles.sens} aria-label="Sensitivity on the worked appraisal">
+      <div className={styles.sens__head}>
+        <div className={styles.pj}>
+          Fenwick Yard, Leeds<small>The same appraisal, moved by hand</small>
         </div>
-        <div className={styles.field}>
-          <label className={styles.flab} htmlFor="sdp-market">
-            Primary market
-          </label>
-          <select
-            className={styles.in}
-            id="sdp-market"
-            value={market}
-            onChange={(e) => {
-              setMarket(e.target.value);
-              if (error) setError(null);
-            }}
-          >
-            <option value="">Select...</option>
-            <option value="uk">UK</option>
-            <option value="nigeria">Nigeria</option>
-            <option value="both">Both</option>
-          </select>
+        <button
+          type="button"
+          className={styles.sens__reset}
+          onClick={() => {
+            setGdvAdj(0);
+            setBuildAdj(0);
+          }}
+          disabled={!touched}
+        >
+          Reset to appraised
+        </button>
+      </div>
+      <div className={styles.sens__row}>
+        <div className={styles.sens__lab}>
+          <span>Gross development value</span>
+          <b className="tnum">{fmtMoney(gdv)}</b>
+        </div>
+        <input
+          type="range"
+          min="-12"
+          max="12"
+          step="1"
+          value={gdvAdj}
+          onChange={(e) => setGdvAdj(Number(e.target.value))}
+          aria-label="Adjust gross development value, percent"
+        />
+        <div className={styles.sens__ticks} aria-hidden="true">
+          <span>-12%</span>
+          <span>appraised</span>
+          <span>+12%</span>
         </div>
       </div>
-      {error && <p className={styles.err} role="alert">{error}</p>}
-      <button type="submit" className={`${styles.btn} ${styles.btnWarm} ${styles.submit}`} disabled={busy}>
-        {busy ? 'Sending...' : 'Become a design partner'}
-      </button>
-    </form>
+      <div className={styles.sens__row}>
+        <div className={styles.sens__lab}>
+          <span>Build cost</span>
+          <b className="tnum">{fmtMoney(SENS_BASE.build * (1 + buildAdj / 100))}</b>
+        </div>
+        <input
+          type="range"
+          min="-12"
+          max="12"
+          step="1"
+          value={buildAdj}
+          onChange={(e) => setBuildAdj(Number(e.target.value))}
+          aria-label="Adjust build cost, percent"
+        />
+        <div className={styles.sens__ticks} aria-hidden="true">
+          <span>-12%</span>
+          <span>tendered</span>
+          <span>+12%</span>
+        </div>
+      </div>
+      <div className={styles.sens__read}>
+        <div>
+          <div className={styles.mk}>Profit on cost</div>
+          <div className={`${styles.mv} ${poc < 20 ? styles.below : ''}`}>
+            <span className="tnum">{poc.toFixed(1)}</span>
+            <sup>%</sup>
+          </div>
+        </div>
+        <div className={styles.sens__figs}>
+          <span>
+            <b className="tnum">{fmtMoney(profit)}</b>
+            <i>Profit</i>
+          </span>
+          <span>
+            <b className="tnum">{fmtMoney(cost)}</b>
+            <i>Total cost</i>
+          </span>
+        </div>
+      </div>
+      <div className={styles.sens__band}>
+        <span className={styles.ic}>Verdict</span>
+        <span className={styles.tx}>{verdictText}</span>
+        <span
+          className={`${styles.vg} ${verdict === 'CONSIDER' ? styles.vmid : ''} ${verdict === 'NO GO' ? styles.vno : ''}`}
+        >
+          {verdict}
+        </span>
+      </div>
+      <p className={styles.sens__note}>Reconciles to zero on every move.</p>
+    </div>
   );
 }
 
@@ -164,8 +148,7 @@ export default function StackMain({ user }) {
         {/* HERO */}
         <section className={styles.hero} aria-labelledby="stack-h">
           <div className={styles.hero__bg}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/texture-brick-detail.jpg" alt="" />
+            <Photo src="/images/texture-brick-detail.jpg" priority />
           </div>
           <div className={styles.wrap}>
             <div>
@@ -201,7 +184,7 @@ export default function StackMain({ user }) {
         <section className={styles.problem} aria-label="The problem STACK solves">
           <div className={styles.wrap}>
             <div>
-              <p className={styles.pstmt}>
+              <p className={styles.pstmt} data-reveal>
                 Most schemes are committed on a spreadsheet nobody fully trusts.{' '}
                 <span className={styles.turn}>STACK is built so the decision can defend itself.</span>
               </p>
@@ -211,7 +194,7 @@ export default function StackMain({ user }) {
                 someone with only basic financial knowledge.
               </p>
             </div>
-            <div className={styles.ledger} aria-label="The spreadsheet, trusted blind">
+            <div className={styles.ledger} data-reveal aria-label="The spreadsheet, trusted blind">
               <div className={styles.ledger__h}>
                 <span className={styles.ln}>The old way</span>
                 <span className={styles.lg}>A spreadsheet, trusted blind</span>
@@ -239,7 +222,7 @@ export default function StackMain({ user }) {
         {/* HOW IT WORKS */}
         <section className={styles.how} id="product" aria-labelledby="how-h">
           <div className={styles.wrap}>
-            <div className={styles.shead}>
+            <div className={styles.shead} data-reveal>
               <h2 id="how-h">Choose the route. Enter the scheme. Read the answer.</h2>
               <p>
                 A guided appraisal you can run with basic financial knowledge, and a result a
@@ -247,7 +230,7 @@ export default function StackMain({ user }) {
               </p>
             </div>
             <div className={styles.beats}>
-              <div className={styles.beat}>
+              <div className={styles.beat} data-reveal>
                 <div className={styles.beat__mini}>
                   <div className={styles.mchips}>
                     <span className={styles.mchip}>Self-funded</span>
@@ -263,7 +246,7 @@ export default function StackMain({ user }) {
                   is computed, so you only ever see the fields your route needs.
                 </p>
               </div>
-              <div className={styles.beat}>
+              <div className={styles.beat} data-reveal>
                 <div className={styles.beat__mini}>
                   <div className={styles.mfield}>
                     <span className={styles.fk}>Gross development value</span>
@@ -281,7 +264,7 @@ export default function StackMain({ user }) {
                   possible, so you are never left guessing what a number means.
                 </p>
               </div>
-              <div className={styles.beat}>
+              <div className={styles.beat} data-reveal>
                 <div className={styles.beat__mini}>
                   <div className={styles.mverdict}>
                     <span className={styles.vt}>On or above target</span>
@@ -310,34 +293,58 @@ export default function StackMain({ user }) {
           </div>
         </section>
 
-        {/* THE EDGE */}
-        <section className={styles.edge} aria-labelledby="edge-h">
+        {/* SENSITIVITY: the model, moved by hand */}
+        <section className={styles.sensitivity} aria-labelledby="sens-h">
           <div className={styles.wrap}>
-            <div className={styles.shead}>
-              <h2 id="edge-h">No invented numbers. No unexplained ones.</h2>
-              <p>
-                Two properties separate STACK from a generic calculator, and from a generative tool
-                that produces a confident figure it cannot stand behind.
+            <div data-reveal>
+              <h2 id="sens-h" className={styles.sens__title}>Move the numbers. Watch it answer.</h2>
+              <p className={styles.sens__body}>
+                A scheme rarely fails at appraisal. It fails when the numbers move later. Drag the
+                value or the build cost and the verdict recomputes, deterministically, exactly as
+                the full model does.
+              </p>
+              <p className={styles.sens__micro}>
+                A worked illustration in the engine&rsquo;s own vocabulary: GO, CONSIDER, NO GO.
               </p>
             </div>
-            <div className={styles.edge__grid}>
-              <div className={styles.ecard}>
-                <span className={styles.ey}>Deterministic</span>
-                <p className={styles.et}>Every output is a pure function of the inputs.</p>
-                <p className={styles.ed}>
-                  Run it twice and get the same answer. The model reconciles exactly:{' '}
-                  <b>cash uses funded equals cash uses</b>, and{' '}
-                  <b>net value equals redemption plus distributions</b>. Both read zero on every
-                  strategy, every time.
-                </p>
+            <SensitivityInstrument />
+          </div>
+        </section>
+
+        {/* THE PROOF: the two identities the model reconciles to */}
+        <section className={styles.recon} aria-labelledby="edge-h">
+          <div className={styles.wrap}>
+            <div className={styles.shead} data-reveal>
+              <h2 id="edge-h">No invented numbers. No unexplained ones.</h2>
+              <p>
+                Every output is a pure function of the inputs, and every assumption carries its
+                basis. The model proves it by reconciling to zero, twice, on every strategy.
+              </p>
+            </div>
+            <div className={styles.recon__rows}>
+              <div className={styles.recon__row} data-reveal>
+                <div>
+                  <p className={styles.recon__id}>cash uses funded = cash uses</p>
+                  <p className={styles.recon__gloss}>
+                    Run it twice and get the same answer. Nothing is sampled, nothing is guessed.
+                  </p>
+                </div>
+                <div className={styles.recon__zero}>
+                  <b className="tnum">0.00</b>
+                  <span>difference, every strategy</span>
+                </div>
               </div>
-              <div className={styles.ecard}>
-                <span className={styles.ey}>Traceable</span>
-                <p className={styles.et}>Every assumption carries its basis.</p>
-                <p className={styles.ed}>
-                  You, a lender or a partner can see where each figure comes from and challenge it.
-                  The decision is made on numbers that can be interrogated, <b>not hoped about</b>.
-                </p>
+              <div className={styles.recon__row} data-reveal>
+                <div>
+                  <p className={styles.recon__id}>net value = redemption + distributions</p>
+                  <p className={styles.recon__gloss}>
+                    You, a lender or a partner can see where each figure comes from and challenge it.
+                  </p>
+                </div>
+                <div className={styles.recon__zero}>
+                  <b className="tnum">0.00</b>
+                  <span>difference, every run</span>
+                </div>
               </div>
             </div>
           </div>
@@ -346,44 +353,72 @@ export default function StackMain({ user }) {
         {/* THE FOUR ROUTES */}
         <section className={styles.routes} aria-labelledby="routes-h">
           <div className={styles.wrap}>
-            <div className={styles.shead}>
+            <div className={styles.shead} data-reveal>
               <h2 id="routes-h">Four ways to fund a scheme. One model.</h2>
               <p>Pick your route, or compare them side by side on the same scheme.</p>
             </div>
             <div className={styles.routes__grid}>
-              <div className={styles.route}>
+              <div className={styles.route} data-reveal>
                 <span className={styles.rn}>01</span>
                 <h3>Self-funded</h3>
                 <p>All your own money. The cleanest read of whether the scheme itself works.</p>
+                <div className={styles.route__mix} aria-hidden="true">
+                  <span className={styles.mA} style={{ width: '100%' }} />
+                </div>
+                <span className={styles.route__cap}>Your equity alone</span>
               </div>
-              <div className={styles.route}>
+              <div className={styles.route} data-reveal>
                 <span className={styles.rn}>02</span>
                 <h3>Debt-financed</h3>
                 <p>
                   A senior loan sized by loan to cost and loan to GDV caps, with an optional
                   mezzanine top-up.
                 </p>
+                <div className={styles.route__mix} aria-hidden="true">
+                  <span className={styles.mB} style={{ width: '65%' }} />
+                  <span className={styles.mA} style={{ width: '35%' }} />
+                </div>
+                <span className={styles.route__cap}>Senior debt + your equity</span>
               </div>
-              <div className={styles.route}>
+              <div className={styles.route} data-reveal>
                 <span className={styles.rn}>03</span>
                 <h3>Joint venture</h3>
                 <p>
                   A partner brings cash, land or both, with a preferred return and a promote. Land
                   for equity included.
                 </p>
+                <div className={styles.route__mix} aria-hidden="true">
+                  <span className={styles.mB} style={{ width: '60%' }} />
+                  <span className={styles.mA} style={{ width: '40%' }} />
+                </div>
+                <span className={styles.route__cap}>Partner capital + your equity</span>
               </div>
-              <div className={styles.route}>
+              <div className={styles.route} data-reveal>
                 <span className={styles.rn}>04</span>
                 <h3>Off-plan</h3>
                 <p>Pre-sales fund the build, the route that leads in Lagos as often as in Leeds.</p>
+                <div className={styles.route__mix} aria-hidden="true">
+                  <span className={styles.mC} style={{ width: '55%' }} />
+                  <span className={styles.mB} style={{ width: '20%' }} />
+                  <span className={styles.mA} style={{ width: '25%' }} />
+                </div>
+                <span className={styles.route__cap}>Pre-sales + debt + equity</span>
               </div>
             </div>
-            <div className={styles.geo}>
-              <span className={styles.gd} aria-hidden="true" />
+          </div>
+        </section>
+
+        {/* GEOGRAPHY: the two markets, from day one */}
+        <section className={styles.geoband} aria-label="Built for the United Kingdom and Nigeria">
+          <div className={styles.geoband__bg}>
+            <Photo src="/images/texture-rebar-crew.jpg" />
+          </div>
+          <div className={styles.wrap}>
+            <div className={styles.geoband__inner} data-reveal>
+              <h2>Built for the United Kingdom and Nigeria from day one.</h2>
               <p>
-                <b>Built for the United Kingdom and Nigeria from day one.</b> SDLT, Section 106 and
-                the Community Infrastructure Levy on one side; off-plan-led funding and naira
-                reporting on the other. Six currencies, GBP by default.
+                SDLT, Section 106 and the Community Infrastructure Levy on one side; off-plan-led
+                funding and naira reporting on the other. Six currencies, GBP by default.
               </p>
             </div>
           </div>
@@ -393,7 +428,7 @@ export default function StackMain({ user }) {
         <section className={styles.suite} aria-label="One platform">
           <div className={styles.wrap}>
             <div className={styles.suite__grid}>
-              <Link href="/pulse" className={styles.scard}>
+              <Link href="/pulse" className={styles.scard} data-reveal>
                 <span>
                   <span className={styles.ey}>One platform</span>
                   <span className={styles.ln}>
@@ -405,7 +440,7 @@ export default function StackMain({ user }) {
                   Discover PULSE <span className={styles.arw} aria-hidden="true">&rarr;</span>
                 </span>
               </Link>
-              <Link href="/framework" className={styles.scard}>
+              <Link href="/framework" className={styles.scard} data-reveal>
                 <span>
                   <span className={styles.ey}>Built on the Flitrr Framework</span>
                   <span className={styles.ln}>
@@ -425,7 +460,7 @@ export default function StackMain({ user }) {
         <section className={styles.dp} id="design-partner" aria-labelledby="dp-h">
           <div className={styles.wrap}>
             <div>
-              <h2 id="dp-h">Shape the tool you will fund schemes with.</h2>
+              <h2 id="dp-h" data-reveal>Shape the tool you will fund schemes with.</h2>
               <p className={styles.sub}>
                 STACK is being shaped with a small group of property developers. If you want the
                 appraisal discipline before everyone else has it, talk to us.
@@ -434,8 +469,8 @@ export default function StackMain({ user }) {
                 Prefer email? Reach us directly at <a href="mailto:hello@flitrr.com">hello@flitrr.com</a>.
               </p>
             </div>
-            <div>
-              <DesignPartnerForm />
+            <div data-reveal>
+              <DesignPartnerForm sourcePage="stack_page" />
             </div>
           </div>
         </section>

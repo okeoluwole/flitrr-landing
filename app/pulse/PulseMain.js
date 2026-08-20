@@ -2,22 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { createClient } from '../../lib/supabase/client';
+import { usePrefersReducedMotion } from '../components/considered/hooks';
+import Photo from '../components/considered/Photo';
 import SiteNav from '../components/considered/SiteNav';
+import DesignPartnerForm from '../components/considered/DesignPartnerForm';
 import SiteFooter from '../components/considered/SiteFooter';
 import styles from './pulse.module.css';
-
-function usePrefersReducedMotion() {
-  const [reduce, setReduce] = useState(false);
-  useEffect(() => {
-    const m = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReduce(m.matches);
-    const h = () => setReduce(m.matches);
-    m.addEventListener?.('change', h);
-    return () => m.removeEventListener?.('change', h);
-  }, []);
-  return reduce;
-}
 
 function HeroBoard() {
   const [filled, setFilled] = useState(false);
@@ -124,7 +114,7 @@ function BriefDoc() {
   };
 
   return (
-    <div className={styles['doc-wrap']}>
+    <div className={styles['doc-wrap']} data-reveal>
       <button
         type="button"
         className={`${styles.doc} ${sealed ? styles.sealed : ''}`}
@@ -143,7 +133,7 @@ function BriefDoc() {
           <div className={styles.doc__ol}>
             {BRIEF_OBJ.map(([nm, cls, hot]) => (
               <div key={nm} className={styles.doc__or}>
-                <span style={{ color: '#fff' }}>{nm}</span>
+                <span>{nm}</span>
                 <span className={`${styles.cls} ${hot ? styles.hot : ''}`}>{cls}</span>
               </div>
             ))}
@@ -177,7 +167,7 @@ function Classified() {
   const toggle = (i) =>
     setObjs((prev) => prev.map((o, idx) => (idx === i ? [o[0], o[1] ? 0 : 1] : o)));
   return (
-    <div className={styles.clpanel}>
+    <div className={styles.clpanel} data-reveal>
       <div className={styles.ph}>
         <span className={styles.label}>Classification</span>
         <small>tap an objective to reclassify</small>
@@ -250,144 +240,6 @@ function Playbook() {
   );
 }
 
-function DesignPartnerForm() {
-  const supabase = createClient();
-  const [email, setEmail] = useState('');
-  const [company, setCompany] = useState('');
-  const [portfolio, setPortfolio] = useState('');
-  const [market, setMarket] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(null);
-  const [done, setDone] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-    if (
-      !email ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
-      !company.trim() ||
-      !portfolio ||
-      !market
-    ) {
-      setError('Please complete every field with a valid value.');
-      return;
-    }
-    setBusy(true);
-    const { error: insertError } = await supabase.from('design_partner_submissions').insert({
-      email,
-      company_name: company.trim(),
-      portfolio_size: portfolio,
-      primary_market: market,
-      source_page: 'pulse_page',
-    });
-    setBusy(false);
-    if (insertError) {
-      setError('Something went wrong. Please try again or email hello@flitrr.com.');
-      return;
-    }
-    setDone(true);
-  };
-
-  if (done) {
-    return (
-      <div className={styles.dp__done} role="status">
-        <span className={styles.tk}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </span>
-        <span>
-          <strong>Request received.</strong> We will be in touch within 48 hours.
-        </span>
-      </div>
-    );
-  }
-
-  return (
-    <form onSubmit={handleSubmit} noValidate>
-      <div className={styles.field}>
-        <label className={styles.flab} htmlFor="pdp-email">
-          Email address
-        </label>
-        <input
-          className={styles.in}
-          id="pdp-email"
-          type="email"
-          placeholder="your@email.com"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-            if (error) setError(null);
-          }}
-        />
-      </div>
-      <div className={styles.field}>
-        <label className={styles.flab} htmlFor="pdp-company">
-          Company / practice name
-        </label>
-        <input
-          className={styles.in}
-          id="pdp-company"
-          type="text"
-          placeholder="e.g. Northpoint Developments"
-          autoComplete="organization"
-          value={company}
-          onChange={(e) => {
-            setCompany(e.target.value);
-            if (error) setError(null);
-          }}
-        />
-      </div>
-      <div className={styles.frow}>
-        <div className={styles.field}>
-          <label className={styles.flab} htmlFor="pdp-portfolio">
-            Portfolio size
-          </label>
-          <select
-            className={styles.in}
-            id="pdp-portfolio"
-            value={portfolio}
-            onChange={(e) => {
-              setPortfolio(e.target.value);
-              if (error) setError(null);
-            }}
-          >
-            <option value="">Select...</option>
-            <option value="1">1 project</option>
-            <option value="2_to_3">2 to 3 projects</option>
-            <option value="4_plus">4 plus projects</option>
-          </select>
-        </div>
-        <div className={styles.field}>
-          <label className={styles.flab} htmlFor="pdp-market">
-            Primary market
-          </label>
-          <select
-            className={styles.in}
-            id="pdp-market"
-            value={market}
-            onChange={(e) => {
-              setMarket(e.target.value);
-              if (error) setError(null);
-            }}
-          >
-            <option value="">Select...</option>
-            <option value="uk">UK</option>
-            <option value="nigeria">Nigeria</option>
-            <option value="both">Both</option>
-          </select>
-        </div>
-      </div>
-      {error && <p className={styles.err} role="alert">{error}</p>}
-      <button type="submit" className={`${styles.btn} ${styles.btnWarm} ${styles.submit}`} disabled={busy}>
-        {busy ? 'Sending...' : 'Become a design partner'}
-      </button>
-    </form>
-  );
-}
-
 export default function PulseMain({ user }) {
   return (
     <div className={styles.page}>
@@ -396,8 +248,7 @@ export default function PulseMain({ user }) {
         {/* HERO */}
         <section className={styles.hero} aria-labelledby="pulse-h">
           <div className={styles.hero__bg}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/texture-facades.jpg" alt="" />
+            <Photo src="/images/texture-facades.jpg" priority />
           </div>
           <div className={styles.wrap}>
             <div>
@@ -427,7 +278,7 @@ export default function PulseMain({ user }) {
         <section className={styles.problem} aria-label="The problem PULSE solves">
           <div className={styles.wrap}>
             <div>
-              <p className={styles.pstmt}>
+              <p className={styles.pstmt} data-reveal>
                 A development can fail politely. No single disaster, just a hundred small drifts nobody
                 was watching. <span className={styles.turn}>PULSE is built so that what matters cannot drift quietly.</span>
               </p>
@@ -436,7 +287,7 @@ export default function PulseMain({ user }) {
                 out of. <b>PULSE gives it to you directly.</b>
               </p>
             </div>
-            <div className={styles.ledger} aria-label="Three quiet drifts on an unwatched project">
+            <div className={styles.ledger} data-reveal aria-label="Three quiet drifts on an unwatched project">
               <div className={styles.ledger__h}>
                 <span className={styles.ln}>Holloway Place</span>
                 <span className={styles.lg}>The quiet drift, unwatched</span>
@@ -464,7 +315,7 @@ export default function PulseMain({ user }) {
         {/* HOW IT WORKS */}
         <section className={styles.how} id="product" aria-labelledby="how-h">
           <div className={styles.wrap}>
-            <div className={styles.shead}>
+            <div className={styles.shead} data-reveal>
               <h2 id="how-h">Set it up once. PULSE watches the rest.</h2>
               <p>
                 A guided start, then a system that keeps what matters in front of you, from the first
@@ -472,7 +323,7 @@ export default function PulseMain({ user }) {
               </p>
             </div>
             <div className={styles.beats}>
-              <div className={styles.beat}>
+              <div className={styles.beat} data-reveal>
                 <div className={styles.beat__mini}>
                   <div className={styles.mrow}>
                     <span className={styles.nm}>Scope</span>
@@ -498,7 +349,7 @@ export default function PulseMain({ user }) {
                   baseline every module reads from.
                 </p>
               </div>
-              <div className={styles.beat}>
+              <div className={styles.beat} data-reveal>
                 <div className={styles.beat__mini}>
                   <div className={styles.mflag}>
                     <span className={`${styles.mdot} ${styles.hot}`} />
@@ -518,7 +369,7 @@ export default function PulseMain({ user }) {
                   what you said you cannot compromise.
                 </p>
               </div>
-              <div className={styles.beat}>
+              <div className={styles.beat} data-reveal>
                 <div className={styles.beat__mini}>
                   <div className={styles.band} style={{ marginTop: '0.2rem' }}>
                     <span className={styles.ic}>Needs you</span>
@@ -545,12 +396,11 @@ export default function PulseMain({ user }) {
         {/* BRIEF */}
         <section className={styles.brief} id="brief" aria-labelledby="brief-h">
           <div className={styles.brief__bg}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/texture-site-overview.jpg" alt="" />
+            <Photo src="/images/texture-site-overview.jpg" />
           </div>
           <div className={styles.wrap}>
             <BriefDoc />
-            <div className={styles.brief__copy}>
+            <div className={styles.brief__copy} data-reveal>
               <h2 id="brief-h">The brief the whole project answers to.</h2>
               <p>
                 PULSE turns your project into a formal Brief: the vision, the objectives, what you cannot
@@ -567,7 +417,7 @@ export default function PulseMain({ user }) {
         <section className={styles.classified} aria-labelledby="cl-h">
           <div className={styles.wrap}>
             <div>
-              <h2 id="cl-h">Decide what holds, and what can move.</h2>
+              <h2 id="cl-h" data-reveal>Decide what holds, and what can move.</h2>
               <p className={styles.ctext}>
                 At the start, across five objectives, scope, cost, time, quality and funding, you decide
                 what the project cannot compromise on and what can flex. Some must hold; some can move.
@@ -584,7 +434,7 @@ export default function PulseMain({ user }) {
         {/* MODULES */}
         <section className={styles.modules} aria-labelledby="mod-h">
           <div className={styles.wrap}>
-            <div className={styles.shead}>
+            <div className={styles.shead} data-reveal>
               <h2 id="mod-h">Everything that needs you, in one place.</h2>
               <p>
                 Risk, programme and the executive view each do their job, then push what needs a decision
@@ -592,7 +442,7 @@ export default function PulseMain({ user }) {
               </p>
             </div>
             <div className={styles.hublayout}>
-              <article className={styles.actionlog}>
+              <article className={styles.actionlog} data-reveal>
                 <div className={styles.al__h}>
                   <span className={styles.al__t}>Action Log</span>
                   <span className={styles.mon}>
@@ -621,17 +471,17 @@ export default function PulseMain({ user }) {
                   protected. The critical rises; the quiet waits its turn.
                 </p>
               </article>
-              <div className={styles.feeders}>
+              <div className={styles.feeders} data-reveal>
                 <div className={styles.feeders__h}>Fed by every module</div>
                 <div className={styles.feeder}>
                   <div className={styles.feeder__vg}>
                     <div className={styles['fvg-row']}>
                       <span className={`${styles['fvg-dot']} ${styles.hot}`} />
-                      <span className={styles['fvg-t']} />
+                      <span className={styles['fvg-lab']}>Cost overrun</span>
                     </div>
                     <div className={styles['fvg-row']}>
                       <span className={`${styles['fvg-dot']} ${styles.cool}`} />
-                      <span className={styles['fvg-t']} style={{ maxWidth: '60%' }} />
+                      <span className={styles['fvg-lab']}>Ground risk</span>
                     </div>
                   </div>
                   <div>
@@ -641,9 +491,9 @@ export default function PulseMain({ user }) {
                 </div>
                 <div className={styles.feeder}>
                   <div className={styles.feeder__vg}>
-                    <span className={styles['fvg-bar']} style={{ maxWidth: '78%' }} />
-                    <span className={`${styles['fvg-bar']} ${styles.hot}`} style={{ maxWidth: '52%', marginLeft: '14%' }} />
-                    <span className={styles['fvg-bar']} style={{ maxWidth: '40%', marginLeft: '34%' }} />
+                    <span className={styles['fvg-bar']} style={{ maxWidth: '58%' }} />
+                    <span className={`${styles['fvg-bar']} ${styles.hot}`} style={{ maxWidth: '76%' }} />
+                    <span className={styles['fvg-var']}>+3w vs baseline</span>
                   </div>
                   <div>
                     <b>Programme Tracker</b>
@@ -678,7 +528,7 @@ export default function PulseMain({ user }) {
         <section className={styles.playbook} id="playbook" aria-labelledby="pb-h">
           <div className={styles.wrap}>
             <div>
-              <h2 id="pb-h">The knowledge you were never handed.</h2>
+              <h2 id="pb-h" data-reveal>The knowledge you were never handed.</h2>
               <p className={styles.body}>
                 Most property developers learn programme management by paying for the lessons. PULSE ships with the
                 playbook instead: at every stage, it proposes the actions and risks a veteran programme
@@ -694,7 +544,7 @@ export default function PulseMain({ user }) {
         <section className={styles.fwc} id="framework-credit" aria-label="One platform">
           <div className={styles.wrap}>
             <div className={styles.fwc__grid}>
-              <Link href="/stack" className={styles.scard}>
+              <Link href="/stack" className={styles.scard} data-reveal>
                 <span>
                   <span className={styles.ey}>One platform</span>
                   <span className={styles.ln}>
@@ -706,7 +556,7 @@ export default function PulseMain({ user }) {
                   Discover STACK <span className={styles.arw} aria-hidden="true">&rarr;</span>
                 </span>
               </Link>
-              <Link href="/framework" className={styles.scard}>
+              <Link href="/framework" className={styles.scard} data-reveal>
                 <span>
                   <span className={styles.ey}>Built on the Flitrr Framework</span>
                   <span className={styles.ln}>
@@ -723,9 +573,12 @@ export default function PulseMain({ user }) {
 
         {/* DESIGN PARTNER */}
         <section className={styles.dp} id="design-partner" aria-labelledby="dp-h">
+          <div className={styles.dp__bg}>
+            <Photo src="/images/hero-crane-dusk.jpg" />
+          </div>
           <div className={styles.wrap}>
             <div>
-              <h2 id="dp-h">Built with property developers, not just for them.</h2>
+              <h2 id="dp-h" data-reveal>Built with property developers, not just for them.</h2>
               <p className={styles.sub}>
                 PULSE is being shaped with a small group of property developers. If you want the
                 infrastructure before everyone else has it, talk to us.
@@ -734,8 +587,8 @@ export default function PulseMain({ user }) {
                 Prefer email? Reach us directly at <a href="mailto:hello@flitrr.com">hello@flitrr.com</a>.
               </p>
             </div>
-            <div>
-              <DesignPartnerForm />
+            <div data-reveal>
+              <DesignPartnerForm sourcePage="pulse_page" />
             </div>
           </div>
         </section>
