@@ -8,7 +8,7 @@
 ───────────────────────────────────────── */
 
 .page {
-  padding-block: 2.75rem 6rem;
+  padding-block: var(--app-space-7) var(--app-space-8);
 }
 
 .wrap {
@@ -16,7 +16,7 @@
   margin-inline: auto;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: var(--app-space-5);
 }
 
 /* ── Header ─────────────────────────────── */
@@ -25,9 +25,9 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: var(--app-space-5);
   flex-wrap: wrap;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--app-space-2);
 }
 
 .heading {
@@ -37,12 +37,12 @@
   line-height: 1.15;
   letter-spacing: -0.02em;
   color: var(--app-ink);
-  margin: 0 0 0.5rem;
+  margin: 0 0 var(--app-space-2);
 }
 
 .sub {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   line-height: 1.55;
   color: var(--app-ink-secondary);
   margin: 0;
@@ -53,7 +53,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0.3rem;
+  gap: var(--app-space-1);
   text-align: right;
   flex-shrink: 0;
 }
@@ -69,7 +69,7 @@
 
 .seatLabel {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: var(--app-text-2xs);
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -80,30 +80,30 @@
 
 .card {
   composes: seatedPanel from '../../components/instrument.module.css';
-  padding: 1.5rem;
+  padding: var(--app-space-5);
 }
 
 @media (min-width: 768px) {
   .card {
-    padding: 1.6rem 1.75rem;
+    padding: var(--app-space-5) var(--app-space-6);
   }
 }
 
 .cardTitle {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 1.0625rem;
+  font-size: var(--app-text-md);
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--app-ink);
-  margin: 0 0 0.4rem;
+  margin: 0 0 var(--app-space-2);
 }
 
 .cardLead {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   line-height: 1.55;
   color: var(--app-ink-secondary);
-  margin: 0 0 1.1rem;
+  margin: 0 0 var(--app-space-4);
   max-width: 60ch;
 }
 
@@ -112,12 +112,12 @@
 .inviteForm {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: var(--app-space-2);
 }
 
 .inviteField {
   display: flex;
-  gap: 0.6rem;
+  gap: var(--app-space-2);
   flex-wrap: wrap;
 }
 
@@ -125,7 +125,7 @@
   flex: 1;
   min-width: 220px;
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   color: var(--app-ink);
   background-color: var(--app-surface-sunken);
   border: 1px solid var(--app-border);
@@ -175,12 +175,12 @@
 }
 
 .primaryBtn {
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   padding: 10px 20px;
 }
 
 .primaryBtnSm {
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   padding: 8px 14px;
 }
 
@@ -196,7 +196,7 @@
 
 .ghostBtn {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 500;
   color: var(--app-ink);
   background-color: transparent;
@@ -231,7 +231,7 @@
 /* Destructive action: the dark-tuned danger read, outline weight. */
 .dangerBtn {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 500;
   color: var(--app-danger);
   background-color: transparent;
@@ -289,8 +289,8 @@
 .row {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.9rem 0;
+  gap: var(--app-space-4);
+  padding: var(--app-space-4) 0;
   border-top: 1px solid var(--app-hairline);
   flex-wrap: wrap;
 }
@@ -314,26 +314,26 @@
 
 .rowName {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
+  font-size: var(--app-text-base);
   font-weight: 600;
   letter-spacing: -0.005em;
   color: var(--app-ink);
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--app-space-2);
 }
 
 /* Emails and dates: the data voice. */
 .rowMeta {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.75rem;
+  font-size: var(--app-text-xs);
   letter-spacing: 0.01em;
   color: var(--app-ink-secondary);
 }
 
 .youTag {
   font-family: var(--app-font-mono), monospace;
-  font-size: 0.625rem;
+  font-size: var(--app-text-3xs);
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -347,14 +347,14 @@
 .rowTags {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: var(--app-space-2);
   flex-shrink: 0;
 }
 
 .rowActions {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--app-space-2);
   flex-shrink: 0;
   flex-wrap: wrap;
 }
@@ -364,17 +364,10 @@
 /* Monochrome by intensity, matching the hub's status chips:
    Admin brightest, Member quieter, waiting states muted. */
 .pill {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--app-font-mono), monospace;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 3px 10px;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  white-space: nowrap;
+  /* Exactly the neutral chip: all eleven declarations were carried here
+     byte for byte before the primitive existed. Composing renders the
+     same pixels and leaves the recipe in one place. */
+  composes: neutralChip from '../../components/instrument.module.css';
 }
 
 .pillAdmin {
@@ -405,7 +398,7 @@
 
 .error {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 500;
   line-height: 1.5;
   color: var(--app-danger);
@@ -414,7 +407,7 @@
 
 .notice {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   font-weight: 500;
   line-height: 1.5;
   color: var(--app-success);
@@ -423,10 +416,10 @@
 
 .inlineNote {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.8125rem;
+  font-size: var(--app-text-sm);
   line-height: 1.5;
   color: var(--app-ink-secondary);
-  margin: 0.6rem 0 0;
+  margin: var(--app-space-2) 0 0;
 }
 
 /* ── Utility ────────────────────────────── */

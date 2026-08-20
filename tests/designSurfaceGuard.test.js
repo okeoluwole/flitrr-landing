@@ -92,6 +92,11 @@ const CONVERTED = [
   // grid onto the content, dropped the sub line, and made the seated panel
   // the target it had been advertising itself as.
   'app/dashboard/page.module.css',
+  // The last one. The team and access engine: invites, seat count, role
+  // chips, deactivation. Its type was mechanical like the launcher's, and
+  // its .pill turned out to be the neutral chip rebuilt by hand, all
+  // eleven declarations, so it composes the primitive now instead.
+  'app/dashboard/team/page.module.css',
 ];
 
 function read(rel) {
@@ -337,6 +342,12 @@ describe('CONVERTED covers every authenticated module, computed not remembered',
    * missing from it. They are in Note 15's remit, on --app-*, behind auth,
    * and simply never put through a sub-step.
    *
+   * THE LIST IS NOW EMPTY. The launcher and the team engine were the last
+   * two entries and both have since been converted, so every module under
+   * the trees is either CONVERTED or EXCLUDED. The machinery stays: it is
+   * how the next surface that lands half-converted gets stated instead of
+   * hidden, and an empty map is a stronger claim than a missing one.
+   *
    * So they are stated instead, with the work each still needs. This turns
    * an invisible hole into a recorded one, which is the whole discipline
    * designSemantics' STATED_HOLES embodies: the hole is not the failure,
@@ -348,12 +359,6 @@ describe('CONVERTED covers every authenticated module, computed not remembered',
    * left here out of habit.
    */
   const UNCONVERTED = new Map([
-    [
-      'app/dashboard/team/page.module.css',
-      {
-        why: 'The team and access engine: invites, seat count, role chips, deactivation. Same shape as the launcher and further from the language. All 7 distinct sizes across its 16 font-size declarations are exact scale steps written as literals (base, 2xs, md, control, sm, xs, 3xs), so the type is mechanical here too. Its 18 spacing declarations include 1.25rem, 0.3rem, 1.6rem, 1.75rem, 1.1rem, 0.9rem, 0.4rem and 0.6rem, none of them rhythm steps. It also hand-builds both primitives this session extracted, so converting it wants doing after that landing, not before.',
-      },
-    ],
   ]);
 
   function modulesUnder(dir) {
