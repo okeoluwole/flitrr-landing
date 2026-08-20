@@ -655,9 +655,16 @@ const withProject = { searchParams: { project: PROJECT_ID } };
  *   app/auth/callback/route.js
  *     Route handlers, not pages: they export GET/POST functions, not a
  *     rendered component, so there is no render path to smoke.
- *   app/layout.js, app/pulse/layout.js, app/stack/layout.js
- *     Layouts, not routes: the root layout also loads next/font, which only
- *     resolves inside the Next build, and none of them renders on its own.
+ *   app/layout.js, app/pulse/layout.js, app/stack/layout.js,
+ *   app/dashboard/layout.js, app/pulse/app/layout.js,
+ *   app/stack/app/layout.js
+ *     Layouts, not routes: none of them renders on its own, and the root
+ *     layout plus the three product layouts load next/font, which only
+ *     resolves inside the Next build. That exclusion is what the product
+ *     layouts are FOR: Geist hangs on them, not on DashboardShell, precisely
+ *     so the next/font import stays out of every page module this suite
+ *     imports. Putting a next/font call anywhere a page reaches would break
+ *     every product route here at import time.
  */
 const ROUTES = [
   {

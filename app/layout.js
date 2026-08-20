@@ -1,6 +1,4 @@
 import { Bricolage_Grotesque, Inter, Archivo } from 'next/font/google';
-import { GeistSans } from 'geist/font/sans';
-import { GeistMono } from 'geist/font/mono';
 import './globals.css';
 
 // Display face for headings and the brief. Prototyping a swap away from
@@ -37,13 +35,13 @@ const archivo = Archivo({
   display: 'swap',
 });
 
-// Geist + Geist Mono are the Instrument faces for the authenticated PULSE app:
-// Geist carries the voice, Geist Mono the numeric instrument voice (money,
-// dates, stage numerals, criticality scores). Bundled locally via the geist
-// package (Next 14.2's Google font data predates Geist). Their .variable
-// classes expose --font-geist-sans / --font-geist-mono, consumed only through
-// the --app-font-* tokens in globals.css, so marketing type is untouched. The
-// Brief document face is Georgia via --doc-font-serif (zero-install).
+// The three faces above are the marketing faces, and they are the only ones
+// this layout loads: every route on the site gets them. The Instrument faces
+// for the authenticated product (Geist and Geist Mono) used to hang here too,
+// which meant the landing pages paid to download a product typeface they never
+// set a single character in. They now load from app/appFonts.js, applied by
+// the /dashboard, /pulse/app and /stack/app layouts. The Brief document face
+// is Georgia via --doc-font-serif (zero-install).
 
 const SITE_TITLE = 'Flitrr. One platform for property development';
 const SITE_DESCRIPTION =
@@ -98,7 +96,7 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${display.variable} ${inter.variable} ${archivo.variable} ${GeistSans.variable} ${GeistMono.variable}`}
+      className={`${display.variable} ${inter.variable} ${archivo.variable}`}
     >
       <body>
         <script
