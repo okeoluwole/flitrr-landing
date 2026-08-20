@@ -4,10 +4,17 @@
    panels on the graphite ground, Geist voice,
    structural white primary. Uses
    DashboardShell as the chrome.
+
+   Converted onto the type scale and the space
+   rhythm by the launcher audit. The type half
+   was mechanical (every literal was already an
+   exact token). The space half moved geometry
+   and was taken deliberately, alongside the
+   grid and hierarchy fixes below.
 ───────────────────────────────────────── */
 
 .page {
-  padding-block: 2.75rem 6rem;
+  padding-block: var(--app-space-7) var(--app-space-8);
 }
 
 .heading {
@@ -17,47 +24,36 @@
   line-height: 1.15;
   letter-spacing: -0.02em;
   color: var(--app-ink);
-  margin-bottom: 0.6rem;
-}
-
-.sub {
-  font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.9375rem;
-  font-weight: 400;
-  line-height: 1.55;
-  color: var(--app-ink-secondary);
-  margin-bottom: 2.25rem;
-  max-width: 56ch;
+  /* The whole gap to the grid. The sub line that used to sit between them
+     described the interface rather than telling the reader anything the
+     cards do not already say, so it is gone and its spacing came here. */
+  margin: 0 0 var(--app-space-6);
 }
 
 /* ── Product grid ──────────────────────── */
 
+/* The track count follows the content instead of guessing at it. The old
+   rule declared three columns above 1080px against an account that holds
+   two products, leaving a third of the decision row as an empty track that
+   read as a card which had failed to load. auto-fit collapses the empty
+   track, so two products give two wide cards and three give three, with no
+   breakpoint to keep in step with the product count. */
 .grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-
-@media (min-width: 720px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1080px) {
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: var(--app-space-4);
 }
 
 /* ── Product panel ─────────────────────── */
 
 .card {
   composes: seatedPanel from '../components/instrument.module.css';
-  padding: 1.5rem;
+  /* Containing block for the stretched link below. */
+  position: relative;
+  padding: var(--app-space-5);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--app-space-3);
   transition: border-color var(--dur-base) var(--ease-out);
 }
 
@@ -67,9 +63,15 @@
   }
 }
 
+/* The panel advertises itself as the target, so it has to answer the
+   keyboard the same way it answers the pointer. */
+.card:focus-within {
+  border-color: var(--app-border-strong);
+}
+
 .cardName {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 1.1875rem;
+  font-size: var(--app-text-ml);
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: -0.01em;
@@ -79,29 +81,60 @@
 
 .cardBody {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 400;
   line-height: 1.55;
   color: var(--app-ink-secondary);
   margin: 0;
+}
+
+/* Live state: the numeric instrument voice, same composition as the stage
+   line in PageHeader. Carries the flex growth so the action stays seated at
+   the foot of the panel whatever the description wraps to. Absent, never
+   zero: the launcher speaks only when it has something to report. */
+.cardState {
+  font-family: var(--app-font-mono), monospace;
+  font-size: var(--app-text-xs);
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  color: var(--app-ink-secondary);
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+  flex: 1;
+}
+
+/* When a product reports nothing, the description takes the growth instead,
+   so a card with no state line keeps the same shape as one with it. */
+.cardBodyGrow {
   flex: 1;
 }
 
 .cardCta {
   display: inline-block;
-  margin-top: 0.35rem;
+  margin-top: var(--app-space-1);
   align-self: flex-start;
   background-color: var(--app-primary);
   color: var(--app-primary-ink);
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 600;
   letter-spacing: -0.005em;
-  padding: 10px 16px;
+  padding: var(--app-space-3) var(--app-space-4);
   border: none;
   border-radius: var(--app-radius-sm);
   text-decoration: none;
   transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+/* The panel is the target, not just the button inside it. The overlay keeps
+   one tab stop and one accessible name while giving the pointer the whole
+   seated panel to aim at, which is what the hover border has been promising
+   all along. */
+.cardCta::after {
+  content: '';
+  position: absolute;
+  inset: 0;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -125,12 +158,14 @@
   transform: scale(0.98);
 }
 
+/* A planned product has no destination, so it gets no stretched overlay:
+   an unavailable card must not behave like a target. */
 .cardCtaMuted {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 500;
   color: var(--app-ink-secondary);
-  margin-top: 0.35rem;
+  margin-top: var(--app-space-1);
   align-self: flex-start;
 }
 
@@ -138,7 +173,7 @@
 
 .empty {
   composes: seatedPanel from '../components/instrument.module.css';
-  padding: 2.5rem;
+  padding: var(--app-space-6);
   text-align: center;
   max-width: 480px;
   margin-inline: auto;
@@ -146,16 +181,16 @@
 
 .emptyHeading {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 1.1875rem;
+  font-size: var(--app-text-ml);
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--app-ink);
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--app-space-2);
 }
 
 .emptyBody {
   font-family: var(--app-font-sans), sans-serif;
-  font-size: 0.875rem;
+  font-size: var(--app-text-control);
   font-weight: 400;
   line-height: 1.55;
   color: var(--app-ink-secondary);

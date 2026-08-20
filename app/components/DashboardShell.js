@@ -67,6 +67,14 @@ export default function DashboardShell({ user, isAdmin = false, children }) {
 
   return (
     <div className={styles.shell}>
+      {/* Every authenticated surface already carried id="main-content" as a
+          skip target; the link that was meant to point at it was never
+          built, so a keyboard reader passed the wordmark and this menu on
+          every page load. One anchor here answers all of them. */}
+      <a href="#main-content" className={styles.skipLink}>
+        Skip to content
+      </a>
+
       <header className={styles.topBar} role="banner">
         <div className={`container ${styles.topBarInner}`}>
           {/* Flitrr wears the marketing amber dot. The pulse-line glyph

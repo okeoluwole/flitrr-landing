@@ -226,3 +226,44 @@
     min-height: 0 !important;
   }
 }
+
+/* ── Skip link ─────────────────────────────
+   Clipped until focused, then seated over the
+   sticky bar (which sits at z-index 50) rather
+   than displacing it: position: fixed on focus
+   means the page never reflows when a keyboard
+   reader tabs in. Wears the structural white
+   primary, the same as any other product action.
+──────────────────────────────────────────── */
+
+.skipLink {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skipLink:focus {
+  position: fixed;
+  top: var(--app-space-3);
+  left: var(--app-space-3);
+  z-index: 100;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+  padding: var(--app-space-3) var(--app-space-4);
+  background-color: var(--app-primary);
+  color: var(--app-primary-ink);
+  font-family: var(--app-font-sans), sans-serif;
+  font-size: var(--app-text-control);
+  font-weight: 600;
+  border-radius: var(--app-radius-sm);
+  text-decoration: none;
+  outline: 2px solid var(--app-focus);
+  outline-offset: 3px;
+}

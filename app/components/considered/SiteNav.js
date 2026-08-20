@@ -40,6 +40,14 @@ export default function SiteNav({ user = null, current = null, product = null })
   };
 
   return (
+    <>
+      {/* First focusable element in the document, so a keyboard reader can
+          pass the brand, the Products disclosure and the auth action in one
+          keystroke. The marketing mains already carried id="main-content". */}
+      <a href="#main-content" className={styles.skipLink}>
+        Skip to content
+      </a>
+
     <nav className={styles.nav} aria-label="Primary">
       <Link href="/" className={styles.brand} aria-label="Flitrr home">
         {product ? (
@@ -104,5 +112,6 @@ export default function SiteNav({ user = null, current = null, product = null })
         )}
       </div>
     </nav>
+    </>
   );
 }

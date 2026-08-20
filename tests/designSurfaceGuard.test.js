@@ -85,6 +85,13 @@ const CONVERTED = [
   // whole: shared chrome, the app faces, the --app-space rhythm, composed
   // panels, and the verdict on stackVerdictAppearance.
   'app/stack/app/stack.module.css',
+  // The launcher audit: /dashboard, the product launcher every signed-in
+  // reader lands on. Its type half was mechanical, every literal already an
+  // exact token. Its space half moved geometry, which is why it waited for
+  // a sub-step that could look at the result: this one also rebuilt the
+  // grid onto the content, dropped the sub line, and made the seated panel
+  // the target it had been advertising itself as.
+  'app/dashboard/page.module.css',
 ];
 
 function read(rel) {
@@ -341,12 +348,6 @@ describe('CONVERTED covers every authenticated module, computed not remembered',
    * left here out of habit.
    */
   const UNCONVERTED = new Map([
-    [
-      'app/dashboard/page.module.css',
-      {
-        why: 'The product launcher every signed-in reader lands on. On the colour tokens, never on the type scale or the space rhythm: 7 font-size declarations write 0.9375rem, 1.1875rem and 0.875rem as literals, and all three ARE --app-text-base, -ml and -control exactly, so that half is mechanical and moves nothing rendered. The 10 spacing declarations are not: 2.75rem, 6rem, 0.6rem, 2.25rem, 0.35rem and 2.5rem are on no rhythm step, so snapping them MOVES geometry. That is a decision about this surface, not a refactor, and it belongs to a sub-step that can look at the result.',
-      },
-    ],
     [
       'app/dashboard/team/page.module.css',
       {
