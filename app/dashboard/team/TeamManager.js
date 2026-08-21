@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/client';
 import { seatAvailability, canInvite, canReactivate } from '../../../lib/team/seats.js';
@@ -55,6 +55,10 @@ export default function TeamManager({
   const [inviteNotice, setInviteNotice] = useState(null);
   const [busyKey, setBusyKey] = useState(null);
   const [actionError, setActionError] = useState(null);
+  // Which row is asking "are you sure". One at a time: opening a second
+  // confirm closes the first, because two open questions on one roster is
+  // a way to answer the wrong one.
+  const [confirmKey, setConfirmKey] = useState(null);
 
   const activeMembers = members.filter((m) => m.deactivated_at === null).length;
   const pendingCount = pending.length;
@@ -80,6 +84,17 @@ export default function TeamManager({
     role: m.role,
     active: m.deactivated_at === null,
   }));
+
+  // Escape backs out of a pending confirm, the one affordance a native
+  // dialog gave us for free and the only one worth keeping from it.
+  useEffect(() => {
+    if (!confirmKey) return undefined;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setConfirmKey(null);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [confirmKey]);
 
   async function handleInvite(e) {
     e.preventDefault();
@@ -155,16 +170,26 @@ export default function TeamManager({
     }
   }
 
-  function handleDeactivate(m) {
+  /* Deactivation asks twice, in the row, in the product's own language.
+
+     It used to ask through window.confirm: a system dialog in the operating
+     system's chrome and typeface, opening on a surface tuned down to the
+     hairline, carrying thirty five words nobody reads twice. The caution was
+     right and the delivery was not. The explanation now lives in the panel
+     lead where it is read once, and the second press happens where the first
+     one did. */
+  function requestDeactivate(m) {
     const gate = canDeactivate({ members: guardMembers, targetUserId: m.user_id });
     if (!gate.allowed) {
       setActionError(gate.reason);
       return;
     }
-    const ok = window.confirm(
-      `Deactivate ${memberName(m)}? They keep their account and everything they have authored stays in place, but they lose access and free their seat. You can reactivate them later.`
-    );
-    if (!ok) return;
+    setActionError(null);
+    setConfirmKey(`deactivate-${m.user_id}`);
+  }
+
+  function confirmDeactivate(m) {
+    setConfirmKey(null);
     runRpc('deactivate_member', m.user_id, `deactivate-${m.user_id}`);
   }
 
@@ -284,6 +309,11 @@ export default function TeamManager({
         <h2 id="members-h" className={styles.cardTitle}>
           Members
         </h2>
+        <p className={styles.cardLead}>
+          Deactivating someone keeps their account and everything they have
+          authored. They lose access and free their seat, and you can
+          reactivate them later.
+        </p>
         <ul className={styles.list}>
           {members.map((m) => {
             const isYou = m.user_id === currentUserId;
@@ -306,6 +336,20 @@ export default function TeamManager({
               busyKey === demoteKey ||
               busyKey === deactivateKey ||
               busyKey === reactivateKey;
+            const confirming = confirmKey === deactivateKey;
+            // Why this row's actions are refused, deduped. The last-admin rule
+            // blocks demote and deactivate with the same sentence, and printing
+            // it twice would read as two separate problems.
+            const blockedReasons = [
+              ...new Set(
+                [
+                  active && isAdmin ? demoteGate : null,
+                  active ? deactivateGate : null,
+                ]
+                  .filter((g) => g && !g.allowed && g.reason)
+                  .map((g) => g.reason)
+              ),
+            ];
 
             return (
               <li
@@ -335,43 +379,72 @@ export default function TeamManager({
                 </div>
                 <div className={styles.rowActions}>
                   {active ? (
-                    <>
-                      {isAdmin ? (
+                    confirming ? (
+                      /* Confirm first, Cancel second, and that order is load
+                         bearing. React reconciles these two buttons against
+                         the two they replace by position, so the node that
+                         held focus (Deactivate, second) becomes Cancel rather
+                         than Confirm. Focus stays in the row and lands on the
+                         safe option, and a double click on Deactivate hits
+                         Cancel instead of confirming. Reordering these two
+                         silently reverses both of those. */
+                      <>
                         <button
                           type="button"
-                          className={styles.ghostBtn}
-                          onClick={() =>
-                            runRpc('demote_member', m.user_id, demoteKey)
-                          }
-                          disabled={rowBusy || !demoteGate.allowed}
-                          title={!demoteGate.allowed ? demoteGate.reason : undefined}
-                        >
-                          {busyKey === demoteKey ? 'Working…' : 'Make member'}
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          className={styles.ghostBtn}
-                          onClick={() =>
-                            runRpc('promote_member', m.user_id, promoteKey)
-                          }
+                          className={styles.dangerBtn}
+                          onClick={() => confirmDeactivate(m)}
                           disabled={rowBusy}
                         >
-                          {busyKey === promoteKey ? 'Working…' : 'Make admin'}
+                          {busyKey === deactivateKey ? 'Working…' : 'Confirm'}
                         </button>
-                      )}
-                      <button
-                        type="button"
-                        className={styles.dangerBtn}
-                        onClick={() => handleDeactivate(m)}
-                        disabled={rowBusy || !deactivateGate.allowed}
-                        title={
-                          !deactivateGate.allowed ? deactivateGate.reason : undefined
-                        }
-                      >
-                        {busyKey === deactivateKey ? 'Working…' : 'Deactivate'}
-                      </button>
-                    </>
+                        <button
+                          type="button"
+                          className={styles.ghostBtn}
+                          onClick={() => setConfirmKey(null)}
+                          disabled={rowBusy}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        {isAdmin ? (
+                          <button
+                            type="button"
+                            className={styles.ghostBtn}
+                            onClick={() =>
+                              runRpc('demote_member', m.user_id, demoteKey)
+                            }
+                            disabled={rowBusy || !demoteGate.allowed}
+                            title={!demoteGate.allowed ? demoteGate.reason : undefined}
+                          >
+                            {busyKey === demoteKey ? 'Working…' : 'Make member'}
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className={styles.ghostBtn}
+                            onClick={() =>
+                              runRpc('promote_member', m.user_id, promoteKey)
+                            }
+                            disabled={rowBusy}
+                          >
+                            {busyKey === promoteKey ? 'Working…' : 'Make admin'}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className={styles.dangerBtn}
+                          onClick={() => requestDeactivate(m)}
+                          disabled={rowBusy || !deactivateGate.allowed}
+                          title={
+                            !deactivateGate.allowed ? deactivateGate.reason : undefined
+                          }
+                        >
+                          {busyKey === deactivateKey ? 'Working…' : 'Deactivate'}
+                        </button>
+                      </>
+                    )
                   ) : (
                     <button
                       type="button"
@@ -388,6 +461,11 @@ export default function TeamManager({
                     </button>
                   )}
                 </div>
+                {blockedReasons.map((reason) => (
+                  <p key={reason} className={styles.rowNote}>
+                    {reason}
+                  </p>
+                ))}
               </li>
             );
           })}

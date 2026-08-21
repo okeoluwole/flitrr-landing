@@ -422,6 +422,23 @@
   margin: var(--app-space-2) 0 0;
 }
 
+/* The guard's reason, in the row that earned it.
+
+   A disabled button is not in the tab order and browsers do not reliably fire
+   hover on one, so a title attribute cannot be the only carrier of why an
+   action is refused. This is the same treatment .inlineNote already gives the
+   invite gate and the reactivate gate; the row actions were the one place
+   that computed a reason and then had nowhere to put it.
+
+   flex-basis takes it onto its own line under the row's three columns, so it
+   reads as a note about the row rather than a fourth column of it. Defined
+   after .inlineNote so its margin reset wins at equal specificity. */
+.rowNote {
+  composes: inlineNote;
+  flex-basis: 100%;
+  margin: 0;
+}
+
 /* ── Utility ────────────────────────────── */
 
 .srOnly {
